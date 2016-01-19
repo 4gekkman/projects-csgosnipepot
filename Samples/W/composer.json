@@ -1,0 +1,19 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/w1",
+		"description": "W1 - Виджет",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/w1"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {"W1\\": ""}
+    }
+}
