@@ -7,15 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Delete console command from M-package
+ *    - Create new release of specified package
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        packid        // ID M-пакета, из которого удалить команду
- *        command2del   // ID к.команды, которую надо удалить
+ *        packid      // ID пакета, для которого надо создать новый релиз
+ *        type        // patch / minor / major - тип нового релиза
+ *        version     // Значение для версии нового релиза
  *      ]
  *    ]
  *
@@ -102,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C32_release extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,105 +137,126 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
     /**
      * Оглавление
      *
-     *  1. Получить входящие параметры
-     *  2. Проверить существование M-пакета $packid
-     *  3. Проверить существование к.команды $command2del в пакете $mpack
-     *  4. Удалить файл команды
-     *  5. Удалить запись об удалённой к.команде из сервис-провайдера пакета $packid
-     *  6. Вернуть результаты
+     *
+     *
      *
      */
 
-    //---------------------------------------------------//
-    // Удалить консольную команду из указанного M-пакета //
-    //---------------------------------------------------//
+    //---------------------------------------//
+    // Создать новый релиз указанного пакета //
+    //---------------------------------------//
     $res = call_user_func(function() { try {
 
       // 1. Получить входящие параметры
-      $packid = $this->data['packid'];
-      $command2del = $this->data['command2del'];
+      $packid     = $this->data['packid'];
+      $type       = $this->data['type'];
+      $version    = $this->data['version'];
 
-      // 2. Проверить существование M-пакета $packid
+      // 2. Проверить правильность формата версии
+      if($version != 0) {
+        if(!preg_match("/^[0-9]+\.[0-9]+\.[0-9]+$/ui", $version))
+          throw new \Exception("Версия '$version' is not valid (must match \"/^[0-9]+\.[0-9]+\.[0-9]+\.$/ui\")");
+      }
+
+      // 3. Проверить существование пакета $packid
       $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
       if(empty($pack))
-        throw new \Exception("Package $packid does not exist.");
+        throw new \Exception("Package $pack does not exist.");
 
-      // 3. Проверить существование к.команды $command2del в пакете $pack
-      $command = \M1\Models\MD6_console::whereHas('package', function($query) USE ($packid) {
-        $query->where('id_inner','=',$packid);
-      })->where('id_inner','=',$command2del)->first();
-      if(empty($command))
-        throw new \Exception("Console command ".$command2del." in package $packid does not exist.");
+      // 4. Сформировать новое значение версии, в зависимости от $type
 
-      // 4. Удалить файл команды
-      config(['filesystems.default' => 'local']);
-      config(['filesystems.disks.local.root' => base_path()]);
-      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-      $this->storage->delete('vendor/4gekkman/'.$packid.'/Console/'.$command->name.'.php');
+        // 4.1. Подготовить переменную для нового значения
+        if($version == 0) $newversion = $pack->lastversion;
+        else              $newversion = $version;
 
-      // 5. Удалить запись об удалённой к.команде из сервис-провайдера пакета $packid
+        // 4.2. Если $type == 'patch'
+        if($type == 'patch') {
 
-        // 5.1. Получить содержимое сервис-провайдера M-пакета $packid
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $sp = $this->storage->get('ServiceProvider.php');
+          // 1] Получить все части версии в виде чисел
+          $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
+          $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
+          $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
 
-        // 5.2. Получить содержимое массива $commands из $sp в виде массива
-        preg_match("/commands *= *\[.*\]/smuiU", $sp, $commands);
-        $commands = preg_replace("/commands *= */smuiU", '', $commands);
-        $commands = preg_replace("/['\n\r\s\[\]]/smuiU", '', $commands);
-        $commands = explode(',', $commands[0]);
-        $commands = array_values(array_filter($commands, function($item){
-          return !empty($item);
-        }));
+          // 2] Прибавить +1 к $part3
+          $part3 = +$part3 + 1;
 
-        // 5.3. Удалить из $commands запись, содержащую $command->name
-        $commands = array_values(array_filter($commands, function($item) USE ($command) {
-          return !preg_match("/".$command->name."/ui", $item);
-        }));
+          // 3] Сформировать $newversion
+          $newversion = $part1 . '.' . $part2 . '.' . $part3;
 
-        // 5.4. Сформировать строку в формате массива из $commands
+        }
 
-          // 1] Подготовить строку для результата
-          $commands_result = "[" . PHP_EOL;
+        // 4.3. Если $type == 'minor'
+        if($type == 'minor') {
 
-          // 2] Вставить в $commands_result все значения из $commands
-          for($i=0; $i<count($commands); $i++) {
-            if($i != count($commands)-1 )
-              $commands_result = $commands_result . "          '" . $commands[$i] . "'," . PHP_EOL;
-            else
-              $commands_result = $commands_result . "          '" . $commands[$i] . "'" . PHP_EOL;
-          }
+          // 1] Получить все части версии в виде чисел
+          $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
+          $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
+          $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
 
-          // 3] Завершить квадратной скобкой c запятой
-          $commands_result = $commands_result . "        ]";
+          // 2] Прибавить +1 к $part2
+          $part2 = +$part2 + 1;
 
-        // 5.5. Вставить $commands_result в $sp
-        $sp = preg_replace("/commands *= *\[.*\]/smuiU", 'commands = '.$commands_result, $sp);
+          // 3] Сформировать $newversion
+          $newversion = $part1 . '.' . $part2 . '.' . $part3;
 
-        // 5.6. Заменить $sp
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('ServiceProvider.php', $sp);
+        }
 
-      // 6. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "ccomfullname" => $command->name,
-          "package"      => $pack->id_inner
-        ]
-      ];
+        // 4.4. Если $type == 'major'
+        if($type == 'major') {
+
+          // 1] Получить все части версии в виде чисел
+          $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
+          $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
+          $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
+
+          // 2] Прибавить +1 к $part1
+          $part1 = +$part1 + 1;
+
+          // 3] Сформировать $newversion
+          $newversion = $part1 . '.' . $part2 . '.' . $part3;
+
+        }
+
+      // 5. Извлечь из конфига M1 аутентиф.токен для github
+      $oauth2 = config('M1.github_oauth2');
+
+      // 6. Добавить в extra -> version в composer.json новую версию
+
+//        // 6.1. Получить содержимое composer.json пакета $pack
+//        config(['filesystems.default' => 'local']);
+//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$pack->id_inner)]);
+//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+//        $composer = $this->storage->get('composer.json');
+//
+//        // 6.2. Вставить $newversion в $composer
+//        $composer = preg_replace("/\"version\" *: *\".*\"/smuiU", '"version": "'.$newversion.'"', $composer);
+//
+//        // 6.3. Заменить $composer
+//        $this->storage->put('composer.json', $composer);
+
+      // 7.
+      $x = exec("curl https://api.github.com/?access_token=$oauth2", $output);
+
+    Log::info($output);
+
+
 
     } catch(\Exception $e) {
-        $errortext = "Deleting of console command from M-package have ended with error: ".$e->getMessage();
+        $errortext = "Creating of command for M-package have ended with error: ".$e->getMessage();
         return [
           "status"  => -2,
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
+
+
+    //---------------------//
+    // N. Вернуть статус 0 //
+    //---------------------//
+    return [
+      "status"  => 0,
+      "data"    => ""
+    ];
 
   }
 

@@ -92,7 +92,8 @@
           '\M1\Console\T6_afterupdate',
           '\M1\Console\T7_new',
           '\M1\Console\T8_afternew',
-          '\M1\Console\T9_del'
+          '\M1\Console\T9_del',
+          '\M1\Console\T10_release'
         ];
 
         // Регистрация команд в методе register
