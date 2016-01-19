@@ -194,7 +194,7 @@ class T10_release extends Command
     }
 
     // 4. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+    $this->info("New version of the package ".$params['packid']." successfully created: ".$result['data']['newversion']);
 
   }
 

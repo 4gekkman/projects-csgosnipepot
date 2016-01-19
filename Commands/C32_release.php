@@ -163,83 +163,119 @@ class C32_release extends Job { // TODO: добавить "implements ShouldQueu
       if(empty($pack))
         throw new \Exception("Package $pack does not exist.");
 
-      // 4. Сформировать новое значение версии, в зависимости от $type
-
-        // 4.1. Подготовить переменную для нового значения
-        if($version == 0) $newversion = $pack->lastversion;
-        else              $newversion = $version;
-
-        // 4.2. Если $type == 'patch'
-        if($type == 'patch') {
-
-          // 1] Получить все части версии в виде чисел
-          $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
-          $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
-          $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
-
-          // 2] Прибавить +1 к $part3
-          $part3 = +$part3 + 1;
-
-          // 3] Сформировать $newversion
-          $newversion = $part1 . '.' . $part2 . '.' . $part3;
-
-        }
-
-        // 4.3. Если $type == 'minor'
-        if($type == 'minor') {
-
-          // 1] Получить все части версии в виде чисел
-          $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
-          $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
-          $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
-
-          // 2] Прибавить +1 к $part2
-          $part2 = +$part2 + 1;
-
-          // 3] Сформировать $newversion
-          $newversion = $part1 . '.' . $part2 . '.' . $part3;
-
-        }
-
-        // 4.4. Если $type == 'major'
-        if($type == 'major') {
-
-          // 1] Получить все части версии в виде чисел
-          $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
-          $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
-          $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
-
-          // 2] Прибавить +1 к $part1
-          $part1 = +$part1 + 1;
-
-          // 3] Сформировать $newversion
-          $newversion = $part1 . '.' . $part2 . '.' . $part3;
-
-        }
-
-      // 5. Извлечь из конфига M1 аутентиф.токен для github
+      // 4. Извлечь из конфига M1 аутентиф.токен для github
       $oauth2 = config('M1.github_oauth2');
+      if(empty($oauth2))
+        throw new \Exception("There is no oauth2 token in config/m1.php");
+
+      // 5. Определить версию нового релиза
+
+        // 5.1. Если версия релиза задана пользователем
+        if($version != 0) $newversion = $version;
+
+        // 5.2. Если пользователь не задал версию релиза
+        else {
+
+          // 5.1.1. Получить список релизов
+          $command = <<<HD
+          curl -H 'Authorization: token $oauth2' \
+          https://api.github.com/repos/4gekkman/$packid/releases
+HD;
+          exec($command, $output);
+          $releases = json_decode(implode('',$output), true);
+          Log::info($releases);
+
+          // 5.1.2. Если $releases пуст, новый релиз 1.0.0
+          if(empty($releases)) $newversion = "1.0.0";
+
+          // 5.1.3. Если не пуст
+          else {
+
+            // 1] Извлечь версию последнего релиза
+            $newversion = $releases[0]['tag_name'];
+
+            // 2] Сформировать новое значение версии, в зависимости от $type
+
+              // 2.1] Если $type == 'patch'
+              if($type == 'patch') {
+
+                // 2.1.1] Получить все части версии в виде чисел
+                $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
+                $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
+                $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
+
+                // 2.1.2] Прибавить +1 к $part3
+                $part3 = +$part3 + 1;
+
+                // 2.1.3] Сформировать $newversion
+                $newversion = $part1 . '.' . $part2 . '.' . $part3;
+
+              }
+
+              // 2.2] Если $type == 'minor'
+              if($type == 'minor') {
+
+                // 2.2.1] Получить все части версии в виде чисел
+                $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
+                $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
+                $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
+
+                // 2.2.2] Прибавить +1 к $part2
+                $part2 = +$part2 + 1;
+
+                // 2.2.3] Сформировать $newversion
+                $newversion = $part1 . '.' . $part2 . '.' . '0';
+
+              }
+
+              // 2.3] Если $type == 'major'
+              if($type == 'major') {
+
+                // 2.3.1] Получить все части версии в виде чисел
+                $part1 = preg_replace("/\.[0-9]+\.[0-9]+$/ui",'',$newversion);
+                $part2 = preg_replace("/\.[0-9]+$/ui",'',preg_replace("/^[0-9]+\./ui",'',$newversion));
+                $part3 = preg_replace("/^[0-9]+\.[0-9]+\./ui",'',$newversion);
+
+                // 2.3.1] Прибавить +1 к $part1
+                $part1 = +$part1 + 1;
+
+                // 2.3.1] Сформировать $newversion
+                $newversion = $part1 . '.' . '0' . '.' . '0';
+
+              }
+
+          }
+
+        }
 
       // 6. Добавить в extra -> version в composer.json новую версию
 
-//        // 6.1. Получить содержимое composer.json пакета $pack
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$pack->id_inner)]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//        $composer = $this->storage->get('composer.json');
-//
-//        // 6.2. Вставить $newversion в $composer
-//        $composer = preg_replace("/\"version\" *: *\".*\"/smuiU", '"version": "'.$newversion.'"', $composer);
-//
-//        // 6.3. Заменить $composer
-//        $this->storage->put('composer.json', $composer);
+        // 6.1. Получить содержимое composer.json пакета $pack
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$pack->id_inner)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $composer = $this->storage->get('composer.json');
 
-      // 7.
-      $x = exec("curl https://api.github.com/?access_token=$oauth2", $output);
+        // 6.2. Вставить $newversion в $composer
+        $composer = preg_replace("/\"version\" *: *\".*\"/smuiU", '"version": "'.$newversion.'"', $composer);
 
-    Log::info($output);
+        // 6.3. Заменить $composer
+        $this->storage->put('composer.json', $composer);
 
+      // 7. Создать новый релиз на GitHub
+      $command = "curl -i -H 'Authorization: token $oauth2' -d '{\"tag_name\": \"$newversion\",\"target_commitish\": \"master\",\"name\": \"$newversion\"}' https://api.github.com/repos/4gekkman/$packid/releases";
+      exec($command);
 
+      // 8. Обновить БД модуля M1
+      runcommand('\M1\Commands\C13_afternew');
+
+      // 9. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "newversion" => $newversion,
+        ]
+      ];
 
     } catch(\Exception $e) {
         $errortext = "Creating of command for M-package have ended with error: ".$e->getMessage();
@@ -248,15 +284,6 @@ class C32_release extends Job { // TODO: добавить "implements ShouldQueu
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
-
-
-    //---------------------//
-    // N. Вернуть статус 0 //
-    //---------------------//
-    return [
-      "status"  => 0,
-      "data"    => ""
-    ];
 
   }
 
