@@ -12,7 +12,7 @@ return [
     // 2] Имя и описание пакета     //
     //    Locale of package         //
     //------------------------------//
-    'aboutpack' => [
+    'aboutpack' => [                // {==fullreplace==}
       'RU' => [
         'name'        => 'Новый документ',
         'description' => 'New document',
@@ -32,7 +32,6 @@ return [
     //    - Convenient mode for development, but harmful for production.                    //
     //--------------------------------------------------------------------------------------//
     'development_mode' => true,
-
 
     //------------------------//
     // 4] GitHub OAuth2 Token //
