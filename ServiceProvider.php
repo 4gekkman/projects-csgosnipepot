@@ -93,7 +93,8 @@
           '\M1\Console\T7_new',
           '\M1\Console\T8_afternew',
           '\M1\Console\T9_del',
-          '\M1\Console\T10_release'
+          '\M1\Console\T10_release',
+          '\M1\Console\T11_mdlw_cfgs_update'
         ];
 
         // Регистрация команд в методе register

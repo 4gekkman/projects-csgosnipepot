@@ -170,19 +170,21 @@ class T7_new extends Command
 
       // 1.1. Подготовить таблицу кодов типов ресурсов
       $restypes = [
-        "m"     => "New M-package",
-        "mc"    => "New command for existing M-package",
-        "mt"    => "New console command for existing M-package",
-        "mh"    => "New event handler for existing M-package",
-        "mct"   => "New pair (command + console command) for existing M-package",
-        "mm"    => "New model for existing M-package",
+        "m"       => "New M-package",
+        "mc"      => "New command for existing M-package",
+        "mt"      => "New console command for existing M-package",
+        "mh"      => "New event handler for existing M-package",
+        "mct"     => "New pair (command + console command) for existing M-package",
+        "mm"      => "New model for existing M-package",
 
-        "d"     => "New D-package",
-        "w"     => "New W-package",
-        "l"     => "New L-package",
-        "r"     => "New R-package",
-        "p"     => "New P-package",
-        "k"     => "New K-package",
+        "d"       => "New D-package",
+        "w"       => "New W-package",
+        "l"       => "New L-package",
+        "r"       => "New R-package",
+        "p"       => "New P-package",
+        "k"       => "New K-package",
+
+        "mdlw_u"  => "New config update for M,D,L,W-package",
       ];
 
       // 1.2. Узнать у пользователя, ресурс какого типа он хочет создать
@@ -459,6 +461,13 @@ class T7_new extends Command
         ];
       }
 
+      // 2.12. Если $restype == "mdlw_u"
+      if($restype == 'mdlw_u') {
+
+      }
+
+
+
     } catch(\Exception $e) {
         $this->error('Error: '.$e->getMessage());
         return 'error';
@@ -472,19 +481,21 @@ class T7_new extends Command
 
         // 3.1.1. Подготовить таблицу кодов типов ресурсов
         $commandsarr = [
-          "m"     => "\\M1\\Commands\\C7_new_m",
-          "mc"    => "\\M1\\Commands\\C8_new_m_c",
-          "mt"    => "\\M1\\Commands\\C9_new_m_t",
-          "mh"    => "\\M1\\Commands\\C10_new_m_h",
-          "mct"   => "\\M1\\Commands\\C11_new_m_ct",
-          "mm"    => "\\M1\\Commands\\C12_new_m_m",
+          "m"       => "\\M1\\Commands\\C7_new_m",
+          "mc"      => "\\M1\\Commands\\C8_new_m_c",
+          "mt"      => "\\M1\\Commands\\C9_new_m_t",
+          "mh"      => "\\M1\\Commands\\C10_new_m_h",
+          "mct"     => "\\M1\\Commands\\C11_new_m_ct",
+          "mm"      => "\\M1\\Commands\\C12_new_m_m",
 
-          "d"     => "\\M1\\Commands\\C14_new_d",
-          "w"     => "\\M1\\Commands\\C15_new_w",
-          "l"     => "\\M1\\Commands\\C16_new_l",
-          "r"     => "\\M1\\Commands\\C17_new_r",
-          "p"     => "\\M1\\Commands\\C18_new_p",
-          "k"     => "\\M1\\Commands\\C19_new_k",
+          "d"       => "\\M1\\Commands\\C14_new_d",
+          "w"       => "\\M1\\Commands\\C15_new_w",
+          "l"       => "\\M1\\Commands\\C16_new_l",
+          "r"       => "\\M1\\Commands\\C17_new_r",
+          "p"       => "\\M1\\Commands\\C18_new_p",
+          "k"       => "\\M1\\Commands\\C19_new_k",
+
+          "mdlw_u"  => "\\M1\\Commands\\C34_new_mdlw_u",
         ];
 
         // 3.1.2. Выполнить команду для создания ресурса типа $restype

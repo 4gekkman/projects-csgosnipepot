@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Install / Update databases of M-packages
+ *    - New config update for M,D,L,W-package
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -39,13 +39,14 @@
  *
  *    status = -2
  *    -----------
- *      - Текст ошибки.
+ *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
+ *
  */
 
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Documents\Main\Commands
+// - Пример для админ.документов:  M1\Commands
 
   namespace M1\Commands;
 
@@ -100,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C4_m_dbs_update extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C34_new_mdlw_u extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -121,13 +122,7 @@ class C4_m_dbs_update extends Job { // TODO: добавить "implements Should
   public function __construct($data)  // TODO: указать аргументы
   {
 
-    // Принять входящие данные
     $this->data = $data;
-
-    // Настроить Storage для текущей сессии
-    config(['filesystems.default' => 'local']);
-    config(['filesystems.disks.local.root' => base_path()]);
-    $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
 
   }
 
@@ -140,121 +135,32 @@ class C4_m_dbs_update extends Job { // TODO: добавить "implements Should
     /**
      * Оглавление
      *
-     *  1. Получить массив ID всех установленных M-пакетов
-     *  2. Обновить базу каждого M-пакета из $packids
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-
-    //------------------------------------------------//
-    // Устанавливить / обновить базы данных M-пакетов //
-    //------------------------------------------------//
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить массив ID всех установленных M-пакетов
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
-        $query->where('name','=','M');
-      })->pluck('id_inner');
 
-      // 2. Обновить базу каждого M-пакета из $packids
-      foreach($mpackages as $mpackage) {
-
-        // 1] Если файл с настройками пакета не опубликован, завершить с ошибкой
-        if(!file_exists(base_path('config/'.$mpackage.'.php')))
-          throw new \Exception('Package '.$mpackage.' has not published settings file.');
-
-        // 2] Получить значение опции databaseupdates из файла настроек пакета
-        $settings = $this->storage->get('config/'.$mpackage.'.php');
-        $settings = eval("?> $settings");
-        $databaseupdates = $settings['updateshistory'];
-
-        // 3] Получить массив имён SQL-обновлений для БД пакета
-        // - Это файлы "^[0-9].sql$", которые лежат в Database M-пакета.
-        // - Нужно получить массив цифр-имён этих файлов.
-        $sqls = array_map(function($item){
-
-          return preg_replace("/\\.sql$/ui", "", preg_replace("/^.*\\//ui", "", $item));
-
-        }, array_values(array_filter($this->storage->files('vendor/4gekkman/'.$mpackage.'/Database'), function($item){
-
-          // Извлечь имя файла из пути (включая .sql на конце)
-          $lastsection = preg_replace("/^.*\\//ui", "", $item);
-
-          // Если $lastsection не матчится, отсеять
-          if( !preg_match("/^[0-9]*.sql$/ui", $lastsection) ) return false;
-
-          // В противном случае, включить в результирующий массив
-          return true;
-
-        })));
-
-        // 4] Определить номера SQL-обновлений, которые надо установить
-        // - Отсортировать их по значению в возрастающем порядке.
-        $updates2install = array_values(array_diff($sqls, $databaseupdates));
-        usort($updates2install, function($a, $b){
-          return gmp_cmp($a, $b);
-        });
-        array_values($updates2install);
-
-        // 5] Выполнить по очереди все SQL из $updates2install
-        foreach($updates2install as $update2install) {
-          DB::select( DB::raw($this->storage->get('vendor/4gekkman/'.$mpackage.'/Database/'.$update2install.'.sql')) );
-        }
-
-        // 6] Дополнить $databaseupdates номерами из $updates2install
-        foreach($updates2install as $update2install) {
-          array_push($databaseupdates, $update2install);
-        }
-
-        // 7] С помощью regex вставить $databaseupdates в updateshistory конфига пакета
-
-          // 7.1] Получить содержимое конфига пакета $mpackage
-          $config = $this->storage->get('config/'.$mpackage.'.php');
-
-          // 7.2] Сформировать строку в формате массива из $databaseupdates
-          $databaseupdates_str = call_user_func(function() USE ($databaseupdates) {
-
-            // 7.2.1] Подготовить строку для результата
-            $result = "[";
-
-            // 7.2.2] Вставить в $result все значения из $databaseupdates
-            for($i=0; $i<count($databaseupdates); $i++) {
-              if($i != count($databaseupdates)-1 )
-                $result = $result . "'" . $databaseupdates[$i] . "',";
-              else
-                $result = $result . "'" . $databaseupdates[$i] . "'";
-            }
-
-            // 7.2.3] Завершить квадратной скобкой c запятой
-            $result = $result . "],";
-
-            // 7.2.4] Вернуть результат
-            return $result;
-
-          });
-
-          // 7.3] Вставить $databaseupdates_str в $config
-          $config = preg_replace("#'updateshistory' *=> *\[.*\],#smuiU", "'updateshistory' => ".$databaseupdates_str, $config);
-
-          // 7.4] Заменить config
-          $this->storage->put('config/'.$mpackage.'.php', $config);
-
-      }
+      // ...
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Updating of databases of M-packages have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C34_new_mdlw_u from M-package M1 have ended with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'm_dbs_update']);
+        write2log($errortext, ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
-
 
 
     //---------------------//

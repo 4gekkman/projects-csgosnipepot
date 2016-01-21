@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Install / Update databases of M-packages
+ *    - Update configs of M,D,L,W-packages
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -39,13 +39,14 @@
  *
  *    status = -2
  *    -----------
- *      - Текст ошибки.
+ *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
+ *
  */
 
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Documents\Main\Commands
+// - Пример для админ.документов:  M1\Commands
 
   namespace M1\Commands;
 
@@ -100,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C4_m_dbs_update extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C33_mdlw_cfgs_update extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -140,91 +141,103 @@ class C4_m_dbs_update extends Job { // TODO: добавить "implements Should
     /**
      * Оглавление
      *
-     *  1. Получить массив ID всех установленных M-пакетов
-     *  2. Обновить базу каждого M-пакета из $packids
+     *  1. Получить массив ID всех установленных M,D,L,W-пакетов
+     *  2. Обновить конфиг каждого пакета из $packages
      *
      *  N. Вернуть статус 0
      *
      */
 
-
-    //------------------------------------------------//
-    // Устанавливить / обновить базы данных M-пакетов //
-    //------------------------------------------------//
+    //----------------------------------//
+    // Обновить конфиги M,D,L,W-пакетов //
+    //----------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить массив ID всех установленных M-пакетов
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
-        $query->where('name','=','M');
+      // 1. Получить массив ID всех установленных M,D,L,W-пакетов
+      $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+        $query->where(function($query){
+          $query->where('name','=','M')->
+                  orWhere('name','=','D')->
+                  orWhere('name','=','L')->
+                  orWhere('name','=','W');
+        });
       })->pluck('id_inner');
 
-      // 2. Обновить базу каждого M-пакета из $packids
-      foreach($mpackages as $mpackage) {
+      // 2. Обновить конфиг каждого пакета из $packages
+      foreach($packages as $package) {
 
         // 1] Если файл с настройками пакета не опубликован, завершить с ошибкой
-        if(!file_exists(base_path('config/'.$mpackage.'.php')))
-          throw new \Exception('Package '.$mpackage.' has not published settings file.');
+        if(!file_exists(base_path('config/'.$package.'.php')))
+          throw new \Exception('Package '.$package.' has not published settings file.');
 
-        // 2] Получить значение опции databaseupdates из файла настроек пакета
-        $settings = $this->storage->get('config/'.$mpackage.'.php');
+        // 2] Получить значение опции cnfupdshistory из файла настроек пакета
+        $settings = $this->storage->get('config/'.$package.'.php');
         $settings = eval("?> $settings");
-        $databaseupdates = $settings['updateshistory'];
+        $updates = $settings['cnfupdshistory'];
 
-        // 3] Получить массив имён SQL-обновлений для БД пакета
-        // - Это файлы "^[0-9].sql$", которые лежат в Database M-пакета.
-        // - Нужно получить массив цифр-имён этих файлов.
-        $sqls = array_map(function($item){
+        // 3] Получить массив цифр из имён PHP-обновлений для конфига пакета
+        // - Имена файлов, это "^cfgupdate_[0-9]+.php$", которые лежат в каталоге /Cnfupds пакета
+        $updfiles = array_map(function($item){
 
-          return preg_replace("/\\.sql$/ui", "", preg_replace("/^.*\\//ui", "", $item));
+          $item = preg_replace("/\\.php$/ui", "", preg_replace("/^.*\\//ui", "", $item));
+          $item = preg_replace("/^cfgupdate_/ui", "", $item);
+          return $item;
 
-        }, array_values(array_filter($this->storage->files('vendor/4gekkman/'.$mpackage.'/Database'), function($item){
+        }, array_values(array_filter($this->storage->files('vendor/4gekkman/'.$package.'/Cnfupds'), function($item){;
 
-          // Извлечь имя файла из пути (включая .sql на конце)
+          // Извлечь имя файла из пути (включая .php на конце)
           $lastsection = preg_replace("/^.*\\//ui", "", $item);
 
           // Если $lastsection не матчится, отсеять
-          if( !preg_match("/^[0-9]*.sql$/ui", $lastsection) ) return false;
+          if( !preg_match("/^cfgupdate_[0-9]+.php$/ui", $lastsection) ) return false;
 
           // В противном случае, включить в результирующий массив
           return true;
 
         })));
 
-        // 4] Определить номера SQL-обновлений, которые надо установить
+        // 4] Определить номера обновлений, которые надо установить
         // - Отсортировать их по значению в возрастающем порядке.
-        $updates2install = array_values(array_diff($sqls, $databaseupdates));
+        $updates2install = array_values(array_diff($updfiles, $updates));
         usort($updates2install, function($a, $b){
           return gmp_cmp($a, $b);
         });
         array_values($updates2install);
 
-        // 5] Выполнить по очереди все SQL из $updates2install
+        // 5] Выполнить по очереди все php-файлы из $updates2install
         foreach($updates2install as $update2install) {
-          DB::select( DB::raw($this->storage->get('vendor/4gekkman/'.$mpackage.'/Database/'.$update2install.'.sql')) );
+
+          // Выполнить $update2install, как laravel-команду
+          $result = runcommand("\\$package\\Cnfupds\\cfgupdate_$update2install");
+
+          // В случае неудачи, вывести текст ошибки
+          if($result['status'] != 0)
+            throw new \Exception($result['data']);
+
         }
 
-        // 6] Дополнить $databaseupdates номерами из $updates2install
+        // 6] Дополнить $updates номерами из $updates2install
         foreach($updates2install as $update2install) {
-          array_push($databaseupdates, $update2install);
+          array_push($updates, $update2install);
         }
 
-        // 7] С помощью regex вставить $databaseupdates в updateshistory конфига пакета
+        // 7] С помощью regex вставить $updates в cnfupdshistory конфига пакета
 
-          // 7.1] Получить содержимое конфига пакета $mpackage
-          $config = $this->storage->get('config/'.$mpackage.'.php');
+          // 7.1] Получить содержимое конфига пакета $package
+          $config = $this->storage->get('config/'.$package.'.php');
 
-          // 7.2] Сформировать строку в формате массива из $databaseupdates
-          $databaseupdates_str = call_user_func(function() USE ($databaseupdates) {
+          // 7.2] Сформировать строку в формате массива из $updates
+          $updates_str = call_user_func(function() USE ($updates) {
 
             // 7.2.1] Подготовить строку для результата
             $result = "[";
 
             // 7.2.2] Вставить в $result все значения из $databaseupdates
-            for($i=0; $i<count($databaseupdates); $i++) {
-              if($i != count($databaseupdates)-1 )
-                $result = $result . "'" . $databaseupdates[$i] . "',";
+            for($i=0; $i<count($updates); $i++) {
+              if($i != count($updates)-1 )
+                $result = $result . "'" . $updates[$i] . "',";
               else
-                $result = $result . "'" . $databaseupdates[$i] . "'";
+                $result = $result . "'" . $updates[$i] . "'";
             }
 
             // 7.2.3] Завершить квадратной скобкой c запятой
@@ -235,26 +248,25 @@ class C4_m_dbs_update extends Job { // TODO: добавить "implements Should
 
           });
 
-          // 7.3] Вставить $databaseupdates_str в $config
-          $config = preg_replace("#'updateshistory' *=> *\[.*\],#smuiU", "'updateshistory' => ".$databaseupdates_str, $config);
+          // 7.3] Вставить $updates_str в $config
+          $config = preg_replace("#'cnfupdshistory' *=> *\[.*\],#smuiU", "'cnfupdshistory' => ".$updates_str, $config);
 
           // 7.4] Заменить config
-          $this->storage->put('config/'.$mpackage.'.php', $config);
+          $this->storage->put('config/'.$package.'.php', $config);
 
       }
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Updating of databases of M-packages have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C33_mdlw_cfgs_update from M-package M1 have ended with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'm_dbs_update']);
+        write2log($errortext, ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
-
 
 
     //---------------------//
