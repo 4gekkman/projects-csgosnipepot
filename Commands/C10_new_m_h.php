@@ -159,7 +159,7 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
 
       // 1. Получить входящие параметры
       $mpackid = $this->data['mpackid'];
-      $event = $this->data['event'];
+      $event = mb_substr($this->data['event'], 1);
       $name = $this->data['name'];
       $comid = $this->data['comid'];
       $description = empty($this->data['description']) ? "Event handler of M-package" : $this->data['description'];
@@ -268,7 +268,7 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
         // 8.3. Добавить в $pairs2register запись про новый обработчик
         // - Ключём в ней должен быть путь к обрабатываемому событию.
         // - Значением в ней должен быть путь к обработчику.
-        $pairs2register[$event] = "\\".$mpackid.'\\EventHandlers\\'.$handlerfullname;
+        $pairs2register[$event] = $mpackid.'\\EventHandlers\\'.$handlerfullname;
 
         // 8.4. Сформировать строку в формате массива из $pairs2register
 

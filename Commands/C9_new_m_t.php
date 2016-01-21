@@ -249,6 +249,7 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         // 3] Найти и заменить плейсхолдеры
         $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
         $file = preg_replace("/PARAMmpackidPARAM/ui", $mpackid, $file);
+        $file = preg_replace("/PARAMmpackid_lowcasePARAM/ui", mb_strtolower($mpackid), $file);
         $file = preg_replace("/PARAMccomfullnamePARAM/ui", $comfullname, $file);
         $file = preg_replace("/PARAMnamePARAM/ui", $name, $file);
 

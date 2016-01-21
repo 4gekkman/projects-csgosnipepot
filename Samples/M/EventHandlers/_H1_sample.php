@@ -147,10 +147,10 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
     try {
 
       // 1.1. Получить ключи, присланные с событием
-      $eventkeys = $event->data;
+      $eventkeys = $event->data['keys'];
 
       // 1.2. Получить ключи, поддерживаемые обработчиком
-      $handlerkeys = PARAMkeysPARAM;
+      $handlerkeys = ["m2:write2log"];
 
       // 1.3. Если ни один ключ не подходит, завершить
       $testkeys = array_intersect($handlerkeys, $eventkeys);
@@ -172,7 +172,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
     //--------------------//
     // 1.  //
     //--------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() USE ($event) { try { DB::beginTransaction();
 
 
       // TODO: текст обработчика

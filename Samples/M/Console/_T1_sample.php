@@ -90,7 +90,7 @@ class PARAMccomfullnamePARAM extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'PARAMmpackidPARAM:PARAMnamePARAM';
+    protected $signature = 'PARAMmpackid_lowcasePARAM:PARAMnamePARAM';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
