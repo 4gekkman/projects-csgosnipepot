@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Команда обновления конфига №1
+ *    - Команда обновления конфига M,D,L,W-пакета
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -46,9 +46,9 @@
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Commands
+// - Пример:  M1\Cnfupds
 
-  namespace M1\Commands;
+  namespace PARAMpackidPARAM\Cnfupds;
 
 //---------------------------------//
 // Подключение необходимых классов //
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class cfgupdate_1 extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class PARAMcfgupdatenamePARAM extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -142,20 +142,17 @@ class cfgupdate_1 extends Job { // TODO: добавить "implements ShouldQueu
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //----------------------------------------------------------//
+    // Выполнить обновление конфига пакета PARAMpackidPARAM
+    //----------------------------------------------------------//
+    $res = call_user_func(function() { try {
 
 
       // ...
 
 
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of update of package M1 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of config update PARAMcfgupdatenamePARAM of package PARAMpackidPARAM have ended with error: '.$e->getMessage();
         return [
           "status"  => -2,
           "data"    => $errortext

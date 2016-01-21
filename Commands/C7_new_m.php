@@ -229,7 +229,7 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
       $this->storage->copyDirectory('vendor/4gekkman/M1/Samples/M', 'vendor/4gekkman/'.$packfullname);
 
       // 6. Удалить шаблоны из нового пакета
-      // - Commands, Console, EventHandlers, Models
+      // - Commands, Console, EventHandlers, Models, Cnfupds
       config(['filesystems.default' => 'local']);
       config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packfullname)]);
       $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
@@ -237,6 +237,7 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
       $this->storage->delete('Console/_T1_sample.php');
       $this->storage->delete('EventHandlers/_H1_sample.php');
       $this->storage->delete('Models/_MD1_sample.php');
+      $this->storage->delete('Cnfupds/_cfgupdate_sample.php');
 
       // 7. Заменить плейсхолдеры в файле Middlewares/AfterMiddleware.php
 

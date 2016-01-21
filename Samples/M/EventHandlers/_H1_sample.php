@@ -58,7 +58,7 @@
 //-------------------//
 // Пространство имён //
 //-------------------//
-// - Пример для админ.документов:  M1\EventHandlers
+// - Пример:  M1\EventHandlers
 
   namespace PARAMmpackidPARAM\EventHandlers;
 

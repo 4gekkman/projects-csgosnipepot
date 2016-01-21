@@ -153,7 +153,7 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
     //----------------------------------------------------------//
     // Создать новую консольную команду для указанного M-пакета //
     //----------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить входящие параметры
       $mpackid = $this->data['mpackid'];
@@ -310,22 +310,13 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
       ];
 
 
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = "Creating of console command for document for M-package have ended with error: ".$e->getMessage();
+    } catch(\Exception $e) {
+        $errortext = "Creating of console command for M-package have ended with error: ".$e->getMessage();
         return [
           "status"  => -2,
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
-
-
-    //---------------------//
-    // N. Вернуть статус 0 //
-    //---------------------//
-    return [
-      "status"  => 0,
-      "data"    => ""
-    ];
 
   }
 

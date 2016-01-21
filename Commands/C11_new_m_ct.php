@@ -143,7 +143,7 @@ class C11_new_m_ct extends Job { // TODO: добавить "implements ShouldQue
     //--------------------------------------------------------//
     // Создать пару команда/к.команда для указанного M-пакета //
     //--------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Создать консольную команду
       $newconsole = runcommand("\\M1\\Commands\\C9_new_m_t", $this->data);
@@ -163,7 +163,7 @@ class C11_new_m_ct extends Job { // TODO: добавить "implements ShouldQue
         ]
       ];
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = "Creating of pair command/c.command for document for M-package have ended with error: ".$e->getMessage();
         return [
           "status"  => -2,

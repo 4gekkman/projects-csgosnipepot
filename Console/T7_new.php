@@ -202,12 +202,12 @@ class T7_new extends Command
         $params = [];
 
         // 2] Спросить у пользователя, какое имя (RU,EN) задать новому M-пакету
-        $params['runame'] = $this->ask("[NOT REQUIRED] Type name for the new M-package in russian", "Имя M-пакета");
         $params['enname'] = $this->ask("[NOT REQUIRED] Type name for the new M-package in english", "Name of M-package");
+        $params['runame'] = $params['enname'];
 
         // 3] Спросить у пользователя, какое описание (RU,EN) задать новому M-пакету
-        $params['rudescription'] = $this->ask("[NOT REQUIRED] Type description for the new M-package in russian", 0);
         $params['endescription'] = $this->ask("[NOT REQUIRED] Type description for the new M-package in english", 0);
+        $params['rudescription'] = $params['endescription'];
 
         // 4] Спросить у пользователя, какой id задать новому M-пакету
         $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new M-package", 0);
@@ -464,6 +464,35 @@ class T7_new extends Command
       // 2.12. Если $restype == "mdlw_u"
       if($restype == 'mdlw_u') {
 
+        // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
+        $params = [];
+
+        // 2] Спросить у пользователя, для какого пакета он хочет создать обновление конфига
+
+          // 2.1] Получить инфу обо всех M,D,L,W-пакетах
+          // - В формате: id пакета => описание пакета
+          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+            $query->where(function($query){
+              $query->where('name','=','M')->
+                      orWhere('name','=','D')->
+                      orWhere('name','=','L')->
+                      orWhere('name','=','W');
+            });
+          })->pluck('aboutpack', 'id_inner');
+          $packages = $packages->map(function($item, $key){
+            return json_decode($item,true)['EN']['description'];
+          });
+
+          // 2.2] Если коллекция $packages пуста, сообщить и завершить
+          if($packages->count() == 0)
+            throw new \Exception('There is no M-packages in the app, for which console command could be created.');
+
+          // 2.3] Спросить
+          $params['packid'] = $this->choice('Choose package, for which needs to create new config update', $packages->toArray());
+
+        // n] Вернуть $params
+        return $params;
+
       }
 
 
@@ -511,19 +540,21 @@ class T7_new extends Command
 
           // 3] В случае успеха
           switch($restype) {
-            case "m"   : $this->info("New M-package '".$result['data']['packfullname']."' was successfully created."); break;
-            case "mc"  : $this->info("New command '".$result['data']['comfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
-            case "mt"  : $this->info("New console command '".$result['data']['ccomfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
-            case "mh"  : $this->info("New event handler '".$result['data']['handlerfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
-            case "mct" : $this->info("New command '".$result['data']['comfullname']."' and console command '" .$result['data']['ccomfullname']. "' were successfully created for M-package '".$result['data']['package']."'."); break;
-            case "mm"  : $this->info("New model '".$result['data']['modelfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
+            case "m"      : $this->info("New M-package '".$result['data']['packfullname']."' was successfully created."); break;
+            case "mc"     : $this->info("New command '".$result['data']['comfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
+            case "mt"     : $this->info("New console command '".$result['data']['ccomfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
+            case "mh"     : $this->info("New event handler '".$result['data']['handlerfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
+            case "mct"    : $this->info("New command '".$result['data']['comfullname']."' and console command '" .$result['data']['ccomfullname']. "' were successfully created for M-package '".$result['data']['package']."'."); break;
+            case "mm"     : $this->info("New model '".$result['data']['modelfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
 
-            case "d"   : $this->info(""); break;
-            case "w"   : $this->info(""); break;
-            case "l"   : $this->info(""); break;
-            case "r"   : $this->info(""); break;
-            case "p"   : $this->info(""); break;
-            case "k"   : $this->info(""); break;
+            case "d"      : $this->info(""); break;
+            case "w"      : $this->info(""); break;
+            case "l"      : $this->info(""); break;
+            case "r"      : $this->info(""); break;
+            case "p"      : $this->info(""); break;
+            case "k"      : $this->info(""); break;
+
+            case "mdlw_u" : $this->info("New config update '".$result['data']['updatenum']."' for package '".$result['data']['packid']."' was successfully created."); break;
 
             default    : $this->info("Success");
           }

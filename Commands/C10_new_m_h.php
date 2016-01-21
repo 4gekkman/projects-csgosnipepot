@@ -155,7 +155,7 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
     //--------------------------------------------------//
     // Создать новый обработчик для указанного M-пакета //
     //--------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить входящие параметры
       $mpackid = $this->data['mpackid'];
@@ -301,7 +301,7 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
         ]
       ];
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = "Creating of event handler for document for M-package have ended with error: ".$e->getMessage();
         return [
           "status"  => -2,

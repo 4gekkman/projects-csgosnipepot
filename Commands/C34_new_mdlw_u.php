@@ -14,7 +14,7 @@
  *
  *    [
  *      "data" => [
- *
+ *        packid    // ID пакета, для которого надо создать обновление для конфига
  *      ]
  *    ]
  *
@@ -122,7 +122,13 @@ class C34_new_mdlw_u extends Job { // TODO: добавить "implements ShouldQ
   public function __construct($data)  // TODO: указать аргументы
   {
 
+    // Принять входящие данные
     $this->data = $data;
+
+    // Настроить Storage для текущей сессии
+    config(['filesystems.default' => 'local']);
+    config(['filesystems.disks.local.root' => base_path()]);
+    $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
 
   }
 
@@ -135,27 +141,109 @@ class C34_new_mdlw_u extends Job { // TODO: добавить "implements ShouldQ
     /**
      * Оглавление
      *
-     *  1.
-     *
-     *
-     *  N. Вернуть статус 0
+     *  1. Получить входящие параметры
+     *  2. Провести валидацию входящих параметров
+     *  3. Проверить существование пакета $packid
+     *  4. Вычислить ID для нового обновления
+     *  5. Сформировать название обновления (напр.: cfgupdate_1)
+     *  6. Скопировать и переименовать файл _cfgupdate_sample.php
+     *  7. Заменить плейсхолдеры в файле значениями параметров
+     *  8. Вернуть результаты
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //--------------------------------------------------------//
+    // Создать новое обновление конфига для указанного пакета //
+    //--------------------------------------------------------//
+    $res = call_user_func(function() { try {
+
+      // 1. Получить входящие параметры
+      $packid = $this->data['packid'];
+
+      // 2. Провести валидацию входящих параметров
+
+        // 1] $packid
+        if(!preg_match("/^[M]{1}[0-9]$/ui", $packid))
+          throw new \Exception("$packid is not valid (must match \"/^[MDLW]{1}[0-9]*$/ui\")");
+
+      // 3. Проверить существование пакета $packid
+      $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
+      if(empty($pack))
+        throw new \Exception("Package $packid does not exist.");
+
+      // 4. Вычислить ID для нового обновления
+
+        // 4.1. Получить массив цифр из имён PHP-обновлений для конфига пакета
+        // - Имена файлов, это "^cfgupdate_[0-9]+.php$", которые лежат в каталоге /Cnfupds пакета
+        $updfiles = array_map(function($item){
+
+          $item = preg_replace("/\\.php$/ui", "", preg_replace("/^.*\\//ui", "", $item));
+          $item = preg_replace("/^cfgupdate_/ui", "", $item);
+          return $item;
+
+        }, array_values(array_filter($this->storage->files('vendor/4gekkman/'.$packid.'/Cnfupds'), function($item){;
+
+          // Извлечь имя файла из пути (включая .php на конце)
+          $lastsection = preg_replace("/^.*\\//ui", "", $item);
+
+          // Если $lastsection не матчится, отсеять
+          if( !preg_match("/^cfgupdate_[0-9]+.php$/ui", $lastsection) ) return false;
+
+          // В противном случае, включить в результирующий массив
+          return true;
+
+        })));
+
+        // 4.2. Вычислить $updatenum
+        $updatenum = call_user_func(function() USE ($updfiles) {
+          if(!is_array($updfiles) || empty($updfiles)) {
+            return 1;
+          }
+          else {
+            return +max($updfiles) + 1;
+          }
+        });
+
+      // 5. Сформировать название обновления (напр.: cfgupdate_1)
+      $cfgupdatename = 'cfgupdate_'.$updatenum;
+
+      // 6. Скопировать и переименовать файл _cfgupdate_sample.php
+      // - Из Samples, каталога Cnfupds
+      // - Назвать его именем $cfgupdatename.'.php'
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path()]);
+      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+      $this->storage->copy('vendor/4gekkman/M1/Samples/M/Cnfupds/_cfgupdate_sample.php', 'vendor/4gekkman/'.$packid.'/Cnfupds/'.$cfgupdatename.'.php');
+
+      // 7. Заменить плейсхолдеры в файле значениями параметров
+
+        // 1] Создать новый экземпляр локального хранилища
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid.'/Cnfupds')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 2] Извлечь содержимое файла
+        $file = $this->storage->get($cfgupdatename.'.php');
+
+        // 3] Найти и заменить плейсхолдеры
+        $file = preg_replace("/PARAMpackidPARAM/ui", $packid, $file);
+        $file = preg_replace("/PARAMcfgupdatenamePARAM/ui", $cfgupdatename, $file);
+
+        // 4] Перезаписать файл
+        $this->storage->put($cfgupdatename.'.php', $file);
+
+      // 8. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "packid"      => $packid,
+          "updatenum"   => $updatenum
+        ]
+      ];
 
 
-      // ...
-
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C34_new_mdlw_u from M-package M1 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+    } catch(\Exception $e) {
+        $errortext = "Creating of config update for package $packid have ended with error: ".$e->getMessage();
         return [
           "status"  => -2,
           "data"    => $errortext

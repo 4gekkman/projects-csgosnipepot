@@ -24,7 +24,7 @@
 //-----------------------------------//
 // Пространство имён artisan-команды //
 //-----------------------------------//
-// - Пример для админ.документов:  M1\Console
+// - Пример:  M1\Console
 
   namespace PARAMmpackidPARAM\Console;
 
@@ -90,7 +90,7 @@ class PARAMccomfullnamePARAM extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:PARAMnamePARAM';
+    protected $signature = 'PARAMmpackidPARAM:PARAMnamePARAM';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
@@ -159,7 +159,7 @@ class PARAMccomfullnamePARAM extends Command
      */
 
 //    // 1. Выполнить команду
-//    $result = runcommand('\M1\Commands\C4_allrespublish');
+//    $result = runcommand('\PARAMmpackidPARAM\Commands\C4_allrespublish');
 //
 //
 //    // 2. В случае неудачи, вывести текст ошибки
