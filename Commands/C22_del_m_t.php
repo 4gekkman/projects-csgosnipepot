@@ -141,7 +141,8 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
      *  3. Проверить существование к.команды $command2del в пакете $mpack
      *  4. Удалить файл команды
      *  5. Удалить запись об удалённой к.команде из сервис-провайдера пакета $packid
-     *  6. Вернуть результаты
+     *  6. Удалить запись об удалённой к.команде из $add2schedule в сервис-провайдере
+     *  7. Вернуть результаты
      *
      */
 
@@ -219,7 +220,56 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('ServiceProvider.php', $sp);
 
-      // 6. Вернуть результаты
+      // 6. Удалить запись об удалённой к.команде из $add2schedule в сервис-провайдере
+
+        // 6.1. Получить содержимое сервис-провайдера M-пакета $mpackid
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $sp = $this->storage->get('ServiceProvider.php');
+
+        // 6.2. Получить содержимое массива $add2schedule из $sp в виде массива
+        preg_match("/add2schedule *= *\[.*\]/smuiU", $sp, $add2schedule);
+        $add2schedule = preg_replace("/add2schedule *= */smuiU", '', $add2schedule);
+        $add2schedule = preg_replace("/['\n\r\s\[\]]/smuiU", '', $add2schedule);
+        $add2schedule = explode(',', $add2schedule[0]);
+        $add2schedule = array_values(array_filter($add2schedule, function($item){
+          return !empty($item);
+        }));
+
+        // 6.3. Удалить из $add2schedule запись, содержащую $command->name (без префикса в виде ID)
+        $add2schedule = array_values(array_filter($add2schedule, function($item) USE ($command, $packid) {
+          $command_without_prefix = preg_replace("/T[0-9]+_/ui", '', $command->name);
+          write2log($command_without_prefix, []);
+          return !preg_match("/command\((\"|')".mb_strtolower($packid).":".mb_strtolower($command_without_prefix)."/ui", $item);
+        }));
+
+        // 6.4. Сформировать строку в формате массива из $add2schedule
+
+          // 1] Подготовить строку для результата
+          $add2schedule_result = "[" . PHP_EOL;
+
+          // 2] Вставить в $add2schedule_result все значения из $add2schedule
+          for($i=0; $i<count($add2schedule); $i++) {
+            if($i != count($add2schedule)-1 )
+              $add2schedule_result = $add2schedule_result . "          '" . $add2schedule[$i] . "'," . PHP_EOL;
+            else
+              $add2schedule_result = $add2schedule_result . "          '" . $add2schedule[$i] . "'" . PHP_EOL;
+          }
+
+          // 3] Завершить квадратной скобкой c запятой
+          $add2schedule_result = $add2schedule_result . "        ]";
+
+        // 6.5. Вставить $add2schedule_result в $sp
+        $sp = preg_replace("/add2schedule *= *\[.*\]/smuiU", 'add2schedule = '.$add2schedule_result, $sp);
+
+        // 6.6. Заменить $sp
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('ServiceProvider.php', $sp);
+
+      // 7. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [

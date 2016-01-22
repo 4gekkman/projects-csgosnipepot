@@ -288,6 +288,9 @@ class T7_new extends Command
         // 5] Спросить у пользователя, какой id задать к.команде
         $params['comid'] = $this->ask("[NOT REQUIRED] Type id for the new console command", 0);
 
+        // 6] Опрос по поводу добавления в планировщик
+        $params['add2scheduler'] = $this->ask("[NOT REQUIRED] Do you want to add c.command to scheduler? If yes, type code (if needed, use only double quotes). Otherwise, leave blank.", 0);
+
         // n] Вернуть $params
         return $params;
 

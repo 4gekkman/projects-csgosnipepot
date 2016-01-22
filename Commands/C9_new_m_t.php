@@ -146,7 +146,8 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
      *  7. Скопировать и переименовать файл _T1_sample.php
      *  8. Заменить плейсхолдеры в файле значениями параметров
      *  9. Добавить запись о новой к.команде в сервис-провайдер M-пакета $mpackid
-     *  10. Вернуть результаты
+     *  10. Добавить в $add2schedule в сервис-провайдере новую запись (если требуется)
+     *  11. Вернуть результаты
      *
      */
 
@@ -156,10 +157,11 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
     $res = call_user_func(function() { try {
 
       // 1. Получить входящие параметры
-      $mpackid = $this->data['mpackid'];
-      $name = $this->data['name'];
-      $comid = $this->data['comid'];
-      $description = empty($this->data['description']) ? "Console command of M-package" : $this->data['description'];
+      $mpackid        = $this->data['mpackid'];
+      $name           = mb_strtolower($this->data['name']);
+      $comid          = $this->data['comid'];
+      $description    = empty($this->data['description']) ? "Console command of M-package" : $this->data['description'];
+      $add2scheduler  = empty($this->data['add2scheduler']) ? "" : $this->data['add2scheduler'];
 
       // 2. Провести валидацию входящих параметров
 
@@ -301,7 +303,54 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('ServiceProvider.php', $sp);
 
-      // 10. Вернуть результаты
+      // 10. Добавить в $add2schedule в сервис-провайдере новую запись (если требуется)
+
+        // 10.1. Получить содержимое сервис-провайдера M-пакета $mpackid
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $sp = $this->storage->get('ServiceProvider.php');
+
+        // 10.2. Получить содержимое массива $add2schedule из $sp в виде массива
+        preg_match("/add2schedule *= *\[.*\]/smuiU", $sp, $add2schedule);
+        $add2schedule = preg_replace("/add2schedule *= */smuiU", '', $add2schedule);
+        $add2schedule = preg_replace("/['\n\r\s\[\]]/smuiU", '', $add2schedule);
+        $add2schedule = explode(',', $add2schedule[0]);
+        $add2schedule = array_values(array_filter($add2schedule, function($item){
+          return !empty($item);
+        }));
+
+        // 10.3. Добавить в $add2schedule запись про новую команду
+        // - Но только, если таковой ещё нет
+        if(!in_array($add2scheduler, $add2schedule))
+          array_push($add2schedule, $add2scheduler);
+
+        // 10.4. Сформировать строку в формате массива из $add2schedule
+
+          // 1] Подготовить строку для результата
+          $add2schedule_result = "[" . PHP_EOL;
+
+          // 2] Вставить в $add2schedule_result все значения из $add2schedule
+          for($i=0; $i<count($add2schedule); $i++) {
+            if($i != count($add2schedule)-1 )
+              $add2schedule_result = $add2schedule_result . "          '" . $add2schedule[$i] . "'," . PHP_EOL;
+            else
+              $add2schedule_result = $add2schedule_result . "          '" . $add2schedule[$i] . "'" . PHP_EOL;
+          }
+
+          // 3] Завершить квадратной скобкой c запятой
+          $add2schedule_result = $add2schedule_result . "        ]";
+
+        // 10.5. Вставить $add2schedule_result в $sp
+        $sp = preg_replace("/add2schedule *= *\[.*\]/smuiU", 'add2schedule = '.$add2schedule_result, $sp);
+
+        // 10.6. Заменить $sp
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('ServiceProvider.php', $sp);
+
+      // 11. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
