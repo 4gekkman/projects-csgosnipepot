@@ -12,7 +12,7 @@
 ## Ссылки <a id="link1"></a>
 ```
 
-  > Адрес репозитория модуля PARAMpackfullnamePARAM на github
+  > Адрес репозитория пакета PARAMpackfullnamePARAM на github
       https://github.com/4gekkman/PARAMpackfullname_strtolowerPARAM
 
 	

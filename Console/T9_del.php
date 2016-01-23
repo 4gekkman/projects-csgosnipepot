@@ -447,7 +447,20 @@ class T9_del extends Command
         // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
         $params = [];
 
+        // 2] Спросить у пользователя, какой R-пакет он хочет удалить
 
+          // 2.1] Получить инфу обо всех R-пакетах
+          // - В формате: id пакета => описание пакета
+          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+            $query->where('name','=','R');
+          })->pluck('aboutpack', 'id_inner');
+
+          // 2.2] Если коллекция $packages пуста, сообщить и завершить
+          if($packages->count() == 0)
+            throw new \Exception('There is no R-packages in the app, which could be deleted.');
+
+          // 2.3] Спросить
+          $params['packid'] = $this->choice('Which R-package do you want to delete?', $packages->toArray());
 
         // n] Вернуть $params
         return $params;
@@ -531,7 +544,7 @@ class T9_del extends Command
             case "d"   : $this->info(""); break;
             case "w"   : $this->info(""); break;
             case "l"   : $this->info(""); break;
-            case "r"   : $this->info(""); break;
+            case "r"   : $this->info("R-package '".$result['data']['packfullname']."' was successfully deleted."); break;
             case "p"   : $this->info(""); break;
             case "k"   : $this->info(""); break;
 

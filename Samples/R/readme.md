@@ -1,4 +1,4 @@
-# R1 - Вспомогательные php-функции (php-хелперы)
+# PARAMpackfullnamePARAM - PARAMrudescriptionPARAM
 ---
 ## Оглавление
 
@@ -12,8 +12,8 @@
 ## Ссылки <a id="link1"></a>
 ```
 
-  > Адрес репозитория модуля R1 на github
-      http://
+  > Адрес репозитория пакета PARAMpackfullnamePARAM на github
+      https://github.com/4gekkman/PARAMpackfullname_strtolowerPARAM
 
 	
 			

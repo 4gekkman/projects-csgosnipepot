@@ -448,9 +448,19 @@ class T7_new extends Command
 
       // 2.10. Если $restype == "r"
       if($restype == 'r') {
-        $params = [
 
-        ];
+        // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
+        $params = [];
+
+        // 2] Спросить у пользователя, какое описание (RU,EN) задать новому M-пакету
+        $params['endescription'] = $this->ask("[NOT REQUIRED] Type description for the new R-package in english", 0);
+
+        // 3] Спросить у пользователя, какой id задать новому M-пакету
+        $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new R-package", 0);
+
+        // n] Вернуть $params
+        return $params;
+
       }
 
       // 2.11. Если $restype == "p"
@@ -556,7 +566,7 @@ class T7_new extends Command
             case "d"      : $this->info(""); break;
             case "w"      : $this->info(""); break;
             case "l"      : $this->info(""); break;
-            case "r"      : $this->info(""); break;
+            case "r"      : $this->info("New R-package '".$result['data']['packfullname']."' was successfully created."); break;
             case "p"      : $this->info(""); break;
             case "k"      : $this->info(""); break;
 

@@ -83,7 +83,7 @@
       //-----------------------------------------------------//
 
         // Список подготовленных для добавление в планировщик строк
-        // Пример: '$schedule->command("m1:parseapp")->withoutOverlapping()->hourly();'
+        // Пример: $schedule->command("m1:parseapp")->withoutOverlapping()->hourly();
         $add2schedule = [
 
         ];

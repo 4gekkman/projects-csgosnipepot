@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        endescription     // Описание пакета на английском
+ *        packid            // Желаемый ID пакета
  *      ]
  *    ]
  *
@@ -135,27 +136,188 @@ class C17_new_r extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1.
-     *
-     *
-     *  N. Вернуть статус 0
+     *  1. Получить входящие параметры
+     *  2. Провести валидацию входящих параметров
+     *  3. Определить $packid
+     *  4. Сформировать внутренний ID пакета (напр.: R1)
+     *  5. Скопировать и переименовать каталог R
+     *  6. Заменить плейсхолдеры в файле composer.json
+     *  7. Заменить плейсхолдеры в файле readme.md
+     *  8. Заменить плейсхолдеры в файле ServiceProvider.php
+     *  9. Добавить пр.имён R-пакета в composer.json проекта -> autoload -> psr-4
+     *  10. Вернуть результаты
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //-----------------------//
+    // Создать новый R-пакет //
+    //-----------------------//
+    $res = call_user_func(function() { try {
+
+      // 1. Получить входящие параметры
+      $endescription = empty($this->data['endescription']) ? "New R-package" : $this->data['endescription'];
+      $packid = $this->data['packid'];
+
+      // 2. Провести валидацию входящих параметров
+
+        // 1] $endescription
+        if(!preg_match("/^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$/ui", $endescription))
+          throw new \Exception("endescription is not valid (must match \"/^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$/ui\")");
+
+        // 2] $packid
+        if(!preg_match("/^[0-9]+$/ui", $packid))
+          throw new \Exception("packid is not valid (must match \"/^[0-9]+$/ui\")");
+
+      // 3. Определить $packid
+
+        // 3.1. Получить список ID (номеров) всех R-пакетов
+        $packids = array_map(function($item){
+          return mb_substr($item, 1);
+        }, \M1\Models\MD2_packages::whereHas('packtype',function($query) {
+            $query->where('name','=','R');
+        })->pluck('id_inner')->toArray());
+
+        // 3.2. Если $packid не передан, определить его автоматически
+        if(empty($packid)) {
+          $packid = call_user_func(function() USE ($packids) {
+            if(!is_array($packids) || empty($packids)) {
+              return 1;
+            }
+            else {
+              return +max($packids) + 1;
+            }
+          });
+        }
+
+        // 3.3. Если $packid передан, определить, доступен ли он
+        if(!empty($packid)) {
+          if(in_array($packid, $packids)) {
+            throw new \Exception("Can't create R-package with id $packid, because M-package with id $packid already exists.");
+          }
+        }
+
+      // 4. Сформировать внутренний ID пакета (напр.: R1)
+      $packfullname = 'R'.$packid;
+
+      // 5. Скопировать и переименовать каталог R
+      // - Из Samples в vendor/4gekkman
+      // - Назвать его именем $packfullname
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path('vendor')]);
+      $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
+      $this->storage->copyDirectory('vendor/4gekkman/M1/Samples/R', 'vendor/4gekkman/'.$packfullname);
+
+      // 6. Заменить плейсхолдеры в файле composer.json
+
+        // 1] Создать новый экземпляр локального хранилища
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packfullname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 2] Извлечь содержимое файла
+        $file = $this->storage->get('composer.json');
+
+        // 3] Найти и заменить плейсхолдеры
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
+        $file = preg_replace("/PARAMrudescriptionPARAM/ui", $endescription, $file);
+
+        // 4] Перезаписать файл
+        $this->storage->put('composer.json', $file);
+
+      // 7. Заменить плейсхолдеры в файле readme.md
+
+        // 1] Создать новый экземпляр локального хранилища
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packfullname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 2] Извлечь содержимое файла
+        $file = $this->storage->get('readme.md');
+
+        // 3] Найти и заменить плейсхолдеры
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
+        $file = preg_replace("/PARAMrudescriptionPARAM/ui", $endescription, $file);
+
+        // 4] Перезаписать файл
+        $this->storage->put('readme.md', $file);
+
+      // 8. Заменить плейсхолдеры в файле ServiceProvider.php
+
+        // 1] Создать новый экземпляр локального хранилища
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packfullname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 2] Извлечь содержимое файла
+        $file = $this->storage->get('ServiceProvider.php');
+
+        // 3] Найти и заменить плейсхолдеры
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+
+        // 4] Перезаписать файл
+        $this->storage->put('ServiceProvider.php', $file);
+
+      // 9. Добавить пр.имён R-пакета в composer.json проекта -> autoload -> psr-4
+
+        // 9.1. Получить содержимое composer.json проекта
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $composer = $this->storage->get('composer.json');
+
+        // 9.2. Получить содержимое объекта "psr-4" из $composer в виде массива
+        preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
+        $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
+        $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
+        $namespaces = explode(',', $namespaces[0]);
+        $namespaces = array_values(array_filter($namespaces, function($item){
+          return !empty($item);
+        }));
+
+        // 9.3. Добавить в $namespaces пространство имён нового пакета
+        array_push($namespaces, '"' . $packfullname . '\\\\":"vendor/4gekkman/' . $packfullname . '"');
+
+        // 9.4. Сформировать строку в формате значения "psr-4" из composer.json
+
+          // 1] Подготовить строку для результата
+          $namespaces_result = "{" . PHP_EOL;
+
+          // 2] Вставить в $namespaces_result все значения из $commands
+          for($i=0; $i<count($namespaces); $i++) {
+            if($i != count($namespaces)-1 )
+              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . "," . PHP_EOL;
+            else
+              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . PHP_EOL;
+          }
+
+          // 3] Завершить квадратной скобкой c запятой
+          $namespaces_result = $namespaces_result . "        }";
+
+        // 9.5. Заменить все \\\\ в $namespaces_result на \\\\\\
+        $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
+
+        // 9.6. Вставить $namespaces_result в $composer
+        $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
+
+        // 9.7. Заменить $composer
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('composer.json', $composer);
+
+      // 10. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "packfullname" => $packfullname,
+        ]
+      ];
 
 
-      // ...
-
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C17_new_r from M-package M1 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+    } catch(\Exception $e) {
+        $errortext = "Creating of new R-package have ended with error: ".$e->getMessage();
         return [
           "status"  => -2,
           "data"    => $errortext

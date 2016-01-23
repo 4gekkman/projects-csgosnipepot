@@ -14,7 +14,7 @@
  *
  *    [
  *      "data" => [
- *
+ *        packid      // ID R-пакета для удаления
  *      ]
  *    ]
  *
@@ -135,23 +135,143 @@ class C29_del_r extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1.
-     *
-     *
-     *  N. Вернуть статус 0
+     *  1. Получить входящие параметры
+     *  2. Проверить существование R-пакета $packid
+     *  3. Удалить каталог R-пакета $packid
+     *  4. Удалить пр.имён R-пакета из composer.json проекта -> autoload -> psr-4
+     *  5. Удалить запись о пакете из providers в config/app.php
+     *  6. Вернуть результаты
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //---------------------------//
+    // Удалить указанный R-пакет //
+    //---------------------------//
+    $res = call_user_func(function() { try {
+
+      // 1. Получить входящие параметры
+      $packid   = $this->data['packid'];
+
+      // 2. Проверить существование R-пакета $packid
+      $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
+      if(empty($pack))
+        throw new \Exception("Package $packid does not exist.");
+
+      // 3. Удалить каталог R-пакета $packid
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path()]);
+      $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
+      $this->storage->deleteDirectory('vendor/4gekkman/'.$packid);
+
+      // 4. Удалить пр.имён R-пакета из composer.json проекта -> autoload -> psr-4
+
+        // 4.1. Получить содержимое composer.json проекта
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $composer = $this->storage->get('composer.json');
+
+        // 4.2. Получить содержимое объекта "psr-4" из $composer в виде массива
+        preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
+        $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
+        $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
+        $namespaces = explode(',', $namespaces[0]);
+        $namespaces = array_values(array_filter($namespaces, function($item){
+          return !empty($item);
+        }));
+
+        // 4.3. Удалить из $namespaces запись, содержащую 'vendor/4gekkman/'.$packid
+        $namespaces = array_values(array_filter($namespaces, function($item) USE ($packid) {
+          return !preg_match("#vendor/4gekkman/".$packid."#ui", $item);
+        }));
+
+        // 4.4. Сформировать строку в формате значения "psr-4" из composer.json
+
+          // 1] Подготовить строку для результата
+          $namespaces_result = "{" . PHP_EOL;
+
+          // 2] Вставить в $namespaces_result все значения из $commands
+          for($i=0; $i<count($namespaces); $i++) {
+            if($i != count($namespaces)-1 )
+              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . "," . PHP_EOL;
+            else
+              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . PHP_EOL;
+          }
+
+          // 3] Завершить квадратной скобкой c запятой
+          $namespaces_result = $namespaces_result . "        }";
+
+        // 4.5. Заменить все \\\\ в $namespaces_result на \\\\\\
+        $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
+
+        // 4.6. Вставить $namespaces_result в $composer
+        $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
+
+        // 4.7. Заменить $composer
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('composer.json', $composer);
+
+      // 5. Удалить запись о пакете из providers в config/app.php
+
+        // 5.1. Получить содержимое конфига app.php
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('config')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $config = $this->storage->get('app.php');
+
+        // 5.2. Получить текущий список провайдеров из конфига app.php
+        // - И отфильтровать 1 так, чтобы удалить регистрацию всех провайдеров не моих пакетов.
+        $approviders = config('app.providers');
+
+        // 5.3. Удалить из $approviders запись, содержащую $packid.'\ServiceProvider::class'
+        $approviders = array_values(array_filter($approviders, function($item) USE ($packid) {
+          return !preg_match("/^".$packid."\\\\ServiceProvider$/ui", $item);
+        }));
+
+        // 5.4. С помощью regex вставить $approviders в providers конфига $config
+
+          // 1] Сформировать строку в формате массива из $approviders
+          $providers_str = call_user_func(function() USE ($approviders) {
+
+            // 1.1] Подготовить строку для результата
+            $result = "[" . PHP_EOL;
+
+            // 1.2] Вставить в $result все значения из $approviders
+            for($i=0; $i<count($approviders); $i++) {
+              if($i != count($approviders)-1 )
+                $result = $result . "        " . $approviders[$i] . "::class," . PHP_EOL;
+              else
+                $result = $result . "        " . $approviders[$i] . "::class" . PHP_EOL;
+            }
+
+            // 1.3] Завершить квадратной скобкой c запятой
+            $result = $result . "    ],";
+
+            // 1.4] Вернуть результат
+            return $result;
+
+          });
+
+          // 2] Вставить $providers_str в $config
+          $config = preg_replace("#'providers' *=> *\[.*\],#smuiU", "'providers' => ".$providers_str, $config);
+
+          // 3] Заменить config
+          $this->storage->put('app.php', $config);
+
+      // 6. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "packfullname"  => $packid,
+        ]
+      ];
 
 
-      // ...
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C29_del_r from M-package M1 have ended with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
