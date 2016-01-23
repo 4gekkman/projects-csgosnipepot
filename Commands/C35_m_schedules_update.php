@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Delete console command from M-package
+ *    - Update schedules of console commands of M-packages
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        packid        // ID M-пакета, из которого удалить команду
- *        command2del   // ID к.команды, которую надо удалить
+ *
  *      ]
  *    ]
  *
@@ -47,7 +46,7 @@
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Commands
+// - Пример:  M1\Commands
 
   namespace M1\Commands;
 
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C35_m_schedules_update extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -123,7 +122,14 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
   public function __construct($data)  // TODO: указать аргументы
   {
 
+    // Принять входящие данные
     $this->data = $data;
+
+    // Настроить Storage для текущей сессии
+    config(['filesystems.default' => 'local']);
+    config(['filesystems.disks.local.root' => base_path()]);
+    $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
 
   }
 
@@ -136,155 +142,118 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
     /**
      * Оглавление
      *
-     *  1. Получить входящие параметры
-     *  2. Проверить существование M-пакета $packid
-     *  3. Проверить существование к.команды $command2del в пакете $mpack
-     *  4. Удалить файл команды
-     *  5. Удалить запись об удалённой к.команде из сервис-провайдера пакета $packid
-     *  6. Удалить запись об удалённой к.команде из $add2schedule в сервис-провайдере
-     *  7. Вернуть результаты
+     *  1. Получить коллекцию ID всех M-пакетов в системе
+     *  2. Извлечь актуальный список строк для планировщика, без повторов
+     *  3. Извлечь текущий список строк из планировщика (помеченных, как 4gekkman's, но без меток)
+     *  4. Получить список строк, которые надо удалить из планировщика, с метками 4gekkman's
+     *  5. Получить список строк, которые надо добавить в планировщик, с метками 4gekkman's
+     *  6. Удалить/Добавить требуемые строки из/в планировщик(а)
+     *
+     *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------------//
-    // Удалить консольную команду из указанного M-пакета //
-    //---------------------------------------------------//
+    //-------------------------------------------------------//
+    // Обновить планирование консольных команд для M-пакетов //
+    //-------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить входящие параметры
-      $packid = $this->data['packid'];
-      $command2del = $this->data['command2del'];
+      // 1. Получить коллекцию ID всех M-пакетов в системе
+      $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+        $query->where(function($query){
+          $query->where('name','=','M');
+        });
+      })->pluck('id_inner');
 
-      // 2. Проверить существование M-пакета $packid
-      $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
-      if(empty($pack))
-        throw new \Exception("Package $packid does not exist.");
+      // 2. Извлечь актуальный список строк для планировщика, без повторов
 
-      // 3. Проверить существование к.команды $command2del в пакете $pack
-      $command = \M1\Models\MD6_console::whereHas('package', function($query) USE ($packid) {
-        $query->where('id_inner','=',$packid);
-      })->where('id_inner','=',$command2del)->first();
-      if(empty($command))
-        throw new \Exception("Console command ".$command2del." in package $packid does not exist.");
+        // 2.1. Подготовить массив для результата
+        $schedule_actual = [];
 
-      // 4. Удалить файл команды
-      config(['filesystems.default' => 'local']);
-      config(['filesystems.disks.local.root' => base_path()]);
-      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-      $this->storage->delete('vendor/4gekkman/'.$packid.'/Console/'.$command->name.'.php');
+        // 2.2. Пробежаться по всем M-пакетам
+        foreach($packages as $package) {
 
-      // 5. Удалить запись об удалённой к.команде из сервис-провайдера пакета $packid
+          // 2.2.1. Получить содержимое сервис-провайдера M-пакета $package
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package)]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+          $sp = $this->storage->get('ServiceProvider.php');
 
-        // 5.1. Получить содержимое сервис-провайдера M-пакета $packid
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $sp = $this->storage->get('ServiceProvider.php');
+          // 2.2.2. Получить содержимое массива $add2schedule из $sp в виде массива
+          preg_match("/add2schedule *= *\[.*\]/smuiU", $sp, $add2schedule);
+          $add2schedule = preg_replace("/add2schedule *= */smuiU", '', $add2schedule);
+          $add2schedule = preg_replace("/['\n\r\s\[\]]/smuiU", '', $add2schedule);
+          $add2schedule = explode(',', $add2schedule[0]);
+          $add2schedule = array_values(array_filter($add2schedule, function($item){
+            return !empty($item);
+          }));
 
-        // 5.2. Получить содержимое массива $commands из $sp в виде массива
-        preg_match("/commands *= *\[.*\]/smuiU", $sp, $commands);
-        $commands = preg_replace("/commands *= */smuiU", '', $commands);
-        $commands = preg_replace("/['\n\r\s\[\]]/smuiU", '', $commands);
-        $commands = explode(',', $commands[0]);
-        $commands = array_values(array_filter($commands, function($item){
-          return !empty($item);
-        }));
-
-        // 5.3. Удалить из $commands запись, содержащую $command->name
-        $commands = array_values(array_filter($commands, function($item) USE ($command) {
-          return !preg_match("/".$command->name."/ui", $item);
-        }));
-
-        // 5.4. Сформировать строку в формате массива из $commands
-
-          // 1] Подготовить строку для результата
-          $commands_result = "[" . PHP_EOL;
-
-          // 2] Вставить в $commands_result все значения из $commands
-          for($i=0; $i<count($commands); $i++) {
-            if($i != count($commands)-1 )
-              $commands_result = $commands_result . "          '" . $commands[$i] . "'," . PHP_EOL;
-            else
-              $commands_result = $commands_result . "          '" . $commands[$i] . "'" . PHP_EOL;
+          // 2.2.3. Добавить содержимое $add2schedule в $schedule_actual без повторов
+          foreach($add2schedule as $item) {
+            if(!in_array($item, $schedule_actual)) array_push($schedule_actual, $item);
           }
 
-          // 3] Завершить квадратной скобкой c запятой
-          $commands_result = $commands_result . "        ]";
+        }
 
-        // 5.5. Вставить $commands_result в $sp
-        $sp = preg_replace("/commands *= *\[.*\]/smuiU", 'commands = '.$commands_result, $sp);
+      // 3. Извлечь текущий список строк из планировщика (помеченных, как 4gekkman's, но без меток)
 
-        // 5.6. Заменить $sp
+        // 3.1. Получить содержимое консольного ядра приложения
         config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
+        config(['filesystems.disks.local.root' => base_path()]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('ServiceProvider.php', $sp);
+        $kernel = $this->storage->get('app/Console/Kernel.php');
 
-      // 6. Удалить запись об удалённой к.команде из $add2schedule в сервис-провайдере
+        // 3.2. Получить текущий список, без меток 4gekkman's
+        preg_match_all("#.* *// *4gekkman's#ui", $kernel, $schedule_current_temp, PREG_SET_ORDER);
+        foreach($schedule_current_temp as &$elem) {
+          $elem[0] = preg_replace("/^ */ui", '', $elem[0]);
+          $elem[0] = preg_replace("# *// *4gekkman's.*$#sui", '', $elem[0]);
+        };
+        $schedule_current = [];
+        for($i=0; $i<count($schedule_current_temp); $i++) {
+          if(!in_array($schedule_current_temp[$i][0], $schedule_current))
+            array_push($schedule_current, $schedule_current_temp[$i][0]);
+        }
 
-        // 6.1. Получить содержимое сервис-провайдера M-пакета $mpackid
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $sp = $this->storage->get('ServiceProvider.php');
+      // 4. Получить список строк, которые надо удалить из планировщика, с метками 4gekkman's
+      $str2del = array_values(array_diff($schedule_current, $schedule_actual));
 
-        // 6.2. Получить содержимое массива $add2schedule из $sp в виде массива
-        preg_match("/add2schedule *= *\[.*\]/smuiU", $sp, $add2schedule);
-        $add2schedule = preg_replace("/add2schedule *= */smuiU", '', $add2schedule);
-        $add2schedule = preg_replace("/['\n\r\s\[\]]/smuiU", '', $add2schedule);
-        $add2schedule = explode(',', $add2schedule[0]);
-        $add2schedule = array_values(array_filter($add2schedule, function($item){
-          return !empty($item);
-        }));
+      // 5. Получить список строк, которые надо оставить в планировщике
+      $str2leave = array_values(array_intersect($schedule_current, $schedule_actual));
 
-        // 6.3. Удалить из $add2schedule запись, содержащую $command->name (без префикса в виде ID)
-        $add2schedule = array_values(array_filter($add2schedule, function($item) USE ($command, $packid) {
-          $command_without_prefix = preg_replace("/T[0-9]+_/ui", '', $command->name);
-          write2log($command_without_prefix, []);
-          return !preg_match("/command\((\"|')".mb_strtolower($packid).":".mb_strtolower($command_without_prefix)."( |\")/ui", $item);
-        }));
+      // 5. Получить список строк, которые надо добавить в планировщик, с метками 4gekkman's
+      $str2add = [];
+      foreach($schedule_actual as $item) {
+        if(!in_array($item, $str2del) && !in_array($item, $str2leave))
+          array_push($str2add, $item);
+      }
 
-        // 6.4. Сформировать строку в формате массива из $add2schedule
+      write2log(123, []);
+      //write2log($str2leave, []);
+      //write2log($str2add, []);
 
-          // 1] Подготовить строку для результата
-          $add2schedule_result = "[" . PHP_EOL;
+      // 6. Удалить/Добавить требуемые строки из/в планировщик(а)
 
-          // 2] Вставить в $add2schedule_result все значения из $add2schedule
-          for($i=0; $i<count($add2schedule); $i++) {
-            if($i != count($add2schedule)-1 )
-              $add2schedule_result = $add2schedule_result . "          '" . $add2schedule[$i] . "'," . PHP_EOL;
-            else
-              $add2schedule_result = $add2schedule_result . "          '" . $add2schedule[$i] . "'" . PHP_EOL;
-          }
-
-          // 3] Завершить квадратной скобкой c запятой
-          $add2schedule_result = $add2schedule_result . "        ]";
-
-        // 6.5. Вставить $add2schedule_result в $sp
-        $sp = preg_replace("/add2schedule *= *\[.*\]/smuiU", 'add2schedule = '.$add2schedule_result, $sp);
-
-        // 6.6. Заменить $sp
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('ServiceProvider.php', $sp);
-
-      // 7. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "ccomfullname" => $command->name,
-          "package"      => $pack->id_inner
-        ]
-      ];
 
     } catch(\Exception $e) {
-        $errortext = "Deleting of console command from M-package have ended with error: ".$e->getMessage();
+        $errortext = 'Invoking of command C35_m_schedules_update from M-package M1 have ended with error: '.$e->getMessage();
+        DB::rollback();
+        Log::info($errortext);
+        write2log($errortext, ['M1', 'C35_m_schedules_update']);
         return [
           "status"  => -2,
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
+
+
+    //---------------------//
+    // N. Вернуть статус 0 //
+    //---------------------//
+    return [
+      "status"  => 0,
+      "data"    => ""
+    ];
 
   }
 

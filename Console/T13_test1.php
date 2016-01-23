@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Post-composer-update operations for app
+ *    - Console command of M-package
  *
  *  Аргументы
  *  ---------
@@ -24,7 +24,7 @@
 //-----------------------------------//
 // Пространство имён artisan-команды //
 //-----------------------------------//
-// - Пример для админ.документов:  M1\Console
+// - Пример:  M1\Console
 
   namespace M1\Console;
 
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T6_afterupdate extends Command
+class T13_test1 extends Command
 {
 
   //---------------------------//
@@ -88,14 +88,15 @@ class T6_afterupdate extends Command
   //  - '[имя] {--queue=}'    | задать аргумент-опцию со значением
   //  - '[имя] {--queue=foo}' | задать аргумент-опцию со значением по умолчанию
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
+  // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:afterupdate';
+    protected $signature = 'm1:test1';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Post-composer-update operations for app.';
+    protected $description = 'Console command of M-package';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -148,66 +149,29 @@ class T6_afterupdate extends Command
   public function handle()
   {
 
-    // 1] Выполнить команду allrespublish
-    $result = runcommand('\M1\Commands\C3_allrespublish');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("allrespublish success");
+    /**
+     * Оглавление
+     *
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
+     *
+     */
 
-    // 2] Выполнить команду parseapp
-    $result = runcommand('\M1\Commands\C1_parseapp');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } $this->comment("parseapp success");
-
-    // 3] Выполнить команду sp_regs_update
-    $result = runcommand('\M1\Commands\C2_sp_regs_update');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("sp_regs_update success");
-
-    // 4] Выполнить команду allrespublish опять
-    exec('composer dump-autoload');
-    $result = runcommand('\M1\Commands\C3_allrespublish');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("allrespublish success");
-
-    // 5] Выполнить команду m_dbs_update
-    $result = runcommand('\M1\Commands\C4_m_dbs_update');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("m_dbs_update success");
-
-    // 6] Выполнить команду mdlw_cfgs_update
-    $result = runcommand('\M1\Commands\C33_mdlw_cfgs_update');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("mdlw_cfgs_update success");
-
-    // 7] Выполнить команду minify
-    $result = runcommand('\M1\Commands\C5_minify');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("minify success");
-
-    // 8] Выполнить команду m_schedules_update
-    $result = runcommand('\M1\Commands\C35_m_schedules_update');
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    } else $this->comment("m_schedules_update success");
-
-    // N. В случае успеха, вывести соотв.сообщение
-    $this->info("afterupdate success");
-
+//    // 1. Выполнить команду
+//    $result = runcommand('\M1\Commands\C4_allrespublish');
+//
+//
+//    // 2. В случае неудачи, вывести текст ошибки
+//    if($result['status'] != 0) {
+//      $this->error('Error: '.$result['data']);
+//      return;
+//    }
+//
+//
+//    // 3. В случае успеха, вывести соотв.сообщение
+//    $this->info("Success");
+//
   }
 
 }
