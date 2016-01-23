@@ -85,8 +85,6 @@
         // Список подготовленных для добавление в планировщик строк
         // Пример: "$schedule->command("m1:parseapp")->withoutOverlapping()->hourly();"
         $add2schedule = [
-          '$schedule->command("m1:test1")->withoutOverlapping()->hourly();',
-          '$schedule->command("m1:test2")->withoutOverlapping()->hourly();'
         ];
 
       //----------------------------------------------------//
@@ -106,9 +104,7 @@
           '\M1\Console\T9_del',
           '\M1\Console\T10_release',
           '\M1\Console\T11_mdlw_cfgs_update',
-          '\M1\Console\T12_m_schedules_update',
-          '\M1\Console\T13_test1',
-          '\M1\Console\T14_test2'
+          '\M1\Console\T12_m_schedules_update'
         ];
 
         // Регистрация команд в методе register

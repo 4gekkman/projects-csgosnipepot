@@ -115,8 +115,8 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
   //-------------------------------------//
   // - Которые передаются через конструктор при запуске команды
 
-    // Переменная такая-то
-    // protected $data;
+    // Принять данные
+    public $data;
 
   //------------------------------------------------------//
   // В. Принять аргументы, переданные при запуске команды //
@@ -321,8 +321,8 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         }));
 
         // 10.3. Добавить в $add2schedule запись про новую команду
-        // - Но только, если таковой ещё нет
-        if(!in_array($add2scheduler, $add2schedule))
+        // - Но только, если таковой ещё нет, и если она не пуста
+        if(!in_array($add2scheduler, $add2schedule) && !empty($add2scheduler))
           array_push($add2schedule, $add2scheduler);
 
         // 10.4. Сформировать строку в формате массива из $add2schedule

@@ -95,8 +95,8 @@ class C13_afternew extends Job { // TODO: добавить "implements ShouldQue
   //-------------------------------------//
   // - Которые передаются через конструктор при запуске команды
 
-    // Переменная такая-то
-    // protected $data;
+    // Принять данные
+    public $data;
 
   //------------------------------------------------------//
   // В. Принять аргументы, переданные при запуске команды //
@@ -118,18 +118,21 @@ class C13_afternew extends Job { // TODO: добавить "implements ShouldQue
     $result = runcommand('\M1\Commands\C3_allrespublish');
     if($result['status'] != 0) {
       Log::info('Error: '.$result['data']);
+      write2log('Error: '.$result['data']);
     }
 
     // 2] Выполнить команду parseapp
     $result = runcommand('\M1\Commands\C1_parseapp');
     if($result['status'] != 0) {
       Log::info('Error: '.$result['data']);
+      write2log('Error: '.$result['data']);
     }
 
     // 3] Выполнить команду sp_regs_update
     $result = runcommand('\M1\Commands\C2_sp_regs_update');
     if($result['status'] != 0) {
       Log::info('Error: '.$result['data']);
+      write2log('Error: '.$result['data']);
     }
 
     // 4] Выполнить команду allrespublish опять
@@ -137,12 +140,21 @@ class C13_afternew extends Job { // TODO: добавить "implements ShouldQue
     $result = runcommand('\M1\Commands\C3_allrespublish');
     if($result['status'] != 0) {
       Log::info('Error: '.$result['data']);
+      write2log('Error: '.$result['data']);
     }
 
     // 5] Выполнить команду minify
     $result = runcommand('\M1\Commands\C5_minify');
     if($result['status'] != 0) {
       Log::info('Error: '.$result['data']);
+      write2log('Error: '.$result['data']);
+    }
+
+    // 6] Выполнить команду m_schedules_update
+    $result = runcommand('\M1\Commands\C35_m_schedules_update');
+    if($result['status'] != 0) {
+      Log::info('Error: '.$result['data']);
+      write2log('Error: '.$result['data']);
     }
 
   }

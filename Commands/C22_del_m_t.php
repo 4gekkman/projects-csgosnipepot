@@ -114,8 +114,8 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
   //-------------------------------------//
   // - Которые передаются через конструктор при запуске команды
 
-    // Переменная такая-то
-    // protected $data;
+    // Принять данные
+    public $data;
 
   //------------------------------------------------------//
   // В. Принять аргументы, переданные при запуске команды //
@@ -240,7 +240,6 @@ class C22_del_m_t extends Job { // TODO: добавить "implements ShouldQueu
         // 6.3. Удалить из $add2schedule запись, содержащую $command->name (без префикса в виде ID)
         $add2schedule = array_values(array_filter($add2schedule, function($item) USE ($command, $packid) {
           $command_without_prefix = preg_replace("/T[0-9]+_/ui", '', $command->name);
-          write2log($command_without_prefix, []);
           return !preg_match("/command\((\"|')".mb_strtolower($packid).":".mb_strtolower($command_without_prefix)."( |\")/ui", $item);
         }));
 

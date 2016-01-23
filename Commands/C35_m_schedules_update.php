@@ -113,8 +113,8 @@ class C35_m_schedules_update extends Job { // TODO: добавить "implements
   //-------------------------------------//
   // - Которые передаются через конструктор при запуске команды
 
-    // Переменная такая-то
-    // protected $data;
+    // Принять данные
+    public $data;
 
   //------------------------------------------------------//
   // В. Принять аргументы, переданные при запуске команды //
@@ -146,8 +146,10 @@ class C35_m_schedules_update extends Job { // TODO: добавить "implements
      *  2. Извлечь актуальный список строк для планировщика, без повторов
      *  3. Извлечь текущий список строк из планировщика (помеченных, как 4gekkman's, но без меток)
      *  4. Получить список строк, которые надо удалить из планировщика, с метками 4gekkman's
-     *  5. Получить список строк, которые надо добавить в планировщик, с метками 4gekkman's
-     *  6. Удалить/Добавить требуемые строки из/в планировщик(а)
+     *  5. Получить список строк, которые надо оставить в планировщике
+     *  6. Получить список строк, которые надо добавить в планировщик, с метками 4gekkman's
+     *  7. Удалить строки $str2leave из $kernel
+     *  8. Добавить строки $str2add в конец функции schedule в $kernel
      *
      *  N. Вернуть статус 0
      *
@@ -221,19 +223,66 @@ class C35_m_schedules_update extends Job { // TODO: добавить "implements
       // 5. Получить список строк, которые надо оставить в планировщике
       $str2leave = array_values(array_intersect($schedule_current, $schedule_actual));
 
-      // 5. Получить список строк, которые надо добавить в планировщик, с метками 4gekkman's
+      // 6. Получить список строк, которые надо добавить в планировщик, с метками 4gekkman's
       $str2add = [];
       foreach($schedule_actual as $item) {
         if(!in_array($item, $str2del) && !in_array($item, $str2leave))
           array_push($str2add, $item);
       }
 
-      write2log(123, []);
-      //write2log($str2leave, []);
-      //write2log($str2add, []);
+      // 7. Удалить строки $str2leave из $kernel
+      foreach($str2del as $del) {
 
-      // 6. Удалить/Добавить требуемые строки из/в планировщик(а)
+        // Добавить к $del в конце // 4gekkman's
+        $del = $del . " // 4gekkman's";
 
+        // Заэкранировать строку $del
+        $del = preg_quote($del);
+
+        // Удалить
+        $kernel = preg_replace("#$del#ui", '', $kernel);
+
+      }
+
+      // 8. Добавить строки $str2add в конец функции schedule в $kernel
+
+        // 8.1. Получить содержимое блока функции schedule из $kernel в виде строки
+        preg_match("/protected function schedule\(Schedule .{1}schedule\).*{.*}/smuiU", $kernel, $schedule_str);
+        $schedule_str = $schedule_str[0];
+        $schedule_str = preg_replace("/[{}]/smuiU", '', $schedule_str);
+        $schedule_str = preg_replace("/protected function schedule\(Schedule .{1}schedule\)/smuiU", '', $schedule_str);
+        $schedule_str = preg_replace("/^[\s\t]*(\r\n|\n)/smuiU", '', $schedule_str);
+        $schedule_str = PHP_EOL . $schedule_str . PHP_EOL;
+
+        // 8.2. Сформировать строку в формате функции schedule
+
+          // 1] Начать формирование
+          $schedule_result = "protected function schedule(Schedule \$schedule)" . PHP_EOL;
+
+          // 2] Добавить открывающую фигурную скобку
+          $schedule_result = $schedule_result . "    {" . PHP_EOL;
+
+          // 3] Добавить $schedule_str
+          $schedule_result = $schedule_result . $schedule_str;
+
+          // 4] Добавить строки из $str2add
+          foreach($str2add as $add) {
+
+            $schedule_result = $schedule_result . "        " . $add . ' // 4gekkman\'s' .  PHP_EOL;
+
+          }
+
+          // 4] Добавить закрывающую фигурную скобку
+          $schedule_result = $schedule_result . PHP_EOL . "    }";
+
+        // 8.3. Вставить $schedule_result в $kernel
+        $kernel = preg_replace("/protected function schedule\(Schedule .{1}schedule\).*{.*}/smuiU", $schedule_result, $kernel);
+
+        // 8.4. Заменить $kernel
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('app/Console/Kernel.php', $kernel);
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C35_m_schedules_update from M-package M1 have ended with error: '.$e->getMessage();
