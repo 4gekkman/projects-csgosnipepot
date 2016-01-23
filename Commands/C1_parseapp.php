@@ -475,8 +475,8 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
             $p->id_packtype = \M1\Models\MD1_packtypes::where('name','=',$key)->first()->id;
             $p->id_inner = $package;
             $p->aboutpack = json_encode($get_aboutpack($package), JSON_UNESCAPED_UNICODE);
-            $p->domain = $get_domain($package);
-            $p->uri = $get_uri($package);
+            //$p->domain = $get_domain($package);
+            //$p->uri = $get_uri($package);
             $p->lastversion = $lastversion;
             $p->save();
             continue;
@@ -488,8 +488,8 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
             $p->id_packtype = \M1\Models\MD1_packtypes::where('name','=',$key)->first()->id;
             $p->id_inner = $package;
             $p->aboutpack = json_encode($get_aboutpack($package), JSON_UNESCAPED_UNICODE);
-            $p->domain = $get_domain($package);
-            $p->uri = $get_uri($package);
+            //$p->domain = $get_domain($package);
+            //$p->uri = $get_uri($package);
             $p->lastversion = $lastversion;
             $p->save();
           }

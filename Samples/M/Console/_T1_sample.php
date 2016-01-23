@@ -146,6 +146,9 @@ class PARAMccomfullnamePARAM extends Command
   //    - $this->question()    | вывести в окно терминала сообщение цвета question
   //    - $this->error()       | вывести в окно терминала сообщение цвета error
   //    - $this->table()       | вывести в окно терминала таблицу данных
+  //
+  //        $this->table(['header1','header2','header3'], ['row1_cell1', 'row1_cell2', 'row1_cell3'], ['row2_cell1', 'row2_cell2', 'row2_cell3'] )
+  //
   public function handle()
   {
 
