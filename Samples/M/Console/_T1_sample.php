@@ -162,7 +162,7 @@ class PARAMccomfullnamePARAM extends Command
      */
 
 //    // 1. Выполнить команду
-//    $result = runcommand('\PARAMmpackidPARAM\Commands\C4_allrespublish');
+//    $result = runcommand('\PARAMmpackidPARAM\Commands\C1_command');
 //
 //
 //    // 2. В случае неудачи, вывести текст ошибки

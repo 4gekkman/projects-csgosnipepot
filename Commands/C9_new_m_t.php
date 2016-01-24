@@ -304,6 +304,7 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         $this->storage->put('ServiceProvider.php', $sp);
 
       // 10. Добавить в $add2schedule в сервис-провайдере новую запись (если требуется)
+      if(!empty($add2scheduler)) {
 
         // 10.1. Получить содержимое сервис-провайдера M-пакета $mpackid
         config(['filesystems.default' => 'local']);
@@ -349,6 +350,8 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid)]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('ServiceProvider.php', $sp);
+
+      }
 
       // 11. Вернуть результаты
       return [

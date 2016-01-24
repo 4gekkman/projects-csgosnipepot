@@ -11,7 +11,7 @@
  *
  *  Какое событие обрабатывает
  *  --------------------------
- *    - PARAMeventPARAM
+ *    - \PARAMeventPARAM
  *
  *  На какие ключи реагирует
  *  ------------------------
@@ -126,7 +126,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
   //-------------------------------//
   // Б. Функция-обработчик события //
   //-------------------------------//
-  public function handle(PARAMeventPARAM $event) // принять обрабатываемый объект-событие
+  public function handle(\PARAMeventPARAM $event) // принять обрабатываемый объект-событие
   {
 
   /**
@@ -150,7 +150,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
       $eventkeys = $event->data['keys'];
 
       // 1.2. Получить ключи, поддерживаемые обработчиком
-      $handlerkeys = ["m2:write2log"];
+      $handlerkeys = PARAMkeysPARAM;
 
       // 1.3. Если ни один ключ не подходит, завершить
       $testkeys = array_intersect($handlerkeys, $eventkeys);
@@ -162,7 +162,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
     } catch(\Exception $e) {
       $errortext = 'Keys checking in event handler PARAMhandlerfullnamePARAM of M-package PARAMmpackidPARAM have ended with error: '.$e->getMessage();
       Log::info($errortext);
-      write2log($errortext, ['M1', 'parseapp']);
+      write2log($errortext, ['PARAMmpackidPARAM', 'PARAMhandlerfullnamePARAM']);
       return [
         "status"  => -2,
         "data"    => $errortext
@@ -182,7 +182,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
         DB::rollback();
         $errortext = 'Invoking of event handler PARAMhandlerfullnamePARAM of M-package PARAMmpackidPARAM have ended with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+        write2log($errortext, ['PARAMmpackidPARAM', 'PARAMhandlerfullnamePARAM']);
         return [
           "status"  => -2,
           "data"    => $errortext
