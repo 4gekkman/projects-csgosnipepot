@@ -221,6 +221,37 @@ class PARAMmodelfullnamePARAM extends Model { // implements ModelInterface
       // - ... описание связи ...
 
 
+    //-----------------------------//
+    // Три быстрых примера-шаблона //
+    //-----------------------------//
+
+      // 1]  //
+      //---------------------//
+      // - 1:n прямая
+      // - [X]---Є[Y] Какие Y принадлежат этому X
+      //public function many_y()
+      //{
+      //  return $this->hasMany('\PARAMmpackidPARAM\Models\MD2_y', 'id_y', 'id');
+      //}
+
+      // 1]  //
+      //---------------------//
+      // - 1:n обратная
+      // - [Y]Э---[X] Какому X принадлежит этот Y
+      //public function one_x()
+      //{
+      //  return $this->belongsTo('\PARAMmpackidPARAM\Models\MD1_x', 'id_y', 'id');
+      //}
+
+      // 1]  //
+      //---------------------//
+      // - n:m
+      // - [A]Э---Є[B] С какими A связан этот B
+      //public function many_a()
+      //{
+      //  return $this->belongsToMany('\PARAMmpackidPARAM\Models\MD3_a', 'PARAMmpackid_strtolowerPARAM.md1000', 'id_b', 'id_a');
+      //}
+
 
     //------------------------------------------------------//
     // Шаблоны (примеры) определений и использования связей //
