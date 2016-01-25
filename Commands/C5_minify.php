@@ -414,7 +414,47 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
 
             // 2.2] Если $package является P-пакетом
             if($package->packtype->name == "P") {
-              $resultarr[$parentpack->id_inner][$package->id_inner] = base_path("vendor/4gekkman/$package->id_inner/Minify/c.css");
+
+              // 2.2.1] Проверить наличие файла links.json у P-пакета
+              $links = file_exists(base_path('vendor/4gekkman/'.$package->id_inner.'/Minify/links.json'));
+              if(!$links)
+                throw new \Exception('У P-пакета '.$package->id_inner.' не найден файл /Minify/links.json');
+
+              // 2.2.2] Извлечь содержимое файла $links
+              config(['filesystems.default' => 'local']);
+              config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package->id_inner.'/Minify')]);
+              $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+              $links = json_decode($this->storage->get('links.json'), true);
+
+              // 2.2.3] Проверить CSS-ссылки на существование
+              foreach($links['css'] as $link) {
+                if(!r1_url_exists($link))
+                  throw new \Exception('У P-пакета '.$package->id_inner.', в links.json, указана не рабочая ссылка на css: '.$link);
+              }
+
+              // 2.2.4] Подготовить массив для ссылок на css P-пакета
+              $resultarr[$parentpack->id_inner][$package->id_inner] = [];
+
+              // 2.2.5] Если linksfirst == false
+              if($links['linksfirst'] == false) {
+
+                // Добавить ссылку на c.css P-пакета
+                array_push($resultarr[$parentpack->id_inner][$package->id_inner], base_path("vendor/4gekkman/$package->id_inner/Minify/c.css"));
+
+              }
+
+              // 2.2.6] Добавить ссылки из $links в $resultarr
+              foreach($links['css'] as $link) {
+                array_push($resultarr[$parentpack->id_inner][$package->id_inner], $link);
+              }
+
+              // 2.2.7] Если linksfirst == true
+              if($links['linksfirst'] == true) {
+
+                // Добавить ссылку на c.css P-пакета
+                array_push($resultarr[$parentpack->id_inner][$package->id_inner], base_path("vendor/4gekkman/$package->id_inner/Minify/c.css"));
+
+              }
             }
 
             // 2.3] Если $package является K-пакетом
@@ -444,14 +484,30 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
       foreach($dpackages as $dpackage) {
 
         // 1] Создать объект Minify для c.css этого документа
-        $minify = new \MatthiasMullie\Minify\CSS(base_path("vendor/4gekkman/$dpackage->id_inner/Minify/c.css"));
+        $minify = new \MatthiasMullie\Minify\CSS();
 
         // 2] Добавить в объект $minify все css файлы из $css_dep_arr
         foreach($css_dep_arr[$dpackage->id_inner] as $packid => $csspath) {
-          $minify->add($csspath);
+
+          // 2.1] Если это не P-пакет
+          if(preg_match("#^P#ui", $packid) == 0)
+            $minify->add($csspath);
+
+          // 2.2] Если это P-пакет
+          else {
+            foreach($csspath as $css) {
+
+              $minify->add(file_get_contents($css));
+
+            }
+          }
+
         }
 
-        // 3] Создать c.min.css и сохранить в Public документа $doc
+        // 3] Добавить в объект $minify css из D-пакета
+        $minify->add(base_path("vendor/4gekkman/$dpackage->id_inner/Minify/c.css"));
+
+        // 4] Создать c.min.css и сохранить в Public документа $doc
         $minify->minify(base_path("Public/$dpackage->id_inner/c.min.css"));
 
       }
@@ -576,20 +632,38 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
        * $result = [                    // Результат
        *   0 => [                       //   Дерево №0
        *     0 => [                     //     Уровень №0
-       *       "P3" => "/path/to",
-       *       "P4" => "/path/to"
+       *       "P3" => [
+       *          "/path/to",
+       *          "/path/to",
+       *        ]
+       *       "P4" => [
+       *          "/path/to",
+       *          "/path/to",
+       *        ]
        *     ],
        *     1 => [                     //     Уровень №1
-       *       "P1" => "/path/to"
+       *       "P1" => [
+       *          "/path/to",
+       *          "/path/to",
+       *        ]
        *     ]
        *   ],
        *   1 => [                       //   Дерево №1
        *     0 => [
-       *       "P5" => "/path/to",
-       *       "P6" => "/path/to"
+       *       "P5" => [
+       *          "/path/to",
+       *          "/path/to",
+       *        ],
+       *       "P6" => [
+       *          "/path/to",
+       *          "/path/to",
+       *        ]
        *     ],
        *     1 => [
-       *       "P2" => "/path/to"
+       *       "P2" => [
+       *          "/path/to",
+       *          "/path/to",
+       *        ]
        *     ]
        *   ]
        * ]
@@ -611,10 +685,48 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
           // 2.2] Пробежаться по $p_dep_arr
           foreach($p_dep_arr as $packid => $arr) {
 
-            // 2.2.1] Добавить в новый массив запись для $packid
-            $treearr[count($treearr)-1][$packid] = base_path("vendor/4gekkman/$packid/Minify/j.js");
+            // 2.2.1] Проверить наличие файла links.json у P-пакета
+            $links = file_exists(base_path('vendor/4gekkman/'.$packid.'/Minify/links.json'));
+            if(!$links)
+              throw new \Exception('У P-пакета '.$packid.' не найден файл /Minify/links.json');
 
-            // 2.2.2] Запустить $recur для $arr
+            // 2.2.2] Извлечь содержимое файла $links
+            config(['filesystems.default' => 'local']);
+            config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid.'/Minify')]);
+            $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+            $links = json_decode($this->storage->get('links.json'), true);
+
+            // 2.2.3] Проверить JS-ссылки на существование
+            foreach($links['js'] as $link) {
+              if(!r1_url_exists($link))
+                throw new \Exception('У P-пакета '.$packid.', в links.json, указана не рабочая ссылка на js: '.$link);
+            }
+
+            // 2.2.4] Подготовить массив для ссылок на js P-пакета
+            $treearr[count($treearr)-1][$packid] = [];
+
+            // 2.2.5] Если linksfirst == false
+            if($links['linksfirst'] == false) {
+
+              // Добавить ссылку на j.js P-пакета
+              array_push($treearr[count($treearr)-1][$packid], base_path("vendor/4gekkman/$packid/Minify/j.js"));
+
+            }
+
+            // 2.2.6] Добавить ссылки из $links в $treearr
+            foreach($links['js'] as $link) {
+              array_push($treearr[count($treearr)-1][$packid], $link);
+            }
+
+            // 2.2.7] Если linksfirst == true
+            if($links['linksfirst'] == true) {
+
+              // Добавить ссылку на j.js P-пакета
+              array_push($treearr[count($treearr)-1][$packid], base_path("vendor/4gekkman/$packid/Minify/j.js"));
+
+            }
+
+            // 2.2.8] Запустить $recur для $arr
             $recur($arr, $treearr);
 
           }
@@ -833,11 +945,13 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
       // - В случае наличия повторов убирать те, у которых индекс больше
       // - После, обновить ключи.
       foreach($jsdeps_for_dpacks as &$jsdeps_for_dpack) {
+
         $jsdeps_for_dpack = array_unique($jsdeps_for_dpack);
+
       }
       $jsdeps_for_dpacks = array_values($jsdeps_for_dpacks);
 
-      // 1.12. Создать j.min.js для каждого D-пакета
+      // 1.13. Создать j.min.js для каждого D-пакета
       // - С помощью пакета matthiasmullie/minify.
       foreach($dpackages as $dpackage) {
 
@@ -847,7 +961,20 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
         // 2] Добавить в $minify файлы из $jsdeps_for_dpacks
         foreach($jsdeps_for_dpacks as $key => $value) {
           foreach($jsdeps_for_dpacks[$key] as $path) {
-            $minify->add($path);
+
+            // 2.1] Если это не P-пакет
+            if(preg_match("#^P#ui", $key) == 0)
+              $minify->add($path);
+
+            // 2.2] Если это P-пакет
+            else {
+              foreach($path as $js) {
+
+                $minify->add(file_get_contents($js));
+
+              }
+            }
+
           }
         }
 
