@@ -104,7 +104,8 @@
           '\M1\Console\T9_del',
           '\M1\Console\T10_release',
           '\M1\Console\T11_mdlw_cfgs_update',
-          '\M1\Console\T12_m_schedules_update'
+          '\M1\Console\T12_m_schedules_update',
+          '\M1\Console\T13_workbench_sync'
         ];
 
         // Регистрация команд в методе register
