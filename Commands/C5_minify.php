@@ -742,10 +742,48 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
           // 3.2] Добавить в новый массив пустой массив
           array_push($result[count($result) - 1], []);
 
-          // 3.3] Добавить в новый массив запись для $packid
-          $result[count($result)-1][count($result[count($result) - 1])-1][$packid] = base_path("vendor/4gekkman/$packid/Minify/j.js");
+          // 3.3] Проверить наличие файла links.json у P-пакета
+          $links = file_exists(base_path('vendor/4gekkman/'.$packid.'/Minify/links.json'));
+          if(!$links)
+            throw new \Exception('У P-пакета '.$packid.' не найден файл /Minify/links.json');
 
-          // 3.4] Запустить $recur для $arr
+          // 3.4] Извлечь содержимое файла $links
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packid.'/Minify')]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+          $links = json_decode($this->storage->get('links.json'), true);
+
+          // 3.5] Проверить JS-ссылки на существование
+          foreach($links['js'] as $link) {
+            if(!r1_url_exists($link))
+              throw new \Exception('У P-пакета '.$packid.', в links.json, указана не рабочая ссылка на js: '.$link);
+          }
+
+          // 3.6] Подготовить массив для ссылок на js P-пакета
+          $result[count($result)-1][count($result[count($result) - 1])-1][$packid] = [];
+
+          // 3.7] Если linksfirst == false
+          if($links['linksfirst'] == false) {
+
+            // Добавить ссылку на j.js P-пакета
+            array_push($result[count($result)-1][count($result[count($result) - 1])-1][$packid], base_path("vendor/4gekkman/$packid/Minify/j.js"));
+
+          }
+
+          // 3.8] Добавить ссылки из $links в $treearr
+          foreach($links['js'] as $link) {
+            array_push($result[count($result)-1][count($result[count($result) - 1])-1][$packid], $link);
+          }
+
+          // 3.9] Если linksfirst == true
+          if($links['linksfirst'] == true) {
+
+            // Добавить ссылку на j.js P-пакета
+            array_push($result[count($result)-1][count($result[count($result) - 1])-1][$packid], base_path("vendor/4gekkman/$packid/Minify/j.js"));
+
+          }
+
+          // 3.10] Запустить $recur для $arr
           $recur($arr, $result[count($result)-1]);
 
         }
@@ -945,9 +983,7 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
       // - В случае наличия повторов убирать те, у которых индекс больше
       // - После, обновить ключи.
       foreach($jsdeps_for_dpacks as &$jsdeps_for_dpack) {
-
-        $jsdeps_for_dpack = array_unique($jsdeps_for_dpack);
-
+        $jsdeps_for_dpack = r1_array_unique_recursive($jsdeps_for_dpack);
       }
       $jsdeps_for_dpacks = array_values($jsdeps_for_dpacks);
 
@@ -963,13 +999,13 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
           foreach($jsdeps_for_dpacks[$key] as $path) {
 
             // 2.1] Если это не P-пакет
-            if(preg_match("#^P#ui", $key) == 0)
+            if(!is_array($path))
               $minify->add($path);
 
             // 2.2] Если это P-пакет
             else {
               foreach($path as $js) {
-
+Log::info($js);
                 $minify->add(file_get_contents($js));
 
               }
