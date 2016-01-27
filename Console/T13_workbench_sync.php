@@ -7,11 +7,12 @@
 /**
  *  Что делает
  *  ----------
- *    - Synchronize models of M-packages and their relationships with corresponding workbench models
+ *    - Synchronize models of M-package and their relationships with corresponding workbench model
  *
  *  Аргументы
  *  ---------
  *
+ *    packid    // ID пакета, для которого требуется провести синхронизацию
  *
  *  Опции
  *  -----
@@ -90,13 +91,13 @@ class T13_workbench_sync extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:workbench_sync';
+    protected $signature = 'm1:workbench_sync {packid}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Synchronize models of M-packages and their relationships with corresponding workbench models';
+    protected $description = 'Synchronize models of M-package and their relationships with corresponding workbench model';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +163,7 @@ class T13_workbench_sync extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M1\Commands\C36_workbench_sync');
+    $result = runcommand('\M1\Commands\C36_workbench_sync', ['data'=>['packid'=>$this->argument('packid')]]);
 
 
     // 2. В случае неудачи, вывести текст ошибки

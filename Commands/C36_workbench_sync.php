@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Synchronize models of M-packages and their relationships with corresponding workbench models
+ *    - Synchronize models of M-package and their relationships with corresponding workbench model
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        packid        // ID пакета, для которого требуется провести синхронизацию
  *      ]
  *    ]
  *
@@ -138,7 +138,6 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
      *  1.
      *
      *
-     *  N. Вернуть статус 0
      *
      */
 
@@ -147,37 +146,139 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
     //---------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить массив ID всех M-пакетов
-      $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
-        $query->where('name','=','M');
-      })->pluck('id_inner');
+      // 1. Получить M-пакет, для которого требуется синхронизация
+      $pack = \M1\Models\MD2_packages::where('id_inner', $this->data['data']['packid'])->first();
+      if(empty($pack))
+        throw new \Exception('M-пакет с id равным '.$pack->id_inner.' не найден.');
+      $package = $pack->id_inner;
 
-      // 2. Пробежатсья по всем M-пакетам
-      foreach($packages as $package) {
+      // 2. Проверить существование базы данных пакета $package
+      // - Если не существует, перейти к следующей итерации.
+      if(count(DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".mb_strtolower($package)."'")) == 0)
+        throw new \Exception('База данных пакета '.$package.' не найдена.');
 
-        // 2.1. Проверить существование базы данных пакета $package
-        // - Если не существует, перейти к следующей итерации.
-        if(count(DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".mb_strtolower($package)."'")) == 0)
-          continue;
+      // 3. Получить список имён всех имеющихся в БД пакета $package таблиц
+      // - Отфильтровать таблицы "^md100", и начинающиеся не с "^md"
+      $list = DB::select('SHOW tables FROM '.mb_strtolower($package));
+      $list = array_map(function($item) USE ($package){
+        $item = (array)$item;
+        return $item['Tables_in_'.mb_strtolower($package)];
+      }, $list);
+      $list = array_values(array_filter($list, function($item){
+        return preg_match("/^md/ui",$item) != 0 && preg_match("/^md100/ui",$item) == 0 && preg_match("/^md[0-9]+_/ui",$item) != 0;
+      }));
 
-        // 2.2. Получить список имён всех имеющихся в БД пакета $package таблиц
-        // - Отфильтровать таблицы "^md100", и начинающиеся не с "^md"
-        $list = DB::select('SHOW tables FROM '.mb_strtolower($package));
-        $list = array_map(function($item) USE ($package){
-          $item = (array)$item;
-          return $item['Tables_in_'.mb_strtolower($package)];
-        }, $list);
-        $list = array_values(array_filter($list, function($item){
-          return preg_match("/^md/ui",$item) != 0 && preg_match("/^md100/ui",$item) == 0 && preg_match("/^md[0-9]+_/ui",$item) != 0;
-        }));
+      // 4. Для каждой таблицы узнать следующее:
+      // - Включить ли автообслуживание created_at / updated_at
+      // - Включить ли мягкое удаление
+      $list_final = [];
+      foreach($list as $table) {
 
-        // 2.3. Получить список связей типа foreign key в БД пакета $package
-        // - В формате: [CONSTRAINT_NAME => TABLE_NAME]
-        $fkeys_data = DB::select("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' AND TABLE_SCHEMA='".mb_strtolower($package)."'");
-        $fkeys = [];
-        foreach($fkeys_data as &$fkey) {
-          $fkeys[$fkey->CONSTRAINT_NAME] = $fkey->TABLE_NAME;
+        // 1] Получить список всех столбцов таблицы $table
+        $columns = DB::select("SHOW COLUMNS FROM ".mb_strtolower($package).".".$table);
+        $columns = array_map(function($item){
+          return $item->Field;
+        }, $columns);
+
+        // 2] Выяснить на счёт автообслуживания created_at / updated_at
+        $timestamps = call_user_func(function() USE ($columns) {
+          return in_array('updated_at',$columns) && in_array('created_at',$columns) ? 'true' : 'false';
+        });
+
+        // 3] Выяснить на счёт мягкого удаления
+        $softdeletes = call_user_func(function() USE ($columns) {
+          return in_array('deleted_at',$columns) ? 'true' : 'false';
+        });
+
+        // 4] Определить ID таблицы
+        $table_id = call_user_func(function() USE ($table) {
+
+          preg_match("/^MD[0-9]+_/ui", $table, $id);
+          $id = preg_replace("/^MD/ui","",$id[0]);
+          $id = preg_replace("/_$/ui","",$id);
+          return $id;
+
+        });
+
+        // 5] Добавить значение в $list_final
+        array_push($list_final, [
+          "table"       => $table,
+          "id"          => $table_id,
+          "timestamps"  => $timestamps,
+          "softdeletes" => $softdeletes
+        ]);
+
+      }
+
+
+      // 5. Удалить все существующие модели пакета $package
+
+        // 1] Выполнить парсинг приложения
+        $result = runcommand('\M1\Commands\C1_parseapp');
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+
+        // 2] Получить список ID всех моделей пакета $package
+        $models = \M1\Models\MD3_models::whereHas('package', function($query) USE ($package){
+          $query->where('id_inner',$package);
+        })->pluck('id_inner');
+
+        // 3] Удалить
+        foreach($models as $model) {
+          $result = runcommand('\M1\Commands\C25_del_m_m',[
+            "packid"    => $package,
+            "model2del" => $model
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']);
         }
+
+      // 6. Создать модели из списка $list_final для пакета $package
+
+        // 1] Выполнить парсинг приложения
+        $result = runcommand('\M1\Commands\C1_parseapp');
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+
+        // 2] Создать
+        foreach($list_final as $model) {
+
+          $result = runcommand('\M1\Commands\C12_new_m_m',[
+            'mpackid'       => $package,
+            'name'          => preg_replace("/^MD[0-9]+_/ui","",$model['table']),
+            'modelid'       => $model['id'],
+            'timestamps'    => $model['timestamps'],
+            'softdeletes'   => $model['softdeletes'],
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']);
+
+        }
+
+        // 3] Выполнить парсинг приложения
+        $result = runcommand('\M1\Commands\C1_parseapp');
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+
+      // 7. Получить список связей типа foreign key в БД пакета $package
+      // - В формате: [CONSTRAINT_NAME => TABLE_NAME]
+      $fkeys_data = DB::select("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' AND TABLE_SCHEMA='".mb_strtolower($package)."'");
+      $fkeys = [];
+      foreach($fkeys_data as &$fkey) {
+        $fkeys[$fkey->CONSTRAINT_NAME] = $fkey->TABLE_NAME;
+      }
+
+
+      // Для каждой модели составить список связей для добавления в неё
+      // - Тип связи
+      // - Имя связи
+      // - Pivot-таблица (если связь типа belongsToMany).
+      // - Связанные столбцы
+
+
+
+      //write2log($fkeys, []);
+
 
 
 
@@ -228,11 +329,8 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
 
 
-        write2log($fkeys, []);
 
-        // 2.3.
 
-      }
 
 
 
