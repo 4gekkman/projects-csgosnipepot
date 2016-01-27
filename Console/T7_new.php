@@ -333,7 +333,7 @@ class T7_new extends Command
         $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new console command in english", 0);
 
         // 6] Спросить у пользователя, какой id задать обработчику
-        $params['comid'] = $this->ask("[NOT REQUIRED] Type id for the new console command", 0);
+        $params['comid'] = $this->ask("[NOT REQUIRED] Type id for the new event handler", 0);
 
         // 7] Спросить у пользователя, какое событие должен обрабатывать обработчик
         $params['event'] = $this->ask("[NOT REQUIRED] What event handler should handle", "\\R2\\Event");
