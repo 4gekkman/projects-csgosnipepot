@@ -262,19 +262,30 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       // 7. Получить список связей типа foreign key в БД пакета $package
       // - В формате: [CONSTRAINT_NAME => TABLE_NAME]
-      $fkeys_data = DB::select("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' AND TABLE_SCHEMA='".mb_strtolower($package)."'");
-      $fkeys = [];
-      foreach($fkeys_data as &$fkey) {
-        $fkeys[$fkey->CONSTRAINT_NAME] = $fkey->TABLE_NAME;
-      }
+      
 
 
-      // Для каждой модели составить список связей для добавления в неё
+
+//      $fkeys_data = DB::select("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' AND TABLE_SCHEMA='".mb_strtolower($package)."'");
+//      $fkeys = [];
+//      foreach($fkeys_data as &$fkey) {
+//        $fkeys[$fkey->CONSTRAINT_NAME] = $fkey->TABLE_NAME;
+//      }
+
+      // 8.
+
+
+      write2log($fkeys_data, []);
+
+
+
+      // Для модели составить список связей для добавления в неё
       // - Тип связи
       // - Имя связи
       // - Pivot-таблица (если связь типа belongsToMany).
-      // - Связанные столбцы
-
+      // - Полностью квалифицированный путь к модели, с которой связь
+      // - Foreign key
+      // - Local key
 
 
       //write2log($fkeys, []);
