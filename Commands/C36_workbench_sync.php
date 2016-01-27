@@ -453,104 +453,98 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           }
         });
 
-
-
-
-        write2log($result, []);
-
-
-
-
-
-
-        // 2. Ищем belongsTo связи для модели
-        // - type == 'belongsTo'
-        // - TABLE_NAME имеет формат "^md[0-9]{1,3}" и является именем
-        //   модели, которой надо добавить связь.
-        // - REFERENCED_TABLE_NAME это имя связанной модели related_model.
-        // - COLUMN_NAME это local_key
-        // - REFERENCED_COLUMN_NAME это foreign key
-
-        // 3. Ищем hasMany связи для модели
-        // - type == 'hasMany'
-        // - TABLE_NAME имеет формат "^md[0-9]{1,3}" и является именем
-        //   связанной модели related_model
-        // - REFERENCED_TABLE_NAME это имя модели, в которую следует
-        //   добавить связь.
-        // - COLUMN_NAME это foreign_key
-        // - REFERENCED_COLUMN_NAME это local key
-
-
-        // TABLE_NAME
-        // REFERENCED_TABLE_NAME
-
-
-
-
-
         // n] Вернуть результат
         return $result;
 
       });
 
+      // 8. Добавить в каждую модель её связи
+      foreach($relationships2add as $model => $rels) {
 
+        // 8.1. Если $model содержит пустой массив, перейти к след.итерации
+        if(count($rels) == 0) continue;
 
+        // 8.2. Проверить существование файла-модели $model
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package.'/Models')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists($model.'.php'))
+          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$package.'/Models');
 
+        // 8.3. Получить содержимое файла-модели $model
+        $file = $this->storage->get($model.'.php');
 
+        // 8.4. Составить строку со связями для добавления в $file
+        $rels2add = call_user_func(function() USE ($rels, $package) {
 
-      // Если table_name это pivot таблица
-      // - Значит, это связь типа belongsToMany.
-      // - Значит надо искать 2 FK, т.к. они идут всегда парами.
-      //   Пример:
-      //    "fk_md1005_md2_packages1": "md1003"
-      //    "fk_md1005_md5_commands1": "md1003"
-      // - Надо извлечь имена связанных таблиц:
-      //    md2_packages1 ---> (удалить цифры в конце) md2_packages
-      //    md5_commands1 ---> (удалить цифры в конце) md5_commands
-      // - Надо создать 2 связи в моделях MD2_packages и MD5_commands:
-      //    1) Связь packages в модели MD5_commands
-      //    2) Связь commands в модели MD2_packages
-      //
+          // 1] Подготовить строку для результата
+          $result = "// relationships start" . PHP_EOL;
 
-      // Если table_name это не pivot таблица
-      // - Значит, это пара связей типа hasMany, belongsTo.
-      // - Значит, нам хватит инфы из одного этого FK.
-      //   Пример:
-      //    "fk_md1_routes_md2_types": "md1_routes"
-      // - Надо извлечь имена связанных таблиц.
-      //    1) Имя первой таблицы берём из TABLE_NAME.
-      //      - В нашем случае это "md1_routes".
-      //    2) Имя 2-й таблицы берём из CONSTRAINT_NAME.
-      //      - Для этого из него удаляем 'fk_', 'md1_routes'
-      //        и все '_' из начала и конца оставшейся строки.
-      //        Получаем: "md2_types"
-      // - FK всегда у зависимой таблицы. Это значит, что:
-      //    1) Модели MD1_routes добавляем belongsTo связь.
-      //       Имя связи получаем из имени независимой
-      //       таблицы, удаляя s на конце, если оно есть.
-      //       Получаем: "type"
-      //    2) Модели MD2_types добавляем hasMany связь.
-      //       Имя связи получаем из имени зависимой таблицы.
-      //       Получаем: routes.
-      //
+          // 2] Добавить связи в $result
+          foreach($rels as $name => $sets) {
 
-      // При создании новой модели
-      // - Если у таблицы есть столбцы "created_at" и "updated_at",
-      //   то включить по умолчанию их авто.поддержку.
-      // - Если у таблицы есть столбец "deleted_at", включить
-      //   по умолчанию поддержку мягкого удаления.
+            // 2.1] Если тип связи belongsToMany
+            if($sets['type'] == 'belongsToMany') {
 
+              // 2.1.1] Добавить пробелы
+              $result = $result . '    ';
 
-      // Для каждого M-пакета:
+              // 2.1.2] Добавить связь
+              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.mb_strtolower($package).'.'.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
 
-      // - Получить список имеющихся в БД таблиц
-      // - Получить список имеющихся связей между таблицами (foreign keys)
-      // - Для каждой таблицы получить список столбцов
+              // 2.1.3] Добавить перенос строки
+              $result = $result . PHP_EOL;
 
-      // - Удалить все файлы-модели пакета с помощью C25_del_m_m
+            }
 
-      // - Создать новые файлы-модели с помощью C12_new_m_m
-      // - Добавить в новые файлы-модели связи
+            // 2.2] Если тип связи belongsTo
+            if($sets['type'] == 'belongsTo') {
+
+              // 2.1.1] Добавить пробелы
+              $result = $result . '    ';
+
+              // 2.1.2] Добавить связь
+              $result = $result . 'public function '.$name.'() { return $this->belongsTo(\''.$sets['related_model'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+
+              // 2.1.3] Добавить перенос строки
+              $result = $result . PHP_EOL;
+
+            }
+
+            // 2.3] Если тип связи hasMany
+            if($sets['type'] == 'hasMany') {
+
+              // 2.1.1] Добавить пробелы
+              $result = $result . '    ';
+
+              // 2.1.2] Добавить связь
+              $result = $result . 'public function '.$name.'() { return $this->hasMany(\''.$sets['related_model'].'\', \''.$sets['foreign_key'].'\', \''.$sets['local_key'].'\'); }';
+
+              // 2.1.3] Добавить перенос строки
+              $result = $result . PHP_EOL;
+
+            }
+
+          }
+
+          // 3] Финальные штрики для $result
+          $result = $result . "    // relationships stop";
+
+          // n] Вернуть результат
+          return $result;
+
+        });
+
+        // 8.5] Вставить $result в $file
+        $file = preg_replace("#// *relationships *start.*// *relationships *stop#smuiU", $rels2add, $file);
+
+        // 8.6] Заменить $file
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package.'/Models')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put($model.'.php', $file);
+
+      }
 
 
       DB::commit(); } catch(\Exception $e) {
