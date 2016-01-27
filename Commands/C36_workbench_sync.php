@@ -260,91 +260,285 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         if($result['status'] != 0)
           throw new \Exception($result['data']);
 
-      // 7. Получить список связей типа foreign key в БД пакета $package
-      // - В формате: [CONSTRAINT_NAME => TABLE_NAME]
-      
+      // 7. Подготовить массив связей для добавления моделям пакета
+      // - Его формат должен соответствовать представленному ниже
+      /**
+       *
+       *  [
+       *    "md1_routes" => [               // Имя модели, которой надо добавить эту связь
+       *      "name1" => [                  // Имя связи
+       *        "type"            => "",    // Тип связи: hasMany / belongsTo / belongsToMany
+       *        "pivot"           => "",    // Имя pivot-таблицы (для связей типа belongsToMany)
+       *        "related_model"   => "",    // Полный путь к связанной модели
+       *        "foreign_key"     => "",    // Внешний ключ
+       *        "local_key"       => ""     // Локальный ключ
+       *      ],
+       *      "name2" => [...]
+       *    ],
+       *    "md2_types" => [
+       *      ...
+       *    ]
+       *  ]
+       *
+       */
+      $relationships2add = call_user_func(function() USE ($package, $list_final){
+
+        // 1] Подготовить массив для результата
+        $result = [];
+
+        // 2] Извлечь из MySQL инфу обо всех связях в БД пакета $package
+        $all_rels = DB::select("SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME is not null AND CONSTRAINT_SCHEMA='".mb_strtolower($package)."'");
+
+        // 3] Добавить в $result все имена моделей пакета $package
+        // - В формате: "имя модели" => []
+        foreach($list_final as $model) {
+          $result[$model['table']] = [];
+        }
+
+        // 4] Найти в $all_rels пары с одинаковыми TABLE_NAME
+        // - Формат которых соответствует "^md[0-9]{4}"
+        // - И получить массив следующего вида:
+        /**
+         *  [
+         *    "TABLE_NAME" => [
+         *      [
+         *        ...
+         *      ],
+         *      [
+         *        ...
+         *      ]
+         *    ]
+         *  ]
+         */
+        $rels4mn = call_user_func(function() USE ($all_rels, $package) {
+
+          // 1] Подготовить массив для результатов
+          $result = [];
+
+          // 2] Найти
+          foreach($all_rels as $rel) {
+            if(preg_match("/^md[0-9]{4}/ui", $rel->TABLE_NAME) != 0) {
+
+              // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
+              if(!array_key_exists($rel->TABLE_NAME, $result))
+                $result[$rel->TABLE_NAME] = [];
+
+              // 2.2] Добавить $rel в $result[$rel->TABLE_NAME]
+              array_push($result[$rel->TABLE_NAME], $rel);
+
+            }
+          }
+
+          // 3] Проверить целостность $result
+          // - Надо, чтобы каждый элемент-массив $result содержал ровна 2 элемента
+          foreach($result as $rel) {
+            if(!array_key_exists(0, $rel) || !array_key_exists(1, $rel) || array_key_exists(2, $rel))
+              throw new \Exception("В БД пакета $package есть недоделанная m:n связь (см. pivot-таблицу $rel->TABLE_NAME).");
+          }
+
+          // n] Вернуть результаты
+          return $result;
+
+        });
+
+        // 5] Подготовить и добавить в $result belongsToMany-связи
+        call_user_func(function() USE (&$result, $rels4mn, $package) {
+          foreach($rels4mn as $rel) {
+
+            // 5.1] Проверить в $result существование ключей
+            // - $rel[0]->REFERENCED_TABLE_NAME
+            // - $rel[1]->REFERENCED_TABLE_NAME
+            // - Если какого-то из них нет, создать
+            if(!array_key_exists($rel[0]->REFERENCED_TABLE_NAME, $result))
+              $result[$rel[0]->REFERENCED_TABLE_NAME] = [];
+            if(!array_key_exists($rel[1]->REFERENCED_TABLE_NAME, $result))
+              $result[$rel[1]->REFERENCED_TABLE_NAME] = [];
+
+            // 5.2] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+
+              // 5.2.1] Определить имя связи
+              $relname = $rel[1]->REFERENCED_TABLE_NAME;
+              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+
+              // 5.2.2] Определить имя связанной модели
+              $relmodel = $rel[1]->REFERENCED_TABLE_NAME;
+              $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
+
+              // 5.2.3] Добавить связь
+              $result[$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
+                "type"            => "belongsToMany",
+                "pivot"           => $rel[0]->TABLE_NAME,
+                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "foreign_key"     => $rel[1]->COLUMN_NAME,
+                "local_key"       => $rel[0]->COLUMN_NAME
+              ];
+
+            // 5.3] Добавить связь для модели $rel[1]->REFERENCED_TABLE_NAME
+
+              // 5.3.1] Определить имя связи
+              $relname = $rel[0]->REFERENCED_TABLE_NAME;
+              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+
+              // 5.3.2] Определить имя связанной модели
+              $relmodel = $rel[0]->REFERENCED_TABLE_NAME;
+              $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
+
+              // 5.3.3] Добавить связь
+              $result[$rel[1]->REFERENCED_TABLE_NAME][$relname] = [
+                "type"            => "belongsToMany",
+                "pivot"           => $rel[1]->TABLE_NAME,
+                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "foreign_key"     => $rel[0]->COLUMN_NAME,
+                "local_key"       => $rel[1]->COLUMN_NAME
+              ];
+
+          }
+        });
+
+        // 6] Подготовить и добавить в $result belongsTo- и hasMany-связи
+        call_user_func(function() USE (&$result, $package, $all_rels) {
+          foreach($all_rels as $rel) {
+
+            // 6.1] Отсеять belongsToMany-связи
+            if(preg_match("/^md[0-9]{1,3}_/ui", $rel->TABLE_NAME) == 0)
+              continue;
+
+            // 6.2] Проверить в $result существование ключей
+            // - $rel->TABLE_NAME
+            // - $rel->REFERENCED_TABLE_NAME
+            // - Если какого-то из них нет, создать
+            if(!array_key_exists($rel->TABLE_NAME, $result))
+              $result[$rel->TABLE_NAME] = [];
+            if(!array_key_exists($rel->REFERENCED_TABLE_NAME, $result))
+              $result[$rel->REFERENCED_TABLE_NAME] = [];
+
+            // 6.3] Добавить связь типа belongsTo
+
+              // 6.3.1] Определить имя связи
+              $relname = $rel->REFERENCED_TABLE_NAME;
+              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+
+              // 6.3.2] Определить имя связанной модели
+              $relmodel = $rel->REFERENCED_TABLE_NAME;
+              $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
+
+              // 6.3.3] Добавить связь
+              $result[$rel->TABLE_NAME][$relname] = [
+                "type"            => "belongsTo",
+                "pivot"           => "",
+                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "foreign_key"     => $rel->REFERENCED_COLUMN_NAME,
+                "local_key"       => $rel->COLUMN_NAME
+              ];
+
+            // 6.4] Добавить связь типа hasMany
+
+              // 6.4.1] Определить имя связи
+              $relname = $rel->TABLE_NAME;
+              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+
+              // 6.4.2] Определить имя связанной модели
+              $relmodel = $rel->TABLE_NAME;
+              $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
+
+              // 6.4.3] Добавить связь
+              $result[$rel->REFERENCED_TABLE_NAME][$relname] = [
+                "type"            => "hasMany",
+                "pivot"           => "",
+                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "foreign_key"     => $rel->COLUMN_NAME,
+                "local_key"       => $rel->REFERENCED_COLUMN_NAME
+              ];
+
+          }
+        });
 
 
 
-//      $fkeys_data = DB::select("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' AND TABLE_SCHEMA='".mb_strtolower($package)."'");
-//      $fkeys = [];
-//      foreach($fkeys_data as &$fkey) {
-//        $fkeys[$fkey->CONSTRAINT_NAME] = $fkey->TABLE_NAME;
-//      }
 
-      // 8.
-
-
-      write2log($fkeys_data, []);
-
-
-
-      // Для модели составить список связей для добавления в неё
-      // - Тип связи
-      // - Имя связи
-      // - Pivot-таблица (если связь типа belongsToMany).
-      // - Полностью квалифицированный путь к модели, с которой связь
-      // - Foreign key
-      // - Local key
-
-
-      //write2log($fkeys, []);
+        write2log($result, []);
 
 
 
 
 
 
+        // 2. Ищем belongsTo связи для модели
+        // - type == 'belongsTo'
+        // - TABLE_NAME имеет формат "^md[0-9]{1,3}" и является именем
+        //   модели, которой надо добавить связь.
+        // - REFERENCED_TABLE_NAME это имя связанной модели related_model.
+        // - COLUMN_NAME это local_key
+        // - REFERENCED_COLUMN_NAME это foreign key
 
-        // Если table_name это pivot таблица
-        // - Значит, это связь типа belongsToMany.
-        // - Значит надо искать 2 FK, т.к. они идут всегда парами.
-        //   Пример:
-        //    "fk_md1005_md2_packages1": "md1003"
-        //    "fk_md1005_md5_commands1": "md1003"
-        // - Надо извлечь имена связанных таблиц:
-        //    md2_packages1 ---> (удалить цифры в конце) md2_packages
-        //    md5_commands1 ---> (удалить цифры в конце) md5_commands
-        // - Надо создать 2 связи в моделях MD2_packages и MD5_commands:
-        //    1) Связь packages в модели MD5_commands
-        //    2) Связь commands в модели MD2_packages
-        //
+        // 3. Ищем hasMany связи для модели
+        // - type == 'hasMany'
+        // - TABLE_NAME имеет формат "^md[0-9]{1,3}" и является именем
+        //   связанной модели related_model
+        // - REFERENCED_TABLE_NAME это имя модели, в которую следует
+        //   добавить связь.
+        // - COLUMN_NAME это foreign_key
+        // - REFERENCED_COLUMN_NAME это local key
 
-        // Если table_name это не pivot таблица
-        // - Значит, это пара связей типа hasMany, belongsTo.
-        // - Значит, нам хватит инфы из одного этого FK.
-        //   Пример:
-        //    "fk_md1_routes_md2_types": "md1_routes"
-        // - Надо извлечь имена связанных таблиц.
-        //    1) Имя первой таблицы берём из TABLE_NAME.
-        //      - В нашем случае это "md1_routes".
-        //    2) Имя 2-й таблицы берём из CONSTRAINT_NAME.
-        //      - Для этого из него удаляем 'fk_', 'md1_routes'
-        //        и все '_' из начала и конца оставшейся строки.
-        //        Получаем: "md2_types"
-        // - FK всегда у зависимой таблицы. Это значит, что:
-        //    1) Модели MD1_routes добавляем belongsTo связь.
-        //       Имя связи получаем из имени независимой
-        //       таблицы, удаляя s на конце, если оно есть.
-        //       Получаем: "type"
-        //    2) Модели MD2_types добавляем hasMany связь.
-        //       Имя связи получаем из имени зависимой таблицы.
-        //       Получаем: routes.
-        //
 
-        // При создании новой модели
-        // - Если у таблицы есть столбцы "created_at" и "updated_at",
-        //   то включить по умолчанию их авто.поддержку.
-        // - Если у таблицы есть столбец "deleted_at", включить
-        //   по умолчанию поддержку мягкого удаления.
+        // TABLE_NAME
+        // REFERENCED_TABLE_NAME
+
+
+
+
+
+        // n] Вернуть результат
+        return $result;
+
+      });
 
 
 
 
 
 
+      // Если table_name это pivot таблица
+      // - Значит, это связь типа belongsToMany.
+      // - Значит надо искать 2 FK, т.к. они идут всегда парами.
+      //   Пример:
+      //    "fk_md1005_md2_packages1": "md1003"
+      //    "fk_md1005_md5_commands1": "md1003"
+      // - Надо извлечь имена связанных таблиц:
+      //    md2_packages1 ---> (удалить цифры в конце) md2_packages
+      //    md5_commands1 ---> (удалить цифры в конце) md5_commands
+      // - Надо создать 2 связи в моделях MD2_packages и MD5_commands:
+      //    1) Связь packages в модели MD5_commands
+      //    2) Связь commands в модели MD2_packages
+      //
 
+      // Если table_name это не pivot таблица
+      // - Значит, это пара связей типа hasMany, belongsTo.
+      // - Значит, нам хватит инфы из одного этого FK.
+      //   Пример:
+      //    "fk_md1_routes_md2_types": "md1_routes"
+      // - Надо извлечь имена связанных таблиц.
+      //    1) Имя первой таблицы берём из TABLE_NAME.
+      //      - В нашем случае это "md1_routes".
+      //    2) Имя 2-й таблицы берём из CONSTRAINT_NAME.
+      //      - Для этого из него удаляем 'fk_', 'md1_routes'
+      //        и все '_' из начала и конца оставшейся строки.
+      //        Получаем: "md2_types"
+      // - FK всегда у зависимой таблицы. Это значит, что:
+      //    1) Модели MD1_routes добавляем belongsTo связь.
+      //       Имя связи получаем из имени независимой
+      //       таблицы, удаляя s на конце, если оно есть.
+      //       Получаем: "type"
+      //    2) Модели MD2_types добавляем hasMany связь.
+      //       Имя связи получаем из имени зависимой таблицы.
+      //       Получаем: routes.
+      //
 
+      // При создании новой модели
+      // - Если у таблицы есть столбцы "created_at" и "updated_at",
+      //   то включить по умолчанию их авто.поддержку.
+      // - Если у таблицы есть столбец "deleted_at", включить
+      //   по умолчанию поддержку мягкого удаления.
 
 
       // Для каждого M-пакета:
@@ -359,8 +553,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
       // - Добавить в новые файлы-модели связи
 
 
-
-    DB::commit(); } catch(\Exception $e) {
+      DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C36_workbench_sync from M-package M1 have ended with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
