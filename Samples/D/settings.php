@@ -5,7 +5,8 @@ return [
     //-------------//
     // 1] Routing  //
     //-------------//
-    // - Don't touch the string "end of routing" below, otherwise smth will break.
+    // - Don't touch the strings "routing start" / "routing end" below,
+    //   otherwise smth will break.
     // - Routing system supports max 50 uri segments and 10 subdomains.
     // - Routing system supports 2 protocols: 'http' and 'https'.
     // - All subdomains should end in a dot. Example: "sub2.sub1."
@@ -25,6 +26,7 @@ return [
      *      ]
      *    ]
      */
+    // routing start
     'routing' => [
       'dev.app' => [
         'http' => [
@@ -40,7 +42,8 @@ return [
           ]
         ]
       ]
-    ], // end of routing
+    ],
+    // routing end
 
 
     //----------------------//
