@@ -76,14 +76,6 @@
     H1_update         m1:afterupdate          Gets info about D,L,W-pack for M4 from M1, and calls update command
 
 
-  # Возбуждаемые события #
-  #-----------------------#
-
-    Событие           Ключи                   Описание
-    ----------------------------------------------------------------------------------------------------------------------
-    m4:call4packs     m1:afterupdate          Fires by console command m4:update
-
-
 ```
 ## Схемы взаимодействий с другими пакетами <a id="link5"></a>
 ```
