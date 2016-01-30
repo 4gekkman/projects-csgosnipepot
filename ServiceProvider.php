@@ -44,7 +44,8 @@
         // 2] Пары 'событие-обработчик' документов M-пакета //
         //--------------------------------------------------//
         $pairs2register = [
-          'R2\Event' => 'M1\EventHandlers\H1_call4packs',
+          '0' => '0=>0=>R2\Event=>M1\EventHandlers\H1_call4packs',
+          'R2\Event' => 'M1\EventHandlers\H2_fresh4m5',
         ];
 
       //----------------------------------//

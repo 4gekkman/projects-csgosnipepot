@@ -41,45 +41,55 @@
 ----------------------
 Оглавление
 
-  Команда           К.Команда               Описание
-  ----------------------------------------------------------------------------------------------------------------------
+  # Команды и к.команды #
+  #---------------------#
 
-  afterupdate     | m1:afterupdate        | Срабатывает после composer update, выполняет набор задач.
-  parseapp        | m1:parseapp           | Парсит приложение, возбуждает событие "m1:afterupdate".
-  sp_regs_update  | m1:sp_regs_update     | Актуализирует регистрации сервис-провайдеров пакетов.
-  allrespublish   | m1:allrespublish      | Публикует ресурсы всех пакетов (имеющие соотв.теги).
-  m_dbs_update    | m1:m_dbs_update       | Устанавливает / обновляет базы данных M-пакетов.
-  minify          | m1:minify             | Создаёт c.min.css и j.min.js в public для C,M,L-пакетов.
-  -               | m1:new                | Запустить конструктор создания нового ресурса
+    Команда           К.Команда               Описание
+    ----------------------------------------------------------------------------------------------------------------------
+    afterupdate     | m1:afterupdate        | Срабатывает после composer update, выполняет набор задач.
+    parseapp        | m1:parseapp           | Парсит приложение, возбуждает событие "m1:afterupdate".
+    sp_regs_update  | m1:sp_regs_update     | Актуализирует регистрации сервис-провайдеров пакетов.
+    allrespublish   | m1:allrespublish      | Публикует ресурсы всех пакетов (имеющие соотв.теги).
+    m_dbs_update    | m1:m_dbs_update       | Устанавливает / обновляет базы данных M-пакетов.
+    minify          | m1:minify             | Создаёт c.min.css и j.min.js в public для C,M,L-пакетов.
+    -               | m1:new                | Запустить конструктор создания нового ресурса
 
-  new_m           | m1:new                | Новый M-пакет
-  new_m_d         | m1:new                | Новый M-документ
-  new_m_d_c       | m1:new                | Новая M-команда
-  new_m_d_t       | m1:new                | Новая M-к.команда
-  new_m_d_h       | m1:new                | Новый M-обработчик
-  new_m_d_ct      | m1:new                | Новая пара M-команда - M-к.команда
+    new_m           | m1:new                | Новый M-пакет
+    new_m_d         | m1:new                | Новый M-документ
+    new_m_d_c       | m1:new                | Новая M-команда
+    new_m_d_t       | m1:new                | Новая M-к.команда
+    new_m_d_h       | m1:new                | Новый M-обработчик
+    new_m_d_ct      | m1:new                | Новая пара M-команда - M-к.команда
 
-  new_c           | m1:new                | Новый C-пакет
-  new_c_d         | m1:new                | Новый C-документ
+    new_c           | m1:new                | Новый C-пакет
+    new_c_d         | m1:new                | Новый C-документ
 
-  new_l           | m1:new                | Новый L-пакет
-  new_l_c         | m1:new                | Новая L-команда
-  new_l_t         | m1:new                | Новая L-к.команда
-  new_l_h         | m1:new                | Новый L-обработчик
+    new_l           | m1:new                | Новый L-пакет
+    new_l_c         | m1:new                | Новая L-команда
+    new_l_t         | m1:new                | Новая L-к.команда
+    new_l_h         | m1:new                | Новый L-обработчик
 
-  new_w           | m1:new                | Новый W-пакет
-  new_w_c         | m1:new                | Новая W-команда
-  new_w_t         | m1:new                | Новая W-к.команда
-  new_w_h         | m1:new                | Новый W-обработчик
+    new_w           | m1:new                | Новый W-пакет
+    new_w_c         | m1:new                | Новая W-команда
+    new_w_t         | m1:new                | Новая W-к.команда
+    new_w_h         | m1:new                | Новый W-обработчик
 
-  new_k           | m1:new                | Новый K-пакет
-  new_r           | m1:new                | Новый R-пакет
-  new_s           | m1:new                | Новый S-пакет
-  new_j           | m1:new                | Новый J-пакет
+    new_k           | m1:new                | Новый K-пакет
+    new_r           | m1:new                | Новый R-пакет
+    new_s           | m1:new                | Новый S-пакет
+    new_j           | m1:new                | Новый J-пакет
 
 
-  deldb           | m1:deldb              | Удалить БД M-пакета с [id]
-  release         | m1:release            | Создать на github новый релиз уровня [lvl] пакета [id]
+    deldb           | m1:deldb              | Удалить БД M-пакета с [id]
+    release         | m1:release            | Создать на github новый релиз уровня [lvl] пакета [id]
+
+  # Обработчики событий #
+  #---------------------#
+
+    Обработчик        Ключи                   Описание
+    ----------------------------------------------------------------------------------------------------------------------
+    H1_call4packs     m4:call4packs           Catches event from M4, starts m1:parseapp, which sends data to M4 to update its DB
+    H2_fresh4m5       m5:call4update          Returns data about packages and commands for M5
 
 
 ----------------------
