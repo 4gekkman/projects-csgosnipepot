@@ -74,6 +74,7 @@
     Обработчик        Ключи                   Описание
     ----------------------------------------------------------------------------------------------------------------------
     H1_update         m1:afterupdate          Gets info about D,L,W-pack for M4 from M1, and calls update command
+    H2_fresh4m5       m5:call4update          Returns data for M5 about routes and packs with which they associated
 
 
 ```
