@@ -163,7 +163,7 @@ class T13_workbench_sync extends Command
      */
 
     // 1. Спросить, действительно ли пользователь хочет выполнить эту команду
-    $really = $this->ask("Do you really want to invoke this command? All models or ".$this->argument('packid')." package will be recreated, all extra data in them will be missed. Type 'yes' of 'no'.");
+    $really = $this->ask("Do you really want to invoke this command? All models or ".$this->argument('packid')." package will be recreated, all extra data in them will be missed. Type 'yes' or 'no'.");
     if($really != 'yes') {
       $this->info("Canceled");
       return;
