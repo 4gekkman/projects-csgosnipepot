@@ -45,7 +45,7 @@
         //--------------------------------------------------//
         $pairs2register = [
           'M1\EventHandlers\H1_call4packs' => 'R2\Event',
-          'M1\EventHandlers\H2_fresh4m5' => 'R2\Event'
+          'M1\EventHandlers\H2_fresh4m5' => 'R2\Event',
         ];
 
       //----------------------------------//
