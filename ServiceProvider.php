@@ -65,7 +65,7 @@
 
         // 3] Регистрация пар 'событие-обработчик' документом M-пакета документа "" //
         //--------------------------------------------------------------------------//
-        foreach($pairs2register as $event => $handler) {
+        foreach($pairs2register as $handler => $event) {
           $events->listen($event, $handler);
         }
 
