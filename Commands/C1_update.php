@@ -141,6 +141,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
      *  4. Обновить MD2_types
      *  5. Обновить MD1_routes/MD2_types + MD3_domains/MD5_subdomains/MD6_uris + md1000/md1001/md1002/md1003/md1004
      *
+     *  X. Возбудить событие с ключём "m4:afterupdate"
      *  N. Вернуть статус 0
      *
      */
@@ -536,6 +537,27 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
         return [
           "status"  => -2,
           "data"    => $errortext
+        ];
+    }}); if(!empty($res)) return $res;
+
+
+    //------------------------------------------------//
+    // X. Возбудить событие с ключём "m1:afterupdate" //
+    //------------------------------------------------//
+    $res = call_user_func(function() { try {
+
+      // 1] Возбудить событие с ключём 'm4:afterupdate'
+      Event::fire(new \R2\Event([
+        'keys'  =>  ['m4:afterupdate'],
+        'data'  =>  ""
+      ]));
+
+    } catch(\Exception $e) {
+        Log::info('Event fireing ("m4:afterupdate") has failed with error: '.$e->getMessage());
+        write2log('Event fireing ("m4:afterupdate") has failed with error: '.$e->getMessage(), ['M1', 'parseapp']);
+        return [
+          "status"  => -2,
+          "data"    => 'Event fireing ("m4:afterupdate") has failed with error: '.$e->getMessage()
         ];
     }}); if(!empty($res)) return $res;
 
