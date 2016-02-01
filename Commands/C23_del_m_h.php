@@ -185,14 +185,25 @@ class C23_del_m_h extends Job { // TODO: добавить "implements ShouldQueu
         $pairs2register = preg_replace("/pairs2register *= */smuiU", '', $pairs2register);
         $pairs2register = preg_replace("/['\n\r\s\[\]]/smuiU", '', $pairs2register);
         $pairs2register = explode(',', $pairs2register[0]);
-        $pairs2register = array_values(array_filter($pairs2register, function($value, $key){
+        $pairs2register = call_user_func(function() USE ($pairs2register) {
+          $result = [];
+          foreach($pairs2register as $pair) {
+            if(!empty($pair)) {
+              $pair_keyval = explode('=>', $pair);
+              if(array_key_exists(0, $pair_keyval) && array_key_exists(1, $pair_keyval))
+                $result[$pair_keyval[0]] = $pair_keyval[1];
+            }
+          }
+          return $result;
+        });
+        $pairs2register = array_filter($pairs2register, function($value, $key){
           return !empty($key) && !empty($value);
-        }, ARRAY_FILTER_USE_BOTH));
+        }, ARRAY_FILTER_USE_BOTH);
 
         // 5.3. Удалить из $pairs2register запись, содержащую $handler->name
-        $pairs2register = array_values(array_filter($pairs2register, function($value, $key) USE ($handler) {
+        $pairs2register = array_filter($pairs2register, function($value, $key) USE ($handler) {
           return !preg_match("/".$handler->name."/ui", $key);
-        }, ARRAY_FILTER_USE_BOTH));
+        }, ARRAY_FILTER_USE_BOTH);
 
         // 5.4. Сформировать строку в формате массива из $pairs2register
 
@@ -200,8 +211,11 @@ class C23_del_m_h extends Job { // TODO: добавить "implements ShouldQueu
           $pairs2register_result = "[" . PHP_EOL;
 
           // 2] Вставить в $pairs2register_result все значения из $pairs2register
-          foreach($pairs2register as $handler => $event) {
-            $pairs2register_result = $pairs2register_result . "          '" . $handler . "' => '" . $event . "'," . PHP_EOL;
+          $len = count($pairs2register); $i = 0;
+          foreach($pairs2register as $pairhandler => $event) {
+            if($i != +$len-1) $pairs2register_result = $pairs2register_result . "          '" . $pairhandler . "' => '" . $event . "'," . PHP_EOL;
+            if($i == +$len-1) $pairs2register_result = $pairs2register_result . "          '" . $pairhandler . "' => '" . $event . "'" . PHP_EOL;
+            $i++;
           }
 
           // 3] Завершить квадратной скобкой

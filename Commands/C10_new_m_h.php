@@ -219,34 +219,34 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
       // 5. Сформировать название команды (напр.: H1_name)
       $handlerfullname = 'H'.$comid.'_'.$name;
 
-//      // 6. Скопировать и переименовать файл _H1_sample.php
-//      // - Из Samples в M1 в Commands пакета $mpackid
-//      // - Назвать его именем $handlerfullname.'.php'
-//      config(['filesystems.default' => 'local']);
-//      config(['filesystems.disks.local.root' => base_path()]);
-//      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//      $this->storage->copy('vendor/4gekkman/M1/Samples/M/EventHandlers/_H1_sample.php', 'vendor/4gekkman/'.$mpackid.'/EventHandlers/'.$handlerfullname.'.php');
-//
-//      // 7. Заменить плейсхолдеры в файле значениями параметров
-//
-//        // 1] Создать новый экземпляр локального хранилища
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid.'/EventHandlers')]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//
-//        // 2] Извлечь содержимое файла
-//        $file = $this->storage->get($handlerfullname.'.php');
-//
-//        // 3] Найти и заменить плейсхолдеры
-//        $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
-//        $file = preg_replace("/PARAMeventPARAM/ui", $event, $file);
-//        $file = preg_replace("/PARAMkeysPARAM/ui", json_encode($keys, JSON_UNESCAPED_UNICODE), $file);
-//        $file = preg_replace("/PARAMmpackidPARAM/ui", $mpackid, $file);
-//        $file = preg_replace("/PARAMhandlerfullnamePARAM/ui", $handlerfullname, $file);
-//        $file = preg_replace("/PARAMnamePARAM/ui", $name, $file);
-//
-//        // 4] Перезаписать файл
-//        $this->storage->put($handlerfullname.'.php', $file);
+      // 6. Скопировать и переименовать файл _H1_sample.php
+      // - Из Samples в M1 в Commands пакета $mpackid
+      // - Назвать его именем $handlerfullname.'.php'
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path()]);
+      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+      $this->storage->copy('vendor/4gekkman/M1/Samples/M/EventHandlers/_H1_sample.php', 'vendor/4gekkman/'.$mpackid.'/EventHandlers/'.$handlerfullname.'.php');
+
+      // 7. Заменить плейсхолдеры в файле значениями параметров
+
+        // 1] Создать новый экземпляр локального хранилища
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid.'/EventHandlers')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 2] Извлечь содержимое файла
+        $file = $this->storage->get($handlerfullname.'.php');
+
+        // 3] Найти и заменить плейсхолдеры
+        $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
+        $file = preg_replace("/PARAMeventPARAM/ui", $event, $file);
+        $file = preg_replace("/PARAMkeysPARAM/ui", json_encode($keys, JSON_UNESCAPED_UNICODE), $file);
+        $file = preg_replace("/PARAMmpackidPARAM/ui", $mpackid, $file);
+        $file = preg_replace("/PARAMhandlerfullnamePARAM/ui", $handlerfullname, $file);
+        $file = preg_replace("/PARAMnamePARAM/ui", $name, $file);
+
+        // 4] Перезаписать файл
+        $this->storage->put($handlerfullname.'.php', $file);
 
       // 8. Добавить запись о новом обработчике в сервис-провайдер M-пакета $mpackid
 
@@ -275,7 +275,7 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
         $pairs2register = array_filter($pairs2register, function($value, $key){
           return !empty($key) && !empty($value);
         }, ARRAY_FILTER_USE_BOTH);
-write2log($pairs2register, []);
+
         // 8.3. Добавить в $pairs2register запись про новый обработчик
         // - Ключём в ней должен быть путь к путь к обработчику.
         // - Значением в ней должен быть путь к обрабатываемому событию.
@@ -287,8 +287,11 @@ write2log($pairs2register, []);
           $pairs2register_result = "[" . PHP_EOL;
 
           // 2] Вставить в $pairs2register_result все значения из $pairs2register
+          $len = count($pairs2register); $i = 0;
           foreach($pairs2register as $handler => $event) {
-            $pairs2register_result = $pairs2register_result . "          '" . $handler . "' => '" . $event . "'," . PHP_EOL;
+            if($i != +$len-1) $pairs2register_result = $pairs2register_result . "          '" . $handler . "' => '" . $event . "'," . PHP_EOL;
+            if($i == +$len-1) $pairs2register_result = $pairs2register_result . "          '" . $handler . "' => '" . $event . "'" . PHP_EOL;
+            $i++;
           }
 
           // 3] Завершить квадратной скобкой
@@ -296,12 +299,12 @@ write2log($pairs2register, []);
 
         // 8.5. Вставить $pairs2register_result в $sp
         $sp = preg_replace("/pairs2register *= *\[.*\]/smuiU", 'pairs2register = '.$pairs2register_result, $sp);
-//write2log($sp, []);
+
         // 8.6] Заменить $sp
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid)]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//        $this->storage->put('ServiceProvider.php', $sp);
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$mpackid)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('ServiceProvider.php', $sp);
 
       // 9. Вернуть результаты
       return [
