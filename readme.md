@@ -1,4 +1,4 @@
-# R3 - Websocket Сервер
+# R3 - Websocket Сервер (master)
 ---
 ## Оглавление
 
