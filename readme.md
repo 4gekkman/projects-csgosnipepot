@@ -1,4 +1,4 @@
-# M3 - Timeserver package
+# M3 - Timeserver package (master)
 ---
 ## Оглавление
 
