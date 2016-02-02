@@ -168,7 +168,7 @@ if(!function_exists('r4_validate')) {
 
       write2log('Произошёл сбой в хелпере r4_validate: '.$e->getMessage());
       return [
-        "status" => -2,
+        "status" => -1,
         "data"   => $e->getMessage()
       ];
 
