@@ -141,7 +141,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
      *
      *  1. Парсинг данных для md1_packtypes
      *  2. Парсинг данных для md4_locales
-     *  3. Парсинг данных для md2_packages, md1002 и md1006
+     *  3. Парсинг данных для md2_packages, md1002
      *  4. Парсинг связей между пакетами для md1000
      *  5. Для M-пакетов парсинг моделей для md3_models и связей для md1001
      *  6. Для M-пакетов парсинг команд для md5_commands и связей для md1003
@@ -329,9 +329,9 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     }}); if(!empty($res)) return $res;
 
 
-    //-----------------------------------------------------//
-    // 3. Парсинг данных для md2_packages, md1002 и md1006 //
-    //-----------------------------------------------------//
+    //--------------------------------------------//
+    // 3. Парсинг данных для md2_packages, md1002 //
+    //--------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 3.1. Мягко удалить всё из md2_packages
@@ -339,7 +339,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       // - А также обнулить md_1006 (какая локаль установлена у пакета)
       \M1\Models\MD2_packages::query()->delete();
       DB::table('m1.md1002')->truncate();
-      DB::table('m1.md1006')->truncate();
 
       // 3.2. Получить массив имён всех каталогов вендора
 
@@ -451,7 +450,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
       };
 
-      // 3.10. Наполнить md2_packages, md1002 и md1006
+      // 3.10. Наполнить md2_packages, md1002
       foreach($packages as $key => $packtype) {
         foreach($packtype as $package) {
 
@@ -478,7 +477,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
             //$p->uri = $get_uri($package);
             $p->lastversion = $lastversion;
             $p->save();
-            continue;
           }
 
           // 4] Если такой пакет отсутствует
@@ -504,24 +502,16 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
           }
 
-          // 5] Наполнить md1006
-
-            // 5.1] Получить ID локали $locale
-            $locale_id = \M1\Models\MD4_locales::where('name','=',$get_pack_locale($package))->first()->id;
-
-            // 5.2] Связать $package и $locale
-            $p->locale()->attach($locale_id);
-
         }
       }
 
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
-        Log::info('Parsing for md2_packages, md1002 и md1006 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md2_packages, md1002 и md1006 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
+        Log::info('Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage());
+        write2log('Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
-          "data"    => 'Parsing for md2_packages, md1002 и md1006 have ended with error: '.$e->getMessage()
+          "data"    => 'Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage()
         ];
     }}); if(!empty($res)) return $res;
 
@@ -993,7 +983,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         $data['packages'] = json_encode(\M1\Models\MD2_packages::with([
           'dependencies',
           'locales',
-          'locale',
           'packtype',
           'models',
           'commands',
@@ -1019,10 +1008,10 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         $data['handlers'] = json_encode(\M1\Models\MD7_handlers::query()->get(), JSON_UNESCAPED_UNICODE);
 
       // 3] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
-      Event::fire(new \R2\Event([
-        'keys'  =>  ['m1:afterupdate'],
-        'data'  =>  $data
-      ]));
+//      Event::fire(new \R2\Event([
+//        'keys'  =>  ['m1:afterupdate'],
+//        'data'  =>  $data
+//      ]));
 
       // 4] Вернуть результат
       return [
