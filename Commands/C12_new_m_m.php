@@ -19,6 +19,7 @@
  *        modelid       // ID для новой модели
  *        timestamps    // Вкл/Выкл поддержку created_at/updated_at
  *        softdeletes   // Вкл/Выкл поддержку deleted_at
+ *        issync        // Специальный режим для команды C36_workbench_sync (при синхронизации для M1)
  *      ]
  *    ]
  *
@@ -163,6 +164,7 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
       $modelid      = $this->data['modelid'];
       $timestamps   = $this->data['timestamps'];
       $softdeletes  = $this->data['softdeletes'];
+      $issync       = $this->data['issync'];
 
       // 2. Провести валидацию входящих параметров
 
@@ -186,12 +188,25 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
         if(!preg_match("/^true|false$/ui", $softdeletes))
           throw new \Exception("$softdeletes is not valid (must match \"/^true|false/ui\")");
 
+        // 6] $issync
+
+          // Провести валидацию
+          if(!preg_match("/^([01]{1}|)$/ui", $issync))
+            throw new \Exception("$issync is not valid (must match \"/^([01]{1}|)$/ui\")");
+
+          // Если $issync == 1, а $modelid пуст, завершить
+          if($issync == 1 && empty($modelid))
+            throw new \Exception('В режими синхронизации моделей для пакета M1, modelid является обязательным параметром.');
+
       // 3. Проверить существование M-пакета $mpackid
-      $mpack = \M1\Models\MD2_packages::where('id_inner','=',$mpackid)->first();
-      if(empty($mpack))
-        throw new \Exception("Package $mpackid does not exist.");
+      if(!$issync) {
+        $mpack = \M1\Models\MD2_packages::where('id_inner','=',$mpackid)->first();
+        if(empty($mpack))
+          throw new \Exception("Package $mpackid does not exist.");
+      }
 
       // 4. Определить $modelid
+      if(!$issync) {
 
         // 4.1. Получить список ID (номеров) всех моделей M-пакета $mpackid
         $modelids = array_map(function($item){
@@ -200,7 +215,7 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
             $query->where('id_inner','=',$mpackid);
         })->pluck('id_inner')->toArray());
 
-        // 4.2. Если $comid не передан, определить его автоматически
+        // 4.2. Если $modelid не передан, определить его автоматически
         if(empty($modelid)) {
           $modelid = call_user_func(function() USE ($modelids) {
             if(!is_array($modelids) || empty($modelids)) {
@@ -218,6 +233,8 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
             throw new \Exception("Can't create model with id $modelid for M-package $mpackid, because command with id $modelid already exists.");
           }
         }
+
+      }
 
       // 5. Сформировать название модели (напр.: MD1_name)
       $modelfullname = 'MD'.$modelid.'_'.$name;

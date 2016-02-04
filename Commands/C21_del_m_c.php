@@ -159,7 +159,7 @@ class C21_del_m_c extends Job { // TODO: добавить "implements ShouldQueu
         throw new \Exception("Package $packid does not exist.");
 
       // 3. Проверить существование команды $command2del в пакете $pack
-      $command = \M1\Models\MD5_commands::whereHas('package', function($query) USE ($packid) {
+      $command = \M1\Models\MD5_commands::whereHas('packages', function($query) USE ($packid) {
         $query->where('id_inner','=',$packid);
       })->where('id_inner','=',$command2del)->first();
       if(empty($command))

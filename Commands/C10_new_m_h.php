@@ -193,7 +193,7 @@ class C10_new_m_h extends Job { // TODO: добавить "implements ShouldQueu
         // 4.1. Получить список ID (номеров) всех обработчиков M-пакета $mpackid
         $comids = array_map(function($item){
           return mb_substr($item, 1);
-        }, \M1\Models\MD7_handlers::whereHas('package',function($query) USE ($mpackid) {
+        }, \M1\Models\MD7_handlers::whereHas('packages',function($query) USE ($mpackid) {
             $query->where('id_inner','=',$mpackid);
         })->pluck('id_inner')->toArray());
 

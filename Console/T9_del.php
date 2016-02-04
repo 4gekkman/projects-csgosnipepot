@@ -204,7 +204,7 @@ class T9_del extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -239,7 +239,7 @@ class T9_del extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -257,7 +257,7 @@ class T9_del extends Command
 
           // 3.1] Получить инфу обо всех командах в M-пакете $params['packid']
           // - В формате: id команды => описание команды
-          $commands = \M1\Models\MD5_commands::whereHas('package', function($query) USE ($params) {
+          $commands = \M1\Models\MD5_commands::whereHas('packages', function($query) USE ($params) {
             $query->where('id_inner','=',$params['packid']);
           })->pluck('description', 'id_inner');
 
@@ -283,7 +283,7 @@ class T9_del extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -301,7 +301,7 @@ class T9_del extends Command
 
           // 3.1] Получить инфу обо всех к.командах в M-пакете $params['packid']
           // - В формате: id к.команды => описание к.команды
-          $commands = \M1\Models\MD6_console::whereHas('package', function($query) USE ($params) {
+          $commands = \M1\Models\MD6_console::whereHas('packages', function($query) USE ($params) {
             $query->where('id_inner','=',$params['packid']);
           })->pluck('description', 'id_inner');
 
@@ -327,7 +327,7 @@ class T9_del extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -345,7 +345,7 @@ class T9_del extends Command
 
           // 3.1] Получить инфу обо всех обработчиках в M-пакете $params['packid']
           // - В формате: id обработчика => описание обработчика
-          $handlers = \M1\Models\MD7_handlers::whereHas('package', function($query) USE ($params) {
+          $handlers = \M1\Models\MD7_handlers::whereHas('packages', function($query) USE ($params) {
             $query->where('id_inner','=',$params['packid']);
           })->pluck('description', 'id_inner');
 
@@ -371,7 +371,7 @@ class T9_del extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -389,7 +389,7 @@ class T9_del extends Command
 
           // 3.1] Получить инфу обо всех моделях в M-пакете $params['packid']
           // - В формате: id модели => полное имя модели
-          $handlers = \M1\Models\MD3_models::whereHas('package', function($query) USE ($params) {
+          $handlers = \M1\Models\MD3_models::whereHas('packages', function($query) USE ($params) {
             $query->where('id_inner','=',$params['packid']);
           })->pluck('name', 'id_inner');
 
@@ -451,7 +451,7 @@ class T9_del extends Command
 
           // 2.1] Получить инфу обо всех R-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','R');
           })->pluck('aboutpack', 'id_inner');
 

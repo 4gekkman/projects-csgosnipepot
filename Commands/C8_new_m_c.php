@@ -189,7 +189,7 @@ class C8_new_m_c extends Job { // TODO: добавить "implements ShouldQueue
         // 4.1. Получить список ID (номеров) всех команд M-пакета $mpackid
         $comids = array_map(function($item){
           return mb_substr($item, 1);
-        }, \M1\Models\MD5_commands::whereHas('package',function($query) USE ($mpackid) {
+        }, \M1\Models\MD5_commands::whereHas('packages',function($query) USE ($mpackid) {
             $query->where('id_inner','=',$mpackid);
         })->pluck('id_inner')->toArray());
 

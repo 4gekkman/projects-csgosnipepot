@@ -154,7 +154,7 @@ class C4_m_dbs_update extends Job { // TODO: добавить "implements Should
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить массив ID всех установленных M-пакетов
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
       })->pluck('id_inner');
 

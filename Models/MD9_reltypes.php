@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD7_handlers extends Model {
+class MD9_reltypes extends Model {
 
   /**
    *
@@ -49,7 +49,7 @@ class MD7_handlers extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm1.md7_handlers';
+  protected $table = 'm1.md9_reltypes';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//

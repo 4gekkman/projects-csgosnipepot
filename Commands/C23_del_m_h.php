@@ -160,7 +160,7 @@ class C23_del_m_h extends Job { // TODO: добавить "implements ShouldQueu
         throw new \Exception("Package $packid does not exist.");
 
       // 3. Проверить существование обработчика $handler2del в пакете $pack
-      $handler = \M1\Models\MD7_handlers::whereHas('package', function($query) USE ($packid) {
+      $handler = \M1\Models\MD7_handlers::whereHas('packages', function($query) USE ($packid) {
         $query->where('id_inner','=',$packid);
       })->where('id_inner','=',$handler2del)->first();
       if(empty($handler))

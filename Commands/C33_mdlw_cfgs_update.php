@@ -154,7 +154,7 @@ class C33_mdlw_cfgs_update extends Job { // TODO: добавить "implements S
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить массив ID всех установленных M,D,L,W-пакетов
-      $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where(function($query){
           $query->where('name','=','M')->
                   orWhere('name','=','D')->

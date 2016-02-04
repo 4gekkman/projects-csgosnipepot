@@ -352,15 +352,14 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
 
       // 1.1. Получить коллекцию всех D-пакетов
       $dpackages = \M1\Models\MD2_packages::with([
-        'dependencies',
-        'locale',
+        'packages',
         'locales',
-        'packtype',
+        'packtypes',
         'models',
         'commands',
-        'consoles',
+        'console',
         'handlers',
-      ])->whereHas('packtype', function($query){
+      ])->whereHas('packtypes', function($query){
         $query->where('name','=','D');
       })->get();
 
@@ -369,13 +368,12 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
 
         // 1] Подгрузить связи всех пакетов из коллекции $dpackages
         $dpackages->load([
-          'dependencies',
-          'locale',
+          'packages',
           'locales',
-          'packtype',
+          'packtypes',
           'models',
           'commands',
-          'consoles',
+          'console',
           'handlers',
         ]);
 
@@ -401,19 +399,19 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
           // 1] Если $level == 1
           if($level == 1) {
             $resultarr[$package->id_inner] = [];
-            $get_css_dep_arr($package->dependencies, $resultarr, $level+1, $package);
+            $get_css_dep_arr($package->packages, $resultarr, $level+1, $package);
           }
 
           // 2] Если $level > 1
           else {
 
             // 2.1] Если $package является L-пакетом
-            if($package->packtype->name == "L") {
+            if($package->packtypes->name == "L") {
               $resultarr[$parentpack->id_inner][$package->id_inner] = base_path("vendor/4gekkman/$package->id_inner/Minify/c.css");
             }
 
             // 2.2] Если $package является P-пакетом
-            if($package->packtype->name == "P") {
+            if($package->packtypes->name == "P") {
 
               // 2.2.1] Проверить наличие файла links.json у P-пакета
               $links = file_exists(base_path('vendor/4gekkman/'.$package->id_inner.'/Minify/links.json'));
@@ -458,17 +456,17 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             }
 
             // 2.3] Если $package является K-пакетом
-            if($package->packtype->name == "K") {
+            if($package->packtypes->name == "K") {
               $resultarr[$parentpack->id_inner][$package->id_inner] = base_path("vendor/4gekkman/$package->id_inner/Minify/c.css");
             }
 
             // 2.4] Если $package является W-пакетом
-            if($package->packtype->name == "W") {
+            if($package->packtypes->name == "W") {
               $resultarr[$parentpack->id_inner][$package->id_inner] = base_path("vendor/4gekkman/$package->id_inner/Minify/c.css");
             }
 
             // 2.5] Рекурсивно запустить функцию
-            $get_css_dep_arr($package->dependencies, $resultarr, $level+1, $parentpack);
+            $get_css_dep_arr($package->packages, $resultarr, $level+1, $parentpack);
 
           }
 
@@ -531,15 +529,14 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
 
       // 2.1. Получить коллекцию всех D-пакетов
       $dpackages = \M1\Models\MD2_packages::with([
-        'dependencies',
-        'locale',
+        'packages',
         'locales',
-        'packtype',
+        'packtypes',
         'models',
         'commands',
-        'consoles',
+        'console',
         'handlers',
-      ])->whereHas('packtype', function($query){
+      ])->whereHas('packtypes', function($query){
         $query->where('name','=','D');
       })->get();
 
@@ -548,19 +545,18 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
 
         // 1] Подгрузить связи всех пакетов из коллекции $dpackages
         $dpackages->load([
-          'dependencies',
-          'locale',
+          'packages',
           'locales',
-          'packtype',
+          'packtypes',
           'models',
           'commands',
-          'consoles',
+          'console',
           'handlers',
         ]);
 
         // 2] Подгрузить связи
         foreach($dpackages as $dpackage) {
-          $load_all_rels($dpackage->dependencies);
+          $load_all_rels($dpackage->packages);
         }
 
       };
@@ -592,14 +588,14 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
           if(empty($parent_p_pack)) {
 
             // Если $package является P-пакетом
-            if($package->packtype->name == "P") {
+            if($package->packtypes->name == "P") {
               $resultarr[$package->id_inner] = [];
-              $get_p_dep_arr($package->dependencies, $resultarr, $level+1, $package, $resultarr[$package->id_inner]);
+              $get_p_dep_arr($package->packages, $resultarr, $level+1, $package, $resultarr[$package->id_inner]);
             }
 
             // Если $package не является P-пакетом
             else {
-              $get_p_dep_arr($package->dependencies, $resultarr, $level, $parent_p_pack, $parent_arr);
+              $get_p_dep_arr($package->packages, $resultarr, $level, $parent_p_pack, $parent_arr);
             }
 
           }
@@ -608,14 +604,14 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
           else {
 
             // Если $package является P-пакетом
-            if($package->packtype->name == "P") {
+            if($package->packtypes->name == "P") {
               $parent_arr[$package->id_inner] = [];
-              $get_p_dep_arr($package->dependencies, $resultarr, $level+1, $package, $parent_arr[$package->id_inner]);
+              $get_p_dep_arr($package->packages, $resultarr, $level+1, $package, $parent_arr[$package->id_inner]);
             }
 
             // Если $package не является J-пакетом
             else {
-              $get_p_dep_arr($package->dependencies, $resultarr, $level, $parent_p_pack, $parent_arr);
+              $get_p_dep_arr($package->packages, $resultarr, $level, $parent_p_pack, $parent_arr);
             }
 
           }
@@ -826,20 +822,20 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             $resultarr[$dpackage->id_inner] = [];
 
             // 2] Рекурсивно запустить функцию
-            $get_d_deps_of_k_index($dpackage->dependencies, $resultarr, $dpackage->id_inner, $level+1);
+            $get_d_deps_of_k_index($dpackage->packages, $resultarr, $dpackage->id_inner, $level+1);
 
           } else {
 
             // 1] Если $dpackage является K-пакетом
             // - Добавить путь к JS этого пакета в $resultarr[$id_inner]
-            if($dpackage->packtype->name == "K") {
+            if($dpackage->packtypes->name == "K") {
 
               array_push($resultarr[$id_inner], base_path("vendor/4gekkman/$dpackage->id_inner/Minify/j.js"));
 
             }
 
             // 2] Рекурсивно запустить функцию
-            $get_d_deps_of_k_index($dpackage['dependencies'], $resultarr, $id_inner, $level+1);
+            $get_d_deps_of_k_index($dpackage['packages'], $resultarr, $id_inner, $level+1);
 
           }
 
@@ -861,13 +857,13 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             $resultarr[$dpackage->id_inner] = [];
 
             // 2] Рекурсивно запустить функцию
-            $get_d_deps_of_l_index($dpackage->dependencies, $resultarr, $dpackage->id_inner, $level+1);
+            $get_d_deps_of_l_index($dpackage->packages, $resultarr, $dpackage->id_inner, $level+1);
 
           } else {
 
             // 1] Если $dpackage является L-пакетом
             // - Добавить путь к JS этого пакета в $resultarr[$id_inner]
-            if($dpackage->packtype->name == "L") {
+            if($dpackage->packtypes->name == "L") {
 
               array_push($resultarr[$id_inner], [
                 base_path("vendor/4gekkman/$dpackage->id_inner/Minify/m.js"),
@@ -878,7 +874,7 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             }
 
             // 2] Рекурсивно запустить функцию
-            $get_d_deps_of_l_index($dpackage['dependencies'], $resultarr, $id_inner, $level+1);
+            $get_d_deps_of_l_index($dpackage['packages'], $resultarr, $id_inner, $level+1);
 
           }
 
@@ -900,13 +896,13 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             $resultarr[$dpackage->id_inner] = [];
 
             // 2] Рекурсивно запустить функцию
-            $get_d_deps_of_w_index($dpackage->dependencies, $resultarr, $dpackage->id_inner, $level+1);
+            $get_d_deps_of_w_index($dpackage->packages, $resultarr, $dpackage->id_inner, $level+1);
 
           } else {
 
             // 1] Если $dpackage является W-пакетом
             // - Добавить путь к JS этого пакета в $resultarr[$id_inner]
-            if($dpackage->packtype->name == "W") {
+            if($dpackage->packtypes->name == "W") {
 
               array_push($resultarr[$id_inner], [
                 base_path("vendor/4gekkman/$dpackage->id_inner/Minify/m.js"),
@@ -917,7 +913,7 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             }
 
             // 2] Рекурсивно запустить функцию
-            $get_d_deps_of_w_index($dpackage['dependencies'], $resultarr, $id_inner, $level+1);
+            $get_d_deps_of_w_index($dpackage['packages'], $resultarr, $id_inner, $level+1);
 
           }
 
@@ -1005,7 +1001,7 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
             // 2.2] Если это P-пакет
             else {
               foreach($path as $js) {
-Log::info($js);
+
                 $minify->add(file_get_contents($js));
 
               }

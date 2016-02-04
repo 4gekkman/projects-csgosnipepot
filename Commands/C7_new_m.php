@@ -198,7 +198,7 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
         // 3.1. Получить список ID (номеров) всех M-пакетов
         $packids = array_map(function($item){
           return mb_substr($item, 1);
-        }, \M1\Models\MD2_packages::whereHas('packtype',function($query) {
+        }, \M1\Models\MD2_packages::whereHas('packtypes',function($query) {
             $query->where('name','=','M');
         })->pluck('id_inner')->toArray());
 

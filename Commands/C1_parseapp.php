@@ -218,14 +218,15 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         // 1] Получить
         $dirs = $this->storage->directories();
 
-        // 2] Отфильтровать из него все каталоги, имена которых не являются именами пакетов D,L,W
+        // 2] Отфильтровать из него все каталоги, имена которых не являются именами пакетов M,D,L,W
         // - Потому что только пакеты этих типов имеют свои локальные локали в своих конфигах
         $dirs = array_filter($dirs, function($item){
-          if(preg_match("/^[DLW]{1}[0-9]*$/ui", $item)) return true; else return false;
+          if(preg_match("/^[MDLW]{1}[0-9]*$/ui", $item)) return true; else return false;
         });
 
-      // 2.3. Получить списки пакетов типов D,L,W вендора, разбитые по типам
+      // 2.3. Получить списки пакетов типов M,D,L,W вендора, разбитые по типам
       $packages = [
+        'M' => array_values(array_filter($dirs, function($item){ if(preg_match("/^M[0-9]*$/ui", $item)) return true; else return false; })),
         'D' => array_values(array_filter($dirs, function($item){ if(preg_match("/^D[0-9]*$/ui", $item)) return true; else return false; })),
         'L' => array_values(array_filter($dirs, function($item){ if(preg_match("/^L[0-9]*$/ui", $item)) return true; else return false; })),
         'W' => array_values(array_filter($dirs, function($item){ if(preg_match("/^W[0-9]*$/ui", $item)) return true; else return false; })),
@@ -238,14 +239,11 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         // 1] Проверить, существует ли файл с настройками пакета $packname
         $file_exists = file_exists(base_path('config/'.$packname.'.php'));
 
-        // 2] Получить массив локалей
-        if(!$file_exists) $locales = ['APP'];
-        else $locales = config($packname.'.locales');
+        // 2] Получить массив поддерживаемых пакетом локалей
+        $locales = config($packname.'.locales');
 
-        // 3] Если $locales пуста, или не массив, или в ней нет 'APP'
-        // - Назначить ей значение ['APP']
-        if(empty($locales) || !is_array($locales) || !in_array('APP', $locales))
-          $locales = ['APP'];
+        // 3] Если $file_exists отсутствует, или $locales пуст, назначить пустой массив
+        if(empty($file_exists) || is_null($locales) || !is_array($locales)) $locales = [];
 
         // 4] Вернуть результат
         return $locales;
@@ -286,37 +284,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           }
         }
       }
-
-      // 2.6. Если в locales ещё нет локали 'APP', добавить её
-      call_user_func(function(){
-
-        // 1] Попробовать найти локаль 'APP'
-        $app_locale_in_trash = \M1\Models\MD4_locales::onlyTrashed()->where('name','=','APP')->first();
-        $app_locale_not_in_trash = \M1\Models\MD4_locales::where('name','=','APP')->first();
-
-        // 2] Если такая локаль уже есть среди актуальных
-        // - Завершить
-        if(!empty($app_locale_not_in_trash))
-          return;
-
-        // 3] Если такая локаль уже есть среди мягко удалённых
-        // - Восстановить эту локаль
-        if(empty($app_locale_not_in_trash) && !empty($app_locale_in_trash)) {
-          $app_locale_in_trash->restore();
-          $app_locale_in_trash->save();
-          return;
-        }
-
-        // 4] Если такой локали ещё нет
-        // - Добавить эту локаль
-        if(empty($app_locale_not_in_trash) && empty($app_locale_in_trash)) {
-          $locale_new = new \M1\Models\MD4_locales();
-          $locale_new->name = 'APP';
-          $locale_new->save();
-          return;
-        }
-
-      });
 
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
@@ -371,14 +338,11 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         // 1] Проверить, существует ли файл с настройками пакета $packname
         $file_exists = file_exists(base_path('config/'.$packname.'.php'));
 
-        // 2] Получить массив локалей
-        if(!$file_exists) $locales = ['APP'];
-        else $locales = config($packname.'.locales');
+        // 2] Получить массив поддерживаемых пакетом локалей
+        $locales = config($packname.'.locales');
 
-        // 3] Если $locales пуста, или не массив, или в ней нет 'APP'
-        // - Назначить ей значение ['APP']
-        if(empty($locales) || !is_array($locales) || !in_array('APP', $locales))
-          $locales = ['APP'];
+        // 3] Если $file_exists отсутствует, или $locales пуст, назначить пустой массив
+        if(empty($file_exists) || is_null($locales) || !is_array($locales)) $locales = [];
 
         // 4] Вернуть результат
         return $locales;
@@ -590,7 +554,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       // 4.6. Наполнить таблицу связей пакетов md1000
       foreach($packages as $package) {
         foreach($dependencies[$package['id_inner']] as $dependency) {
-          $package->dependencies()->attach(\M1\Models\MD2_packages::where('id_inner','=',$dependency)->first()->id);
+          $package->packages()->attach(\M1\Models\MD2_packages::where('id_inner','=',$dependency)->first()->id);
         }
       }
 
@@ -619,7 +583,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       DB::select ( DB::raw('ALTER TABLE m1.md3_models AUTO_INCREMENT = 1;'));
 
       // 5.3. Получить все M-пакеты
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
       })->get();
 
@@ -698,7 +662,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       DB::select ( DB::raw('ALTER TABLE m1.md5_commands AUTO_INCREMENT = 1;'));
 
       // 6.2. Получить все M-пакеты
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
       })->get();
 
@@ -791,7 +755,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       DB::select ( DB::raw('ALTER TABLE m1.md6_console AUTO_INCREMENT = 1;'));
 
       // 7.2. Получить все M-пакеты
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
       })->get();
 
@@ -856,7 +820,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           $new->save();
 
           // 2.4] Связать пакет $mpackage с к.командой $command
-          $mpackage->consoles()->attach($new->id);
+          $mpackage->console()->attach($new->id);
 
         }
 
@@ -884,7 +848,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       DB::select ( DB::raw('ALTER TABLE m1.md7_handlers AUTO_INCREMENT = 1;'));
 
       // 8.2. Получить все M-пакеты
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
       })->get();
 
@@ -981,18 +945,18 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 2.2] MD2_packages
         $data['packages'] = json_encode(\M1\Models\MD2_packages::with([
-          'dependencies',
+          'packages',
           'locales',
-          'packtype',
+          'packtypes',
           'models',
           'commands',
-          'consoles',
+          'console',
           'handlers',
         ])->get(), JSON_UNESCAPED_UNICODE);
 
         // 2.3] MD3_models
         $data['models'] = json_encode(\M1\Models\MD3_models::with([
-          'package',
+          'packages',
         ])->get(),JSON_UNESCAPED_UNICODE);
 
         // 2.4] MD4_locales
@@ -1008,10 +972,10 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         $data['handlers'] = json_encode(\M1\Models\MD7_handlers::query()->get(), JSON_UNESCAPED_UNICODE);
 
       // 3] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
-//      Event::fire(new \R2\Event([
-//        'keys'  =>  ['m1:afterupdate'],
-//        'data'  =>  $data
-//      ]));
+      Event::fire(new \R2\Event([
+        'keys'  =>  ['m1:afterupdate'],
+        'data'  =>  $data
+      ]));
 
       // 4] Вернуть результат
       return [

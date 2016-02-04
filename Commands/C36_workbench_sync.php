@@ -147,22 +147,25 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить M-пакет, для которого требуется синхронизация
-      $pack = \M1\Models\MD2_packages::where('id_inner', $this->data['data']['packid'])->first();
-      if(empty($pack))
-        throw new \Exception('M-пакет с id равным '.$pack->id_inner.' не найден.');
-      $package = $pack->id_inner;
+      // - Но только, если речь не идёт о M1
+      if($this->data['data']['packid'] != 'M1') {
+        $pack = \M1\Models\MD2_packages::where('id_inner', $this->data['data']['packid'])->first();
+        if(empty($pack))
+          throw new \Exception('M-пакет с id равным '.$pack->id_inner.' не найден.');
+        $package = $pack->id_inner;
+      }
 
       // 2. Проверить существование базы данных пакета $package
       // - Если не существует, перейти к следующей итерации.
-      if(count(DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".mb_strtolower($package)."'")) == 0)
-        throw new \Exception('База данных пакета '.$package.' не найдена.');
+      if(count(DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".mb_strtolower($this->data['data']['packid'])."'")) == 0)
+        throw new \Exception('База данных пакета '.$this->data['data']['packid'].' не найдена.');
 
       // 3. Получить список имён всех имеющихся в БД пакета $package таблиц
       // - Отфильтровать таблицы "^md100", и начинающиеся не с "^md"
-      $list = DB::select('SHOW tables FROM '.mb_strtolower($package));
-      $list = array_map(function($item) USE ($package){
+      $list = DB::select('SHOW tables FROM '.mb_strtolower($this->data['data']['packid']));
+      $list = array_map(function($item) {
         $item = (array)$item;
-        return $item['Tables_in_'.mb_strtolower($package)];
+        return $item['Tables_in_'.mb_strtolower($this->data['data']['packid'])];
       }, $list);
       $list = array_values(array_filter($list, function($item){
         return preg_match("/^md/ui",$item) != 0 && preg_match("/^md100/ui",$item) == 0 && preg_match("/^md[0-9]+_/ui",$item) != 0;
@@ -175,7 +178,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
       foreach($list as $table) {
 
         // 1] Получить список всех столбцов таблицы $table
-        $columns = DB::select("SHOW COLUMNS FROM ".mb_strtolower($package).".".$table);
+        $columns = DB::select("SHOW COLUMNS FROM ".mb_strtolower($this->data['data']['packid']).".".$table);
         $columns = array_map(function($item){
           return $item->Field;
         }, $columns);
@@ -213,42 +216,61 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       // 5. Удалить все существующие модели пакета $package
 
-        // 1] Выполнить парсинг приложения
-        $result = runcommand('\M1\Commands\C1_parseapp');
-        if($result['status'] != 0)
-          throw new \Exception($result['data']);
+        // 5.1] Получить пути ко всем дочерним файлам в Models M-пакета $this->data['data']['packid']
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $paths = $this->storage->files($this->data['data']['packid'].'/Models');
 
-        // 2] Получить список ID всех моделей пакета $package
-        $models = \M1\Models\MD3_models::whereHas('package', function($query) USE ($package){
-          $query->where('id_inner',$package);
-        })->pluck('id_inner');
+        // 5.2] Отсеять те, у которых последняя секция не матчится с ^MD[0-9]+$
+        $paths = array_filter($paths, function($value){
 
-        // 3] Удалить
-        foreach($models as $model) {
-          $result = runcommand('\M1\Commands\C25_del_m_m',[
-            "packid"    => $package,
-            "model2del" => $model
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']);
+          // Извлечь имя модели из пути (включая .php на конце)
+          $lastsection = preg_replace("/^.*\\//ui", "", $value);
+
+          // Если $lastsection не матчится, отсеять
+          if( !preg_match("/^MD[0-9]+_.*$/ui", $lastsection) ) return false;
+
+          // В противном случае, включить в результирующий массив
+          return true;
+
+        });
+
+        // 5.3] Пробежаться по $paths
+        foreach($paths as $path) {
+
+          // 5.3.1] Извлечь имя модели из пути
+          $name = preg_replace("/^.*\\//ui", "", $path);
+
+          // 5.3.2] Удалить файл модели
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path()]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+          $this->storage->delete('vendor/4gekkman/'.$this->data['data']['packid'].'/Models/'.$name);
+
         }
 
+      
       // 6. Создать модели из списка $list_final для пакета $package
 
         // 1] Выполнить парсинг приложения
-        $result = runcommand('\M1\Commands\C1_parseapp');
-        if($result['status'] != 0)
-          throw new \Exception($result['data']);
+        // - Только если это не обновление пакета M1
+        if($this->data['data']['packid'] != 'M1') {
+          $result = runcommand('\M1\Commands\C1_parseapp');
+          if($result['status'] != 0)
+            throw new \Exception($result['data']);
+        }
 
         // 2] Создать
         foreach($list_final as $model) {
 
           $result = runcommand('\M1\Commands\C12_new_m_m',[
-            'mpackid'       => $package,
+            'mpackid'       => $this->data['data']['packid'],
             'name'          => preg_replace("/^MD[0-9]+_/ui","",$model['table']),
             'modelid'       => $model['id'],
             'timestamps'    => $model['timestamps'],
             'softdeletes'   => $model['softdeletes'],
+            'issync'        => $this->data['data']['packid'] == 'M1' ? 1 : 0
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']);
@@ -256,9 +278,12 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         }
 
         // 3] Выполнить парсинг приложения
-        $result = runcommand('\M1\Commands\C1_parseapp');
-        if($result['status'] != 0)
-          throw new \Exception($result['data']);
+        // - Только если это не обновление пакета M1
+        if($this->data['data']['packid'] != 'M1') {
+          $result = runcommand('\M1\Commands\C1_parseapp');
+          if($result['status'] != 0)
+            throw new \Exception($result['data']);
+        }
 
       // 7. Подготовить массив связей для добавления моделям пакета
       // - Его формат должен соответствовать представленному ниже
@@ -281,13 +306,13 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
        *  ]
        *
        */
-      $relationships2add = call_user_func(function() USE ($package, $list_final){
+      $relationships2add = call_user_func(function() USE ($list_final){
 
         // 1] Подготовить массив для результата
         $result = [];
 
         // 2] Извлечь из MySQL инфу обо всех связях в БД пакета $package
-        $all_rels = DB::select("SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME is not null AND CONSTRAINT_SCHEMA='".mb_strtolower($package)."'");
+        $all_rels = DB::select("SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME is not null AND CONSTRAINT_SCHEMA='".mb_strtolower($this->data['data']['packid'])."'");
 
         // 3] Добавить в $result все имена моделей пакета $package
         // - В формате: "имя модели" => []
@@ -310,7 +335,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
          *    ]
          *  ]
          */
-        $rels4mn = call_user_func(function() USE ($all_rels, $package) {
+        $rels4mn = call_user_func(function() USE ($all_rels) {
 
           // 1] Подготовить массив для результатов
           $result = [];
@@ -333,7 +358,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           // - Надо, чтобы каждый элемент-массив $result содержал ровна 2 элемента
           foreach($result as $rel) {
             if(!array_key_exists(0, $rel) || !array_key_exists(1, $rel) || array_key_exists(2, $rel))
-              throw new \Exception("В БД пакета $package есть недоделанная m:n связь (см. pivot-таблицу $rel->TABLE_NAME).");
+              throw new \Exception("В БД пакета $this->data['data']['packid'] есть недоделанная m:n связь (см. pivot-таблицу $rel->TABLE_NAME).");
           }
 
           // n] Вернуть результаты
@@ -342,7 +367,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         });
 
         // 5] Подготовить и добавить в $result belongsToMany-связи
-        call_user_func(function() USE (&$result, $rels4mn, $package) {
+        call_user_func(function() USE (&$result, $rels4mn) {
           foreach($rels4mn as $rel) {
 
             // 5.1] Проверить в $result существование ключей
@@ -368,7 +393,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $result[$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => $rel[0]->TABLE_NAME,
-                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel[1]->COLUMN_NAME,
                 "local_key"       => $rel[0]->COLUMN_NAME
               ];
@@ -387,7 +412,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $result[$rel[1]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => $rel[1]->TABLE_NAME,
-                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel[0]->COLUMN_NAME,
                 "local_key"       => $rel[1]->COLUMN_NAME
               ];
@@ -396,7 +421,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         });
 
         // 6] Подготовить и добавить в $result belongsTo- и hasMany-связи
-        call_user_func(function() USE (&$result, $package, $all_rels) {
+        call_user_func(function() USE (&$result, $all_rels) {
           foreach($all_rels as $rel) {
 
             // 6.1] Отсеять belongsToMany-связи
@@ -426,7 +451,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $result[$rel->TABLE_NAME][$relname] = [
                 "type"            => "belongsTo",
                 "pivot"           => "",
-                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel->REFERENCED_COLUMN_NAME,
                 "local_key"       => $rel->COLUMN_NAME
               ];
@@ -445,7 +470,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $result[$rel->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "hasMany",
                 "pivot"           => "",
-                "related_model"   => "\\".mb_strtoupper($package)."\\Models\\$relmodel",
+                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel->COLUMN_NAME,
                 "local_key"       => $rel->REFERENCED_COLUMN_NAME
               ];
@@ -466,16 +491,16 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         // 8.2. Проверить существование файла-модели $model
         config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package.'/Models')]);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         if(!$this->storage->exists($model.'.php'))
-          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$package.'/Models');
+          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
 
         // 8.3. Получить содержимое файла-модели $model
         $file = $this->storage->get($model.'.php');
 
         // 8.4. Составить строку со связями для добавления в $file
-        $rels2add = call_user_func(function() USE ($rels, $package) {
+        $rels2add = call_user_func(function() USE ($rels) {
 
           // 1] Подготовить строку для результата
           $result = "// relationships start" . PHP_EOL;
@@ -490,7 +515,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $result = $result . '    ';
 
               // 2.1.2] Добавить связь
-              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.mb_strtolower($package).'.'.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.mb_strtolower($this->data['data']['packid']).'.'.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
 
               // 2.1.3] Добавить перенос строки
               $result = $result . PHP_EOL;
@@ -540,7 +565,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         // 8.6] Заменить $file
         config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package.'/Models')]);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put($model.'.php', $file);
 

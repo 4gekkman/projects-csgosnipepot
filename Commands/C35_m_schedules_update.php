@@ -161,7 +161,7 @@ class C35_m_schedules_update extends Job { // TODO: добавить "implements
     $res = call_user_func(function() { try {
 
       // 1. Получить коллекцию ID всех M-пакетов в системе
-      $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+      $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where(function($query){
           $query->where('name','=','M');
         });

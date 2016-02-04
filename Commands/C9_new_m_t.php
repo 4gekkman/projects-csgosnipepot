@@ -191,7 +191,7 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         // 4.1. Получить массив имён всех консольных команд M-пакета $mpackid
         $ccnames = array_map(function($item){
           return preg_replace("/^[T]{1}[0-9]+_/ui","",$item);
-        }, \M1\Models\MD6_console::whereHas('package',function($query) USE ($mpackid) {
+        }, \M1\Models\MD6_console::whereHas('packages',function($query) USE ($mpackid) {
             $query->where('id_inner','=',$mpackid);
         })->pluck('name')->toArray());
 
@@ -204,7 +204,7 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         // 5.1. Получить список ID (номеров) всех к.команд M-пакета $mpackid
         $comids = array_map(function($item){
           return mb_substr($item, 1);
-        }, \M1\Models\MD6_console::whereHas('package',function($query) USE ($mpackid) {
+        }, \M1\Models\MD6_console::whereHas('packages',function($query) USE ($mpackid) {
             $query->where('id_inner','=',$mpackid);
         })->pluck('id_inner')->toArray());
 

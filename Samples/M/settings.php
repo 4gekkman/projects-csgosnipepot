@@ -19,13 +19,16 @@ return [
     //    localization //
     //-----------------//
 
-      // Поддерживаемые пакетом локали | The locales that are supported by the package //
-      //-------------------------------------------------------------------------------//
-      'locales' => [],
+      // 3.1] Поддерживаемые пакетом локали | The locales that are supported by the package //
+      //------------------------------------------------------------------------------------//
+      'locales' => ['RU', 'EN'],
 
-      // Выбранная локаль | Choosen locale //
-      //-----------------------------------//
-      'locale' => [],
+      // 3.2] Выбранная локаль | Chosen locale //
+      //---------------------------------------//
+      // - If the value is empty, uses config('app.locale')
+      // - Else if config('app.locale') not in 'locales', uses 1-st of 'locales'
+      // - Else if 1-st of 'locales' is empty, uses 'RU'.
+      'locale' => '',
 
     //----------------------------------------//
     // 4] Имя и описание пакета               //
@@ -41,8 +44,5 @@ return [
         'description' => "PARAMendescriptionPARAM",
       ]
     ],
-
-
-
 
 ];

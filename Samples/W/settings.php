@@ -42,20 +42,21 @@ return [
       ]
     ], // end of routing
 
-    //----------------------//
-    // 2] Локаль пакета     //
-    //    Locale of package //
-    //----------------------//
-    // - APP        - locale of application (see config\app.php locale)
-    // - RU, EN     - another locale
+    //-----------------//
+    // 2] Локализация  //
+    //    localization //
+    //-----------------//
 
-      // 3.1] Локали, которые поддерживает этот пакет
-      // - The locales that are supported by this package
-      'locales' => ['APP','RU','EN'],
+      // 2.1] Поддерживаемые пакетом локали | The locales that are supported by the package //
+      //------------------------------------------------------------------------------------//
+      'locales' => ['RU', 'EN'],
 
-      // 3.2] Выбранная для пакета локаль
-      // - The selected locale
-      'locale' => 'APP',
+      // 2.2] Выбранная локаль | Chosen locale //
+      //---------------------------------------//
+      // - If the value is empty, uses config('app.locale')
+      // - Else if config('app.locale') not in 'locales', uses 1-st of 'locales'
+      // - Else if 1-st of 'locales' is empty, uses 'RU'.
+      'locale' => '',
 
     //------------------------------//
     // 3] Имя и описание пакета     //

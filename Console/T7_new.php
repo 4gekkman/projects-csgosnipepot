@@ -227,7 +227,7 @@ class T7_new extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -265,7 +265,7 @@ class T7_new extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -306,7 +306,7 @@ class T7_new extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -353,7 +353,7 @@ class T7_new extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -394,7 +394,7 @@ class T7_new extends Command
 
           // 2.1] Получить инфу обо всех M-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where('name','=','M');
           })->pluck('aboutpack', 'id_inner');
           $packages = $packages->map(function($item, $key){
@@ -487,7 +487,7 @@ class T7_new extends Command
 
           // 2.1] Получить инфу обо всех M,D,L,W-пакетах
           // - В формате: id пакета => описание пакета
-          $packages = \M1\Models\MD2_packages::whereHas('packtype', function($query){
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
             $query->where(function($query){
               $query->where('name','=','M')->
                       orWhere('name','=','D')->
