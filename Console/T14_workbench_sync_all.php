@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Post-composer-update operations for app
+ *    - Synchronize models of all M-packages and their relationships with corresponding workbench models
  *
  *  Аргументы
  *  ---------
@@ -24,7 +24,7 @@
 //-----------------------------------//
 // Пространство имён artisan-команды //
 //-----------------------------------//
-// - Пример для админ.документов:  M1\Console
+// - Пример:  M1\Console
 
   namespace M1\Console;
 
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T6_afterupdate extends Command
+class T14_workbench_sync_all extends Command
 {
 
   //---------------------------//
@@ -88,14 +88,15 @@ class T6_afterupdate extends Command
   //  - '[имя] {--queue=}'    | задать аргумент-опцию со значением
   //  - '[имя] {--queue=foo}' | задать аргумент-опцию со значением по умолчанию
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
+  // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:afterupdate';
+    protected $signature = 'm1:workbench_sync_all';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Post-composer-update operations for app.';
+    protected $description = 'Synchronize models of all M-packages and their relationships with corresponding workbench models';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -145,20 +146,34 @@ class T6_afterupdate extends Command
   //    - $this->question()    | вывести в окно терминала сообщение цвета question
   //    - $this->error()       | вывести в окно терминала сообщение цвета error
   //    - $this->table()       | вывести в окно терминала таблицу данных
+  //
+  //        $this->table(['header1','header2','header3'], ['row1_cell1', 'row1_cell2', 'row1_cell3'], ['row2_cell1', 'row2_cell2', 'row2_cell3'] )
+  //
   public function handle()
   {
 
-    Artisan::queue('m1:allrespublish');
-    Artisan::queue('m1:parseapp');
-    Artisan::queue('m1:sp_regs_update');
-    Artisan::queue('m1:allrespublish');
-    Artisan::queue('m1:m_dbs_update');
-    Artisan::queue('m1:mdlw_cfgs_update');
-    Artisan::queue('m1:minify');
-    Artisan::queue('m1:m_schedules_update');
-    Artisan::queue('m1:workbench_sync_all');
+    /**
+     * Оглавление
+     *
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
+     *
+     */
 
-    $this->info("afterupdate success");
+    // 1. Выполнить команду
+    $result = runcommand('\M1\Commands\C37_workbench_sync_all');
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
 
   }
 

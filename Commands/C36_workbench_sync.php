@@ -135,9 +135,14 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
     /**
      * Оглавление
      *
-     *  1.
-     *
-     *
+     *  1. Получить M-пакет, для которого требуется синхронизация
+     *  2. Проверить существование базы данных пакета $package
+     *  3. Получить список имён всех имеющихся в БД пакета $package таблиц
+     *  4. Для каждой таблицы узнать следующее
+     *  5. Удалить все существующие модели пакета $package
+     *  6. Создать модели из списка $list_final для пакета $package
+     *  7. Подготовить массив связей для добавления моделям пакета
+     *  8. Добавить в каждую модель её связи
      *
      */
 
@@ -213,14 +218,13 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       }
 
-
       // 5. Удалить все существующие модели пакета $package
 
         // 5.1] Получить пути ко всем дочерним файлам в Models M-пакета $this->data['data']['packid']
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path()]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $paths = $this->storage->files($this->data['data']['packid'].'/Models');
+        $paths = $this->storage->files('vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
 
         // 5.2] Отсеять те, у которых последняя секция не матчится с ^MD[0-9]+$
         $paths = array_filter($paths, function($value){
@@ -250,7 +254,6 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         }
 
-      
       // 6. Создать модели из списка $list_final для пакета $package
 
         // 1] Выполнить парсинг приложения
@@ -278,12 +281,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         }
 
         // 3] Выполнить парсинг приложения
-        // - Только если это не обновление пакета M1
-        if($this->data['data']['packid'] != 'M1') {
-          $result = runcommand('\M1\Commands\C1_parseapp');
-          if($result['status'] != 0)
-            throw new \Exception($result['data']);
-        }
+        Artisan::queue('m1:parseapp');
 
       // 7. Подготовить массив связей для добавления моделям пакета
       // - Его формат должен соответствовать представленному ниже
@@ -572,7 +570,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
       }
 
 
-      DB::commit(); } catch(\Exception $e) {
+    DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C36_workbench_sync from M-package M1 have ended with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

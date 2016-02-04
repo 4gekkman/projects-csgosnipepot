@@ -119,12 +119,12 @@
           '\M1\Console\T5_minify',
           '\M1\Console\T6_afterupdate',
           '\M1\Console\T7_new',
-          '\M1\Console\T8_afternew',
           '\M1\Console\T9_del',
           '\M1\Console\T10_release',
           '\M1\Console\T11_mdlw_cfgs_update',
           '\M1\Console\T12_m_schedules_update',
-          '\M1\Console\T13_workbench_sync'
+          '\M1\Console\T13_workbench_sync',
+          '\M1\Console\T14_workbench_sync_all'
         ];
 
         // Регистрация команд в методе register

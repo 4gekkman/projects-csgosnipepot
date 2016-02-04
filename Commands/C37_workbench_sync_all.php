@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Delete model from M-package
+ *    - Synchronize models of all M-packages and their relationships with corresponding workbench models
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        packid        // ID M-пакета, из которого удалить команду
- *        model2del     // ID модели, которую надо удалить
+ *
  *      ]
  *    ]
  *
@@ -47,7 +46,7 @@
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Commands
+// - Пример:  M1\Commands
 
   namespace M1\Commands;
 
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C25_del_m_m extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C37_workbench_sync_all extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,52 +135,49 @@ class C25_del_m_m extends Job { // TODO: добавить "implements ShouldQueu
     /**
      * Оглавление
      *
-     *  1. Получить входящие параметры
-     *  2. Проверить существование M-пакета $packid
-     *  3. Проверить существование модели $model2del в пакете $pack
-     *  4. Удалить файл модели
-     *  5. Вернуть результаты
+     *  1. Получить массив ID всех установленных M-пакетов
+     *  2.
+     *
+     *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------//
-    // Удалить модель из указанного M-пакета //
-    //---------------------------------------//
+    //-----------------------------//
+    // Синхронизировать все модели //
+    //-----------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить входящие параметры
-      $packid = $this->data['packid'];
-      $model2del = $this->data['model2del'];
+      // 1. Получить массив ID всех установленных M-пакетов
 
-      // 2. Проверить существование M-пакета $packid
-      $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
-      if(empty($pack))
-        throw new \Exception("Package $packid does not exist.");
+        // Получить
+        $dirs = r1_fs('vendor/4gekkman')->directories();
 
-      // 3. Проверить существование модели $model2del в пакете $pack
-      $model = \M1\Models\MD3_models::whereHas('packages', function($query) USE ($packid) {
-        $query->where('id_inner','=',$packid);
-      })->where('id_inner','=',$model2del)->first();
-      if(empty($model))
-        throw new \Exception("Model ".$model2del." in package $packid does not exist.");
+        // Отфильтровать из него все каталоги, имена которых не являются именами M-пакетов
+        $mpacks = array_values(array_filter($dirs, function($item){
+          if(preg_match("/^[M]{1}[0-9]*$/ui", $item)) return true; else return false;
+        }));
 
-      // 4. Удалить файл модели
-      config(['filesystems.default' => 'local']);
-      config(['filesystems.disks.local.root' => base_path()]);
-      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-      $this->storage->delete('vendor/4gekkman/'.$packid.'/Models/'.$model->name.'.php');
+        // Отсортировать их по возрастанию номера в ID
+        usort($mpacks, function($a,$b){
+          $a = preg_replace("/^M/ui","",$a);
+          $b = preg_replace("/^M/ui","",$b);
+          if ($a == $b) {
+              return 0;
+          }
+          return ($a < $b) ? -1 : 1;
+        });
 
-      // 5. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "modelfullname" => $model->name,
-          "package"       => $pack->id_inner
-        ]
-      ];
+      // 2. Для каждого из них выполнить команду m1:workbenck_sync
+      foreach($mpacks as $mpack) {
+        Artisan::queue('m1:workbench_sync', ["packid" => $mpack]);
+      }
+
 
     } catch(\Exception $e) {
-        $errortext = "Deleting of model from M-package have ended with error: ".$e->getMessage();
+        $errortext = 'Invoking of command C37_workbench_sync_all from M-package M1 have ended with error: '.$e->getMessage();
+        DB::rollback();
+        Log::info($errortext);
+        write2log($errortext, ['M1', 'C37_workbench_sync_all']);
         return [
           "status"  => -2,
           "data"    => $errortext

@@ -211,7 +211,7 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
         // 4.1. Получить список ID (номеров) всех моделей M-пакета $mpackid
         $modelids = array_map(function($item){
           return mb_substr($item, 2);
-        }, \M1\Models\MD3_models::whereHas('package',function($query) USE ($mpackid) {
+        }, \M1\Models\MD3_models::whereHas('packages',function($query) USE ($mpackid) {
             $query->where('id_inner','=',$mpackid);
         })->pluck('id_inner')->toArray());
 

@@ -67,7 +67,7 @@ class MD9_reltypes extends Model {
   //------------------//
 
     // relationships start
-
+    public function relationships() { return $this->hasMany('\M1\Models\MD8_relationships', 'id_reltype', 'id'); }
     // relationships stop
 
 

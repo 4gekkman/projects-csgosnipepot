@@ -163,24 +163,24 @@ class T13_workbench_sync extends Command
      */
 
     // 1. Спросить, действительно ли пользователь хочет выполнить эту команду
-    $really = $this->ask("Do you really want to invoke this command? All models or ".$this->argument('packid')." package will be recreated, all extra data in them will be missed. Type 'yes' or 'no'.");
+    $really = $this->anticipate("Do you really want to invoke this command? All models or ".$this->argument('packid')." package will be recreated, all extra data in them will be missed. Type 'yes' or 'no'.", [], "yes");
     if($really != 'yes') {
       $this->info("Canceled");
       return;
     }
 
-    // 1. Выполнить команду
+    // 2. Выполнить команду
     $result = runcommand('\M1\Commands\C36_workbench_sync', ['data'=>['packid'=>$this->argument('packid')]]);
 
 
-    // 2. В случае неудачи, вывести текст ошибки
+    // 3. В случае неудачи, вывести текст ошибки
     if($result['status'] != 0) {
       $this->error('Error: '.$result['data']);
       return;
     }
 
 
-    // 3. В случае успеха, вывести соотв.сообщение
+    // 4. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
 
   }
