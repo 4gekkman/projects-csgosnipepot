@@ -71,7 +71,24 @@
           $events->listen($event, $handler);
         }
 
-        // 4] Подключить routes.php //
+        // 4] Регистрация файлов локализации D-пакета //
+        //--------------------------------------------//
+        // - Доступ из php  : trans('m1.welcome')
+        // - Доступ из blade: {{ trans('m1.welcome') }}
+
+          // RU //
+          //----//
+          $this->publishes([
+              __DIR__.'/Localization/ru/localization.php' => resource_path('lang/ru/'.$packid.'.php'),
+          ], 'M');
+
+          // EN //
+          //----//
+          $this->publishes([
+              __DIR__.'/Localization/en/localization.php' => resource_path('lang/en/'.$packid.'.php'),
+          ], 'M');
+
+        // 5] Подключить routes.php //
         //--------------------------//
         require __DIR__.'/routes.php';
 
