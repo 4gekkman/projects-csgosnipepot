@@ -288,19 +288,22 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
       /**
        *
        *  [
-       *    "md1_routes" => [               // Имя модели, которой надо добавить эту связь
-       *      "name1" => [                  // Имя связи
-       *        "type"            => "",    // Тип связи: hasMany / belongsTo / belongsToMany
-       *        "pivot"           => "",    // Имя pivot-таблицы (для связей типа belongsToMany)
-       *        "related_model"   => "",    // Полный путь к связанной модели
-       *        "foreign_key"     => "",    // Внешний ключ
-       *        "local_key"       => ""     // Локальный ключ
+       *    "M4" => [                         // ID пакета
+       *      "md1_routes" => [               // Имя модели, которой надо добавить эту связь
+       *        "name1" => [                  // Имя связи
+       *          "type"            => "",    // Тип связи: hasMany / belongsTo / belongsToMany
+       *          "pivot"           => "",    // Имя pivot-таблицы (для связей типа belongsToMany)
+       *          "related_model"   => "",    // Полный путь к связанной модели
+       *          "foreign_key"     => "",    // Внешний ключ
+       *          "local_key"       => ""     // Локальный ключ
+       *        ],
+       *        "name2" => [...]
        *      ],
-       *      "name2" => [...]
+       *      "md2_types" => [
+       *        ...
+       *      ]
        *    ],
-       *    "md2_types" => [
-       *      ...
-       *    ]
+       *    "M5" => ...
        *  ]
        *
        */
@@ -314,12 +317,17 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         // 3] Добавить в $result все имена моделей пакета $package
         // - В формате: "имя модели" => []
-        foreach($list_final as $model) {
-          $result[$model['table']] = [];
-        }
+
+          // 3.1] Создать ключ/значение [id пакета] => []
+          $result[$this->data['data']['packid']] = [];
+
+          // 3.2] Добавить туда все имена моделей пакета $package
+          foreach($list_final as $model) {
+            $result[$this->data['data']['packid']][$model['table']] = [];
+          }
 
         // 4] Найти в $all_rels пары с одинаковыми TABLE_NAME
-        // - Формат которых соответствует "^md[0-9]{4}"
+        // - Формат которых соответствует "^md100[0-9]{1}"
         // - И получить массив следующего вида:
         /**
          *  [
@@ -340,7 +348,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
           // 2] Найти
           foreach($all_rels as $rel) {
-            if(preg_match("/^md[0-9]{4}/ui", $rel->TABLE_NAME) != 0) {
+            if(preg_match("/^md100[0-9]{1}/ui", $rel->TABLE_NAME) != 0) {
 
               // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
               if(!array_key_exists($rel->TABLE_NAME, $result))
@@ -353,7 +361,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           }
 
           // 3] Проверить целостность $result
-          // - Надо, чтобы каждый элемент-массив $result содержал ровна 2 элемента
+          // - Надо, чтобы каждый элемент-массив $result содержал ровно 2 элемента
           foreach($result as $rel) {
             if(!array_key_exists(0, $rel) || !array_key_exists(1, $rel) || array_key_exists(2, $rel))
               throw new \Exception("В БД пакета $this->data['data']['packid'] есть недоделанная m:n связь (см. pivot-таблицу $rel->TABLE_NAME).");
@@ -372,10 +380,10 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
             // - $rel[0]->REFERENCED_TABLE_NAME
             // - $rel[1]->REFERENCED_TABLE_NAME
             // - Если какого-то из них нет, создать
-            if(!array_key_exists($rel[0]->REFERENCED_TABLE_NAME, $result))
-              $result[$rel[0]->REFERENCED_TABLE_NAME] = [];
-            if(!array_key_exists($rel[1]->REFERENCED_TABLE_NAME, $result))
-              $result[$rel[1]->REFERENCED_TABLE_NAME] = [];
+            if(!array_key_exists($rel[0]->REFERENCED_TABLE_NAME, $result[$this->data['data']['packid']]))
+              $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME] = [];
+            if(!array_key_exists($rel[1]->REFERENCED_TABLE_NAME, $result[$this->data['data']['packid']]))
+              $result[$this->data['data']['packid']][$rel[1]->REFERENCED_TABLE_NAME] = [];
 
             // 5.2] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
 
@@ -388,7 +396,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
 
               // 5.2.3] Добавить связь
-              $result[$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
+              $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => $rel[0]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
@@ -407,7 +415,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
 
               // 5.3.3] Добавить связь
-              $result[$rel[1]->REFERENCED_TABLE_NAME][$relname] = [
+              $result[$this->data['data']['packid']][$rel[1]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => $rel[1]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
@@ -430,10 +438,10 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
             // - $rel->TABLE_NAME
             // - $rel->REFERENCED_TABLE_NAME
             // - Если какого-то из них нет, создать
-            if(!array_key_exists($rel->TABLE_NAME, $result))
-              $result[$rel->TABLE_NAME] = [];
-            if(!array_key_exists($rel->REFERENCED_TABLE_NAME, $result))
-              $result[$rel->REFERENCED_TABLE_NAME] = [];
+            if(!array_key_exists($rel->TABLE_NAME, $result[$this->data['data']['packid']]))
+              $result[$this->data['data']['packid']][$rel->TABLE_NAME] = [];
+            if(!array_key_exists($rel->REFERENCED_TABLE_NAME, $result[$this->data['data']['packid']]))
+              $result[$this->data['data']['packid']][$rel->REFERENCED_TABLE_NAME] = [];
 
             // 6.3] Добавить связь типа belongsTo
 
@@ -446,7 +454,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
 
               // 6.3.3] Добавить связь
-              $result[$rel->TABLE_NAME][$relname] = [
+              $result[$this->data['data']['packid']][$rel->TABLE_NAME][$relname] = [
                 "type"            => "belongsTo",
                 "pivot"           => "",
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
@@ -465,7 +473,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
 
               // 6.4.3] Добавить связь
-              $result[$rel->REFERENCED_TABLE_NAME][$relname] = [
+              $result[$this->data['data']['packid']][$rel->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "hasMany",
                 "pivot"           => "",
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
@@ -476,13 +484,116 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           }
         });
 
+        // 7] Найти в $all_rels связи с TABLE_NAME вида "^md200[0-9]{1}"
+        // - И получить массив следующего вида:
+        /**
+         *  [
+         *    "TABLE_NAME" => [
+         *      [
+         *        ...
+         *      ]
+         *    ]
+         *  ]
+         */
+        $foreign_rels = call_user_func(function() USE ($all_rels) {
+
+          // 1] Подготовить массив для результатов
+          $result = [];
+
+          // 2] Найти
+          foreach($all_rels as $rel) {
+            if(preg_match("/^md200[0-9]{1}/ui", $rel->TABLE_NAME) != 0) {
+
+              // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
+              if(!array_key_exists($rel->TABLE_NAME, $result))
+                $result[$rel->TABLE_NAME] = [];
+
+              // 2.2] Добавить $rel в $result[$rel->TABLE_NAME]
+              array_push($result[$rel->TABLE_NAME], $rel);
+
+            }
+          }
+
+          // n] Вернуть результаты
+          return $result;
+
+        });
+
+        // 8] Подготовить и добавить в $result foreign-belongsToMany-связи
+        call_user_func(function() USE (&$result, $foreign_rels) {
+          foreach($foreign_rels as $rel) {
+
+            // 8.1] Проверить в $result существование ключей
+            // - $rel[0]->REFERENCED_TABLE_NAME
+            // - Если нет, создать
+            if(!array_key_exists($rel[0]->REFERENCED_TABLE_NAME, $result[$this->data['data']['packid']]))
+              $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME] = [];
+
+            // 8.2] Извлечь мета-информацию из DESCRIPTION таблицы TABLE_NAME
+
+              // 8.2.1] Извлечь мета-информацию
+              $meta = DB::select("SELECT table_comment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='".mb_strtolower($this->data['data']['packid'])."' AND table_name='".$rel[0]->TABLE_NAME."'");
+
+              // 8.2.2] Если извлечь мета-информацию не удалось
+              if(empty($meta) || (array_key_exists(0, $meta) && empty($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && !is_object($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && is_object($meta[0]) && !property_exists($meta[0], 'table_comment') )) {
+                write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' не удалось извлечь мета-информацию из description таблицы связи, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                continue;
+              }
+
+              // 8.2.3] Если $meta[0]->table_comment не json-строка, перейти к следующей итерации, сообщив в лог
+              if(!r1_isJSON($meta[0]->table_comment)) {
+                write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что мета-информация в description таблицы связи не является валидной JSON-строкой, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                continue;
+              }
+
+              // 8.2.3] Извлечь данные из $meta в виде массива
+              $meta = json_decode($meta[0]->table_comment, true);
+
+              // 8.2.4] Провести валидацию содержимого $meta
+              $validator = r4_validate($meta, [
+
+                "mpackid"         => ["required", "regex:/^M[1-9]{1}[0-9]*$/ui"],
+                "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"]
+
+              ]); if($validator['status'] == -1) {
+
+                write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что мета-информация в description таблицы связи не является валидной, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                continue;
+
+              }
+
+            
+
+
+//            // 5.2] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+//
+//              // 5.2.1] Определить имя связи
+//              $relname = $rel[1]->REFERENCED_TABLE_NAME;
+//              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+//
+//              // 5.2.2] Определить имя связанной модели
+//              $relmodel = $rel[1]->REFERENCED_TABLE_NAME;
+//              $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
+//
+//              // 5.2.3] Добавить связь
+//              $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
+//                "type"            => "belongsToMany",
+//                "pivot"           => $rel[0]->TABLE_NAME,
+//                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
+//                "foreign_key"     => $rel[1]->COLUMN_NAME,
+//                "local_key"       => $rel[0]->COLUMN_NAME
+//              ];
+
+          }
+        });
+
         // n] Вернуть результат
         return $result;
 
       });
 
       // 8. Добавить в каждую модель её связи
-      foreach($relationships2add as $model => $rels) {
+      foreach($relationships2add[$this->data['data']['packid']] as $model => $rels) {
 
         // 8.1. Если $model содержит пустой массив, перейти к след.итерации
         if(count($rels) == 0) continue;
