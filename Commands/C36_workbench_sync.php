@@ -562,29 +562,294 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
               }
 
-            
+            // 8.3] Проверить наличие пакетов/баз моделей/таблиц
 
+              // 8.3.1] Проверяем наличие пакетов/баз
 
-//            // 5.2] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
-//
-//              // 5.2.1] Определить имя связи
-//              $relname = $rel[1]->REFERENCED_TABLE_NAME;
-//              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
-//
-//              // 5.2.2] Определить имя связанной модели
-//              $relmodel = $rel[1]->REFERENCED_TABLE_NAME;
-//              $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
-//
-//              // 5.2.3] Добавить связь
-//              $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
-//                "type"            => "belongsToMany",
-//                "pivot"           => $rel[0]->TABLE_NAME,
-//                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
-//                "foreign_key"     => $rel[1]->COLUMN_NAME,
-//                "local_key"       => $rel[0]->COLUMN_NAME
-//              ];
+                // Получить и проверить базы
+                $basename1 = $this->data['data']['packid'];
+                $basename2 = $meta['mpackid'];
+                if(!r1_is_schema_exists(mb_strtolower($basename1))) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что база данных '.$basename1.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+                if(!r1_is_schema_exists(mb_strtolower($basename2))) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что база данных '.$basename2.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+
+                // Получить и проверить пакеты
+                $pack1 = \M1\Models\MD2_packages::where('id_inner', mb_strtoupper($basename1))->first();
+                $pack2 = \M1\Models\MD2_packages::where('id_inner', mb_strtoupper($basename2))->first();
+                if(empty($pack1)) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что пакет '.$basename1.' не установлен, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+                if(empty($pack2)) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что пакет '.$basename2.' не установлен, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+
+              // 8.3.2] Проверяем наличие моделей/таблиц
+
+                // Получить имена моделей, и проверить их наличие
+                $modelname1 = preg_replace('/^md/u', 'MD', $rel[0]->REFERENCED_TABLE_NAME);
+                $modelname2 = $meta['table'];
+                if(!class_exists("\\".mb_strtoupper($basename1)."\\Models\\".$modelname1)) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что модель '."\\".mb_strtoupper($basename1)."\\Models\\".$modelname1.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+                if(!class_exists("\\".mb_strtoupper($basename2)."\\Models\\".$modelname2)) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что модель '."\\".mb_strtoupper($basename2)."\\Models\\".$modelname2.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+
+                // Получить имена таблиц, и проверить их наличие
+                $tablename1 = preg_replace('/^MD/u', 'md', $modelname1);
+                $tablename2 = preg_replace('/^MD/u', 'md', $modelname2);
+                if(!r1_hasTable(mb_strtolower($basename1), $tablename1)) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что таблица '.mb_strtolower($tablename1).' отсутствует в базе данных '.$basename1.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+                if(!r1_hasTable(mb_strtolower($basename2), $tablename2)) {
+                  write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что таблица '.mb_strtolower($tablename2).' отсутствует в базе данных '.$basename2.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                  continue;
+                }
+
+            // 8.4] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+
+              // 8.4.1] Определить имя связи
+              $relname = $modelname2;
+              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+              $relname = mb_strtolower($basename2) . '_' . $relname;
+
+              // 8.4.2] Определить foreign_key
+              $foreign_key = call_user_func(function() USE ($basename1, $rel){
+
+                // Получить список столбцов для $rel[0]->TABLE_NAME
+                $columns = r1_getColumns(mb_strtolower($basename1), $rel[0]->TABLE_NAME);
+
+                // Отфильтровать из $columns значение $rel[0]->COLUMN_NAME
+                $columns = array_values(array_filter($columns, function($item) USE ($rel) {
+                  if($item == $rel[0]->COLUMN_NAME) return false;
+                  return true;
+                }));
+
+                // Вернуть оставшееся в $columns значение
+                return $columns[0];
+
+              });
+
+              // 8.4.3] Добавить связь
+              $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
+                "type"            => "belongsToMany",
+                "pivot"           => $rel[0]->TABLE_NAME,
+                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$modelname2",
+                "foreign_key"     => $foreign_key,
+                "local_key"       => $rel[0]->COLUMN_NAME
+              ];
 
           }
+        });
+
+        // 9] Найти внешние связи других M-пакетов, связанные с этим
+        // - И добавить их в result
+        call_user_func(function() USE (&$result) {
+
+          // Получить список ID всех установленных M-пакетов
+          // - Исключив из него $this->data['data']['packid']
+          $mpacks = call_user_func(function(){
+            $dirs = r1_fs('vendor/4gekkman')->directories();
+            $dirs = array_filter($dirs, function($item){
+              if(preg_match("/^[M]{1}[0-9]*$/ui", $item)) return true; else return false;
+            });
+            $mpacks = array_values(array_filter($dirs, function($item){ if(preg_match("/^M[0-9]*$/ui", $item)) return true; else return false; }));
+            $mpacks = array_values(array_filter($mpacks, function($item){
+              if($item == $this->data['data']['packid']) return false;
+              return true;
+            }));
+            return $mpacks;
+          });
+
+          // Пробежаться по $mpacks
+          foreach($mpacks as $mpack) {
+
+            // 1] Извлечь из MySQL инфу обо всех связях в БД пакета $package
+            $all_rels = DB::select("SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME is not null AND CONSTRAINT_SCHEMA='".mb_strtolower($mpack)."'");
+
+            // 2] Найти в $all_rels связи с TABLE_NAME вида "^md200[0-9]{1}"
+            // - И получить массив следующего вида:
+            /**
+             *  [
+             *    "TABLE_NAME" => [
+             *      [
+             *        ...
+             *      ]
+             *    ]
+             *  ]
+             */
+            $foreign_rels = call_user_func(function() USE ($all_rels) {
+
+              // 1] Подготовить массив для результатов
+              $result = [];
+
+              // 2] Найти
+              foreach($all_rels as $rel) {
+                if(preg_match("/^md200[0-9]{1}/ui", $rel->TABLE_NAME) != 0) {
+
+                  // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
+                  if(!array_key_exists($rel->TABLE_NAME, $result))
+                    $result[$rel->TABLE_NAME] = [];
+
+                  // 2.2] Добавить $rel в $result[$rel->TABLE_NAME]
+                  array_push($result[$rel->TABLE_NAME], $rel);
+
+                }
+              }
+
+              // n] Вернуть результаты
+              return $result;
+
+            });
+
+            // 3] Подготовить и добавить в $result связи из $foreign_rels
+            call_user_func(function() USE (&$result, $foreign_rels, $mpack) {
+              foreach($foreign_rels as $rel) {
+
+//                // 3.1] Проверить в $result существование ключей
+//                // - $rel[0]->REFERENCED_TABLE_NAME
+//                // - Если нет, создать
+//                if(!array_key_exists($rel[0]->REFERENCED_TABLE_NAME, $result[$mpack]))
+//                  $result[$mpack][$rel[0]->REFERENCED_TABLE_NAME] = [];
+
+                // 3.2] Извлечь мета-информацию из DESCRIPTION таблицы TABLE_NAME
+
+                  // 3.2.1] Извлечь мета-информацию
+                  $meta = DB::select("SELECT table_comment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='".mb_strtolower($mpack)."' AND table_name='".$rel[0]->TABLE_NAME."'");
+
+                  // 3.2.2] Если извлечь мета-информацию не удалось
+                  if(empty($meta) || (array_key_exists(0, $meta) && empty($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && !is_object($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && is_object($meta[0]) && !property_exists($meta[0], 'table_comment') )) {
+                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', не удалось извлечь мета-информацию из description таблицы связи, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                    continue;
+                  }
+
+                  // 3.2.3] Если $meta[0]->table_comment не json-строка, перейти к следующей итерации, сообщив в лог
+                  if(!r1_isJSON($meta[0]->table_comment)) {
+                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что мета-информация в description таблицы связи не является валидной JSON-строкой, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                    continue;
+                  }
+
+                  // 3.2.3] Извлечь данные из $meta в виде массива
+                  $meta = json_decode($meta[0]->table_comment, true);
+
+                  // 3.2.4] Провести валидацию содержимого $meta
+                  $validator = r4_validate($meta, [
+
+                    "mpackid"         => ["required", "regex:/^M[1-9]{1}[0-9]*$/ui"],
+                    "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"]
+
+                  ]); if($validator['status'] == -1) {
+
+                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что мета-информация в description таблицы связи не является валидной, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                    continue;
+
+                  }
+
+                // 3.3] Проверить наличие пакетов/баз моделей/таблиц
+
+                  // 3.3.1] Проверяем наличие пакетов/баз
+
+                    // Получить и проверить базы
+                    $basename1 = $meta['mpackid'];
+                    $basename2 = $mpack;
+                    if(!r1_is_schema_exists(mb_strtolower($basename1))) {
+                      write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что база данных '.$basename1.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                      continue;
+                    }
+                    if(!r1_is_schema_exists(mb_strtolower($basename2))) {
+                      write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что база данных '.$basename2.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                      continue;
+                    }
+
+                    // Получить и проверить пакеты
+                    // - Только если $basename1 != 'M1'
+                    if($basename1 != 'M1') {
+                      $pack1 = \M1\Models\MD2_packages::where('id_inner', mb_strtoupper($basename1))->first();
+                      $pack2 = \M1\Models\MD2_packages::where('id_inner', mb_strtoupper($basename2))->first();
+                      if(empty($pack1)) {
+                        write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что пакет '.$basename1.' не установлен, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                        continue;
+                      }
+                      if(empty($pack2)) {
+                        write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что пакет '.$basename2.' не установлен, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                        continue;
+                      }
+                    }
+
+                  // 3.3.2] Проверяем наличие моделей/таблиц
+
+                    // Получить имена моделей, и проверить их наличие
+                    $modelname1 = $meta['table'];
+                    $modelname2 = preg_replace('/^md/u', 'MD', $rel[0]->REFERENCED_TABLE_NAME);
+                    if(!class_exists("\\".mb_strtoupper($basename1)."\\Models\\".$modelname1)) {
+                      write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что модель '."\\".mb_strtoupper($basename1)."\\Models\\".$modelname1.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                      continue;
+                    }
+                    if(!class_exists("\\".mb_strtoupper($basename2)."\\Models\\".$modelname2)) {
+                      write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что модель '."\\".mb_strtoupper($basename2)."\\Models\\".$modelname2.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                      continue;
+                    }
+
+                    // Получить имена таблиц, и проверить их наличие
+                    $tablename1 = preg_replace('/^MD/u', 'md', $modelname1);
+                    $tablename2 = preg_replace('/^MD/u', 'md', $modelname2);
+                    if(!r1_hasTable(mb_strtolower($basename1), $tablename1)) {
+                      write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что таблица '.mb_strtolower($tablename1).' отсутствует в базе данных '.$basename1.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                      continue;
+                    }
+                    if(!r1_hasTable(mb_strtolower($basename2), $tablename2)) {
+                      write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что таблица '.mb_strtolower($tablename2).' отсутствует в базе данных '.$basename2.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
+                      continue;
+                    }
+
+                // 3.4] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+
+                  // 3.4.1] Определить имя связи
+                  $relname = $modelname2;
+                  $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+                  $relname = mb_strtolower($basename2) . '_' . $relname;
+
+                  // 3.4.2] Определить foreign_key
+                  $local_key = call_user_func(function() USE ($basename2, $rel){
+
+                    // Получить список столбцов для $rel[0]->TABLE_NAME
+                    $columns = r1_getColumns(mb_strtolower($basename2), $rel[0]->TABLE_NAME);
+
+                    // Отфильтровать из $columns значение $rel[0]->COLUMN_NAME
+                    $columns = array_values(array_filter($columns, function($item) USE ($rel) {
+                      if($item == $rel[0]->COLUMN_NAME) return false;
+                      return true;
+                    }));
+
+                    // Вернуть оставшееся в $columns значение
+                    return $columns[0];
+
+                  });
+
+                  // 3.4.3] Добавить связь
+                  $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
+                    "type"            => "belongsToMany",
+                    "pivot"           => $rel[0]->TABLE_NAME,
+                    "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$modelname2",
+                    "foreign_key"     => $rel[0]->COLUMN_NAME,
+                    "local_key"       => $local_key
+                  ];
+
+              }
+            });
+
+          }
+
         });
 
         // n] Вернуть результат
@@ -592,93 +857,95 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       });
 
-      // 8. Добавить в каждую модель её связи
-      foreach($relationships2add[$this->data['data']['packid']] as $model => $rels) {
+      write2log($result, []);
 
-        // 8.1. Если $model содержит пустой массив, перейти к след.итерации
-        if(count($rels) == 0) continue;
-
-        // 8.2. Проверить существование файла-модели $model
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        if(!$this->storage->exists($model.'.php'))
-          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
-
-        // 8.3. Получить содержимое файла-модели $model
-        $file = $this->storage->get($model.'.php');
-
-        // 8.4. Составить строку со связями для добавления в $file
-        $rels2add = call_user_func(function() USE ($rels) {
-
-          // 1] Подготовить строку для результата
-          $result = "// relationships start" . PHP_EOL;
-
-          // 2] Добавить связи в $result
-          foreach($rels as $name => $sets) {
-
-            // 2.1] Если тип связи belongsToMany
-            if($sets['type'] == 'belongsToMany') {
-
-              // 2.1.1] Добавить пробелы
-              $result = $result . '    ';
-
-              // 2.1.2] Добавить связь
-              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.mb_strtolower($this->data['data']['packid']).'.'.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
-
-              // 2.1.3] Добавить перенос строки
-              $result = $result . PHP_EOL;
-
-            }
-
-            // 2.2] Если тип связи belongsTo
-            if($sets['type'] == 'belongsTo') {
-
-              // 2.1.1] Добавить пробелы
-              $result = $result . '    ';
-
-              // 2.1.2] Добавить связь
-              $result = $result . 'public function '.$name.'() { return $this->belongsTo(\''.$sets['related_model'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
-
-              // 2.1.3] Добавить перенос строки
-              $result = $result . PHP_EOL;
-
-            }
-
-            // 2.3] Если тип связи hasMany
-            if($sets['type'] == 'hasMany') {
-
-              // 2.1.1] Добавить пробелы
-              $result = $result . '    ';
-
-              // 2.1.2] Добавить связь
-              $result = $result . 'public function '.$name.'() { return $this->hasMany(\''.$sets['related_model'].'\', \''.$sets['foreign_key'].'\', \''.$sets['local_key'].'\'); }';
-
-              // 2.1.3] Добавить перенос строки
-              $result = $result . PHP_EOL;
-
-            }
-
-          }
-
-          // 3] Финальные штрики для $result
-          $result = $result . "    // relationships stop";
-
-          // n] Вернуть результат
-          return $result;
-
-        });
-
-        // 8.5] Вставить $result в $file
-        $file = preg_replace("#// *relationships *start.*// *relationships *stop#smuiU", $rels2add, $file);
-
-        // 8.6] Заменить $file
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put($model.'.php', $file);
-
-      }
+//      // 8. Добавить в каждую модель её связи
+//      foreach($relationships2add[$this->data['data']['packid']] as $model => $rels) {
+//
+//        // 8.1. Если $model содержит пустой массив, перейти к след.итерации
+//        if(count($rels) == 0) continue;
+//
+//        // 8.2. Проверить существование файла-модели $model
+//        config(['filesystems.default' => 'local']);
+//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
+//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+//        if(!$this->storage->exists($model.'.php'))
+//          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
+//
+//        // 8.3. Получить содержимое файла-модели $model
+//        $file = $this->storage->get($model.'.php');
+//
+//        // 8.4. Составить строку со связями для добавления в $file
+//        $rels2add = call_user_func(function() USE ($rels) {
+//
+//          // 1] Подготовить строку для результата
+//          $result = "// relationships start" . PHP_EOL;
+//
+//          // 2] Добавить связи в $result
+//          foreach($rels as $name => $sets) {
+//
+//            // 2.1] Если тип связи belongsToMany
+//            if($sets['type'] == 'belongsToMany') {
+//
+//              // 2.1.1] Добавить пробелы
+//              $result = $result . '    ';
+//
+//              // 2.1.2] Добавить связь
+//              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.mb_strtolower($this->data['data']['packid']).'.'.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+//
+//              // 2.1.3] Добавить перенос строки
+//              $result = $result . PHP_EOL;
+//
+//            }
+//
+//            // 2.2] Если тип связи belongsTo
+//            if($sets['type'] == 'belongsTo') {
+//
+//              // 2.1.1] Добавить пробелы
+//              $result = $result . '    ';
+//
+//              // 2.1.2] Добавить связь
+//              $result = $result . 'public function '.$name.'() { return $this->belongsTo(\''.$sets['related_model'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+//
+//              // 2.1.3] Добавить перенос строки
+//              $result = $result . PHP_EOL;
+//
+//            }
+//
+//            // 2.3] Если тип связи hasMany
+//            if($sets['type'] == 'hasMany') {
+//
+//              // 2.1.1] Добавить пробелы
+//              $result = $result . '    ';
+//
+//              // 2.1.2] Добавить связь
+//              $result = $result . 'public function '.$name.'() { return $this->hasMany(\''.$sets['related_model'].'\', \''.$sets['foreign_key'].'\', \''.$sets['local_key'].'\'); }';
+//
+//              // 2.1.3] Добавить перенос строки
+//              $result = $result . PHP_EOL;
+//
+//            }
+//
+//          }
+//
+//          // 3] Финальные штрики для $result
+//          $result = $result . "    // relationships stop";
+//
+//          // n] Вернуть результат
+//          return $result;
+//
+//        });
+//
+//        // 8.5] Вставить $result в $file
+//        $file = preg_replace("#// *relationships *start.*// *relationships *stop#smuiU", $rels2add, $file);
+//
+//        // 8.6] Заменить $file
+//        config(['filesystems.default' => 'local']);
+//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
+//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+//        $this->storage->put($model.'.php', $file);
+//
+//      }
 
 
     DB::commit(); } catch(\Exception $e) {
