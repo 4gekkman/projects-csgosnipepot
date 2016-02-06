@@ -43,8 +43,7 @@
         // 2] Пары 'событие-обработчик' документов M-пакета //
         //--------------------------------------------------//
         $pairs2register = [
-          'M4\EventHandlers\H1_update' => 'R2\Event',
-          'M4\EventHandlers\H2_fresh4m5' => 'R2\Event',
+          'M4\EventHandlers\H1_update' => 'R2\Event'
         ];
 
       //----------------------------------//
@@ -116,11 +115,11 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
+          '\M4\Console\T1_update',
           '\M4\Console\T2_list',
           '\M4\Console\T3_check',
           '\M4\Console\T4_new',
           '\M4\Console\T5_del',
-          '\M4\Console\T1_call4update',
           '\M4\Console\T6_switch'
         ];
 

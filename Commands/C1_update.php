@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Accepts array of M1 structure data, and invoke update of M4 database
+ *    - Updates auto routes using fresh data about packages
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -139,7 +139,6 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
      *  2. Обновить данные в types
      *  3. Удалить все существующие автоматические роуты
      *
-     *  X. Возбудить событие с ключём "m4:afterupdate"
      *  N. Вернуть статус 0
      *
      */
@@ -192,9 +191,188 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
           $query->where('name', 'auto');
         })->get();
 
-        
+        // 3.2. Удалить $autoroutes
+        foreach($autoroutes as $autoroute) {
+
+          // 1] Удалить все внутренние связи роута $autoroute
+          $autoroute->domains()->detach();
+          $autoroute->protocols()->detach();
+          $autoroute->subdomains()->detach();
+          $autoroute->uris()->detach();
+
+          // 2] Удалить все транс-пакетные связи роута $autoroute
+          if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
+            $autoroute->m1_packages()->detach();
+          }
+
+          // 3] Удалить роут $autoroute
+          $autoroute->delete();
+
+        }
+
+      // 4. Создать новые автоматические роуты для D,L,W-пакетов
+
+        // 4.1. Получить все D,L,W-пакеты
+        $packages = r1_query(function(){
+          return \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+            $query->whereIn('name', ["D", "L", "W"]);
+          })->get();
+        });
+
+        // 4.2. Если $packages не NULL, создать роуты
+        if(!is_null($packages)) {
+
+          // 1] Подготовить массив данных
+          /**
+           *  [
+           *    "D1" => [                     // ID D,L,W-пакета
+           *      [                           // Массив данных для роута
+           *        "type"        => "auto",    // Тип роута
+           *        "domain"      => "",        // Домен роута
+           *        "protocol"    => "",        // Протокол роута
+           *        "subdomain"   => "",        // Поддомен роута
+           *        "uri"         => "",        // uri роута
+           *      ],
+           *      [ ... ]                     // Массив данных для роута
+           *    ]
+           *  ]
+           */
+          $data2add = call_user_func(function() USE ($packages) {
+
+            // Подготовить массив для результата
+            $result = [];
+
+            // Пробежаться по всем $packages
+            foreach($packages as $package) {
+
+              // 1] Проверить существование конфига пакета $package
+              if(!r1_fs('config')->exists($package->id_inner.'.php'))
+                throw new \Exception('Конфиг пакета '.$package->id_inner.' не опубликован в каталоге /config проекта.');
+
+              // 2] Получить содержимое св-ва 'routing' из опубликованного конфига пакета $package
+              $routing = eval("?> ".r1_fs('config')->get($package->id_inner.'.php'));
+              if(!is_array($routing) || !array_key_exists('routing', $routing) || !is_array($routing['routing']))
+                throw new \Exception('В конфиге пакета '.$package->id_inner.' нет ключа \'routing\', значение которого д.б. массивом.');
+              $routing = $routing['routing'];
+
+              // 3] Наполнить $result
+              foreach($routing as $domain => $protocols) {
+                foreach($protocols as $protocol => $subdomains) {
+                  foreach($subdomains as $subdomain => $uris) {
+                    foreach($uris as $uri) {
+
+                      // 3.1] Если в $result нет эл-та с ключём $package->id_inner, добавить
+                      if(!array_key_exists($package->id_inner, $result))
+                        $result[$package->id_inner] = [];
+
+                      // 3.2] Добавить новый элемент в $result[$package->id_inner]
+                      array_push($result[$package->id_inner], [
+                        "packid"      => $package->id,
+                        "type"        => "auto",
+                        "domain"      => $domain,
+                        "protocol"    => $protocol,
+                        "subdomain"   => $subdomain,
+                        "uri"         => $uri
+                      ]);
+
+                    }
+                  }
+                }
+              }
+
+            }
+
+            // Вернуть результат
+            return $result;
+
+          });
+
+          // 5.3. Наполнить таблицы данными
+          foreach($data2add as $packid => $routes) {
+            foreach($routes as $route) {
+
+              // 1] Получить тип
+              $type = \M4\Models\MD2_types::where('name', $route['type'])->first();
+              if(empty($type))
+                throw new \Exception("Для одного из роутов пакета $packid не удалось найти тип $type.");
+
+              // 2] Создать новый роут
+              $newroute = new \M4\Models\MD1_routes();
+              $newroute->id_type = $type->id;
+              $newroute->save();
+
+              // 4] Связать созданный роут с пакетами
+              // - Если сооветствующая связь присутствует
+              if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
+                $newroute->m1_packages()->attach($route['packid']);
+              }
+
+              // 5] Добавить домен, поддомен и uri
+
+                // 5.1] Домен
+
+                  // 5.1.1] Попробовать найти домен $domain в md3_domains
+                  $domain = \M4\Models\MD3_domains::where('name', $route['domain'])->first();
+
+                  // 5.1.2] Если $domain не найден, то создать его
+                  if(empty($domain)) {
+                    $domain = new \M4\Models\MD3_domains();
+                    $domain->name = $route['domain'];
+                    $domain->save();
+                  }
+
+                  // 5.1.3] Связать $domain с $newroute
+                  if(!$newroute->domains->contains($domain->id))
+                    $newroute->domains()->attach($domain->id);
+
+                // 5.2] Поддомен
+
+                  // 5.2.1] Попробовать найти поддомен $subdomain в md5_subdomains
+                  $subdomain = \M4\Models\MD5_subdomains::where('name', $route['subdomain'])->first();
+
+                  // 5.2.2] Если $subdomain не найден, то создать его, и связать с $newroute
+                  if(empty($subdomain)) {
+                    $subdomain = new \M4\Models\MD5_subdomains();
+                    $subdomain->name = $route['subdomain'];
+                    $subdomain->save();
+                  }
+
+                  // 5.2.3] Связать поддомен с $newroute
+                  if(!$newroute->subdomains->contains($subdomain->id))
+                    $newroute->subdomains()->attach($subdomain->id);
+
+                // 5.3] uri
+
+                  // 5.3.1] Попробовать найти uri $uri в md6_uris
+                  $uri = \M4\Models\MD6_uris::where('name', $route['uri'])->first();
+
+                  // 5.3.2] Если $uri не найден, то создать его, и связать с $newroute
+                  if(empty($uri)) {
+                    $uri = new \M4\Models\MD6_uris();
+                    $uri->name = $route['uri'];
+                    $uri->save();
+                  }
+
+                  // 5.3.3] Связать uri с $newroute
+                  if(!$newroute->uris->contains($uri->id))
+                    $newroute->uris()->attach($uri->id);
+
+                // 5.4] protocol
+
+                  // 5.4.1] Попробовать найти $protocol в md4_protocols
+                  $protocol = \M4\Models\MD4_protocols::where('name', $route['protocol'])->first();
+                  if(empty($protocol))
+                    throw new \Exception("Протокол '$protocol' не найден в md4_protocols.");
+
+                  // 5.4.2] Елси $newroute ещё не связан с $protocol, связать их
+                  if(!$newroute->protocols->contains($protocol->id))
+                    $newroute->protocols()->attach($protocol->id);
+
+            }
+          }
 
 
+        }
 
 
     DB::commit(); } catch(\Exception $e) {
@@ -213,209 +391,191 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
     //-------------------------------------------------------------------------------------------------------------//
     // 5. Обновить MD1_routes/MD2_types + MD3_domains/MD5_subdomains/MD6_uris + md1000/md1001/md1002/md1003/md1004 //
     //-------------------------------------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try {
+//    $res = call_user_func(function() { try {
+//
+//      // 5.1. Получить коллекцию всех D,L,W-пакетов
+//      $packages = \M4\Models\MD8_packages::whereHas('packtypes', function($query){
+//        $query->where(function($query){
+//          $query->where('name','=','D')->
+//                  orWhere('name','=','L')->
+//                  orWhere('name','=','W');
+//        });
+//      })->get();
+//
+//      // 5.2. Подготовить массив данных, которми далее будут наполнены вышеуказанные таблицы
+//      /**
+//       *  [
+//       *    "D1" => [                     // ID D,L,W-пакета
+//       *      [                           // Массив данных для роута
+//       *        "type"        => "auto",    // Тип роута
+//       *        "domain"      => "",        // Домен роута
+//       *        "protocol"    => "",        // Протокол роута
+//       *        "subdomain"   => "",        // Поддомен роута
+//       *        "uri"         => "",        // uri роута
+//       *      ],
+//       *      [ ... ]                     // Массив данных для роута
+//       *    ]
+//       *  ]
+//       */
+//      $data2add = call_user_func(function() USE ($packages) {
+//
+//        // Подготовить массив для результата
+//        $result = [];
+//
+//        // Пробежаться по всем $packages
+//        foreach($packages as $package) {
+//
+//          // 1] Проверить существование конфига пакета $package
+//          config(['filesystems.default' => 'local']);
+//          config(['filesystems.disks.local.root' => base_path('config')]);
+//          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+//          if(!$this->storage->exists($package->id_inner.'.php'))
+//            throw new \Exception('Конфиг пакета '.$package->id_inner.' не опубликован в каталоге /config проекта.');
+//
+//          // 2] Получить содержимое св-ва 'routing' из опубликованного конфига пакета $package
+//          $routing = eval("? > ".$this->storage->get($package->id_inner.'.php'));
+//          if(!is_array($routing) || !array_key_exists('routing', $routing) || !is_array($routing['routing']))
+//            throw new \Exception('В конфиге пакета '.$package->id_inner.' нет ключа \'routing\', значение которого д.б. массивом.');
+//          $routing = $routing['routing'];
+//
+//          // 3] Наполнить $result
+//          foreach($routing as $domain => $protocols) {
+//            foreach($protocols as $protocol => $subdomains) {
+//              foreach($subdomains as $subdomain => $uris) {
+//                foreach($uris as $uri) {
+//
+//                  // 3.1] Если в $result нет эл-та с ключём $package->id_inner, добавить
+//                  if(!array_key_exists($package->id_inner, $result))
+//                    $result[$package->id_inner] = [];
+//
+//                  // 3.2] Добавить новый элемент в $result[$package->id_inner]
+//                  array_push($result[$package->id_inner], [
+//                    "type"        => "auto",
+//                    "domain"      => $domain,
+//                    "protocol"    => $protocol,
+//                    "subdomain"   => $subdomain,
+//                    "uri"         => $uri
+//                  ]);
+//
+//                }
+//              }
+//            }
+//          }
+//
+//        }
+//
+//        // Вернуть результат
+//        return $result;
+//
+//      });
+//
+//      // 5.3. Наполнить вышеуказанные таблицы данными
+//      foreach($data2add as $packid => $routes) {
+//        foreach($routes as $route) {
+//
+//          // 1] Получить пакет с $packid
+//          $package = \M4\Models\MD8_packages::where('id_inner',$packid)->first();
+//
+//          // 2] Получить тип
+//          $type = \M4\Models\MD2_types::where('name', $route['type'])->first();
+//          if(empty($type))
+//            throw new \Exception("Для одного из роутов пакета $packid не удалось найти тип $type.");
+//
+//          // 3] Создать новый роут
+//          DB::beginTransaction();
+//          $newroute = new \M4\Models\MD1_routes();
+//          $newroute->id_type = $type->id;
+//          $newroute->save();
+//          DB::commit();
+//
+//          // 4] Связать созданный роут с MD8_packages
+//          $newroute->packages()->attach($package->id);
+//
+//          // 5] Добавить домен, поддомен и uri
+//
+//            // 5.1] Домен
+//
+//              // 5.1.1] Попробовать найти домен $domain в md3_domains
+//              $domain = \M4\Models\MD3_domains::where('name', $route['domain'])->first();
+//
+//              // 5.1.2] Если $domain не найден, то создать его
+//              if(empty($domain)) {
+//                DB::beginTransaction();
+//                $domain = new \M4\Models\MD3_domains();
+//                $domain->name = $route['domain'];
+//                $domain->save();
+//                DB::commit();
+//              }
+//
+//              // 5.1.3] Связать $domain с $newroute
+//              if(!$newroute->domains->contains($domain->id))
+//                $newroute->domains()->attach($domain->id);
+//
+//            // 5.2] Поддомен
+//
+//              // 5.2.1] Попробовать найти поддомен $subdomain в md5_subdomains
+//              $subdomain = \M4\Models\MD5_subdomains::where('name', $route['subdomain'])->first();
+//
+//              // 5.2.2] Если $subdomain не найден, то создать его, и связать с $newroute
+//              if(empty($subdomain)) {
+//                DB::beginTransaction();
+//                $subdomain = new \M4\Models\MD5_subdomains();
+//                $subdomain->name = $route['subdomain'];
+//                $subdomain->save();
+//                DB::commit();
+//              }
+//
+//              // 5.2.3] Связать поддомен с $newroute
+//              if(!$newroute->subdomains->contains($subdomain->id))
+//                $newroute->subdomains()->attach($subdomain->id);
+//
+//            // 5.3] uri
+//
+//              // 5.3.1] Попробовать найти uri $uri в md6_uris
+//              $uri = \M4\Models\MD6_uris::where('name', $route['uri'])->first();
+//
+//              // 5.3.2] Если $uri не найден, то создать его, и связать с $newroute
+//              if(empty($uri)) {
+//                DB::beginTransaction();
+//                $uri = new \M4\Models\MD6_uris();
+//                $uri->name = $route['uri'];
+//                $uri->save();
+//                DB::commit();
+//              }
+//
+//              // 5.3.3] Связать uri с $newroute
+//              if(!$newroute->uris->contains($uri->id))
+//                $newroute->uris()->attach($uri->id);
+//
+//            // 5.4] protocol
+//
+//              // 5.4.1] Попробовать найти $protocol в md4_protocols
+//              $protocol = \M4\Models\MD4_protocols::where('name', $route['protocol'])->first();
+//              if(empty($protocol))
+//                throw new \Exception("Протокол '$protocol' не найден в md4_protocols.");
+//
+//              // 5.4.2] Елси $newroute ещё не связан с $protocol, связать их
+//              if(!$newroute->protocols->contains($protocol->id))
+//                $newroute->protocols()->attach($protocol->id);
+//
+//        }
+//      }
+//
+//
+//
+//    } catch(\Exception $e) {
+//        $errortext = 'Invoking of command C1_update from M-package M4 have ended with error: '.$e->getMessage();
+//        DB::rollback();
+//        Log::info($errortext);
+//        write2log($errortext, ['M4', 'C1_update']);
+//        return [
+//          "status"  => -2,
+//          "data"    => $errortext
+//        ];
+//    }}); if(!empty($res)) return $res;
 
-      // 5.1. Получить коллекцию всех D,L,W-пакетов
-      $packages = \M4\Models\MD8_packages::whereHas('packtypes', function($query){
-        $query->where(function($query){
-          $query->where('name','=','D')->
-                  orWhere('name','=','L')->
-                  orWhere('name','=','W');
-        });
-      })->get();
-
-      // 5.2. Подготовить массив данных, которми далее будут наполнены вышеуказанные таблицы
-      /**
-       *  [
-       *    "D1" => [                     // ID D,L,W-пакета
-       *      [                           // Массив данных для роута
-       *        "type"        => "auto",    // Тип роута
-       *        "domain"      => "",        // Домен роута
-       *        "protocol"    => "",        // Протокол роута
-       *        "subdomain"   => "",        // Поддомен роута
-       *        "uri"         => "",        // uri роута
-       *      ],
-       *      [ ... ]                     // Массив данных для роута
-       *    ]
-       *  ]
-       */
-      $data2add = call_user_func(function() USE ($packages) {
-
-        // Подготовить массив для результата
-        $result = [];
-
-        // Пробежаться по всем $packages
-        foreach($packages as $package) {
-
-          // 1] Проверить существование конфига пакета $package
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('config')]);
-          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-          if(!$this->storage->exists($package->id_inner.'.php'))
-            throw new \Exception('Конфиг пакета '.$package->id_inner.' не опубликован в каталоге /config проекта.');
-
-          // 2] Получить содержимое св-ва 'routing' из опубликованного конфига пакета $package
-          $routing = eval("?> ".$this->storage->get($package->id_inner.'.php'));
-          if(!is_array($routing) || !array_key_exists('routing', $routing) || !is_array($routing['routing']))
-            throw new \Exception('В конфиге пакета '.$package->id_inner.' нет ключа \'routing\', значение которого д.б. массивом.');
-          $routing = $routing['routing'];
-
-          // 3] Наполнить $result
-          foreach($routing as $domain => $protocols) {
-            foreach($protocols as $protocol => $subdomains) {
-              foreach($subdomains as $subdomain => $uris) {
-                foreach($uris as $uri) {
-
-                  // 3.1] Если в $result нет эл-та с ключём $package->id_inner, добавить
-                  if(!array_key_exists($package->id_inner, $result))
-                    $result[$package->id_inner] = [];
-
-                  // 3.2] Добавить новый элемент в $result[$package->id_inner]
-                  array_push($result[$package->id_inner], [
-                    "type"        => "auto",
-                    "domain"      => $domain,
-                    "protocol"    => $protocol,
-                    "subdomain"   => $subdomain,
-                    "uri"         => $uri
-                  ]);
-
-                }
-              }
-            }
-          }
-
-        }
-
-        // Вернуть результат
-        return $result;
-
-      });
-
-      // 5.3. Наполнить вышеуказанные таблицы данными
-      foreach($data2add as $packid => $routes) {
-        foreach($routes as $route) {
-
-          // 1] Получить пакет с $packid
-          $package = \M4\Models\MD8_packages::where('id_inner',$packid)->first();
-
-          // 2] Получить тип
-          $type = \M4\Models\MD2_types::where('name', $route['type'])->first();
-          if(empty($type))
-            throw new \Exception("Для одного из роутов пакета $packid не удалось найти тип $type.");
-
-          // 3] Создать новый роут
-          DB::beginTransaction();
-          $newroute = new \M4\Models\MD1_routes();
-          $newroute->id_type = $type->id;
-          $newroute->save();
-          DB::commit();
-
-          // 4] Связать созданный роут с MD8_packages
-          $newroute->packages()->attach($package->id);
-
-          // 5] Добавить домен, поддомен и uri
-
-            // 5.1] Домен
-
-              // 5.1.1] Попробовать найти домен $domain в md3_domains
-              $domain = \M4\Models\MD3_domains::where('name', $route['domain'])->first();
-
-              // 5.1.2] Если $domain не найден, то создать его
-              if(empty($domain)) {
-                DB::beginTransaction();
-                $domain = new \M4\Models\MD3_domains();
-                $domain->name = $route['domain'];
-                $domain->save();
-                DB::commit();
-              }
-
-              // 5.1.3] Связать $domain с $newroute
-              if(!$newroute->domains->contains($domain->id))
-                $newroute->domains()->attach($domain->id);
-
-            // 5.2] Поддомен
-
-              // 5.2.1] Попробовать найти поддомен $subdomain в md5_subdomains
-              $subdomain = \M4\Models\MD5_subdomains::where('name', $route['subdomain'])->first();
-
-              // 5.2.2] Если $subdomain не найден, то создать его, и связать с $newroute
-              if(empty($subdomain)) {
-                DB::beginTransaction();
-                $subdomain = new \M4\Models\MD5_subdomains();
-                $subdomain->name = $route['subdomain'];
-                $subdomain->save();
-                DB::commit();
-              }
-
-              // 5.2.3] Связать поддомен с $newroute
-              if(!$newroute->subdomains->contains($subdomain->id))
-                $newroute->subdomains()->attach($subdomain->id);
-
-            // 5.3] uri
-
-              // 5.3.1] Попробовать найти uri $uri в md6_uris
-              $uri = \M4\Models\MD6_uris::where('name', $route['uri'])->first();
-
-              // 5.3.2] Если $uri не найден, то создать его, и связать с $newroute
-              if(empty($uri)) {
-                DB::beginTransaction();
-                $uri = new \M4\Models\MD6_uris();
-                $uri->name = $route['uri'];
-                $uri->save();
-                DB::commit();
-              }
-
-              // 5.3.3] Связать uri с $newroute
-              if(!$newroute->uris->contains($uri->id))
-                $newroute->uris()->attach($uri->id);
-
-            // 5.4] protocol
-
-              // 5.4.1] Попробовать найти $protocol в md4_protocols
-              $protocol = \M4\Models\MD4_protocols::where('name', $route['protocol'])->first();
-              if(empty($protocol))
-                throw new \Exception("Протокол '$protocol' не найден в md4_protocols.");
-
-              // 5.4.2] Елси $newroute ещё не связан с $protocol, связать их
-              if(!$newroute->protocols->contains($protocol->id))
-                $newroute->protocols()->attach($protocol->id);
-
-        }
-      }
 
 
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_update from M-package M4 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M4', 'C1_update']);
-        return [
-          "status"  => -2,
-          "data"    => $errortext
-        ];
-    }}); if(!empty($res)) return $res;
-
-
-    //------------------------------------------------//
-    // X. Возбудить событие с ключём "m1:afterupdate" //
-    //------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // 1] Возбудить событие с ключём 'm4:afterupdate'
-      Event::fire(new \R2\Event([
-        'keys'  =>  ['m4:afterupdate'],
-        'data'  =>  ""
-      ]));
-
-    } catch(\Exception $e) {
-        Log::info('Event fireing ("m4:afterupdate") has failed with error: '.$e->getMessage());
-        write2log('Event fireing ("m4:afterupdate") has failed with error: '.$e->getMessage(), ['M1', 'parseapp']);
-        return [
-          "status"  => -2,
-          "data"    => 'Event fireing ("m4:afterupdate") has failed with error: '.$e->getMessage()
-        ];
-    }}); if(!empty($res)) return $res;
 
 
     //---------------------//

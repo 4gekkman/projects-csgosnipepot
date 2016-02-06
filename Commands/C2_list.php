@@ -135,8 +135,9 @@ class C2_list extends Job { // TODO: добавить "implements ShouldQueue" -
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить данные
+     *  2. Подготовить данные для вывода
+     *  3. Вернуть ответ
      *
      *  N. Вернуть статус 0
      *
@@ -148,14 +149,21 @@ class C2_list extends Job { // TODO: добавить "implements ShouldQueue" -
     $res = call_user_func(function() { try {
 
       // 1. Получить данные
-      $data = \M4\Models\MD1_routes::with([
-            'types',
-            'packages',
-            'domains',
-            'protocols',
-            'subdomains',
-            'uris'
-      ])->get();
+
+        // 1.1. Получить данные
+        $data = \M4\Models\MD1_routes::with([
+              'types',
+              'domains',
+              'protocols',
+              'subdomains',
+              'uris'
+        ])->get();
+
+        // 1.2. Подгрузить данные о пакетах из транс-пакетной связи
+        // - Если она присутствует
+        if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
+          $data->load('m1_packages');
+        }
 
       // 2. Подготовить данные для вывода
       $prepeared_data = call_user_func(function() USE ($data) {
@@ -170,7 +178,7 @@ class C2_list extends Job { // TODO: добавить "implements ShouldQueue" -
             $route['id'],
             $route['id_type'] == 1 ? 'auto' : 'manual',
             $route['ison'],
-            $route['packages'][0]['id_inner'],
+            array_key_exists('m1_packages', $route->toArray()) ? $route['m1_packages'][0]['id_inner'] : NULL,
             $route['protocols'][0]['name'],
             $route['subdomains'][0]['name'],
             $route['domains'][0]['name'],

@@ -166,11 +166,13 @@ class C5_del extends Job { // TODO: добавить "implements ShouldQueue" - 
         if(empty($route)) continue;
 
         // 2.2. Разорвать связи $route с пакетом/доменом/протоколом/поддоменом/uri
-        $route->packages()->detach();
         $route->domains()->detach();
         $route->protocols()->detach();
         $route->subdomains()->detach();
         $route->uris()->detach();
+        if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
+          $route->m1_packages()->detach();
+        }
 
         // 2.3. Удалить роут $route
         $route->delete();

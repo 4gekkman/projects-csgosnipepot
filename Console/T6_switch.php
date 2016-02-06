@@ -191,7 +191,7 @@ class T6_switch extends Command
         $routes = [];
 
         // 4.2. Опросить клиента
-        while($answer = $this->ask("Type id (must to be a number) of the route, or leave blank", 0)) {
+        while($answer = $this->anticipate("[NOT REQUIRED] Type id (must to be a number) of the route, or leave blank", [], 0)) {
           array_push($routes, $answer);
         }
 

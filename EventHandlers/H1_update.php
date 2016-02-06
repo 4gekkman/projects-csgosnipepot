@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Gets info about D,L,W-pack for M4 from M1, and calls update command
+ *    - Gets a signal that the app has been updated, and invoke C1_update
  *
  *  Какое событие обрабатывает
  *  --------------------------
@@ -140,7 +140,7 @@ class H1_update  // TODO: написать "implements ShouldQueue", и тогд
    *  X. Вернуть результат
    *
    */
-return;
+
     //--------------------//
     // A. Проверить ключи //
     //--------------------//

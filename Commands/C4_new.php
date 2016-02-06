@@ -154,65 +154,67 @@ class C4_new extends Job { // TODO: добавить "implements ShouldQueue" - 
     //--------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить входящие данные
+      // 1. Принять входящие данные
       $params = $this->data['params'];
+      $params['subdomain']  = $params['subdomain'] == 0 ? "" : $params['subdomain'];
+      $params['uri']        = $params['uri'] == 0 ? "/" : $params['uri'];
 
       // 2. Провести валидацию входящих данных
-      $validator = r4_validate(["num" => 14], [
+      $validator = r4_validate($params, [
 
         "packid"    => "required|regex:/^[DLW]{1}[0-9]+$/ui",
         "domain"    => "required|regex:/^[-0-9а-яёa-z.]+$/ui",
         "protocol"  => "required|in:http,https",
-        "subdomain" => "required|regex:/^[-0-9а-яёa-z.]+$/ui",
-        "uri"       => "required|regex:/^([\/]{1}[-0-9а-яёa-z\/_]*|\/)$/ui",
+        "subdomain" => "regex:/^([-0-9а-яёa-z.]+|\/)$/ui",
+        "uri"       => ["regex:#^([\/]{1}[-0-9а-яёa-z\/_]*|\/)$#ui"],
 
       ]); if($validator['status'] == -1) {
 
-        write2log($validator['data'], ['validation']);
+        throw new \Exception($validator['data']);
 
       }
 
       // 3. Получить пакет с $params['packid'], а если его нет, завершить
-      $pack = \M4\Models\MD8_packages::where('id_inner', $params['packid'])->first();
+
+        // 3.1. Получить
+        $pack = r1_query(function() USE ($params) {
+          return \M1\Models\MD2_packages::where('id_inner', $params['packid'])->first();
+        });
+
+        // 3.2. Если $pack отсутствует
+        if(empty($pack))
+          throw new \Exception('Не удалось получить пакет с ID '.$pack.' из M-пакета М1.');
 
       // 4. Создать $params['domain'] в md3_domains, если такового ещё нет
       $domain = \M4\Models\MD3_domains::where('name', $params['domain'])->first();
       if(empty($domain)) {
-        DB::beginTransaction();
         $domain = new \M4\Models\MD3_domains();
         $domain->name = $params['domain'];
         $domain->save();
-        DB::commit();
       }
 
       // 5. Создать $params['protocol'] в md4_protocols, если такового ещё нет
       $protocol = \M4\Models\MD4_protocols::where('name', $params['protocol'])->first();
       if(empty($protocol)) {
-        DB::beginTransaction();
         $protocol = new \M4\Models\MD4_protocols();
         $protocol->name = $params['protocol'];
         $protocol->save();
-        DB::commit();
       }
 
       // 6. Создать $params['subdomains'] в md5_subdomains, если такового ещё нет
       $subdomain = \M4\Models\MD5_subdomains::where('name', $params['subdomain'])->first();
       if(empty($subdomain)) {
-        DB::beginTransaction();
         $subdomain = new \M4\Models\MD5_subdomains();
-        $subdomain->name = $params['subdomain'] == 0 ? "" : $params['subdomain'];
+        $subdomain->name = $params['subdomain'];
         $subdomain->save();
-        DB::commit();
       }
 
       // 7. Создать $params['uri'] в md6_uris, если такового ещё нет
       $uri = \M4\Models\MD6_uris::where('name', $params['uri'])->first();
       if(empty($uri)) {
-        DB::beginTransaction();
         $uri = new \M4\Models\MD6_uris();
         $uri->name = $params['uri'];
         $uri->save();
-        DB::commit();
       }
 
       // 8. Получить тип роута "manual"
@@ -223,14 +225,15 @@ class C4_new extends Job { // TODO: добавить "implements ShouldQueue" - 
       // 9. Создать новый роут, и связать его ресурсами
 
         // 9.1. Создать
-        DB::beginTransaction();
         $route = new \M4\Models\MD1_routes();
         $route->id_type = $type->id;
         $route->save();
-        DB::commit();
 
         // 9.2. Связать с $pack
-        $route->packages()->attach($pack->id);
+        // - Если связь в налчиии
+        if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
+          $route->m1_packages()->attach($pack->id);
+        }
 
         // 9.3. Связать с $domain
         $route->domains()->attach($domain->id);

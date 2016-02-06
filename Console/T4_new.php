@@ -184,61 +184,33 @@ class T4_new extends Command
       // 2.2. Определить, к какому D,L,W-пакету будет относиться роут
 
         // 2.2.1. Получить коллекцию всех D,L,W-пакетов
-        $packages = \M4\Models\MD8_packages::whereHas('packtypes', function($query){
-          $query->where(function($query){
-            $query->where('name','=','D')->
-                    orWhere('name','=','L')->
-                    orWhere('name','=','W');
+
+          // 1] Получить
+          $packages = r1_query(function(){
+            return \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+              $query->whereIn('name', ["D", "L", "W"]);
+            })->pluck('aboutpack', 'id_inner');
           });
-        })->pluck('aboutpack', 'id_inner');
-        $packages = $packages->map(function($item, $key){
-          return json_decode($item,true)['EN']['description'];
-        });
 
-        // 2.2.2. Если коллекция $packages пуста, сообщить и завершить
-        if($packages->count() == 0) {
-          $this->error('There is no D,W,W-packages in the app, for which any route could be created.');
-          return;
-        }
+          // 2] Если $packages == NULL, сообщить и завершить
+          if($packages == NULL || empty($packages)) {
+            $this->error('There is no D,W,W-packages in the app, for which any route could be created.');
+            return;
+          }
 
-        // 2.2.3. Спросить
+          // 3] Распаковать описания пакетов из $packages
+          $packages = $packages->map(function($item, $key){
+            return json_decode($item,true)['EN']['description'];
+          });
+
+        // 2.2.2. Спросить
         $params['packid'] = $this->choice('Choose D,W,L-package, for which needs to create a new route', $packages->toArray());
 
-      // 2.3. Получить домен
-
-        // Получить
-        $params['domain'] = $this->ask('Enter domain (without http(s)://, and without subdomains). For example: site.ru');
-
-        // Провести валидацию
-        if(preg_match("/^[-0-9а-яёa-z.]+$/ui", $params['domain']) == 0) {
-          $this->error('The domain you have entered is not valid. It must match: ^[-0-9а-яёa-z.]+$');
-          return;
-        }
-
-      // 2.4. Получить протокол
-      $params['protocol'] = $this->choice('Choose protocol', ['1'=>'http', '2'=>'https'], '1');
-
-      // 2.5. Получить поддомен
-
-        // Получить
-        $params['subdomain'] = $this->ask('Enter subdomain, or leave blank. It must ends with a dot. For example: sub1. ', 0);
-
-        // Провести валидацию
-        if(preg_match("/^[-0-9а-яёa-z.]+$/ui", $params['subdomain']) == 0) {
-          $this->error('The subdomain you have entered is not valid. It must match: ^[-0-9а-яёa-z.]+$');
-          return;
-        }
-
-      // 2.6. Получить URI
-
-        // Получить
-        $params['uri'] = $this->ask('Enter URI, or leave bland (default uri is / ). It must have / as prefix and not have it as postfix. For example: /users/docs ', '/');
-
-        // Провести валидацию
-        if(preg_match("/^([\/]{1}[-0-9а-яёa-z\/_]*|\/)$/ui", $params['uri']) == 0) {
-          $this->error('The uri you have entered is not valid. It must match: ^([\/]{1}[-0-9а-яёa-z\/_]*|\/)$');
-          return;
-        }
+      // 2.3. Получить домен / протокол / поддомен / uri
+      $params['domain']     = $this->anticipate("[REQUIRED] Enter domain (without http(s)://, and without subdomains). For example: site.ru", []);
+      $params['protocol']   = $this->choice('Choose protocol', ['1'=>'http', '2'=>'https'], '1');
+      $params['subdomain']  = $this->anticipate("[NOT REQUIRED] Enter subdomain, or leave blank. It must ends with a dot. For example: sub1. ", [], 0);
+      $params['uri']        = $this->anticipate("[NOT REQUIRED] Enter URI, or leave bland (default uri is / ). It must have / as prefix and not have it as postfix. For example: /users/docs ", [], 0);
 
     // 3. Выполнить команду
 

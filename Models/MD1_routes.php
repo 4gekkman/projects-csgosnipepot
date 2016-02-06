@@ -72,7 +72,7 @@ class MD1_routes extends Model {
     public function subdomains() { return $this->belongsToMany('\M4\Models\MD5_subdomains', 'm4.md1002', 'id_route', 'id_subdomain'); }
     public function uris() { return $this->belongsToMany('\M4\Models\MD6_uris', 'm4.md1003', 'id_route', 'id_uri'); }
     public function types() { return $this->belongsTo('\M4\Models\MD2_types', 'id_type', 'id'); }
-    public function m1_packages() { return $this->belongsToMany('\M4\Models\MD2_packages', 'm4.md2000', 'id_route', 'id_package'); }
+    public function m1_packages() { return $this->belongsToMany('\M1\Models\MD2_packages', 'm4.md2000', 'id_route', 'id_package'); }
     // relationships stop
 
 

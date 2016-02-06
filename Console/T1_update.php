@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Del manual route
+ *    - Updates auto routes using fresh data about packages
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T5_del extends Command
+class T1_update extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T5_del extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm4:del';
+    protected $signature = 'm4:update';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Del manual route';
+    protected $description = 'Updates auto routes using fresh data about packages';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -155,65 +155,25 @@ class T5_del extends Command
     /**
      * Оглавление
      *
-     *  1. Написать функцию для получения списка всех роутов, и вывода его в терминал
-     *  2. Получить все роуты, и вывести их в терминал
-     *  3. Спросить, с какими роутами требуется провести операцию
-     *  4. Выполнить команду
+     *  1. Возбудить событие
+     *  2. Вывести сообщение об успехе
      *
      */
 
-    // 1. Написать функцию для получения списка всех роутов, и вывода его в терминал
-    $show = function(){
+    // 1. Выполнить команду
+    $result = runcommand('\M4\Commands\C1_update');
 
-      // 1] Получить список всех роутов
-      $result = runcommand('\M4\Commands\C2_list');
-      if($result['status'] != 0) {
-        $this->error('Error: '.$result['data']);
-        return;
-      }
 
-      // 2] Вывести его в терминал
-      $this->table(['ID', 'type', 'ison', 'package', 'protocol', 'subdomain', 'domain', 'uri'], json_decode($result['data']['prepeared'], true));
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']);
+      return;
+    }
 
-    };
 
-    // 2. Получить все роуты, и вывести их в терминал
-    $show();
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
 
-    // 3. Спросить, с какими роутами требуется провести операцию
-
-      // 3.1. Подготовить массив
-      $routes = [];
-
-      // 3.2. Опросить клиента
-      while($answer = $this->anticipate("[NOT REQUIRED] Type id (must to be a number) of the route, or leave blank", [], 0)) {
-        array_push($routes, $answer);
-      }
-
-      // 3.3. Проверить содержимое $routes, всё должно быть цифрами
-      foreach($routes as $route) {
-        if(preg_match("/^[0-9]+$/ui", $route) == 0) {
-          $this->error('One of the values that you have entered is not a number.');
-          return;
-        }
-      }
-
-    // 4. Выполнить команду
-
-      // 4.1. Выполнить команду
-      $result = runcommand('\M4\Commands\C5_del', ['routes' => $routes]);
-
-      // 4.2. В случае неудачи, вывести текст ошибки
-      if($result['status'] != 0) {
-        $this->error('Error: '.$result['data']);
-        return;
-      }
-
-      // 4.3. В случае успеха, вывести соотв.сообщение
-      $this->info("Success");
-
-      // 4.4. Получить все роуты, и вывести их в терминал
-      $show();
 
   }
 

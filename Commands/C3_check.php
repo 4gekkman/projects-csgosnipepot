@@ -148,14 +148,21 @@ class C3_check extends Job { // TODO: добавить "implements ShouldQueue" 
     $res = call_user_func(function() { try {
 
       // 1. Получить все роуты D,L,W-пакетов, со всеми связями
-      $routes = \M4\Models\MD1_routes::with([
-            'types',
-            'packages',
-            'domains',
-            'protocols',
-            'subdomains',
-            'uris'
-      ])->get();
+
+        // 1.1. Получить данные
+        $routes = \M4\Models\MD1_routes::with([
+              'types',
+              'domains',
+              'protocols',
+              'subdomains',
+              'uris'
+        ])->get();
+
+        // 1.2. Подгрузить данные о пакетах из транс-пакетной связи
+        // - Если она присутствует
+        if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
+          $routes->load('m1_packages');
+        }
 
       // 2. Подготовить массив для возможных коллизий
       $collisions = [];
@@ -198,9 +205,9 @@ class C3_check extends Job { // TODO: добавить "implements ShouldQueue" 
             // 2.2] Добавить коллизию
             array_push($collisions, [
               "route_id_1"      => $route['id'],
-              "route_pack_1"    => $route['packages'][0]['id_inner'],
+              "route_pack_1"    => array_key_exists('m1_packages', $route->toArray()) ? $route['packages'][0]['id_inner'] : NULL,
               "route_id_2"      => $r['id'],
-              "route_pack_2"    => $r['packages'][0]['id_inner'],
+              "route_pack_2"    => array_key_exists('m1_packages', $r->toArray()) ? $r['packages'][0]['id_inner'] : NULL,
               "domain"          => $route['domains'][0]['name'],
               "protocol"        => $route['protocols'][0]['name'],
               "subdomain"       => $route['subdomains'][0]['name'],
