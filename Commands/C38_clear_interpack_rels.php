@@ -210,7 +210,7 @@ class C38_clear_interpack_rels extends Job { // TODO: добавить "implemen
           $is_exists['pack'] = empty($pack) ? false : true;
           $is_exists['model'] = class_exists("\\".mb_strtoupper($meta['mpackid'])."\\Models\\".preg_replace('/^md/ui', 'MD', $meta['table']));
           $is_exists['table'] = r1_hasTable(mb_strtolower($meta['mpackid']), mb_strtolower($meta['table']));
-          $is_exists = $is_exists['base'] && $is_exists['pack'] && $is_exists['model'] && $is_exists['table'];
+          $is_exists = ($is_exists['base'] == false && $is_exists['pack'] == false && $is_exists['model'] == false && $is_exists['table'] == false) ? false : true;
 
           // 2.3.3. Если $is_exists == false, сделать truncate для таблицы $md2000_table
           if(!$is_exists) {
