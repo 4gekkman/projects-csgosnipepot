@@ -230,7 +230,7 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
         // 4.3. Если $modelid передан, определить, доступен ли он
         if(!empty($modelid)) {
           if(in_array($modelid, $modelids)) {
-            throw new \Exception("Can't create model with id $modelid for M-package $mpackid, because command with id $modelid already exists.");
+            throw new \Exception("Can't create model with id $modelid for M-package $mpackid, because model with id $modelid already exists.");
           }
         }
 

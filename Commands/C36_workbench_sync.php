@@ -220,13 +220,21 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       // 5. Удалить все существующие модели пакета $package
 
-        // 5.1] Получить пути ко всем дочерним файлам в Models M-пакета $this->data['data']['packid']
+        // 1] Выполнить парсинг приложения
+        // - Только если это не обновление пакета M1
+//        if($this->data['data']['packid'] != 'M1') {
+//          $result = runcommand('\M1\Commands\C1_parseapp');
+//          if($result['status'] != 0)
+//            throw new \Exception($result['data']);
+//        }
+
+        // 2] Получить пути ко всем дочерним файлам в Models M-пакета $this->data['data']['packid']
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path()]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $paths = $this->storage->files('vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
 
-        // 5.2] Отсеять те, у которых последняя секция не матчится с ^MD[0-9]+$
+        // 3] Отсеять те, у которых последняя секция не матчится с ^MD[0-9]+$
         $paths = array_filter($paths, function($value){
 
           // Извлечь имя модели из пути (включая .php на конце)
@@ -240,13 +248,13 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         });
 
-        // 5.3] Пробежаться по $paths
+        // 4] Пробежаться по $paths
         foreach($paths as $path) {
 
-          // 5.3.1] Извлечь имя модели из пути
+          // 4.1] Извлечь имя модели из пути
           $name = preg_replace("/^.*\\//ui", "", $path);
 
-          // 5.3.2] Удалить файл модели
+          // 4.2] Удалить файл модели
           config(['filesystems.default' => 'local']);
           config(['filesystems.disks.local.root' => base_path()]);
           $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
@@ -256,15 +264,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       // 6. Создать модели из списка $list_final для пакета $package
 
-        // 1] Выполнить парсинг приложения
-        // - Только если это не обновление пакета M1
-        if($this->data['data']['packid'] != 'M1') {
-          $result = runcommand('\M1\Commands\C1_parseapp');
-          if($result['status'] != 0)
-            throw new \Exception($result['data']);
-        }
-
-        // 2] Создать
+        // 1] Создать
         foreach($list_final as $model) {
 
           $result = runcommand('\M1\Commands\C12_new_m_m',[
@@ -280,7 +280,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         }
 
-        // 3] Выполнить парсинг приложения
+        // 2] Выполнить парсинг приложения
         Artisan::queue('m1:parseapp');
 
       // 7. Подготовить массив связей для добавления моделям пакета
@@ -644,7 +644,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[0]->TABLE_NAME,
-                "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$modelname2",
+                "related_model"   => "\\".mb_strtoupper($basename2)."\\Models\\$modelname2",
                 "foreign_key"     => $foreign_key,
                 "local_key"       => $rel[0]->COLUMN_NAME
               ];
