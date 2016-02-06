@@ -135,60 +135,66 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1. Обновить md7_packtypes
-     *  2. Обновить MD8_packages
-     *  3. Обновить MD4_protocols
-     *  4. Обновить MD2_types
-     *  5. Обновить MD1_routes/MD2_types + MD3_domains/MD5_subdomains/MD6_uris + md1000/md1001/md1002/md1003/md1004
+     *  1. Обновить данные в protocols
+     *  2. Обновить данные в types
+     *  3. Удалить все существующие автоматические роуты
      *
      *  X. Возбудить событие с ключём "m4:afterupdate"
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------//
-    // 1. Обновить md7_packtypes //
-    //---------------------------//
+    //----------------------------//
+    // Обновить types и protocols //
+    //----------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1.1. Получить
-      $packtypes = json_decode($this->data['data']['packtypes'], true);
+      // 1. Обновить данные в protocols
 
-      // 1.2. Если аргументы пусты, завершить с ошибкой
-      if(empty($packtypes))
-        throw new \exception('От M1 не получены данные о типах пакетов.');
-
-      // 1.3. Очистить md1004
-      DB::table('m4.md1004')->truncate();
-
-      // 1.4. Мягко удалить всё из md7_packtypes и md8_packages
-      \M4\Models\MD7_packtypes::query()->delete();
-      \M4\Models\MD8_packages::query()->delete();
-
-      // 1.5. Наполнить md7_packtypes
-      foreach($packtypes as $packtype) {
-
-        // 1.5.1. Попробовать найти $packtype среди мягко-удалённых
-        $packtype_sd = \M4\Models\MD7_packtypes::onlyTrashed()->where('name','=',$packtype['name'])->first();
-
-        // 1.5.2. Если $packtype_sd есть среди мягко-удалённых, восстановить
-        if(!empty($packtype_sd)){
-          $packtype_sd->restore();
-          $packtype_sd->description = $packtype['description'];
-          $packtype_sd->save();
-          continue;
+        // 1.1. Если нет http, добавить
+        $http = \M4\Models\MD4_protocols::where('name','http')->first();
+        if(empty($http)) {
+          $http = new \M4\Models\MD4_protocols();
+          $http->name = 'http';
+          $http->save();
         }
 
-        // 1.5.3. Если $packtype_sd нет среди мягко-удалённых, создать
-        else {
-          $packtype_new = new \M4\Models\MD7_packtypes();
-          $packtype_new->name = $packtype['name'];
-          $packtype_new->description = $packtype['description'];
-          $packtype_new->save();
-          continue;
+        // 1.2. Если нет https, добавить
+        $https = \M4\Models\MD4_protocols::where('name','https')->first();
+        if(empty($https)) {
+          $https = new \M4\Models\MD4_protocols();
+          $https->name = 'https';
+          $https->save();
         }
 
-      }
+      // 2. Обновить данные в types
+
+        // 2.1. Если нет auto, добавить
+        $auto = \M4\Models\MD2_types::where('name','auto')->first();
+        if(empty($auto)) {
+          $auto = new \M4\Models\MD2_types();
+          $auto->name = 'auto';
+          $auto->save();
+        }
+
+        // 2.2. Если нет manual, добавить
+        $manual = \M4\Models\MD2_types::where('name','manual')->first();
+        if(empty($manual)) {
+          $manual = new \M4\Models\MD2_types();
+          $manual->name = 'manual';
+          $manual->save();
+        }
+
+      // 3. Удалить все существующие автоматические роуты
+
+        // 3.1. Получить все автоматические роуты
+        $autoroutes = \M4\Models\MD1_routes::whereHas('types', function($query){
+          $query->where('name', 'auto');
+        })->get();
+
+        
+
+
 
 
     DB::commit(); } catch(\Exception $e) {
@@ -202,156 +208,6 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
         ];
     }}); if(!empty($res)) return $res;
 
-
-    //--------------------------//
-    // 2. Обновить MD8_packages //
-    //--------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
-
-      // 2.1. Получить
-      $packages = json_decode($this->data['data']['packages'], true);
-
-      // 2.2. Если аргументы пусты, завершить с ошибкой
-      if(empty($packages))
-        throw new \exception('От M1 не получены данные о пакетах.');
-
-      // 2.3. Получить все типы пакетов
-      $packtypes = \M4\Models\MD7_packtypes::all();
-
-      // 2.4. Наполнить md8_packages
-      foreach($packages as $package) {
-
-        // 2.4.1. Попробовать найти $package среди мягко-удалённых
-        $package_sd = \M4\Models\MD8_packages::onlyTrashed()->where('id_inner','=',$package['id_inner'])->first();
-
-        // 2.4.2. Если $package_sd есть среди мягко-удалённых, восстановить
-        if(!empty($package_sd)){
-          $package_sd->restore();
-          $package_sd->id_packtype = $packtypes->where('name',$package['packtype']['name'])->first()->id;
-          $package_sd->aboutpack = $package['aboutpack'];
-          $package_sd->lastversion = $package['lastversion'];
-          $package_sd->save();
-          continue;
-        }
-
-        // 2.4.3. Если $package_sd нет среди мягко-удалённых, создать
-        else {
-          $package_new = new \M4\Models\MD8_packages();
-          $package_new->id_packtype = $packtypes->where('name',$package['packtype']['name'])->first()->id;
-          $package_new->aboutpack = $package['aboutpack'];
-          $package_new->lastversion = $package['lastversion'];
-          $package_new->id_inner = $package['id_inner'];
-          $package_new->save();
-          continue;
-        }
-
-      }
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_update from M-package M4 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M4', 'C1_update']);
-        return [
-          "status"  => -2,
-          "data"    => $errortext
-        ];
-    }}); if(!empty($res)) return $res;
-
-
-    //---------------------------//
-    // 3. Обновить MD4_protocols //
-    //---------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
-
-      // 3.1. Очистить md1001
-      DB::table('m4.md1001')->truncate();
-
-      // 3.2. Удалить всё из md4_protocols
-      \M4\Models\MD4_protocols::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m4.md4_protocols AUTO_INCREMENT = 1;'));
-
-      // 3.2. Наполнить md4_protocols
-
-        // http
-        $http = new \M4\Models\MD4_protocols();
-        $http->name = 'http';
-        $http->save();
-
-        // https
-        $https = new \M4\Models\MD4_protocols();
-        $https->name = 'https';
-        $https->save();
-
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_update from M-package M4 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M4', 'C1_update']);
-        return [
-          "status"  => -2,
-          "data"    => $errortext
-        ];
-    }}); if(!empty($res)) return $res;
-
-
-    //-----------------------//
-    // 4. Обновить MD2_types //
-    //-----------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
-
-      // 4.1. Очистить md1000/md1001/md1002/md1003/md1004
-      DB::table('m4.md1000')->truncate();
-      DB::table('m4.md1001')->truncate();
-      DB::table('m4.md1002')->truncate();
-      DB::table('m4.md1003')->truncate();
-      DB::table('m4.md1004')->truncate();
-
-      // 4.2. Удалить всё из md3_domains/md5_subdomains/md6_uris
-
-        // Из md3_domains
-        \M4\Models\MD3_domains::query()->delete();
-        DB::select ( DB::raw('ALTER TABLE m4.md3_domains AUTO_INCREMENT = 1;'));
-
-        // Из md5_subdomains
-        \M4\Models\MD5_subdomains::query()->delete();
-        DB::select ( DB::raw('ALTER TABLE m4.md5_subdomains AUTO_INCREMENT = 1;'));
-
-        // Из md6_uris
-        \M4\Models\MD6_uris::query()->delete();
-        DB::select ( DB::raw('ALTER TABLE m4.md6_uris AUTO_INCREMENT = 1;'));
-
-      // 4.3. Удалить всё из md1_routes
-      \M4\Models\MD1_routes::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m4.md1_routes AUTO_INCREMENT = 1;'));
-
-      // 4.4. Удалить всё из md2_types
-      \M4\Models\MD2_types::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m4.md2_types AUTO_INCREMENT = 1;'));
-
-      // 4.5. Наполнить md2_types
-
-        // auto
-        $http = new \M4\Models\MD2_types();
-        $http->name = 'auto';
-        $http->save();
-
-        // manual
-        $https = new \M4\Models\MD2_types();
-        $https->name = 'manual';
-        $https->save();
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_update from M-package M4 have ended with error: '.$e->getMessage();
-        DB::rollback();
-        Log::info($errortext);
-        write2log($errortext, ['M4', 'C1_update']);
-        return [
-          "status"  => -2,
-          "data"    => $errortext
-        ];
-    }}); if(!empty($res)) return $res;
 
 
     //-------------------------------------------------------------------------------------------------------------//
