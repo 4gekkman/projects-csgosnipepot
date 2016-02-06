@@ -124,7 +124,8 @@
           '\M1\Console\T11_mdlw_cfgs_update',
           '\M1\Console\T12_m_schedules_update',
           '\M1\Console\T13_workbench_sync',
-          '\M1\Console\T14_workbench_sync_all'
+          '\M1\Console\T14_workbench_sync_all',
+          '\M1\Console\T15_clear_interpack_rels'
         ];
 
         // Регистрация команд в методе register
