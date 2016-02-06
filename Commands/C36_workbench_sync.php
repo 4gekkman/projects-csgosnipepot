@@ -398,7 +398,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               // 5.2.3] Добавить связь
               $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
-                "pivot"           => $rel[0]->TABLE_NAME,
+                "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[0]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel[1]->COLUMN_NAME,
                 "local_key"       => $rel[0]->COLUMN_NAME
@@ -417,7 +417,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               // 5.3.3] Добавить связь
               $result[$this->data['data']['packid']][$rel[1]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
-                "pivot"           => $rel[1]->TABLE_NAME,
+                "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[1]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel[0]->COLUMN_NAME,
                 "local_key"       => $rel[1]->COLUMN_NAME
@@ -643,7 +643,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               // 8.4.3] Добавить связь
               $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
-                "pivot"           => $rel[0]->TABLE_NAME,
+                "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[0]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$modelname2",
                 "foreign_key"     => $foreign_key,
                 "local_key"       => $rel[0]->COLUMN_NAME
@@ -837,10 +837,10 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                   });
 
                   // 3.4.3] Добавить связь
-                  $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
+                  $result[$this->data['data']['packid']][$tablename1][$relname] = [
                     "type"            => "belongsToMany",
-                    "pivot"           => $rel[0]->TABLE_NAME,
-                    "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$modelname2",
+                    "pivot"           => mb_strtolower($mpack).".".$rel[0]->TABLE_NAME,
+                    "related_model"   => "\\".mb_strtoupper($mpack)."\\Models\\$modelname2",
                     "foreign_key"     => $rel[0]->COLUMN_NAME,
                     "local_key"       => $local_key
                   ];
@@ -857,95 +857,93 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       });
 
-      write2log($result, []);
+      // 8. Добавить в каждую модель её связи
+      foreach($relationships2add[$this->data['data']['packid']] as $model => $rels) {
 
-//      // 8. Добавить в каждую модель её связи
-//      foreach($relationships2add[$this->data['data']['packid']] as $model => $rels) {
-//
-//        // 8.1. Если $model содержит пустой массив, перейти к след.итерации
-//        if(count($rels) == 0) continue;
-//
-//        // 8.2. Проверить существование файла-модели $model
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//        if(!$this->storage->exists($model.'.php'))
-//          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
-//
-//        // 8.3. Получить содержимое файла-модели $model
-//        $file = $this->storage->get($model.'.php');
-//
-//        // 8.4. Составить строку со связями для добавления в $file
-//        $rels2add = call_user_func(function() USE ($rels) {
-//
-//          // 1] Подготовить строку для результата
-//          $result = "// relationships start" . PHP_EOL;
-//
-//          // 2] Добавить связи в $result
-//          foreach($rels as $name => $sets) {
-//
-//            // 2.1] Если тип связи belongsToMany
-//            if($sets['type'] == 'belongsToMany') {
-//
-//              // 2.1.1] Добавить пробелы
-//              $result = $result . '    ';
-//
-//              // 2.1.2] Добавить связь
-//              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.mb_strtolower($this->data['data']['packid']).'.'.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
-//
-//              // 2.1.3] Добавить перенос строки
-//              $result = $result . PHP_EOL;
-//
-//            }
-//
-//            // 2.2] Если тип связи belongsTo
-//            if($sets['type'] == 'belongsTo') {
-//
-//              // 2.1.1] Добавить пробелы
-//              $result = $result . '    ';
-//
-//              // 2.1.2] Добавить связь
-//              $result = $result . 'public function '.$name.'() { return $this->belongsTo(\''.$sets['related_model'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
-//
-//              // 2.1.3] Добавить перенос строки
-//              $result = $result . PHP_EOL;
-//
-//            }
-//
-//            // 2.3] Если тип связи hasMany
-//            if($sets['type'] == 'hasMany') {
-//
-//              // 2.1.1] Добавить пробелы
-//              $result = $result . '    ';
-//
-//              // 2.1.2] Добавить связь
-//              $result = $result . 'public function '.$name.'() { return $this->hasMany(\''.$sets['related_model'].'\', \''.$sets['foreign_key'].'\', \''.$sets['local_key'].'\'); }';
-//
-//              // 2.1.3] Добавить перенос строки
-//              $result = $result . PHP_EOL;
-//
-//            }
-//
-//          }
-//
-//          // 3] Финальные штрики для $result
-//          $result = $result . "    // relationships stop";
-//
-//          // n] Вернуть результат
-//          return $result;
-//
-//        });
-//
-//        // 8.5] Вставить $result в $file
-//        $file = preg_replace("#// *relationships *start.*// *relationships *stop#smuiU", $rels2add, $file);
-//
-//        // 8.6] Заменить $file
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//        $this->storage->put($model.'.php', $file);
-//
-//      }
+        // 8.1. Если $model содержит пустой массив, перейти к след.итерации
+        if(count($rels) == 0) continue;
+
+        // 8.2. Проверить существование файла-модели $model
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists($model.'.php'))
+          throw new \Exception('Файл модели '.$model.'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
+
+        // 8.3. Получить содержимое файла-модели $model
+        $file = $this->storage->get($model.'.php');
+
+        // 8.4. Составить строку со связями для добавления в $file
+        $rels2add = call_user_func(function() USE ($rels) {
+
+          // 1] Подготовить строку для результата
+          $result = "// relationships start" . PHP_EOL;
+
+          // 2] Добавить связи в $result
+          foreach($rels as $name => $sets) {
+
+            // 2.1] Если тип связи belongsToMany
+            if($sets['type'] == 'belongsToMany') {
+
+              // 2.1.1] Добавить пробелы
+              $result = $result . '    ';
+
+              // 2.1.2] Добавить связь
+              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+
+              // 2.1.3] Добавить перенос строки
+              $result = $result . PHP_EOL;
+
+            }
+
+            // 2.2] Если тип связи belongsTo
+            if($sets['type'] == 'belongsTo') {
+
+              // 2.1.1] Добавить пробелы
+              $result = $result . '    ';
+
+              // 2.1.2] Добавить связь
+              $result = $result . 'public function '.$name.'() { return $this->belongsTo(\''.$sets['related_model'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+
+              // 2.1.3] Добавить перенос строки
+              $result = $result . PHP_EOL;
+
+            }
+
+            // 2.3] Если тип связи hasMany
+            if($sets['type'] == 'hasMany') {
+
+              // 2.1.1] Добавить пробелы
+              $result = $result . '    ';
+
+              // 2.1.2] Добавить связь
+              $result = $result . 'public function '.$name.'() { return $this->hasMany(\''.$sets['related_model'].'\', \''.$sets['foreign_key'].'\', \''.$sets['local_key'].'\'); }';
+
+              // 2.1.3] Добавить перенос строки
+              $result = $result . PHP_EOL;
+
+            }
+
+          }
+
+          // 3] Финальные штрики для $result
+          $result = $result . "    // relationships stop";
+
+          // n] Вернуть результат
+          return $result;
+
+        });
+
+        // 8.5] Вставить $result в $file
+        $file = preg_replace("#// *relationships *start.*// *relationships *stop#smuiU", $rels2add, $file);
+
+        // 8.6] Заменить $file
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put($model.'.php', $file);
+
+      }
 
 
     DB::commit(); } catch(\Exception $e) {

@@ -75,6 +75,7 @@ class MD2_packages extends Model {
     public function console() { return $this->belongsToMany('\M1\Models\MD6_console', 'm1.md1004', 'id_package', 'id_console'); }
     public function handlers() { return $this->belongsToMany('\M1\Models\MD7_handlers', 'm1.md1005', 'id_package', 'id_handler'); }
     public function packtypes() { return $this->belongsTo('\M1\Models\MD1_packtypes', 'id_packtype', 'id'); }
+    public function m4_routes() { return $this->belongsToMany('\M4\Models\MD1_routes', 'm4.md2000', 'id_package', 'id_route'); }
     // relationships stop
 
 
