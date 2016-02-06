@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Check presence For each foreign relationship, for each m-package, checks presence of related package/models presence in system. If not, clears pivot of foreign relation.
+ *    - Check presence for each foreign relationship, for each m-package, checks presence of related package/models presence in system. If not, clears pivot of foreign relation.
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -135,8 +135,8 @@ class C38_clear_interpack_rels extends Job { // TODO: добавить "implemen
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить список ID всех доступных M-пакетов
+     *  2. Пробежаться по $mpackages
      *
      *  N. Вернуть статус 0
      *
@@ -147,13 +147,81 @@ class C38_clear_interpack_rels extends Job { // TODO: добавить "implemen
     //------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить список всех доступных M-пакетов
+      // 1. Получить список ID всех доступных M-пакетов
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name', 'M');
-      })->get();
+      })->pluck('id_inner');
 
-      write2log($mpackages, []);
+      // 2. Пробежаться по $mpackages
+      foreach($mpackages as $package) {
 
+        // 2.1. Проверить существование базы данных пакета $package
+        // - Если не существует, перейти к следующей итерации.
+        if(count(DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".mb_strtolower($package)."'")) == 0)
+          continue;
+
+        // 2.2. Получить список всех md200* таблиц
+        $md2000_tables = DB::select('SHOW tables FROM '.mb_strtolower($package));
+        $md2000_tables = array_map(function($item) USE ($package) {
+          $item = (array)$item;
+          return $item['Tables_in_'.mb_strtolower($package)];
+        }, $md2000_tables);
+        $md2000_tables = array_values(array_filter($md2000_tables, function($item){
+          return preg_match("/^md2[0-9]{3}/ui",$item) != 0;
+        }));
+
+        // 2.3. Пробежатсья по всем $md2000_tables
+        foreach($md2000_tables as $md2000_table) {
+
+          // 2.3.1. Извлечь мета-информацию из DESCRIPTION таблицы TABLE_NAME
+
+            // 1] Извлечь мета-информацию
+            $meta = DB::select("SELECT table_comment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='".mb_strtolower($package)."' AND table_name='".$md2000_table."'");
+
+            // 2] Если извлечь мета-информацию не удалось
+            // - Перейти к следующей итерации
+            if(empty($meta) || (array_key_exists(0, $meta) && empty($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && !is_object($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && is_object($meta[0]) && !property_exists($meta[0], 'table_comment') ))
+              continue;
+
+            // 3] Если $meta[0]->table_comment не json-строка, перейти к следующей итерации, сообщив в лог
+            if(!r1_isJSON($meta[0]->table_comment))
+              continue;
+
+            // 4] Извлечь данные из $meta в виде массива
+            $meta = json_decode($meta[0]->table_comment, true);
+
+            // 5] Провести валидацию содержимого $meta
+            // - Если не пройдёт валидацию, перейти к следующей итерации
+            $validator = r4_validate($meta, [
+
+              "mpackid"         => ["required", "regex:/^M[1-9]{1}[0-9]*$/ui"],
+              "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"]
+
+            ]); if($validator['status'] == -1) {
+
+              continue;
+
+            }
+
+          // 2.3.2. Проверить наличие базы/пакета $meta['mpackid'] и таблицы/модели $meta['table']
+          $is_exists = [];
+          $is_exists['base'] = r1_is_schema_exists(mb_strtolower($meta['mpackid']));
+          $pack = \M1\Models\MD2_packages::where('id_inner', mb_strtoupper($meta['mpackid']))->first();
+          $is_exists['pack'] = empty($pack) ? false : true;
+          $is_exists['model'] = class_exists("\\".mb_strtoupper($meta['mpackid'])."\\Models\\".preg_replace('/^md/ui', 'MD', $meta['table']));
+          $is_exists['table'] = r1_hasTable(mb_strtolower($meta['mpackid']), mb_strtolower($meta['table']));
+          $is_exists = $is_exists['base'] && $is_exists['pack'] && $is_exists['model'] && $is_exists['table'];
+
+          // 2.3.3. Если $is_exists == false, сделать truncate для таблицы $md2000_table
+          if(!$is_exists) {
+
+            DB::table(mb_strtolower($package).'.'.mb_strtolower($md2000_table))->truncate();
+
+          }
+
+        }
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C38_clear_interpack_rels from M-package M1 have ended with error: '.$e->getMessage();

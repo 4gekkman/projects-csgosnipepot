@@ -157,6 +157,7 @@ class T6_afterupdate extends Command
     Artisan::queue('m1:minify');
     Artisan::queue('m1:m_schedules_update');
     Artisan::queue('m1:workbench_sync_all');
+    Artisan::queue('m1:clear_interpack_rels');
 
     $this->info("afterupdate success");
 

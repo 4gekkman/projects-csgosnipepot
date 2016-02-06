@@ -166,14 +166,14 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         throw new \Exception('База данных пакета '.$this->data['data']['packid'].' не найдена.');
 
       // 3. Получить список имён всех имеющихся в БД пакета $package таблиц
-      // - Отфильтровать таблицы "^md100", и начинающиеся не с "^md"
+      // - Отфильтровать таблицы "^md1[0-9]{3}", и начинающиеся не с "^md"
       $list = DB::select('SHOW tables FROM '.mb_strtolower($this->data['data']['packid']));
       $list = array_map(function($item) {
         $item = (array)$item;
         return $item['Tables_in_'.mb_strtolower($this->data['data']['packid'])];
       }, $list);
       $list = array_values(array_filter($list, function($item){
-        return preg_match("/^md/ui",$item) != 0 && preg_match("/^md100/ui",$item) == 0 && preg_match("/^md[0-9]+_/ui",$item) != 0;
+        return preg_match("/^md/ui",$item) != 0 && preg_match("/^md1[0-9]{3}/ui",$item) == 0 && preg_match("/^md[0-9]+_/ui",$item) != 0;
       }));
 
       // 4. Для каждой таблицы узнать следующее:
@@ -327,7 +327,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           }
 
         // 4] Найти в $all_rels пары с одинаковыми TABLE_NAME
-        // - Формат которых соответствует "^md100[0-9]{1}"
+        // - Формат которых соответствует "^md1[0-9]{3}"
         // - И получить массив следующего вида:
         /**
          *  [
@@ -348,7 +348,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
           // 2] Найти
           foreach($all_rels as $rel) {
-            if(preg_match("/^md100[0-9]{1}/ui", $rel->TABLE_NAME) != 0) {
+            if(preg_match("/^md1[0-9]{3}/ui", $rel->TABLE_NAME) != 0) {
 
               // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
               if(!array_key_exists($rel->TABLE_NAME, $result))
@@ -484,7 +484,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           }
         });
 
-        // 7] Найти в $all_rels связи с TABLE_NAME вида "^md200[0-9]{1}"
+        // 7] Найти в $all_rels связи с TABLE_NAME вида "^md2[0-9]{3}"
         // - И получить массив следующего вида:
         /**
          *  [
@@ -502,7 +502,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
           // 2] Найти
           foreach($all_rels as $rel) {
-            if(preg_match("/^md200[0-9]{1}/ui", $rel->TABLE_NAME) != 0) {
+            if(preg_match("/^md2[0-9]{3}/ui", $rel->TABLE_NAME) != 0) {
 
               // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
               if(!array_key_exists($rel->TABLE_NAME, $result))
@@ -546,10 +546,10 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                 continue;
               }
 
-              // 8.2.3] Извлечь данные из $meta в виде массива
+              // 8.2.4] Извлечь данные из $meta в виде массива
               $meta = json_decode($meta[0]->table_comment, true);
 
-              // 8.2.4] Провести валидацию содержимого $meta
+              // 8.2.5] Провести валидацию содержимого $meta
               $validator = r4_validate($meta, [
 
                 "mpackid"         => ["required", "regex:/^M[1-9]{1}[0-9]*$/ui"],
@@ -593,8 +593,8 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               // 8.3.2] Проверяем наличие моделей/таблиц
 
                 // Получить имена моделей, и проверить их наличие
-                $modelname1 = preg_replace('/^md/u', 'MD', $rel[0]->REFERENCED_TABLE_NAME);
-                $modelname2 = $meta['table'];
+                $modelname1 = preg_replace('/^md/ui', 'MD', $rel[0]->REFERENCED_TABLE_NAME);
+                $modelname2 = preg_replace('/^md/ui', 'MD', $meta['table']);
                 if(!class_exists("\\".mb_strtoupper($basename1)."\\Models\\".$modelname1)) {
                   write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что модель '."\\".mb_strtoupper($basename1)."\\Models\\".$modelname1.' не существует, в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
                   continue;
@@ -607,11 +607,11 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                 // Получить имена таблиц, и проверить их наличие
                 $tablename1 = preg_replace('/^MD/u', 'md', $modelname1);
                 $tablename2 = preg_replace('/^MD/u', 'md', $modelname2);
-                if(!r1_hasTable(mb_strtolower($basename1), $tablename1)) {
+                if(!r1_hasTable(mb_strtolower($basename1), mb_strtolower($tablename1))) {
                   write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что таблица '.mb_strtolower($tablename1).' отсутствует в базе данных '.$basename1.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
                   continue;
                 }
-                if(!r1_hasTable(mb_strtolower($basename2), $tablename2)) {
+                if(!r1_hasTable(mb_strtolower($basename2), mb_strtolower($tablename2))) {
                   write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).' выяснилось, что таблица '.mb_strtolower($tablename2).' отсутствует в базе данных '.$basename2.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
                   continue;
                 }
@@ -677,7 +677,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
             // 1] Извлечь из MySQL инфу обо всех связях в БД пакета $package
             $all_rels = DB::select("SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME is not null AND CONSTRAINT_SCHEMA='".mb_strtolower($mpack)."'");
 
-            // 2] Найти в $all_rels связи с TABLE_NAME вида "^md200[0-9]{1}"
+            // 2] Найти в $all_rels связи с TABLE_NAME вида "^md2[0-9]{3}"
             // - И получить массив следующего вида:
             /**
              *  [
@@ -695,7 +695,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
               // 2] Найти
               foreach($all_rels as $rel) {
-                if(preg_match("/^md200[0-9]{1}/ui", $rel->TABLE_NAME) != 0) {
+                if(preg_match("/^md2[0-9]{3}/ui", $rel->TABLE_NAME) != 0) {
 
                   // 2.1] Если ключа TABLE_NAME ещё нет в $result, добавить
                   if(!array_key_exists($rel->TABLE_NAME, $result))
@@ -803,11 +803,11 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                     // Получить имена таблиц, и проверить их наличие
                     $tablename1 = preg_replace('/^MD/u', 'md', $modelname1);
                     $tablename2 = preg_replace('/^MD/u', 'md', $modelname2);
-                    if(!r1_hasTable(mb_strtolower($basename1), $tablename1)) {
+                    if(!r1_hasTable(mb_strtolower($basename1), mb_strtolower($tablename1))) {
                       write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что таблица '.mb_strtolower($tablename1).' отсутствует в базе данных '.$basename1.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
                       continue;
                     }
-                    if(!r1_hasTable(mb_strtolower($basename2), $tablename2)) {
+                    if(!r1_hasTable(mb_strtolower($basename2), mb_strtolower($tablename2))) {
                       write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что таблица '.mb_strtolower($tablename2).' отсутствует в базе данных '.$basename2.', в связи с чем связь не была создана.', ['m1', 'C36_workbench_sync']);
                       continue;
                     }
