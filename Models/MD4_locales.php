@@ -68,7 +68,7 @@ class MD4_locales extends Model {
   //------------------//
 
     // relationships start
-    public function packages() { return $this->belongsToMany('\M1\Models\MD2_packages', 'm1.md1002', 'id_locale', 'id_package'); }
+
     // relationships stop
 
 

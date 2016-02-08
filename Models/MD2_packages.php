@@ -68,14 +68,7 @@ class MD2_packages extends Model {
   //------------------//
 
     // relationships start
-    public function packages() { return $this->belongsToMany('\M1\Models\MD2_packages', 'm1.md1000', 'id_package2', 'id_package1'); }
-    public function models() { return $this->belongsToMany('\M1\Models\MD3_models', 'm1.md1001', 'id_package', 'id_model'); }
-    public function locales() { return $this->belongsToMany('\M1\Models\MD4_locales', 'm1.md1002', 'id_package', 'id_locale'); }
-    public function commands() { return $this->belongsToMany('\M1\Models\MD5_commands', 'm1.md1003', 'id_package', 'id_command'); }
-    public function console() { return $this->belongsToMany('\M1\Models\MD6_console', 'm1.md1004', 'id_package', 'id_console'); }
-    public function handlers() { return $this->belongsToMany('\M1\Models\MD7_handlers', 'm1.md1005', 'id_package', 'id_handler'); }
-    public function packtypes() { return $this->belongsTo('\M1\Models\MD1_packtypes', 'id_packtype', 'id'); }
-    public function m4_routes() { return $this->belongsToMany('\M4\Models\MD1_routes', 'm4.md2000', 'id_package', 'id_route'); }
+
     // relationships stop
 
 

@@ -68,7 +68,7 @@ class MD1_packtypes extends Model {
   //------------------//
 
     // relationships start
-    public function packages() { return $this->hasMany('\M1\Models\MD2_packages', 'id_packtype', 'id'); }
+
     // relationships stop
 
 

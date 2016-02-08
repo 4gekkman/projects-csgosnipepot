@@ -67,7 +67,7 @@ class MD7_handlers extends Model {
   //------------------//
 
     // relationships start
-    public function packages() { return $this->belongsToMany('\M1\Models\MD2_packages', 'm1.md1005', 'id_handler', 'id_package'); }
+
     // relationships stop
 
 

@@ -67,8 +67,7 @@ class MD3_models extends Model {
   //------------------//
 
     // relationships start
-    public function packages() { return $this->belongsToMany('\M1\Models\MD2_packages', 'm1.md1001', 'id_model', 'id_package'); }
-    public function relationships() { return $this->hasMany('\M1\Models\MD8_relationships', 'id_model', 'id'); }
+
     // relationships stop
 
 
