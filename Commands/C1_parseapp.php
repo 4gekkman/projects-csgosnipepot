@@ -159,7 +159,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1.1. Мягко удалить всё из md1_packtypes
-      \M1\Models\MD1_packtypes::query()->delete();
+
+        // 1] Проверить, существует ли класс \M1\Models\MD1_packtypes
+        if(!class_exists('\M1\Models\MD1_packtypes'))
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD1_packtypes" не существует.');
+
+        // 2] Мягко удалить
+        \M1\Models\MD1_packtypes::query()->delete();
 
       // 1.2. Подготовить массив типов пакетов для добавления
       $packtypes = [
@@ -197,7 +203,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
         Log::info('Parsing for md1_packtypes have ended with error: '.$e->getMessage());
-        write2log('Parsing for md1_packtypes have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md1_packtypes have ended with error: '.$e->getMessage()
@@ -211,7 +216,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 2.1. Мягко удалить всё из md4_locales
-      \M1\Models\MD4_locales::query()->delete();
+
+        // 1] Проверить, существует ли класс \M1\Models\MD1_packtypes
+        if(!class_exists('\M1\Models\MD4_locales'))
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD4_locales" не существует.');
+
+        // 2] Удалить
+        \M1\Models\MD4_locales::query()->delete();
 
       // 2.2. Получить массив имён всех каталогов вендора
 
@@ -288,7 +299,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
         Log::info('Parsing for md4_locales have ended with error: '.$e->getMessage());
-        write2log('Parsing for md4_locales have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md4_locales have ended with error: '.$e->getMessage()
@@ -304,8 +314,16 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       // 3.1. Мягко удалить всё из md2_packages
       // - А также обнулить md_1002 (какие локали поддерживает пакет)
       // - А также обнулить md_1006 (какая локаль установлена у пакета)
-      \M1\Models\MD2_packages::query()->delete();
-      DB::table('m1.md1002')->truncate();
+
+        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+        if(!class_exists('\M1\Models\MD2_packages')) {
+          DB::rollback();
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD2_packages" не существует.');
+        }
+
+        // 2] Удалить
+        \M1\Models\MD2_packages::query()->delete();
+        DB::table('m1.md1002')->delete();
 
       // 3.2. Получить массив имён всех каталогов вендора
 
@@ -458,10 +476,16 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           // 5] Наполнить md1002
           foreach($get_pack_locales($package) as $locale) {
 
-            // 4.1] Получить ID локали $locale
+            // 5.1] Получить ID локали $locale
             $locale_id = \M1\Models\MD4_locales::where('name','=',$locale)->first()->id;
 
-            // 4.2] Связать $package и $locale
+            // 5.2] Проверить, существует ли у \M1\Models\MD2_packages связь locales
+            if(!r1_rel_exists("m1","md2_packages","locales")) {
+              DB::rollback();
+              throw new \Exception('Необходимая для осуществления парсинга приложения связь "locales" класса "\M1\Models\MD2_packages" не существует.');
+            }
+
+            // 5.3] Связать $package и $locale
             $p->locales()->attach($locale_id);
 
           }
@@ -470,9 +494,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
         Log::info('Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage()
@@ -486,7 +508,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 4.1. Очистить таблицу связей пакетов md1000
-      DB::table('m1.md1000')->truncate();
+      DB::table('m1.md1000')->delete();
 
       // 4.2. Получить все пакеты приложения
       $packages = \M1\Models\MD2_packages::all();
@@ -523,8 +545,10 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       // 4.4. Проверить, нет ли пакетов, зависящих от самих себя
       foreach($dependencies as $key => $value) {
         foreach($value as $pack_id) {
-          if($key == $pack_id)
+          if($key == $pack_id) {
+            DB::rollback();
             throw new \Exception('Package '.$pack_id.' depends on himself, that is not good.');
+          }
         }
       }
 
@@ -545,8 +569,10 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         foreach($dependencies as $key => $value) {
           foreach($value as $pack_id) {
 
-            if(!in_array(mb_substr($pack_id,0,1,"UTF-8"), $allowed_dependencies[mb_substr($key,0,1,"UTF-8")]))
+            if(!in_array(mb_substr($pack_id,0,1,"UTF-8"), $allowed_dependencies[mb_substr($key,0,1,"UTF-8")])) {
+              DB::rollback();
               throw new \Exception('Package '.$key.' has forbidden dependencies.');
+            }
 
           }
         }
@@ -554,15 +580,17 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       // 4.6. Наполнить таблицу связей пакетов md1000
       foreach($packages as $package) {
         foreach($dependencies[$package['id_inner']] as $dependency) {
+          if(!r1_rel_exists("m1","md2_packages","packages")) {
+            DB::rollback();
+            throw new \Exception('Необходимая для осуществления парсинга приложения связь "packages" класса "\M1\Models\MD2_packages" не существует.');
+          }
           $package->packages()->attach(\M1\Models\MD2_packages::where('id_inner','=',$dependency)->first()->id);
         }
       }
 
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
         Log::info('Parsing for md1000 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md1000 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md1000 have ended with error: '.$e->getMessage()
@@ -576,11 +604,18 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 5.1. Очистить таблицу md1001 связей моделей с M-пакетами
-      DB::table('m1.md1001')->truncate();
+      DB::table('m1.md1001')->delete();
 
       // 5.2. Удалить всё из md3_models, сбросить автоинкремент
-      \M1\Models\MD3_models::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m1.md3_models AUTO_INCREMENT = 1;'));
+
+        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+        if(!class_exists('\M1\Models\MD3_models')) {
+          DB::rollback();
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD3_models" не существует.');
+        }
+
+        // 2] Удалить
+        \M1\Models\MD3_models::query()->delete();
 
       // 5.3. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
@@ -634,16 +669,19 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         }
 
-        // 5] Связать пакет $mpackage с моделями $mpackage_model_ids
+        // 5] Проверить, существует ли у \M1\Models\MD2_packages связь models
+        if(!r1_rel_exists("m1","md2_packages","models")) {
+          DB::rollback();
+          throw new \Exception('Необходимая для осуществления парсинга приложения связь "models" класса "\M1\Models\MD2_packages" не существует.');
+        }
+
+        // 6] Связать пакет $mpackage с моделями $mpackage_model_ids
         $mpackage->models()->attach($mpackage_model_ids);
 
       }
 
-
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
         Log::info('Parsing for md3_models and md1001 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md3_models and md1001 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md3_models and md1001 have ended with error: '.$e->getMessage()
@@ -657,9 +695,16 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 6.1. Очистить md1003, удалить всё из md5_commands, сбросить автоинкремент
-      DB::table('m1.md1003')->truncate();
-      \M1\Models\MD5_commands::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m1.md5_commands AUTO_INCREMENT = 1;'));
+
+        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+        if(!class_exists('\M1\Models\MD5_commands')) {
+          DB::rollback();
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD5_commands" не существует.');
+        }
+
+        // 2] Удалить
+        DB::table('m1.md1003')->delete();
+        \M1\Models\MD5_commands::query()->delete();
 
       // 6.2. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
@@ -726,7 +771,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           $new->description = $description;
           $new->save();
 
-          // 2.4] Связать пакет $mpackage с командой $command
+          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь commands
+          if(!r1_rel_exists("m1","md2_packages","commands")) {
+            DB::rollback();
+            throw new \Exception('Необходимая для осуществления парсинга приложения связь "commands" класса "\M1\Models\MD2_packages" не существует.');
+          }
+
+          // 2.5] Связать пакет $mpackage с командой $command
           $mpackage->commands()->attach($new->id);
 
         }
@@ -734,9 +785,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
         Log::info('Parsing for md5_commands and md1003 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md5_commands and md1003 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md5_commands and md1003 have ended with error: '.$e->getMessage()
@@ -750,9 +799,16 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 7.1. Очистить md1004, удалить всё из md6_console, сбросить автоинкремент
-      DB::table('m1.md1004')->truncate();
-      \M1\Models\MD6_console::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m1.md6_console AUTO_INCREMENT = 1;'));
+
+        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+        if(!class_exists('\M1\Models\MD6_console')) {
+          DB::rollback();
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD6_console" не существует.');
+        }
+
+        // 2] Удалить
+        DB::table('m1.md1004')->delete();
+        \M1\Models\MD6_console::query()->delete();
 
       // 7.2. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
@@ -819,7 +875,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           $new->description = $description;
           $new->save();
 
-          // 2.4] Связать пакет $mpackage с к.командой $command
+          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь console
+          if(!r1_rel_exists("m1","md2_packages","console")) {
+            DB::rollback();
+            throw new \Exception('Необходимая для осуществления парсинга приложения связь "console" класса "\M1\Models\MD2_packages" не существует.');
+          }
+
+          // 2.5] Связать пакет $mpackage с к.командой $command
           $mpackage->console()->attach($new->id);
 
         }
@@ -827,9 +889,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
         Log::info('Parsing for md6_console and md1004 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md6_console and md1004 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md6_console and md1004 have ended with error: '.$e->getMessage()
@@ -843,9 +903,16 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 8.1. Очистить md1005, удалить всё из md7_handlers, сбросить автоинкремент
-      DB::table('m1.md1005')->truncate();
-      \M1\Models\MD7_handlers::query()->delete();
-      DB::select ( DB::raw('ALTER TABLE m1.md7_handlers AUTO_INCREMENT = 1;'));
+
+        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+        if(!class_exists('\M1\Models\MD7_handlers')) {
+          DB::rollback();
+          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD7_handlers" не существует.');
+        }
+
+        // 2] Удалить
+        DB::table('m1.md1005')->delete();
+        \M1\Models\MD7_handlers::query()->delete();
 
       // 8.2. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
@@ -912,7 +979,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           $new->description = $description;
           $new->save();
 
-          // 2.4] Связать пакет $mpackage с обработчиком $handler
+          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь handlers
+          if(!r1_rel_exists("m1","md2_packages","handlers")) {
+            DB::rollback();
+            throw new \Exception('Необходимая для осуществления парсинга приложения связь "handlers" класса "\M1\Models\MD2_packages" не существует.');
+          }
+
+          // 2.5] Связать пакет $mpackage с обработчиком $handler
           $mpackage->handlers()->attach($new->id);
 
         }
@@ -920,9 +993,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
         Log::info('Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage());
-        write2log('Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage(), ['M1', 'parseapp']);
         return [
           "status"  => -2,
           "data"    => 'Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage()
@@ -930,68 +1001,24 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     }}); if(!empty($res)) return $res;
 
 
-    //------------------------------------------------//
-    // X. Возбудить событие с ключём "m1:afterupdate" //
-    //------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // 1] Подготовить массив данных для отправки с событием
-      $data = [];
-
-      // 2] Сформировать массив данных для отправки с событием
-
-        // 2.1] MD1_packtypes
-        $data['packtypes'] = json_encode(\M1\Models\MD1_packtypes::query()->get(), JSON_UNESCAPED_UNICODE);
-
-        // 2.2] MD2_packages
-        $data['packages'] = json_encode(\M1\Models\MD2_packages::with([
-          'packages',
-          'locales',
-          'packtypes',
-          'models',
-          'commands',
-          'console',
-          'handlers',
-        ])->get(), JSON_UNESCAPED_UNICODE);
-
-        // 2.3] MD3_models
-        $data['models'] = json_encode(\M1\Models\MD3_models::with([
-          'packages',
-        ])->get(),JSON_UNESCAPED_UNICODE);
-
-        // 2.4] MD4_locales
-        $data['locales'] = json_encode(\M1\Models\MD4_locales::query()->get(), JSON_UNESCAPED_UNICODE);
-
-        // 2.8] MD5_commands
-        $data['commands'] = json_encode(\M1\Models\MD5_commands::query()->get(), JSON_UNESCAPED_UNICODE);
-
-        // 2.9] MD6_console
-        $data['console'] = json_encode(\M1\Models\MD6_console::query()->get(), JSON_UNESCAPED_UNICODE);
-
-        // 2.10] MD7_handlers
-        $data['handlers'] = json_encode(\M1\Models\MD7_handlers::query()->get(), JSON_UNESCAPED_UNICODE);
-
-      // 3] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
-      Event::fire(new \R2\Event([
-        'keys'  =>  ['m1:afterupdate'],
-        'data'  =>  $data
-      ]));
-
-      // 4] Вернуть результат
-      return [
-        "status"  => 0,
-        "data"    => $data
-      ];
-
-    } catch(\Exception $e) {
-        Log::info('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage());
-        write2log('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage(), ['M1', 'parseapp']);
-        return [
-          "status"  => -2,
-          "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()
-        ];
-    }}); if(!empty($res)) return $res;
-
+//    //------------------------------------------------//
+//    // X. Возбудить событие с ключём "m1:afterupdate" //
+//    //------------------------------------------------//
+//    $res = call_user_func(function() { try {
+//
+//      // 1] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
+//      Event::fire(new \R2\Event([
+//        'keys'  =>  ['m1:afterupdate'],
+//        'data'  =>  ""
+//      ]));
+//
+//    } catch(\Exception $e) {
+//        Log::info('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage());
+//        return [
+//          "status"  => -2,
+//          "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()
+//        ];
+//    }}); if(!empty($res)) return $res;
 
 
     //---------------------//
