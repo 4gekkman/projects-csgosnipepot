@@ -67,7 +67,8 @@ class MD8_relationships extends Model {
   //------------------//
 
     // relationships start
-
+    public function models() { return $this->belongsTo('\M1\Models\MD3_models', 'id_model', 'id'); }
+    public function reltypes() { return $this->belongsTo('\M1\Models\MD9_reltypes', 'id_reltype', 'id'); }
     // relationships stop
 
 

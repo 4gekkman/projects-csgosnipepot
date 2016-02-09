@@ -162,7 +162,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
       $data = $event->data;
 
     } catch(\Exception $e) {
-      $errortext = 'Keys checking in event handler PARAMhandlerfullnamePARAM of M-package PARAMmpackidPARAM have ended with error: '.$e->getMessage();
+      $errortext = 'Keys checking in event handler PARAMhandlerfullnamePARAM of M-package PARAMmpackidPARAM have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
       Log::info($errortext);
       write2log($errortext, ['PARAMmpackidPARAM', 'PARAMhandlerfullnamePARAM']);
       return [
@@ -182,7 +182,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
 
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
-        $errortext = 'Invoking of event handler PARAMhandlerfullnamePARAM of M-package PARAMmpackidPARAM have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of event handler PARAMhandlerfullnamePARAM of M-package PARAMmpackidPARAM have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
         write2log($errortext, ['PARAMmpackidPARAM', 'PARAMhandlerfullnamePARAM']);
         return [

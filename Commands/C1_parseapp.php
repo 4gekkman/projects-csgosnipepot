@@ -1001,24 +1001,24 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     }}); if(!empty($res)) return $res;
 
 
-//    //------------------------------------------------//
-//    // X. Возбудить событие с ключём "m1:afterupdate" //
-//    //------------------------------------------------//
-//    $res = call_user_func(function() { try {
-//
-//      // 1] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
-//      Event::fire(new \R2\Event([
-//        'keys'  =>  ['m1:afterupdate'],
-//        'data'  =>  ""
-//      ]));
-//
-//    } catch(\Exception $e) {
-//        Log::info('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage());
-//        return [
-//          "status"  => -2,
-//          "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()
-//        ];
-//    }}); if(!empty($res)) return $res;
+    //------------------------------------------------//
+    // X. Возбудить событие с ключём "m1:afterupdate" //
+    //------------------------------------------------//
+    $res = call_user_func(function() { try {
+
+      // 1] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
+      Event::fire(new \R2\Event([
+        'keys'  =>  ['m1:afterupdate'],
+        'data'  =>  ""
+      ]));
+
+    } catch(\Exception $e) {
+        Log::info('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage());
+        return [
+          "status"  => -2,
+          "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()
+        ];
+    }}); if(!empty($res)) return $res;
 
 
     //---------------------//

@@ -19,7 +19,7 @@
  *        modelid       // ID для новой модели
  *        timestamps    // Вкл/Выкл поддержку created_at/updated_at
  *        softdeletes   // Вкл/Выкл поддержку deleted_at
- *        issync        // Специальный режим для команды C36_workbench_sync (при синхронизации для M1)
+ *        issync        // Специальный режим для команды C36_workbench_sync
  *      ]
  *    ]
  *
@@ -199,11 +199,8 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
             throw new \Exception('В режими синхронизации моделей для пакета M1, modelid является обязательным параметром.');
 
       // 3. Проверить существование M-пакета $mpackid
-      if(!$issync) {
-        $mpack = \M1\Models\MD2_packages::where('id_inner','=',$mpackid)->first();
-        if(empty($mpack))
-          throw new \Exception("Package $mpackid does not exist.");
-      }
+      if(!r1_is_schema_exists(mb_strtolower($this->data['mpackid'])))
+        throw new \Exception("Package $mpackid does not exist.");
 
       // 4. Определить $modelid
       if(!$issync) {

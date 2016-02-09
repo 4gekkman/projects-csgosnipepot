@@ -67,7 +67,8 @@ class MD5_commands extends Model {
   //------------------//
 
     // relationships start
-
+    public function packages() { return $this->belongsToMany('\M1\Models\MD2_packages', 'm1.md1003', 'id_command', 'id_package'); }
+    public function m5_privileges() { return $this->belongsToMany('\M5\Models\MD3_privileges', 'm5.md2001', 'id_command', 'id_privilege'); }
     // relationships stop
 
 

@@ -169,7 +169,12 @@ class C37_workbench_sync_all extends Job { // TODO: добавить "implements
 
       // 2. Для каждого из них выполнить команду m1:workbenck_sync
       foreach($mpacks as $mpack) {
-        Artisan::queue('m1:workbench_sync', ["packid" => $mpack]);
+        $result = runcommand('\M1\Commands\C36_workbench_sync', ['data'=>['packid'=>$mpack]]);
+        if($result['status'] != 0) {
+          Log::info('Error: '.$result['data']);
+          write2log('Error: '.$result['data']);
+          throw new \Exception($result['data']);
+        }
       }
 
 

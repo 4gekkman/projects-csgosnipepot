@@ -152,7 +152,7 @@ class PARAMcomfullnamePARAM extends Job { // TODO: добавить "implements 
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command PARAMcomfullnamePARAM from M-package PARAMmpackidPARAM have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command PARAMcomfullnamePARAM from M-package PARAMmpackidPARAM have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['PARAMmpackidPARAM', 'PARAMcomfullnamePARAM']);
