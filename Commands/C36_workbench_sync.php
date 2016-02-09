@@ -687,7 +687,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           // Пробежаться по $mpacks
           foreach($mpacks as $mpack) {
 
-            // 1] Извлечь из MySQL инфу обо всех связях в БД пакета $this->data['data']['packid']
+            // 1] Извлечь из MySQL инфу обо всех связях в БД пакета $mpack
             $all_rels = DB::select("SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME is not null AND CONSTRAINT_SCHEMA='".mb_strtolower($mpack)."'");
 
             // 2] Найти в $all_rels связи с TABLE_NAME вида "^md2[0-9]{3}"
@@ -881,7 +881,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
         config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$this->data['data']['packid'].'/Models')]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         if(!$this->storage->exists(preg_replace("/^md/ui","MD",$model).'.php')) {
-          write2log('Файл модели '.preg_replace("/^md/ui","MD",$model).'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
+          //write2log('Файл модели '.preg_replace("/^md/ui","MD",$model).'.php не существует в '.'vendor/4gekkman/'.$this->data['data']['packid'].'/Models');
           continue;
         }
 
