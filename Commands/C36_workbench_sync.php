@@ -566,7 +566,8 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               $validator = r4_validate($meta, [
 
                 "mpackid"         => ["required", "regex:/^M[1-9]{1}[0-9]*$/ui"],
-                "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"]
+                "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"],
+                "version"         => ["required"],
 
               ]); if($validator['status'] == -1) {
 
@@ -574,6 +575,36 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                 continue;
 
               }
+
+              // 8.2.6] Проверить соответствие версии пакета $this->data['data']['packid'] ограничению version
+
+                // 1] Извлечь файл composer.json пакета $meta['mpackid']
+                $composer = r1_fs('vendor/4gekkman/'.mb_strtoupper($meta['mpackid']))->exists('composer.json');
+                if(!$composer)
+                  throw new \Exception('У пакета '.$meta['mpackid'].' не найден файл composer.json.');
+
+                // 2] Получить содержимое файла composer.json пакета $meta['mpackid']
+                $composer = r1_fs('vendor/4gekkman/'.mb_strtoupper($meta['mpackid']))->get('composer.json');
+
+                // 3] Если содержимое $composer не JSON, завершить
+                if(!r1_isJSON($composer))
+                  throw new \Exception('У пакета '.$meta['mpackid'].' содержимое файла composer.json не является валидным JSON.');
+
+                // 4] Преобразовать $composer к массиву
+                $composer = json_decode($composer, true);
+
+                // 5] Проверить существование ключей extra, и extra -> version
+                if(!array_key_exists('extra', $composer) || !array_key_exists('version', $composer['extra']))
+                  throw new \Exception('У пакета '.$meta['mpackid'].' composer.json не содержит необходимых ключей extra или и extra -> version.');
+
+                // 6] Извлечь из $composer значение по ключу extra -> version
+                $version = $composer['extra']['version'];
+
+                // 7] Проверить, соответствует ли версия $version ограничению $meta['version']
+                if(!\Composer\Semver\Semver::satisfies($version, $meta['version'])) {
+                  write2log('Транспакетной связи пакета "'.$this->data['data']['packid'].'", определённой в таблице "'.$rel[0]->TABLE_NAME.'", требуется наличие в системе установленного пакета "'.$meta['mpackid'].'" версии, соответствующей ограничению "'.$meta['version'].'". Но имеется лишь оный версии "'.$version.'". В связи с чем, соответствующая связь не будет добавлена. Вам требуется обновить указанный пакет до необходимой версии.', ['m1','C36_workbench_sync']);
+                  continue;
+                }
 
             // 8.3] Проверить наличие пакетов/баз моделей/таблиц
 
@@ -729,48 +760,73 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
             call_user_func(function() USE (&$result, $foreign_rels, $mpack) {
               foreach($foreign_rels as $rel) {
 
-//                // 3.1] Проверить в $result существование ключей
-//                // - $rel[0]->REFERENCED_TABLE_NAME
-//                // - Если нет, создать
-//                if(!array_key_exists($rel[0]->REFERENCED_TABLE_NAME, $result[$mpack]))
-//                  $result[$mpack][$rel[0]->REFERENCED_TABLE_NAME] = [];
+                // 3.1] Извлечь мета-информацию из DESCRIPTION таблицы TABLE_NAME
 
-                // 3.2] Извлечь мета-информацию из DESCRIPTION таблицы TABLE_NAME
-
-                  // 3.2.1] Извлечь мета-информацию
+                  // 3.1.1] Извлечь мета-информацию
                   $meta = DB::select("SELECT table_comment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='".mb_strtolower($mpack)."' AND table_name='".$rel[0]->TABLE_NAME."'");
 
-                  // 3.2.2] Если извлечь мета-информацию не удалось
+                  // 3.1.2] Если извлечь мета-информацию не удалось
                   if(empty($meta) || (array_key_exists(0, $meta) && empty($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && !is_object($meta[0])) || (array_key_exists(0, $meta) && !empty($meta[0]) && is_object($meta[0]) && !property_exists($meta[0], 'table_comment') )) {
-                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', не удалось извлечь мета-информацию из description таблицы связи, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                    write2log('Во время обновления транс-пакетной связи "'.$rel[0]->TABLE_NAME.'" пакета "'.mb_strtolower($mpack).'" не удалось извлечь мета-информацию из description таблицы связи, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
                     continue;
                   }
 
-                  // 3.2.3] Если $meta[0]->table_comment не json-строка, перейти к следующей итерации, сообщив в лог
+                  // 3.1.3] Если $meta[0]->table_comment не json-строка, перейти к следующей итерации, сообщив в лог
                   if(!r1_isJSON($meta[0]->table_comment)) {
-                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что мета-информация в description таблицы связи не является валидной JSON-строкой, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                    write2log('Во время обновления транс-пакетной связи "'.$rel[0]->TABLE_NAME.'" пакета "'.mb_strtolower($mpack).'", выяснилось, что мета-информация в description таблицы связи не является валидной JSON-строкой, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
                     continue;
                   }
 
-                  // 3.2.3] Извлечь данные из $meta в виде массива
+                  // 3.1.3] Извлечь данные из $meta в виде массива
                   $meta = json_decode($meta[0]->table_comment, true);
 
-                  // 3.2.4] Провести валидацию содержимого $meta
+                  // 3.1.4] Провести валидацию содержимого $meta
                   $validator = r4_validate($meta, [
 
                     "mpackid"         => ["required", "regex:/^M[1-9]{1}[0-9]*$/ui"],
-                    "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"]
+                    "table"           => ["required", "regex:/^MD[1-9]{1}[0-9]*_/ui"],
+                    "version"         => ["required"]
 
                   ]); if($validator['status'] == -1) {
 
-                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($this->data['data']['packid']).', тянущейся от пакета '.$mpack.', выяснилось, что мета-информация в description таблицы связи не является валидной, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
+                    write2log('Во время обновления внешней связи '.$rel[0]->TABLE_NAME.' пакета '.mb_strtolower($mpack).', выяснилось, что мета-информация в description таблицы связи не является валидной, что является ошибкой. Её требуется исправить.', ['m1', 'C36_workbench_sync']);
                     continue;
 
                   }
 
-                // 3.3] Проверить наличие пакетов/баз моделей/таблиц
+                  // 3.1.5] Проверить соответствие версии пакета $meta['mpackid'] ограничению version
 
-                  // 3.3.1] Проверяем наличие пакетов/баз
+                    // 1] Извлечь файл composer.json пакета $meta['mpackid']
+                    $composer = r1_fs('vendor/4gekkman/'.mb_strtoupper($meta['mpackid']))->exists('composer.json');
+                    if(!$composer)
+                      throw new \Exception('У пакета '.$meta['mpackid'].' не найден файл composer.json.');
+
+                    // 2] Получить содержимое файла composer.json пакета $meta['mpackid']
+                    $composer = r1_fs('vendor/4gekkman/'.mb_strtoupper($meta['mpackid']))->get('composer.json');
+
+                    // 3] Если содержимое $composer не JSON, завершить
+                    if(!r1_isJSON($composer))
+                      throw new \Exception('У пакета '.$meta['mpackid'].' содержимое файла composer.json не является валидным JSON.');
+
+                    // 4] Преобразовать $composer к массиву
+                    $composer = json_decode($composer, true);
+
+                    // 5] Проверить существование ключей extra, и extra -> version
+                    if(!array_key_exists('extra', $composer) || !array_key_exists('version', $composer['extra']))
+                      throw new \Exception('У пакета '.$meta['mpackid'].' composer.json не содержит необходимых ключей extra или и extra -> version.');
+
+                    // 6] Извлечь из $composer значение по ключу extra -> version
+                    $version = $composer['extra']['version'];
+
+                    // 7] Проверить, соответствует ли версия $version ограничению $meta['version']
+                    if(!\Composer\Semver\Semver::satisfies($version, $meta['version'])) {
+                      write2log('Транспакетной связи пакета "'.$mpack.'", определённой в таблице "'.$rel[0]->TABLE_NAME.'", требуется наличие в системе установленного пакета "'.$meta['mpackid'].'" версии, соответствующей ограничению "'.$meta['version'].'". Но имеется лишь оный версии "'.$version.'". В связи с чем, соответствующая связь не будет добавлена. Вам требуется обновить указанный пакет до необходимой версии.', ['m1','C36_workbench_sync']);
+                      continue;
+                    }
+
+                // 3.2] Проверить наличие пакетов/баз моделей/таблиц
+
+                  // 3.2.1] Проверяем наличие пакетов/баз
 
                     // Получить и проверить базы
                     $basename1 = $meta['mpackid'];
@@ -799,7 +855,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                       }
                     }
 
-                  // 3.3.2] Проверяем наличие моделей/таблиц
+                  // 3.2.2] Проверяем наличие моделей/таблиц
 
                     // Получить имена моделей, и проверить их наличие
                     $modelname1 = $meta['table'];
@@ -825,14 +881,14 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                       continue;
                     }
 
-                // 3.4] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+                // 3.3] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
 
-                  // 3.4.1] Определить имя связи
+                  // 3.3.1] Определить имя связи
                   $relname = $modelname2;
                   $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
                   $relname = mb_strtolower($basename2) . '_' . $relname;
 
-                  // 3.4.2] Определить foreign_key
+                  // 3.3.2] Определить foreign_key
                   $local_key = call_user_func(function() USE ($basename2, $rel){
 
                     // Получить список столбцов для $rel[0]->TABLE_NAME
@@ -849,7 +905,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
                   });
 
-                  // 3.4.3] Добавить связь
+                  // 3.3.3] Добавить связь
                   $result[$this->data['data']['packid']][$tablename1][$relname] = [
                     "type"            => "belongsToMany",
                     "pivot"           => mb_strtolower($mpack).".".$rel[0]->TABLE_NAME,
@@ -870,7 +926,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
       });
 
-      // 8. Добавить в каждую модель её связи
+      // 8. Добавить в каждую модель пакета $this->data['data']['packid'] её связи
       foreach($relationships2add[$this->data['data']['packid']] as $model => $rels) {
 
         // 8.1. Если $rels содержит пустой массив, перейти к след.итерации
