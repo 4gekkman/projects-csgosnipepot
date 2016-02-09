@@ -204,6 +204,8 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
           // 2] Удалить все транс-пакетные связи роута $autoroute
           if(r1_rel_exists("M4", "MD1_routes", "m1_packages")) {
             $autoroute->m1_packages()->detach();
+          } else {
+            DB::table('m4.md2000')->where('id_route',$autoroute->id)->delete();
           }
 
           // 3] Удалить роут $autoroute
