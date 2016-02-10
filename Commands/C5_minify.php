@@ -379,7 +379,7 @@ class C5_minify extends Job { // TODO: добавить "implements ShouldQueue"
 
         // 2] Подгрузить связи
         foreach($dpackages as $dpackage) {
-          $load_all_rels($dpackage->dependencies);
+          $load_all_rels($dpackage->packages);
         }
 
       };
