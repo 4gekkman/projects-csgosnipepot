@@ -68,8 +68,14 @@
         }, ":attribute must be not negative positive integer");
 
 
+        //============//
+        // r4_defined //
+        //============//
+        Validator::extend('r4_defined', function($attribute, $value, $parameters) {
 
+          return isset($value);
 
+        }, ":attribute must be not undefined");
 
 
     }
