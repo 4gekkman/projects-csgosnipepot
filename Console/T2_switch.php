@@ -173,7 +173,10 @@ class T2_switch extends Command
 
 
     // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+    if($result['data']['common_ison'])
+      $this->info('Система проверки прав включена.');
+    else
+      $this->info('Система проверки прав выключена.');
 
   }
 

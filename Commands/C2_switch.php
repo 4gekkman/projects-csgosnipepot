@@ -135,8 +135,11 @@ class C2_switch extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Проверить, существует ли опубликованный конфиг пакета M5
+     *  2. Получить значение опции "common_ison"
+     *  3. Получить значение "common_ison", которое надо назначить
+     *  4. Назначить опции "common_ison" значение $common_ison_new
+     *  5. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
@@ -147,21 +150,30 @@ class C2_switch extends Job { // TODO: добавить "implements ShouldQueue"
     //-----------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1] Проверить, существует ли опубликованный конфиг пакета M5
+      // 1. Проверить, существует ли опубликованный конфиг пакета M5
       if(!file_exists(base_path('config/M5.php')))
         throw new \Exception('Не найден опубликованный конфиг пакета M5');
 
-      // 2] Получить значение опции "common_ison"
+      // 2. Получить значение опции "common_ison"
       $common_ison = config('M5.common_ison');
 
-      // 3] Получить значение "common_ison", которое надо назначить
+      // 3. Получить значение "common_ison", которое надо назначить
       if($common_ison)
         $common_ison_new = false;
       else
         $common_ison_new = true;
 
-      // 4] Назначить опции "common_ison" значение $common_ison_new
+      // 4. Назначить опции "common_ison" значение $common_ison_new
       r1_config_set('M5.common_ison', $common_ison_new);
+
+      // 5. Вернуть результат
+      return [
+        "status"  => 0,
+        "data"    => [
+          "common_ison" => $common_ison_new
+        ]
+      ];
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C2_switch from M-package M5 have ended with error: '.$e->getMessage();

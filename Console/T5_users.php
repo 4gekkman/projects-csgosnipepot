@@ -166,7 +166,7 @@ class T5_users extends Command
     $options = [
       "page"            => 1,
       "pages_total"     => "",
-      "items_at_page"   => 20,
+      "items_at_page"   => 2,
       "filters"         => [
         "ids"             => [],
         "genders"         => [],
