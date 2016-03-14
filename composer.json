@@ -13,6 +13,7 @@
         }
     ],
     "require": {
+      "4gekkman/M1": "~1.0",
 			"riimu/kit-phpencoder": "2.*"
 		},
     "autoload": {
