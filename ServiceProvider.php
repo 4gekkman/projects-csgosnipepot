@@ -114,7 +114,6 @@
           '\M1\Console\T2_sp_regs_update',
           '\M1\Console\T3_allrespublish',
           '\M1\Console\T4_m_dbs_update',
-          '\M1\Console\T5_minify',
           '\M1\Console\T6_afterupdate',
           '\M1\Console\T7_new',
           '\M1\Console\T9_del',

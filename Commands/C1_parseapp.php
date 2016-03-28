@@ -174,8 +174,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         ['name' => 'L', 'description' => 'L-пакет - blade-шаблоны.'],
         ['name' => 'W', 'description' => 'W-пакет - blade-документы (виджеты) для @include в другие blade-документы.'],
         ['name' => 'R', 'description' => 'R-пакет - ресурсы общего назначения.'],
-        ['name' => 'P', 'description' => 'P-пакет - public-ресурсы (js/css/img).'],
-        ['name' => 'K', 'description' => 'K-пакет - knockout-компоненты.'],
       ];
 
       // 1.3. Наполнить md1_packtypes
@@ -332,7 +330,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 2] Отфильтровать из него все каталоги, имена которых не являются именами пакетов
         $dirs = array_filter($dirs, function($item){
-          if(preg_match("/^[MDLWRPK]{1}[0-9]*$/ui", $item)) return true; else return false;
+          if(preg_match("/^[MDLWR]{1}[0-9]*$/ui", $item)) return true; else return false;
         });
 
       // 3.3. Получить списки всех пакетов вендора, разбитые по типам
@@ -342,8 +340,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         'L' => array_values(array_filter($dirs, function($item){ if(preg_match("/^L[0-9]*$/ui", $item)) return true; else return false; })),
         'W' => array_values(array_filter($dirs, function($item){ if(preg_match("/^W[0-9]*$/ui", $item)) return true; else return false; })),
         'R' => array_values(array_filter($dirs, function($item){ if(preg_match("/^R[0-9]*$/ui", $item)) return true; else return false; })),
-        'P' => array_values(array_filter($dirs, function($item){ if(preg_match("/^P[0-9]*$/ui", $item)) return true; else return false; })),
-        'K' => array_values(array_filter($dirs, function($item){ if(preg_match("/^K[0-9]*$/ui", $item)) return true; else return false; })),
       ];
 
       // 3.4. Получить все доступные локали
@@ -532,9 +528,9 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           return preg_replace("#^.*/#ui", '', $item);
         }, array_flip($d));
 
-        // 4] Отсеять из $result не относящиеся к M,D,L,W,R,P,K-пакетам зависимости
+        // 4] Отсеять из $result не относящиеся к M,D,L,W,R-пакетам зависимости
         $result = array_filter($result, function($item){
-          return preg_match("/^[MDLWRPK]{1}[0-9]*$/ui", $item);
+          return preg_match("/^[MDLWR]{1}[0-9]*$/ui", $item);
         });
 
         // 5] Записать $result в $dependencies с ключём $package['id_inner']
@@ -556,16 +552,14 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 1] Сформировать массив с разрешёнными схемами зависимостей
         $allowed_dependencies = [
-          'M' => ['R'],
-          'D' => ['M','L','W','R','P','K'],
-          'L' => ['M','W','R','P','K'],
-          'W' => ['M','R','P','K'],
+          'M' => ['R','M'],
+          'D' => ['M','L','W'],
+          'L' => ['M','W'],
+          'W' => ['M'],
           'R' => ['R'],
-          'P' => ['P'],
-          'K' => ['P'],
         ];
 
-        // 2] Проверить, не зависит ли какой пакет то пакетов таких типов, от которых ему зависеть запрещено
+        // 2] Проверить, не зависит ли какой пакет от пакетов таких типов, от которых ему зависеть запрещено
         foreach($dependencies as $key => $value) {
           foreach($value as $pack_id) {
 

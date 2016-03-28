@@ -183,8 +183,6 @@ class T9_del extends Command
         "w"     => "Del W-package",
         "l"     => "Del L-package",
         "r"     => "Del R-package",
-        "p"     => "Del P-package",
-        "k"     => "Del K-package",
       ];
 
       // 1.2. Узнать у пользователя, ресурс какого типа он хочет создать
@@ -468,34 +466,6 @@ class T9_del extends Command
 
       }
 
-      // 2.10. Если $restype == "p"
-      if($restype == 'p') {
-
-        // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
-        $params = [];
-
-
-
-        // n] Вернуть $params
-        return $params;
-
-      }
-
-      // 2.11. Если $restype == "k"
-      if($restype == 'k') {
-
-        // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
-        $params = [];
-
-
-
-        // n] Вернуть $params
-        return $params;
-
-      }
-
-
-
     } catch(\Exception $e) {
         $this->error('Error: '.$e->getMessage());
         return 'error';
@@ -519,8 +489,6 @@ class T9_del extends Command
           "w"     => "\\M1\\Commands\\C27_del_w",
           "l"     => "\\M1\\Commands\\C28_del_l",
           "r"     => "\\M1\\Commands\\C29_del_r",
-          "p"     => "\\M1\\Commands\\C30_del_p",
-          "k"     => "\\M1\\Commands\\C31_del_k",
         ];
 
         // 3.1.2. Выполнить команду для удаления ресурса типа $restype
@@ -546,8 +514,6 @@ class T9_del extends Command
             case "w"   : $this->info(""); break;
             case "l"   : $this->info(""); break;
             case "r"   : $this->info("R-package '".$result['data']['packfullname']."' was successfully deleted."); break;
-            case "p"   : $this->info(""); break;
-            case "k"   : $this->info(""); break;
 
             default    : $this->info("Success");
           }

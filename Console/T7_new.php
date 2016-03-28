@@ -182,8 +182,6 @@ class T7_new extends Command
         "w"       => "New W-package",
         "l"       => "New L-package",
         "r"       => "New R-package",
-        "p"       => "New P-package",
-        "k"       => "New K-package",
 
         "mdlw_u"  => "New config update for M,D,L,W-package",
       ];
@@ -464,21 +462,7 @@ class T7_new extends Command
 
       }
 
-      // 2.11. Если $restype == "p"
-      if($restype == 'p') {
-        $params = [
-
-        ];
-      }
-
-      // 2.12. Если $restype == "k"
-      if($restype == 'k') {
-        $params = [
-
-        ];
-      }
-
-      // 2.12. Если $restype == "mdlw_u"
+      // 2.11. Если $restype == "mdlw_u"
       if($restype == 'mdlw_u') {
 
         // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
@@ -538,8 +522,6 @@ class T7_new extends Command
           "w"       => "\\M1\\Commands\\C15_new_w",
           "l"       => "\\M1\\Commands\\C16_new_l",
           "r"       => "\\M1\\Commands\\C17_new_r",
-          "p"       => "\\M1\\Commands\\C18_new_p",
-          "k"       => "\\M1\\Commands\\C19_new_k",
 
           "mdlw_u"  => "\\M1\\Commands\\C34_new_mdlw_u",
         ];
@@ -568,8 +550,6 @@ class T7_new extends Command
             case "w"      : $this->info(""); break;
             case "l"      : $this->info(""); break;
             case "r"      : $this->info("New R-package '".$result['data']['packfullname']."' was successfully created."); break;
-            case "p"      : $this->info(""); break;
-            case "k"      : $this->info(""); break;
 
             case "mdlw_u" : $this->info("New config update '".$result['data']['updatenum']."' for package '".$result['data']['packid']."' was successfully created."); break;
 
