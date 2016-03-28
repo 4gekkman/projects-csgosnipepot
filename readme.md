@@ -1152,19 +1152,151 @@
               "L1": { ... }
             }
 
-      • Задача №6: компиляция/обработка/публикация public-ресурсов DLW-пакетов
+      • Задача №6: подготовка задач gulptasks4bowerpacks в gulpfile.json
 
         ▪ Описание
-          - Это происходит в одной из задач в главном gulpfile.js проекта.
-          - Применяются опции публикации из главного bower.json проекта.
-          - Публ.ресурсы каждого DLW-пакета Комп./обр. и публикуются
-            в public/public/composer/<id пакета>.
+          - В gulpfile.js в специальный раздел вставляется ряд задач.
+          - Просматривается папочка с задачами other/gulptasks4bowerpacks.
+          - Вставляются лишь задачи, имя которых совпадает с 1-им из установленных
+            bower-пакетов.
+          - Для этих пакетов надо в обязательном порядке подменять main
+            в frontend/config.json
+          - При этом старые задачи оттуда удаляются.
 
         ▪ Что на выходе
-          - Публ.ресурсы DLW-пакетов публикуются в public/public/composer/<id DLW-пакета>
-          - Структура опубликованных публ.ресурсов DLW-пакетов всегда одинаковая.
-          - 
+          - В gulpfile.js проекта есть специальные метки.
+          - Задачи из gulptasks4bowerpacks вставляются между этими метками.
+          - После определения всех задач, определяется ещё одна доп.задача,
+            которая с помощью gulp.parallel запускает все эти задачи. Имя
+            этой задачи: spec_bower_frontend_preparing
+          - Всё это выглядит примерно так:
 
+            <!-- spec_bower_frontend_preparing: start -->
+            gulp.task('taskname1', function(callback){
+              // ...
+            });
+            gulp.task('taskname2', function(callback){
+              // ...
+            });
+            gulp.task('taskname3', function(callback){
+              // ...
+            });
+            gulp.task('spec_bower_frontend_preparing', gulp.parallel('build', gulp.parallel('taskname1', 'taskname2', 'taskname3')));
+            <!-- spec_bower_frontend_preparing: stop -->
+
+          - Имена задач образуются по шаблону:
+
+              spec_bower_frontend_preparing_<имя bower-пакета>
+
+      • Задача №7: подготовка задач dlw_prepearing_tasks
+
+        ▪ Описание
+          - В gulpfile.js в специальный раздел вставляется ряд задач.
+          - По 1-й задаче для каждого установленного DLW-пакета.
+          - При генерировании задач учитываются опции из главного bower.json проекта.
+          - Эти задачи компилируют/конкатенируют/минифицируют css и js
+            ресурсы для каждого DLW-пакета, и публикуют результаты в
+            строго отформатированной форме в public/public/composer/<id DLW-пакета>.
+
+        ▪ Что в итоге с gulpfile.js
+          - В gulpfile.js проекта есть специальные метки.
+          - Задачи вставляются между этими метками.
+          - После определения всех задач, определяется ещё одна доп.задача,
+            которая с помощью gulp.parallel запускает все эти задачи. Имя
+            этой задачи: dlw_prepearing_tasks
+          - Всё это выглядит примерно так:
+
+            <!-- dlw_prepearing_tasks: start -->
+            gulp.task('taskname1', function(callback){
+              // ...
+            });
+            gulp.task('taskname2', function(callback){
+              // ...
+            });
+            gulp.task('taskname3', function(callback){
+              // ...
+            });
+            gulp.task('dlw_prepearing_tasks', gulp.parallel('build', gulp.parallel('taskname1', 'taskname2', 'taskname3')));
+            <!-- dlw_prepearing_tasks: stop -->
+
+          - Имена задач образуются по шаблону:
+
+              dlw_prepearing_tasks_<id DLW-пакета>
+
+        ▪ Что на выходе в public
+          - Публ.ресурсы DLW-пакетов публикуются в public/public/composer/<id DLW-пакета>
+          - Структура опубликованных публ.ресурсов DLW-пакетов всегда одинаковая:
+
+            /css
+              c.css
+              c.min.css
+            /js
+              j.js
+              j.min.js
+            /assets
+              ... здесь структура не регламентирована ...
+
+      • Задача №8: сбор списков и порядков интеграции для каждого D-пакета
+
+        ▪ Описание
+          - Пробегаются все D-пакеты.
+          - Составляются дерево DLW-, bower-зависимостей.
+          - Для всех ресурсов указываются пути от корня каталога с laravel.
+          - Затем дерево разбивается на 2 отдельных: по js и css.
+          - Для каждой зависимости устанавливается индекс глубины.
+          - В случае дублирования берётся лишь более глубокая зависимость.
+          - Из деревьев извлекаются 2 плоских стека: css и js.
+          - Всё это записывается в bower.json проекта (extra -> dpacks_res_stacks).
+          - Ключ: id d-пакета, значения - 2 массива css и js со списками путей к ресурсам.
+
+        ▪ Что на выходе
+          - Итоговый массив данных записывается в bower.json проекта.
+          - В bower.json есть св-во "extra" -> "integration_lists".
+          - Итоговый объект с данными в нём выглядит примерно так:
+
+            "integration_lists": {
+              "D1": {
+                "css": [
+                  "public/public/bower/pack1/c.css",
+                  "public/public/bower/pack2/c.css",
+                  "public/public/composer/D1/css/c.min.css"
+                ],
+                "js": [
+                  "public/public/bower/pack1/j.js",
+                  "public/public/bower/pack2/j.js",
+                  "public/public/composer/D1/js/j.min.js"
+                ]
+              },
+              "D2": { ... }
+            }
+
+      • Задача №9: интеграция ресурсов в blade-документы D-пакетов
+
+        ▪ Описание
+          - Пробегаются все D-пакеты.
+          - В каждом находится view.blade.php
+          - Списки и порядок css и js ресурсов смотрится в bower.json проекта,
+            в extra -> integration_lists.
+
+        ▪ Что на выходе
+          - Во view.blade.php есть специальные метки.
+          - Для css- и js-ресурсов по отдельной паре меток.
+          - Ресурсы из css и js списков вставляются между этими метками.
+          - CSS-метки находятся в head blade-документа.
+          - JS-метки находятся в конце blade-документа
+          - Всё это выглядит примерно так:
+
+            <!-- css integration: start -->
+            <link rel="stylesheet" type="text/css" href="{{ asset('public/bower/pack1/c.min.css') }}">
+            <link rel="stylesheet" type="text/css" href="{{ asset('public/bower/pack2/c.min.css') }}">
+            <link rel="stylesheet" type="text/css" href="{{ asset('public/composer/D1/c.min.css') }}">
+            <!-- css integration: stop -->
+
+            <!-- js integration: start -->
+            <script src="{{ asset('public/bower/pack1/j.min.js') }}"></script>
+            <script src="{{ asset('public/bower/pack2/j.min.js') }}"></script>
+            <script src="{{ asset('public/composer/D1/j.min.css') }}"></script>
+            <!-- js integration: stop -->
 
     # Наглядная иллюстрация механики СУФ
 
@@ -1181,55 +1313,6 @@
 
 
 
-
-    • Особая подготовка публичных ресурсов некоторых bower-пакетов
-      - Это происходит в одной из задач в главном gulpfile.js проекта.
-      - В gulpfile.js в специальный раздел вставляется ряд задач.
-      - Просматривается папочка с задачми other/gulptasks4bowerpacks.
-      - Вставляются лишь задачи, имя которых совпадает с 1-им из установленных
-        bower-пакетов.
-      - Для этих пакетов надо в обязательном порядке подменять main
-        в frontend/config.json
-
-    • Сбор списков и порядков интеграции для каждого D-пакета
-      - Пробегаются все D-пакеты.
-      - Составляются дерево DLW-, bower-зависимостей.
-      - Для всех ресурсов указываются пути от корня каталога с laravel.
-      - Затем дерево разбивается на 2 отдельных: по js и css.
-      - Для каждой зависимости устанавливается индекс глубины.
-      - В случае дублирования берётся лишь более глубокая зависимость.
-      - Из деревьев извлекаются 2 плоских стека: css и js.
-      - Всё это записывается в bower.json проекта (extra -> dpacks_res_stacks).
-      - Ключ: id d-пакета, значения - 2 массива css и js со списками путей к ресурсам.
-
-    • Интеграция ресурсов в blade-документы D-пакетов
-      - Пробегаются все D-пакеты.
-      - В каждом находится view.blade.php
-      - Списки и порядок css и js ресурсов смотрится в bower.json проекта,
-        в extra -> dpacks_res_stacks.
-      - Удаляются все присутствующие ресурсы между метками:
-
-          <!-- css integration: start -->
-          <!-- css integration: stop -->
-
-          <!-- js integration: start -->
-          <!-- js integration: stop -->
-
-      - И вставляются новые.
-
-
-
-
-
-
-
-
-
-
-
-  > Б3. Команды СУФ в M1
-
-    •
 
 
 
