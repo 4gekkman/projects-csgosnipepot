@@ -41,7 +41,7 @@ $dogAny = function() {
 
       // 1.5. Получить uri
       $params["uri"] = '/' . \Request::path();
-write2log($params, []);
+
     // 2. Получить из конфига время кэширования
     $routescachetime = \Cache::remember("m4_routescachetime", 60, function() {
       return config("M4.routescachetime");
@@ -77,7 +77,7 @@ write2log($params, []);
       // 3.4. Преобрабовать $uris4search в массив с элементами в обратном порядке
       $uris4search = array_reverse($uris4search);
 
-    // 4. По данным из $params найти роут
+    // 4. По данным из $params найти роут и ID DLW-пакета
     // - И индекс сегмента в $uris4search
 
       // 4.1. Подготовить переменную для индекса
@@ -87,8 +87,8 @@ write2log($params, []);
       for($i=0; $i<count($uris4search); $i++) {
 
         // 4.2.1. Искать сначала среди ручных роутов
-        $route = \Cache::remember("m4_".$params['protocol']."_".$params['subdomain']."_".$params['domain']."_".$uris4search[$i], $routescachetime, function() USE ($params, $uris4search, $i) {
-          return \M4\Models\MD1_routes::with(['packages'])->where(function($query) USE ($params, $uris4search, $i){
+        $dlw_pack_id = \Cache::remember("m4_".$params['protocol']."_".$params['subdomain']."_".$params['domain']."_".$uris4search[$i], $routescachetime, function() USE ($params, $uris4search, $i) {
+          return \M4\Models\MD1_routes::with(['m1_packages'])->where(function($query) USE ($params, $uris4search, $i){
             $query->whereHas('types', function($query) USE ($params) { $query->where('name', 'manual'); })->
                     whereHas('protocols', function($query) USE ($params) { $query->where('name', $params['protocol']); })->
                     whereHas('subdomains', function($query) USE ($params) { $query->where('name', $params['subdomain']); })->
@@ -98,64 +98,70 @@ write2log($params, []);
         });
 
         // 4.2.2. Если среди ручных роутов не найдено, искать среди автоматических
-        if(empty($route)) {
-          $route = \Cache::remember("m4_".$params['protocol']."_".$params['subdomain']."_".$params['domain']."_".$uris4search[$i], $routescachetime, function() USE ($params, $uris4search, $i) {
-            return \M4\Models\MD1_routes::with(['packages'])->where(function($query) USE ($params, $uris4search, $i){
+        if(empty($dlw_pack_id)) {
+          $dlw_pack_id = \Cache::remember("m4_".$params['protocol']."_".$params['subdomain']."_".$params['domain']."_".$uris4search[$i], $routescachetime, function() USE ($params, $uris4search, $i) {
+            return \M4\Models\MD1_routes::with(['m1_packages'])->where(function($query) USE ($params, $uris4search, $i){
               $query->whereHas('types', function($query) USE ($params) { $query->where('name', 'auto'); })->
                       whereHas('protocols', function($query) USE ($params) { $query->where('name', $params['protocol']); })->
                       whereHas('subdomains', function($query) USE ($params) { $query->where('name', $params['subdomain']); })->
                       whereHas('domains', function($query) USE ($params) { $query->where('name', $params['domain']); })->
                       whereHas('uris', function($query) USE ($params, $uris4search, $i) { $query->where('name', $uris4search[$i]); });
-            })->first();
+            })->first()->m1_packages[0]->id_inner;
           });
         }
 
         // 4.2.3. Если роут найден
-        if(!empty($route)) {
+        if(!empty($dlw_pack_id)) {
           $index = $i;
           break;
         }
 
       }
 
-      // 4.3. Если $route не найден
-      if(empty($route)) {
+      // 4.3. Если $dlw_pack_id не найден
+      if(empty($dlw_pack_id)) {
         return "Document not found.";
       }
 
     // 5. Осуществить запрос к контроллеру связанного с роутом документа
     // - И вернуть response клиенту
 
-      // 5.1] Объявить роут c URI == $uris4search[$index] на соответствующий контроллер
-      \Route::controller($uris4search[$index], "\\".$route->packages[0]->id_inner."\\Controller");
+      write2log(\Request::method(), []);
 
-      // 5.2] Заменить оригинальный input на модифицированный
-      // - Модифицированный = оригинальный + $params.
-      // - $params должен быть доступен по ключу "segments_params"
 
-        // Извлечь оригинальный input
-        $modifyedInput = \Request::all();
 
-        // Подготовить массив для модифицированного инпута в
-        $modifyedInput['global'] = [];
-
-        // Дополнить его параметрами-сегментами
-        $modifyedInput['global']['params'] = $params;
-
-        // Дополнить его базовым URI, к которому идёт запрос
-        $modifyedInput['global']['base_uri'] = $uris4search[$index];
-
-        // Заменить
-        \Request::replace($modifyedInput);
-
-      // 5.3] Создать новый объект-запрос класса Request
-      $request = \Request::create($uris4search[$index], \Request::method(), \Request::all());
-
-      // 5.4] Отправить запрос и вернуть присланный в ответ результат
-      $response = \Route::dispatch($request)->getOriginalContent();
-
-      // 5.5] Вернуть $response клиенту
-      return $response;
+//      // 5.1] Объявить роут c URI == $uris4search[$index] на соответствующий контроллер
+//      \Route::any('/d1', '\D1\Controller@getIndex');
+//
+//      \Route::controller($uris4search[$index], "\\".$dlw_pack_id."\\Controller");
+//
+//      // 5.2] Заменить оригинальный input на модифицированный
+//      // - Модифицированный = оригинальный + $params.
+//      // - $params должен быть доступен по ключу "segments_params"
+//
+//        // Извлечь оригинальный input
+//        $modifyedInput = \Request::all();
+//
+//        // Подготовить массив для модифицированного инпута в
+//        $modifyedInput['global'] = [];
+//
+//        // Дополнить его параметрами-сегментами
+//        $modifyedInput['global']['params'] = $params;
+//
+//        // Дополнить его базовым URI, к которому идёт запрос
+//        $modifyedInput['global']['base_uri'] = $uris4search[$index];
+//
+//        // Заменить
+//        \Request::replace($modifyedInput);
+//
+//      // 5.3] Создать новый объект-запрос класса Request
+//      $request = \Request::create($uris4search[$index], \Request::method(), \Request::all());
+//
+//      // 5.4] Отправить запрос и вернуть присланный в ответ результат
+//      $response = \Route::dispatch($request)->getOriginalContent();
+//
+//      // 5.5] Вернуть $response клиенту
+//      return $response;
 
   });
 

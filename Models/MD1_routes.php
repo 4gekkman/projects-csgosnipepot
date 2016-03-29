@@ -10,7 +10,7 @@
 //------------------------------//
 // - Пример: M1\Models
 
-  namespace M4\Models;
+  namespace m4\Models;
 
 //-------------------------------------//
 // Б. Импортировать необходимые классы //
@@ -248,7 +248,7 @@ class MD1_routes extends Model {
       // - [X]---Є[Y] Какие Y принадлежат этому X
       //public function many_y()
       //{
-      //  return $this->hasMany('\M4\Models\MD2_y', 'id_y', 'id');
+      //  return $this->hasMany('\m4\Models\MD2_y', 'id_y', 'id');
       //}
 
       // 1]  //
@@ -257,7 +257,7 @@ class MD1_routes extends Model {
       // - [Y]Э---[X] Какому X принадлежит этот Y
       //public function one_x()
       //{
-      //  return $this->belongsTo('\M4\Models\MD1_x', 'id_y', 'id');
+      //  return $this->belongsTo('\m4\Models\MD1_x', 'id_y', 'id');
       //}
 
       // 1]  //
@@ -266,7 +266,7 @@ class MD1_routes extends Model {
       // - [A]Э---Є[B] С какими A связан этот B
       //public function many_a()
       //{
-      //  return $this->belongsToMany('\M4\Models\MD3_a', 'm4.md1000', 'id_b', 'id_a');
+      //  return $this->belongsToMany('\m4\Models\MD3_a', 'm4.md1000', 'id_b', 'id_a');
       //}
 
 
