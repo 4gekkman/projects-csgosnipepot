@@ -1,5 +1,4 @@
 <?php
-
 $dogAny = function() {
 
   \Route::any('/{p1?}/{p2?}/{p3?}/{p4?}/{p5?}/{p6?}/{p7?}/{p8?}/{p9?}/{p10?}/{p11?}/{p12?}/{p13?}/{p14?}/{p15?}/{p16?}/{p17?}/{p18?}/{p19?}/{p20?}/{p21?}/{p22?}/{p23?}/{p24?}/{p25?}/{p26?}/{p27?}/{p28?}/{p29?}/{p30?}/{p31?}/{p32?}/{p33?}/{p34?}/{p35?}/{p36?}/{p37?}/{p38?}/{p39?}/{p40?}/{p41?}/{p42?}/{p43?}/{p44?}/{p45?}/{p46?}/{p47?}/{p48?}/{p49?}/{p50?}',
@@ -126,42 +125,59 @@ $dogAny = function() {
     // 5. Осуществить запрос к контроллеру связанного с роутом документа
     // - И вернуть response клиенту
 
-      write2log(\Request::method(), []);
+      // 5.1. Если метод HTTP-запросе не GET и не POST
+      if(\Request::method() != 'GET' && \Request::method() != 'POST')
+        return "App supports 'GET' and 'POST' requests only.";
 
+      // 5.2. Заменить оригинальный input на модифицированный
+      // - Модифицированный = оригинальный + $params.
+      // - $params должен быть доступен по ключу "segments_params"
 
+        // Извлечь оригинальный input
+        $modifyedInput = \Request::all();
 
-//      // 5.1] Объявить роут c URI == $uris4search[$index] на соответствующий контроллер
-//      \Route::any('/d1', '\D1\Controller@getIndex');
-//
-//      \Route::controller($uris4search[$index], "\\".$dlw_pack_id."\\Controller");
-//
-//      // 5.2] Заменить оригинальный input на модифицированный
-//      // - Модифицированный = оригинальный + $params.
-//      // - $params должен быть доступен по ключу "segments_params"
-//
-//        // Извлечь оригинальный input
-//        $modifyedInput = \Request::all();
-//
-//        // Подготовить массив для модифицированного инпута в
-//        $modifyedInput['global'] = [];
-//
-//        // Дополнить его параметрами-сегментами
-//        $modifyedInput['global']['params'] = $params;
-//
-//        // Дополнить его базовым URI, к которому идёт запрос
-//        $modifyedInput['global']['base_uri'] = $uris4search[$index];
-//
-//        // Заменить
-//        \Request::replace($modifyedInput);
-//
-//      // 5.3] Создать новый объект-запрос класса Request
-//      $request = \Request::create($uris4search[$index], \Request::method(), \Request::all());
-//
-//      // 5.4] Отправить запрос и вернуть присланный в ответ результат
-//      $response = \Route::dispatch($request)->getOriginalContent();
-//
-//      // 5.5] Вернуть $response клиенту
-//      return $response;
+        // Подготовить массив для модифицированного инпута в
+        $modifyedInput['global'] = [];
+
+        // Дополнить его параметрами-сегментами
+        $modifyedInput['global']['params'] = $params;
+
+        // Дополнить его базовым URI, к которому идёт запрос
+        $modifyedInput['global']['base_uri'] = $uris4search[$index];
+
+        // Заменить
+        \Request::replace($modifyedInput);
+
+      // 5.3. Создать новый объект-запрос класса Request
+      $request = \Request::create($uris4search[$index], \Request::method(), \Request::all());
+
+      // 5.4. Если метод HTTP-запроса == GET
+      if(\Request::method() == 'GET') {
+
+        // 5.4.1. Объявить роут c URI == $uris4search[$index] на get-метод контроллера
+        \Route::get($uris4search[$index], "\\$dlw_pack_id\\Controller@getIndex");
+
+        // 5.4.2. Отправить запрос и вернуть присланный в ответ результат
+        $response = \Route::dispatch($request)->getOriginalContent();
+
+        // 5.4.3. Вернуть $response клиенту
+        return $response;
+
+      }
+
+      // 5.5. Если метод HTTP-запроса == POST
+      if(\Request::method() == 'POST') {
+
+        // 5.5.1. Объявить роут c URI == $uris4search[$index] на post-метод контроллера
+        \Route::post($uris4search[$index], "\\$dlw_pack_id\\Controller@postIndex");
+
+        // 5.5.2. Отправить запрос и вернуть присланный в ответ результат
+        $response = \Route::dispatch($request)->getOriginalContent();
+
+        // 5.5.3. Вернуть $response клиенту
+        return $response;
+
+      }
 
   });
 
