@@ -87,6 +87,7 @@ class Controller extends BaseController {
   // ID пакета, которому принадлежит этот контроллер //
   //-------------------------------------------------//
   public $packid = "D1";
+  public $layoutid = "L1";
 
   //--------------------------------------//
   // GET-API. Обработка всех GET-запросов //
@@ -111,9 +112,9 @@ class Controller extends BaseController {
 
       'document_locale'       => r1_get_doc_locale($this->packid),
       'packid'                => $this->packid,
-      'layoutid'              => r1_get_doc_layoutid($this->packid),
+      'layoutid'              => $this->layoutid,
 
-    ]), 'layoutid' => r1_get_doc_layoutid($this->packid) . '::layout']);
+    ]), 'layoutid' => $this->layoutid.'::layout']);
 
 
 
