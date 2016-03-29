@@ -136,7 +136,7 @@ class C37_workbench_sync_all extends Job { // TODO: добавить "implements
      * Оглавление
      *
      *  1. Получить массив ID всех установленных M-пакетов
-     *  2.
+     *  2. Для каждого из них выполнить команду m1:workbenck_sync
      *
      *  N. Вернуть статус 0
      *
