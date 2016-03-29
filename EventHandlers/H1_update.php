@@ -174,7 +174,6 @@ class H1_update  // TODO: написать "implements ShouldQueue", и тогд
     //-----------------------------//
     $res = call_user_func(function() USE ($event) { try {
 
-
       return runcommand('\M4\Commands\C1_update', $event->data);
 
 

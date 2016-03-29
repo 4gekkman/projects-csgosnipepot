@@ -12,7 +12,6 @@ $dogAny = function() {
      *  2. Получить из конфига время кэширования
      *  3. По данным из $params найти роут
      *
-     *
      */
 
     // 1. Извлечь параметры запроса
@@ -27,7 +26,8 @@ $dogAny = function() {
 
       // 1.2. Получить domain
       $host_segments = explode('.', \Request::getHost());
-      $params["domain"] = $host_segments[count($host_segments) - 2] . '.' . $host_segments[count($host_segments) - 1];
+      if(count(count($host_segments)) == 1) $params["domain"] = $host_segments[count($host_segments) - 1];
+      else $params["domain"] = $host_segments[count($host_segments) - 2] . '.' . $host_segments[count($host_segments) - 1];
 
       // 1.3. Получить protocol
       $params["protocol"] = \Request::secure() ? "https" : "http";
@@ -41,7 +41,7 @@ $dogAny = function() {
 
       // 1.5. Получить uri
       $params["uri"] = '/' . \Request::path();
-
+write2log($params, []);
     // 2. Получить из конфига время кэширования
     $routescachetime = \Cache::remember("m4_routescachetime", 60, function() {
       return config("M4.routescachetime");
@@ -160,14 +160,20 @@ $dogAny = function() {
   });
 
 };
-\Route::group(['domain' => 'dev.app'], $dogAny);
-\Route::group(['domain' => '{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s5}.{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s8}.{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s9}.{s8}.{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
-\Route::group(['domain' => '{s10}.{s9}.{s8}.{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.dev.app'], $dogAny);
+\Route::group(['domain' => getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s5}.{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s8}.{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s9}.{s8}.{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+\Route::group(['domain' => '{s10}.{s9}.{s8}.{s7}.{s6}.{s5}.{s4}.{s3}.{s2}.{s1}.'.getenv('APP_URL')], $dogAny);
+
+
+
+
+
+
