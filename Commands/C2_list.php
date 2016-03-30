@@ -176,7 +176,7 @@ class C2_list extends Job { // TODO: добавить "implements ShouldQueue" -
 
           array_push($results, [
             $route['id'],
-            $route['id_type'] == 1 ? 'auto' : 'manual',
+            $route->types->name,
             $route['ison'],
             array_key_exists('m1_packages', $route->toArray()) ? $route['m1_packages'][0]['id_inner'] : NULL,
             $route['protocols'][0]['name'],

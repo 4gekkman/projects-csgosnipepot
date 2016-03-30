@@ -158,11 +158,19 @@ $dogAny = function() {
         // 5.4.1. Объявить роут c URI == $uris4search[$index] на get-метод контроллера
         \Route::get($uris4search[$index], function(){ return 123; });// "\\$dlw_pack_id\\Controller@getIndex");
 
+        $routeCollection = Route::getRoutes();
+
+        foreach ($routeCollection as $value) {
+            write2log($value->getPath(), []);
+        }
+
+        write2log($uris4search[$index], []);
+
         // 5.4.2. Отправить запрос и вернуть присланный в ответ результат
-        $response = \Route::dispatchToRoute($request)->getOriginalContent();
+        //$response = \Route::dispatch($request)->getOriginalContent();
 
         // 5.4.3. Вернуть $response клиенту
-        return $response;
+        //return $response;
 
       }
 
@@ -173,7 +181,7 @@ $dogAny = function() {
         \Route::post($uris4search[$index], "\\$dlw_pack_id\\Controller@postIndex");
 
         // 5.5.2. Отправить запрос и вернуть присланный в ответ результат
-        $response = \Route::dispatchToRoute($request)->getOriginalContent();
+        $response = \Route::dispatch($request)->getOriginalContent();
 
         // 5.5.3. Вернуть $response клиенту
         return $response;
