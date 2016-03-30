@@ -87,8 +87,7 @@
  *      - Причём, для ручных и авто роутов это привило применяется отдельно.
  *      - Т.Е. сначала всё равно идут все ручные, а лишь потом все автоматические.
  * 
- *    • Что делать при одноврем-ом появлении ручного/авто роутов с одинаковыми URI
- *      - Это касается лишь роутов с 100% ТОЧНЫМ URI !
+ *    • Что делать при одноврем-ом появлении ручного/авто роутов с одинаковыми точными URI
  *      - Надо действовать ещё до формирования итоговой строки с роутами.
  *      - Надо просто из списка авто.роутов удалить этот роут.
  *      - Нельзя допускать одновременного попадания этих роутов в итоговую строку.
@@ -100,11 +99,32 @@
  *      - Для ручных надо использовать имя: mp<номер>
  *      - Для автоматических надо использовать имя: ap<номер>
  *
+ *    • Протокол роута в БД M4 не играет никакой роли
+ *      - По историческим причинам, там доступны 2 протокола: http и https.
+ *      - Однако, бест практис является настраивать http на уровне веб-сервера.
+ *      - К тому же, в Laravel 5 из параметров групп роутов исчез 'https'.
+ *
+ *    • Как действовать в случае наличия/отсутствия поддоменов
+ *      - Во всех случаях оборачивать роут в группу.
+ *      - Поскольку это позволит указать домен для роута (параметр 'domain')
+ *      - В случае отсутствия поддоменов, указывать лишь домен без поддоменов:
+ *
+ *          Route::group(['domain' => 'localhost'], function () {
+ *            Route::get('/ivan', function () { return 'man1'; });
+ *          });
+ *
+ *      - В случае наличия поддоменов, указывать домен с поддоменами:
+ *
+ *          Route::group(['domain' => 'sub.localhost'], function () {
+ *            Route::get('/ivan', function () { return 'man1'; });
+ *          });
+ *
  *    • Пример правильной итоговой строки с роутами (сначала ручные, потом авто)
  *      - Со следующими отличиями:
  *        • В реале кол-во параметров каждого роута д.б. равно 50.
  *        • В реале вместо callback идут ссылки на методы getIndex и postIndex контроллеров.
  *        • В реале роуты идут парами: Route::get + Route::post.
+ *        • В все роуты заворачиваются в группы.
  *      - Итак:
  *
  *        Route::get('/ivan', function () { return 'man1'; });                    // man1
@@ -239,33 +259,162 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
       $listof_manual_routes = call_user_func(function(){
 
         // 1.1. Подготовить массив для результатов
-        $results = [];
+        // - Это будет массив массивов-роутов.
+        // - Формат его будет такой:
+        //  [
+        //    [
+        //      "original_uri"        => "/ivan/petrov",
+        //      "uri"                 => "/ivan/petrov/{mp3?}/...",
+        //      "domain"              => "localhost"
+        //      "subdomain"           => "sub.domain."
+        //      "precise_segments"    => 2,
+        //      "start_index4params"  => 3,
+        //      "num_of_params2add"   => 48,
+        //      "dlw_pack_id"         => "D1",
+        //      "result_route_str"    => "Route::group(['domain' => 'localhost'], function(){ Route::get('/ivan/petrov', '\\D1\\Controller@getIndex'); Route::post('/ivan/petrov', '\\D1\\Controller@postIndex'); });"
+        //    ]
+        //  ]
+        $results = collect([]);
 
-        // 1.2. Получить все вкл. роуты из m4.md1_routes
-        $routes = \M4\Models\MD1_routes::where('ison', 1)->whereHas('types', function($query){
+        // 1.2. Получить все ручные вкл. роуты из m4.md1_routes вместе с их domains, subdomains, uris, m1_packages
+        $routes = \M4\Models\MD1_routes::with(['domains', 'subdomains', 'uris', 'm1_packages'])->where('ison', 1)->whereHas('types', function($query){
           $query->where('name', '=', 'manual');
         })->get();
 
-        return $routes;
+        // 1.3. Наполнить $results
+        foreach($routes as $route) {
+          $results->push([
+            "original_uri"        => $route->uris[0]->name,
+            "uri"                 => $route->uris[0]->name,
+            "domain"              => $route->domains[0]->name,
+            "subdomain"           => $route->subdomains[0]->name,
+            "precise_segments"    => +count(explode("/", $route->uris[0]->name))-1,
+            "start_index4params"  => 50-(50-(+count(explode("/", $route->uris[0]->name)))),
+            "num_of_params2add"   => 50-(+count(explode("/", $route->uris[0]->name))),
+            "dlw_pack_id"         => $route->m1_packages[0]->id_inner,
+            "result_route_str"    => "",
+          ]);
+        }
 
+        // 1.4. Отсортировать $results по precise_segments (чем больше, тем выше)
+        $results = $results->sort(function($a,$b){
+          $a = +$a['precise_segments'];
+          $b = +$b['precise_segments'];
+          return -gmp_cmp($a,$b);
+        });
 
-        // \Route::get("/s1/s2/{s3?}/{s4?}/{s5?}", "\\D1\\Controller@getIndex");
+        // 1.5. Дополнить uri роутов в $results параметрами
+        // - Чтобы кол-во сегментов в каждом URI было 50
+        $results = $results->map(function($route){
+          for($i=$route['start_index4params']; $i<=50;$i++) {
+            $route['uri'] = $route['uri'] . '/{mp'.$i.'?}';
+          }
+          return $route;
+        });
 
+        // 1.6. Сформировать result_route_str роутов в $results
+        $results = $results->map(function($route){
+          $route['result_route_str'] = "Route::group(['domain' => '".$route['subdomain'].$route['domain']."'], function(){ Route::get('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@getIndex'); Route::post('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@postIndex'); });";
+          return $route;
+        });
 
-
-
-
-        // 1.n. Вернуть массив с результатами
+        // 1.7. Вернуть массив с результатами
         return $results;
 
       });
 
-      write2log($listof_manual_routes, []);
-
       // 2. Составить список вкл. автоматических роутов
-      $listof_auto_routes = call_user_func(function(){
+      $listof_auto_routes = call_user_func(function() USE ($listof_manual_routes){
+
+        // 2.1. Подготовить массив для результатов
+        // - Это будет массив массивов-роутов.
+        // - Формат его будет такой:
+        //  [
+        //    [
+        //      "original_uri"        => "/ivan/petrov",
+        //      "uri"                 => "/ivan/petrov/{ap3?}/...",
+        //      "domain"              => "localhost"
+        //      "subdomain"           => "sub.domain."
+        //      "precise_segments"    => 2,
+        //      "start_index4params"  => 3,
+        //      "num_of_params2add"   => 48,
+        //      "dlw_pack_id"         => "D1",
+        //      "result_route_str"    => "Route::group(['domain' => 'localhost'], function(){ Route::get('/ivan/petrov', '\\D1\\Controller@getIndex'); Route::post('/ivan/petrov', '\\D1\\Controller@postIndex'); });"
+        //    ]
+        //  ]
+        $results = collect([]);
+
+        // 2.2. Получить все авто. вкл. роуты из m4.md1_routes вместе с их domains, subdomains, uris, m1_packages
+        $routes = \M4\Models\MD1_routes::with(['domains', 'subdomains', 'uris', 'm1_packages'])->where('ison', 1)->whereHas('types', function($query){
+          $query->where('name', '=', 'auto');
+        })->get();
+
+        // 2.3. Наполнить $results
+        foreach($routes as $route) {
+          $results->push([
+            "original_uri"        => $route->uris[0]->name,
+            "uri"                 => $route->uris[0]->name,
+            "domain"              => $route->domains[0]->name,
+            "subdomain"           => $route->subdomains[0]->name,
+            "precise_segments"    => +count(explode("/", $route->uris[0]->name))-1,
+            "start_index4params"  => 50-(50-(+count(explode("/", $route->uris[0]->name)))),
+            "num_of_params2add"   => 50-(+count(explode("/", $route->uris[0]->name))),
+            "dlw_pack_id"         => $route->m1_packages[0]->id_inner,
+            "result_route_str"    => "",
+          ]);
+        }
+
+        // 2.4. Отсортировать $results по precise_segments (чем больше, тем выше)
+        $results = $results->sort(function($a,$b){
+          $a = +$a['precise_segments'];
+          $b = +$b['precise_segments'];
+          return -gmp_cmp($a,$b);
+        });
+
+        // 2.5. Отфильтровать из $results авто-роуты, совпадающие с любым ручным роутом
+        // - По домену, поддомену и uri
+        $results = $results->filter(function($item) USE ($listof_manual_routes){
+
+          write2log($listof_manual_routes[5][''], []);
+
+//          // 1] Подготовить переменную для результата проверки
+//          $res = true;
+//
+//          // 2] Пробежаться по всем ручным роутам
+//          // - Если будет найден роут с тамими же доменом/поддоменом/uri, сделать $res == false
+//          $listof_manual_routes->each(function($manitem) use ($item, &$res){
+//
+//            if($item['uri'] === $manitem['uri'] && $item['domain'] === $manitem['domain'] && $item['subdomain'] === $manitem['subdomain'])
+//              $res = false;
+//
+//          });
+//
+//          // 3] Вернуть $res
+//          return $res;
+          return true;
+
+        });
+
+        // 2.6. Дополнить uri роутов в $results параметрами
+        // - Чтобы кол-во сегментов в каждом URI было 50
+        $results = $results->map(function($route){
+          for($i=$route['start_index4params']; $i<=50;$i++) {
+            $route['uri'] = $route['uri'] . '/{ap'.$i.'?}';
+          }
+          return $route;
+        });
+
+        // 2.7. Сформировать result_route_str роутов в $results
+        $results = $results->map(function($route){
+          $route['result_route_str'] = "Route::group(['domain' => '".$route['subdomain'].$route['domain']."'], function(){ Route::get('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@getIndex'); Route::post('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@postIndex'); });";
+          return $route;
+        });
+
+        // 2.8. Вернуть массив с результатами
+        return $results;
 
       });
+      //write2log($listof_auto_routes->pluck('uri'), []);
 
       // 3. Подготовить итоговую строку для вставки в routes.php в M4
       $prepeared_routes_str = call_user_func(function(){

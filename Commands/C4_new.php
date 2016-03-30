@@ -165,7 +165,7 @@ class C4_new extends Job { // TODO: добавить "implements ShouldQueue" - 
         "packid"    => "required|regex:/^[DLW]{1}[0-9]+$/ui",
         "domain"    => "required|regex:/^[-0-9а-яёa-z.]+$/ui",
         "protocol"  => "required|in:http,https",
-        "subdomain" => "regex:/^([-0-9а-яёa-z.]+|\/)$/ui",
+        "subdomain" => ["regex:/^([-0-9а-яёa-z.]+|\/)$/ui"],
         "uri"       => ["regex:#^([\/]{1}[-0-9а-яёa-z\/_]*|\/)$#ui"],
 
       ]); if($validator['status'] == -1) {
