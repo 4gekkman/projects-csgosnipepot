@@ -164,7 +164,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         if(!class_exists('\M1\Models\MD1_packtypes'))
           throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD1_packtypes" не существует.');
 
-        // 2] Мягко удалить все packtypes и необходимые для этого ресурсы
+        // 2] Мягко удалить все packtypes
         \M1\Models\MD1_packtypes::query()->delete();
 
       // 1.2. Подготовить массив типов пакетов для добавления
