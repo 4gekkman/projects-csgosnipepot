@@ -1,5 +1,10 @@
 <?php
 
+// routesphp_sync: start
+
+// routesphp_sync: stop
+
+
 $dogAny = function() {
 
   \Route::any('/{p1?}/{p2?}/{p3?}/{p4?}/{p5?}/{p6?}/{p7?}/{p8?}/{p9?}/{p10?}/{p11?}/{p12?}/{p13?}/{p14?}/{p15?}/{p16?}/{p17?}/{p18?}/{p19?}/{p20?}/{p21?}/{p22?}/{p23?}/{p24?}/{p25?}/{p26?}/{p27?}/{p28?}/{p29?}/{p30?}/{p31?}/{p32?}/{p33?}/{p34?}/{p35?}/{p36?}/{p37?}/{p38?}/{p39?}/{p40?}/{p41?}/{p42?}/{p43?}/{p44?}/{p45?}/{p46?}/{p47?}/{p48?}/{p49?}/{p50?}',
@@ -158,19 +163,17 @@ $dogAny = function() {
         // 5.4.1. Объявить роут c URI == $uris4search[$index] на get-метод контроллера
         \Route::get($uris4search[$index], function(){ return 123; });// "\\$dlw_pack_id\\Controller@getIndex");
 
-        $routeCollection = Route::getRoutes();
-
-        foreach ($routeCollection as $value) {
-            write2log($value->getPath(), []);
-        }
-
-        write2log($uris4search[$index], []);
+//        $routeCollection = Route::getRoutes();
+//        foreach ($routeCollection as $value) {
+//            write2log($value->getPath(), []);
+//        }
+//        write2log(mb_substr($uris4search[$index], 1), []);
 
         // 5.4.2. Отправить запрос и вернуть присланный в ответ результат
-        //$response = \Route::dispatch($request)->getOriginalContent();
+        $response = \Route::dispatch($request)->getOriginalContent();
 
         // 5.4.3. Вернуть $response клиенту
-        //return $response;
+        return $response;
 
       }
 

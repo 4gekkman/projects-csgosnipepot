@@ -120,7 +120,8 @@
           '\M4\Console\T3_check',
           '\M4\Console\T4_new',
           '\M4\Console\T5_del',
-          '\M4\Console\T6_switch'
+          '\M4\Console\T6_switch',
+          '\M4\Console\T7_routesphp_sync'
         ];
 
         // Регистрация команд в методе register

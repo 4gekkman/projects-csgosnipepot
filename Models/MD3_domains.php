@@ -67,7 +67,7 @@ class MD3_domains extends Model {
   //------------------//
 
     // relationships start
-    public function routes() { return $this->belongsToMany('\M4\Models\MD1_routes', 'm4.md1000', 'id_domain', 'id_route'); }
+
     // relationships stop
 
 

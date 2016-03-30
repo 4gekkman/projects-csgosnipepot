@@ -67,7 +67,7 @@ class MD5_subdomains extends Model {
   //------------------//
 
     // relationships start
-    public function routes() { return $this->belongsToMany('\M4\Models\MD1_routes', 'm4.md1002', 'id_subdomain', 'id_route'); }
+
     // relationships stop
 
 

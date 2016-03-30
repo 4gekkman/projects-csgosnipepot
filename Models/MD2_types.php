@@ -67,7 +67,7 @@ class MD2_types extends Model {
   //------------------//
 
     // relationships start
-    public function routes() { return $this->hasMany('\M4\Models\MD1_routes', 'id_type', 'id'); }
+
     // relationships stop
 
 
