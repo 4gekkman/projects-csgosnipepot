@@ -130,7 +130,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
   // Г. Код команды //
   //----------------//
   public function handle()
-  { DB::beginTransaction();
+  { //DB::beginTransaction();
 
     /**
      * Оглавление
@@ -149,7 +149,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
     //-----------------------//
     // Произвести обновление //
     //-----------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try { //DB::beginTransaction();
 
       // 1. Наполнить таблицы md5_privtypes и md11_genders
 
@@ -467,7 +467,8 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
           });
         }
 
-    DB::commit(); } catch(\Exception $e) {
+    //DB::commit();
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_update from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
@@ -482,7 +483,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
     //---------------------//
     // N. Вернуть статус 0 //
     //---------------------//
-    DB::commit();
+    //DB::commit();
     return [
       "status"  => 0,
       "data"    => ""
