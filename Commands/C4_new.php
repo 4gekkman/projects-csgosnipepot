@@ -156,8 +156,8 @@ class C4_new extends Job { // TODO: добавить "implements ShouldQueue" - 
 
       // 1. Принять входящие данные
       $params = $this->data['params'];
-      $params['subdomain']  = $params['subdomain'] == 0 ? "" : $params['subdomain'];
-      $params['uri']        = $params['uri'] == 0 ? "/" : $params['uri'];
+      $params['subdomain']  = $params['subdomain'] === 0 ? "" : $params['subdomain'];
+      $params['uri']        = $params['uri'] === 0 ? "/" : $params['uri'];
 
       // 2. Провести валидацию входящих данных
       $validator = r4_validate($params, [
