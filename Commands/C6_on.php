@@ -138,6 +138,7 @@ class C6_on extends Job { // TODO: добавить "implements ShouldQueue" - �
      *  1. Получить входящие данные
      *  2. Получить все роуты, у которых указанные ID
      *  3. Включить все роуты
+     *  4. Выполнить команду C8_routesphp_sync
      *
      *  N. Вернуть статус 0
      *
@@ -159,6 +160,9 @@ class C6_on extends Job { // TODO: добавить "implements ShouldQueue" - �
         $route->ison = 1;
         $route->save();
       }
+
+      // 4. Выполнить команду C8_routesphp_sync
+      Artisan::queue('m4:routesphp_sync');
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C6_on from M-package M4 have ended with error: '.$e->getMessage();

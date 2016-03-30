@@ -135,8 +135,10 @@ class C7_off extends Job { // TODO: добавить "implements ShouldQueue" - 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить входящие данные
+     *  2. Получить все роуты, у которых указанные ID
+     *  3. Выключить все роуты
+     *  4. Выполнить команду C8_routesphp_sync
      *
      *  N. Вернуть статус 0
      *
@@ -158,6 +160,9 @@ class C7_off extends Job { // TODO: добавить "implements ShouldQueue" - 
         $route->ison = 0;
         $route->save();
       }
+
+      // 4. Выполнить команду C8_routesphp_sync
+      Artisan::queue('m4:routesphp_sync');
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C7_off from M-package M4 have ended with error: '.$e->getMessage();

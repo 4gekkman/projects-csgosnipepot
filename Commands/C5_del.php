@@ -137,6 +137,7 @@ class C5_del extends Job { // TODO: добавить "implements ShouldQueue" - 
      *
      *  1. Провести валидацию data['routes']
      *  2. Удалить все роуты, чьи ID в data['routes']
+     *  3. Выполнить команду C8_routesphp_sync
      *
      *  N. Вернуть статус 0
      *
@@ -178,6 +179,9 @@ class C5_del extends Job { // TODO: добавить "implements ShouldQueue" - 
         $route->delete();
 
       }
+
+      // 3. Выполнить команду C8_routesphp_sync
+      Artisan::queue('m4:routesphp_sync');
 
 
     DB::commit(); } catch(\Exception $e) {

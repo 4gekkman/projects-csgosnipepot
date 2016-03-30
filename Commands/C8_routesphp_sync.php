@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Syncronyze route registrations in routes.php of M4 beetween special marks.
+ *    - Synchronize route registrations in routes.php of M4 beetween special marks.
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -375,23 +375,20 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
         // - По домену, поддомену и uri
         $results = $results->filter(function($item) USE ($listof_manual_routes){
 
-          write2log($listof_manual_routes[5][''], []);
+          // 1] Подготовить переменную для результата проверки
+          $res = true;
 
-//          // 1] Подготовить переменную для результата проверки
-//          $res = true;
-//
-//          // 2] Пробежаться по всем ручным роутам
-//          // - Если будет найден роут с тамими же доменом/поддоменом/uri, сделать $res == false
-//          $listof_manual_routes->each(function($manitem) use ($item, &$res){
-//
-//            if($item['uri'] === $manitem['uri'] && $item['domain'] === $manitem['domain'] && $item['subdomain'] === $manitem['subdomain'])
-//              $res = false;
-//
-//          });
-//
-//          // 3] Вернуть $res
-//          return $res;
-          return true;
+          // 2] Пробежаться по всем ручным роутам
+          // - Если будет найден роут с тамими же доменом/поддоменом/uri, сделать $res == false
+          $listof_manual_routes->each(function($manitem) use ($item, &$res){
+
+            if($item['original_uri'] === $manitem['original_uri'] && $item['domain'] === $manitem['domain'] && $item['subdomain'] === $manitem['subdomain'])
+              $res = false;
+
+          });
+
+          // 3] Вернуть $res
+          return $res;
 
         });
 
@@ -414,33 +411,66 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
         return $results;
 
       });
-      //write2log($listof_auto_routes->pluck('uri'), []);
 
       // 3. Подготовить итоговую строку для вставки в routes.php в M4
-      $prepeared_routes_str = call_user_func(function(){
+      $prepeared_routes_str = call_user_func(function() USE ($listof_manual_routes, $listof_auto_routes){
+
+        // 3.1. Подготовить строку для результата
+        $result = "// routesphp_sync: start" . PHP_EOL;
+
+        // 3.2. Добавить ручные роуты в $result
+        $listof_manual_routes->each(function($item) USE (&$result){
+
+          // 1] Добавить пробелы
+          $result = $result . '  ';
+
+          // 2] Добавить роут
+          $result = $result . $item['result_route_str'];
+
+          // 3] Добавить перенос строки
+          $result = $result . PHP_EOL;
+
+        });
+
+        // 3.3. Добавить автоматические роуты в $result
+        $listof_auto_routes->each(function($item) USE (&$result){
+
+          // 1] Добавить пробелы
+          $result = $result . '  ';
+
+          // 2] Добавить роут
+          $result = $result . $item['result_route_str'];
+
+          // 3] Добавить перенос строки
+          $result = $result . PHP_EOL;
+
+        });
+
+        // 3.4. Финальные штрихи для $result
+        $result = $result . "  // routesphp_sync: stop";
+
+        // 3.5. Вернуть $result
+        return $result;
 
       });
 
       // 4. Выполнить синхронизацию регистраций роутов в routes.php в M4
 
-        // 4.1.
+        // 4.1. Проверить существование файла routes.php в M4
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/M4')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists('routes.php'))
+          throw new \Exception('В пакете M4 не найден файл routes.php');
 
+        // 4.2. Получить содержимое routes.php
+        $file = $this->storage->get('routes.php');
 
+        // 4.3. Вставить $prepeared_routes_str в $file
+        $file = preg_replace("#// *routesphp_sync: *start.*// *routesphp_sync: *stop#smuiU", $prepeared_routes_str, $file);
 
-      // План работ, часть 1: составляем список включенных ручных роутов
-      // - Готовим массив для результатов
-      // - Получаем все включённые ручные роуты из m4.md1_routes
-      // - На каждый роут добавляем в массив 2-ва, для getIndex и postIndex, например:
-      //
-      //  \Route::get("/d1", "\\D1\\Controller@getIndex");
-      //  \Route::get("/d1", "\\D1\\Controller@postIndex");
-
-      // План работ, часть 2: составляем список включенных авто.роутов
-      // - Получаем все включённые авто роуты из m4.md1_routes
-      // -
-
-      // План работ, часть 3: вставляем ручные, затем авто.роуты в routes.php в M4
-      // -
+        // 4.4. Заменить $file
+        $this->storage->put('routes.php', $file);
 
 
     DB::commit(); } catch(\Exception $e) {

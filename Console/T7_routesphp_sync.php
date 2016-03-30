@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Syncronyze route registrations in routes.php of M4 beetween special marks.
+ *    - Synchronize route registrations in routes.php of M4 beetween special marks.
  *
  *  Аргументы
  *  ---------

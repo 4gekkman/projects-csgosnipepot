@@ -144,6 +144,7 @@ class C4_new extends Job { // TODO: добавить "implements ShouldQueue" - 
      *  7. Создать $params['uri'] в md6_uris, если такового ещё нет
      *  8. Получить тип роута "manual"
      *  9. Создать новый роут, и связать его ресурсами
+     *  10. Выполнить команду C8_routesphp_sync
      *
      *  N. Вернуть статус 0
      *
@@ -246,6 +247,9 @@ class C4_new extends Job { // TODO: добавить "implements ShouldQueue" - 
 
         // 9.6. Связать с $uri
         $route->uris()->attach($uri->id);
+
+      // 10. Выполнить команду C8_routesphp_sync
+      Artisan::queue('m4:routesphp_sync');
 
 
     } catch(\Exception $e) {

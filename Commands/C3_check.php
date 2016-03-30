@@ -135,8 +135,10 @@ class C3_check extends Job { // TODO: добавить "implements ShouldQueue" 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить все роуты D,L,W-пакетов, со всеми связями
+     *  2. Подготовить массив для возможных коллизий
+     *  3. Для каждого роута в $routes поискать коллизии
+     *  4. Вернуть ответ
      *
      *  N. Вернуть статус 0
      *
@@ -182,8 +184,8 @@ class C3_check extends Job { // TODO: добавить "implements ShouldQueue" 
        *    "uri"             => ""
        *  ]
        */
-      foreach($routes->toArray() as $route) {
-        foreach($routes->toArray() as $r) {
+      foreach($routes as $route) {
+        foreach($routes as $r) {
 
           // 1] Пропустить, если этот от же роут
           if($route['id'] == $r['id']) continue;

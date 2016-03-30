@@ -139,6 +139,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
      *  2. Обновить данные в types
      *  3. Удалить все существующие автоматические роуты
      *  4. Создать новые автоматические роуты для D,L,W-пакетов
+     *  5. Выполнить команду C8_routesphp_sync
      *
      *  N. Вернуть статус 0
      *
@@ -376,6 +377,9 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
 
 
         }
+
+      // 5. Выполнить команду C8_routesphp_sync
+      Artisan::queue('m4:routesphp_sync');
 
 
     DB::commit(); } catch(\Exception $e) {
