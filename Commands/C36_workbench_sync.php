@@ -997,7 +997,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
           }
 
-          // 3] Финальные штрики для $result
+          // 3] Финальные штрихи для $result
           $result = $result . "    // relationships stop";
 
           // n] Вернуть результат
