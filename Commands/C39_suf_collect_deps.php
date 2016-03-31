@@ -135,8 +135,9 @@ class C39_suf_collect_deps extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить массив ID всех установленных M,D,L,W-пакетов
+     *  2. Собрать коллекцию всех уникальных dependencies из bower.json пакетов $packages
+     *  3. Записать собранные $dependencies в bower.json проекта
      *
      *  N. Вернуть статус 0
      *

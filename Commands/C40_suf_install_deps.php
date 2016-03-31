@@ -135,8 +135,8 @@ class C40_suf_install_deps extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить имя проекта
+     *  2. Установить bower-зависимости проекта
      *
      *  N. Вернуть статус 0
      *
@@ -149,14 +149,18 @@ class C40_suf_install_deps extends Job { // TODO: добавить "implements S
       // 1. Получить имя проекта
       $projectname = call_user_func(function(){
 
-        return 'devapp';
+        return basename(dirname(dirname(dirname(dirname(dirname(__DIR__))))));
 
       });
 
       // 2. Установить bower-зависимости проекта
       // - Отправив команду контейнеру node
-      shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "cd /c/pwd"');
 
+        // 2.1. Сформировать команду
+        $cmd = "cd /c/WebDev/projects/".$projectname."/project && bower --allow-root install && bower --allow-root prune";
+
+        // 2.2. Выполнить команду
+        shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C40_suf_install_deps from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
