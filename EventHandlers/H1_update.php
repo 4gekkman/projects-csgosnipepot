@@ -176,7 +176,6 @@ class H1_update  // TODO: написать "implements ShouldQueue", и тогд
 
       return runcommand('\M4\Commands\C1_update', $event->data);
 
-
     } catch(\Exception $e) {
         DB::rollback();
         $errortext = 'Invoking of event handler H1_update of M-package M4 have ended with error: '.$e->getMessage();
