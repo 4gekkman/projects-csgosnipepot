@@ -146,8 +146,16 @@ class C40_suf_install_deps extends Job { // TODO: добавить "implements S
     //-----------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить имя проекта
+      $projectname = call_user_func(function(){
 
-      shell_exec('cd .. && cd .. && cd .. && cd .. && bower i --force-latest');
+        return 'devapp';
+
+      });
+
+      // 2. Установить bower-зависимости проекта
+      // - Отправив команду контейнеру node
+      shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "cd /c/pwd"');
 
 
     DB::commit(); } catch(\Exception $e) {
