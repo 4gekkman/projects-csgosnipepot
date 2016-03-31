@@ -288,9 +288,9 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
             "uri"                 => $route->uris[0]->name,
             "domain"              => $route->domains[0]->name,
             "subdomain"           => $route->subdomains[0]->name,
-            "precise_segments"    => +count(explode("/", $route->uris[0]->name))-1,
-            "start_index4params"  => 50-(50-(+count(explode("/", $route->uris[0]->name)))),
-            "num_of_params2add"   => 50-(+count(explode("/", $route->uris[0]->name))),
+            "precise_segments"    => $route->uris[0]->name !== '/' ? +count(explode("/", $route->uris[0]->name))-1 : +count(explode("/", $route->uris[0]->name))-2,
+            "start_index4params"  => $route->uris[0]->name !== '/' ? 50-(50-(+count(explode("/", $route->uris[0]->name)))) : 50-(50-(+count(explode("/", $route->uris[0]->name)))) - 1,
+            "num_of_params2add"   => $route->uris[0]->name !== '/' ? 50-(+count(explode("/", $route->uris[0]->name))) : 50-(+count(explode("/", $route->uris[0]->name))) + 1,
             "dlw_pack_id"         => $route->m1_packages[0]->id_inner,
             "result_route_str"    => "",
           ]);
@@ -307,7 +307,10 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
         // - Чтобы кол-во сегментов в каждом URI было 50
         $results = $results->map(function($route){
           for($i=$route['start_index4params']; $i<=50;$i++) {
-            $route['uri'] = $route['uri'] . '/{mp'.$i.'?}';
+            if($route['original_uri'] === '/' && $i == 1)
+              $route['uri'] = $route['uri'] . '{mp'.$i.'?}';
+            else
+              $route['uri'] = $route['uri'] . '/{mp'.$i.'?}';
           }
           return $route;
         });
@@ -356,9 +359,9 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
             "uri"                 => $route->uris[0]->name,
             "domain"              => $route->domains[0]->name,
             "subdomain"           => $route->subdomains[0]->name,
-            "precise_segments"    => +count(explode("/", $route->uris[0]->name))-1,
-            "start_index4params"  => 50-(50-(+count(explode("/", $route->uris[0]->name)))),
-            "num_of_params2add"   => 50-(+count(explode("/", $route->uris[0]->name))),
+            "precise_segments"    => $route->uris[0]->name !== '/' ? +count(explode("/", $route->uris[0]->name))-1 : +count(explode("/", $route->uris[0]->name))-2,
+            "start_index4params"  => $route->uris[0]->name !== '/' ? 50-(50-(+count(explode("/", $route->uris[0]->name)))) : 50-(50-(+count(explode("/", $route->uris[0]->name)))) - 1,
+            "num_of_params2add"   => $route->uris[0]->name !== '/' ? 50-(+count(explode("/", $route->uris[0]->name))) : 50-(+count(explode("/", $route->uris[0]->name))) + 1,
             "dlw_pack_id"         => $route->m1_packages[0]->id_inner,
             "result_route_str"    => "",
           ]);
@@ -396,7 +399,10 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
         // - Чтобы кол-во сегментов в каждом URI было 50
         $results = $results->map(function($route){
           for($i=$route['start_index4params']; $i<=50;$i++) {
-            $route['uri'] = $route['uri'] . '/{ap'.$i.'?}';
+            if($route['original_uri'] === '/' && $i == 1)
+              $route['uri'] = $route['uri'] . '{ap'.$i.'?}';
+            else
+              $route['uri'] = $route['uri'] . '/{ap'.$i.'?}';
           }
           return $route;
         });
