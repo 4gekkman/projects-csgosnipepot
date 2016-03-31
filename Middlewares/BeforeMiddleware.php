@@ -78,8 +78,19 @@
 
 
       // 3. Если режим разработки включен, опубликовать все ресурсы
-      if($development_mode)
-        Artisan::call('m1:allrespublish');
+      if($development_mode) {
+
+        // 3.1. Выполнить к.команду afterupdate
+        // - Которая поставит в очередь ряд других к.команд
+        Artisan::call('m1:afterupdate');
+
+        // 3.n. Возбудить событие
+        Event::fire(new \R2\Event([
+          'keys'  =>  ['m1:devmode_request_event'],
+          'data'  =>  []
+        ]));
+
+      }
 
 
       // N. Передать ответ дальше
