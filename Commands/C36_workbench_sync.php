@@ -222,7 +222,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         // 1] Выполнить парсинг приложения
         // - Только если это не обновление пакета M1
-        runcommand('\M1\Commands\C1_parseapp');
+        runcommand('\M1\Commands\C1_parseapp', ['dontfire' => true]);
 
         // 2] Получить пути ко всем дочерним файлам в Models M-пакета $this->data['data']['packid']
         config(['filesystems.default' => 'local']);
@@ -294,7 +294,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
           }
 
         // 6.3. Выполнить парсинг приложения
-        runcommand('\M1\Commands\C1_parseapp');
+        runcommand('\M1\Commands\C1_parseapp', ['dontfire' => true]);
 
       // 7. Подготовить массив связей для добавления моделям пакета
       // - Его формат должен соответствовать представленному ниже

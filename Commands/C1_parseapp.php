@@ -14,7 +14,7 @@
  *  -------------------------
  *
  *    [
- *
+ *      dontfire        // если true, событие в конец не возбуждается
  *    ]
  *
  *  Формат возвращаемого значения
@@ -1001,10 +1001,14 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
     $res = call_user_func(function() { try {
 
       // 1] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
-      Event::fire(new \R2\Event([
-        'keys'  =>  ['m1:afterupdate'],
-        'data'  =>  ""
-      ]));
+      if(!empty($this->data) && array_key_exists('dontfire', $this->data) && $this->data['dontfire'] == true) {
+
+      } else {
+        Event::fire(new \R2\Event([
+          'keys'  =>  ['m1:afterupdate'],
+          'data'  =>  ""
+        ]));
+      }
 
     } catch(\Exception $e) {
         Log::info('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage());
