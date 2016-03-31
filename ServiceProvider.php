@@ -122,7 +122,10 @@
           '\M1\Console\T12_m_schedules_update',
           '\M1\Console\T13_workbench_sync',
           '\M1\Console\T14_workbench_sync_all',
-          '\M1\Console\T15_clear_interpack_rels'
+          '\M1\Console\T15_clear_interpack_rels',
+          '\M1\Console\T16_suf',
+          '\M1\Console\T17_suf_collect_deps',
+          '\M1\Console\T18_suf_install_deps'
         ];
 
         // Регистрация команд в методе register

@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Synchronize models of all M-packages and their relationships with corresponding workbench models
+ *    - Collect all bower-dependencies from bower.json of DLW-packages to bower.json of the project
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C37_workbench_sync_all extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C39_suf_collect_deps extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,57 +135,92 @@ class C37_workbench_sync_all extends Job { // TODO: добавить "implements
     /**
      * Оглавление
      *
-     *  1. Получить массив ID всех установленных M-пакетов
-     *  2. Для каждого из них выполнить команду m1:workbenck_sync
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
+    //-----------------------------------------------------------------------------------//
+    // Собрать bower-зависимости со всех DLW-пакетов, без повторов, в bower.json проекта //
+    //-----------------------------------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-    //-----------------------------//
-    // Синхронизировать все модели //
-    //-----------------------------//
-    $res = call_user_func(function() { try {
+      // 1. Получить массив ID всех установленных M,D,L,W-пакетов
+      $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+        $query->whereIn('name',['D','L','W']);
+      })->pluck('id_inner');
 
-      // 1. Получить массив ID всех установленных M-пакетов
+      // 2. Собрать коллекцию всех уникальных dependencies из bower.json пакетов $packages
+      // - В случае наличия среди зависимостей одного пакета разных версий, вызывать ошибку.
+      // - Повторяющиеся пакеты одной и той же версии сливать в один (исключить дубли).
+      $dependencies = call_user_func(function() USE ($packages) {
 
-        // Получить
-        $dirs = r1_fs('vendor/4gekkman')->directories();
+        // 2.1. Подготовить коллекцию для результата
+        $result = collect([]);
 
-        // Отфильтровать из него все каталоги, имена которых не являются именами M-пакетов
-        $mpacks = array_values(array_filter($dirs, function($item){
-          if(preg_match("/^[M]{1}[0-9]*$/ui", $item)) return true; else return false;
-        }));
+        // 2.2. Пробежаться по всем $packages
+        $packages->each(function($package) USE (&$result) {
 
-        // Отсортировать их по возрастанию номера в ID
-        usort($mpacks, function($a,$b){
-          $a = preg_replace("/^M/ui","",$a);
-          $b = preg_replace("/^M/ui","",$b);
-          if ($a == $b) {
-              return 0;
+          // 1] Проверить существование файла bower.json в DLW-пакете $package
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package)]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+          if(!$this->storage->exists('bower.json'))
+            throw new \Exception('В пакете '.$package.' не найден файл bower.json');
+
+          // 2] Получить содержимое bower.json в формате php-массива
+          $file = json_decode($this->storage->get('bower.json'), true);
+
+          // 3] Добавить зависимости из $file в $result
+          foreach($file['dependencies'] as $dependency => $version) {
+
+            // 3.1] Если в $result ещё нет $dependency, добавить
+            if(!$result->has($dependency))
+              $result[$dependency] = $version;
+
+            // 3.2] Если в $result уже есть $dependency
+            else {
+
+              // 3.2.1] И если этот $dependency имеет отличную от $version версию
+              // - Завершить с ошибкой
+              if($result[$dependency] !== $version)
+                throw new \Exception('Среди зависимостей DLW-пакетов найдены 2-ве оные с разными версиями, что запрещено. Речь идёт о зависимости '.$dependency);
+
+            }
+
           }
-          return ($a < $b) ? -1 : 1;
+
         });
 
-      // 2. Для каждого из них выполнить команду m1:workbenck_sync
-      foreach($mpacks as $mpack) {
-        $result = runcommand('\M1\Commands\C36_workbench_sync', ['data'=>['packid'=>$mpack]]);
-        if($result['status'] != 0) {
-          Log::info('Error: '.$result['data']);
-          write2log('Error: '.$result['data']);
-          throw new \Exception($result['data']);
-        }
-      }
+        // 2.n. Вернуть результат
+        return $result;
 
-      // 3. Подождать 3 секунды, чтобы дать возможность создаться моделям
-      sleep(3);
+      });
 
+      // 3. Записать собранные $dependencies в bower.json проекта
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C37_workbench_sync_all from M-package M1 have ended with error: '.$e->getMessage();
+        // 3.1. Проверить существование bower.json проекта
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('')]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists('bower.json'))
+          throw new \Exception('Не найден файл bower.json проекта');
+
+        // 3.2. Получить содержимое bower.json
+        $file = json_decode($this->storage->get('bower.json'), true);
+
+        // 3.3. Вставить $dependencies в $file
+        $file['dependencies'] = $dependencies->toArray();
+
+        // 3.4. Заменить $file
+        $this->storage->put('bower.json', $file);
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C39_suf_collect_deps from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C37_workbench_sync_all']);
+        write2log($errortext, ['M1', 'C39_suf_collect_deps']);
         return [
           "status"  => -2,
           "data"    => $errortext

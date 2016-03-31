@@ -103,13 +103,7 @@
     • R-пакет
 
   - Возможные взаимные схемы зависимостей для пакетов разных типов
-  - Фронтенд-функционал приложения
-
-    • Про Систему Управления Фронтендом, в мелком масштабе
-    • Теперь не надо выполнять к.команду m1:allrespublish при каждом запросе
-    • Файловая структура СУФ
-    • СУФ в динамике
-    • Процесс вёрстки blade-документов D-пакетов с помощью СУФ
+  - Система управления фронтендом им. 4gekkman'а для laravel-приложения
 
 ---------------------------------------
 
@@ -956,11 +950,11 @@
 
     <проект>                        | каталог проекта
                                     |
-      bower.json                    | главный bower.json проекта
-      .bowerrc                      | настройки bower, здесь указан путь для установки пакетов в /public/public/bower
-      gulpfile.js                   | главный gulpfile проекта
-
       /project                      | каталог с laravel в проекте
+
+        bower.json                  | главный bower.json проекта
+        .bowerrc                    | настройки bower, здесь указан путь для установки пакетов в /public/public/bower
+        gulpfile.js                 | главный gulpfile проекта
 
         /vendor                     |
           /4gekkman                 |
@@ -1430,6 +1424,7 @@
 
 
 
+
 ```
 
 ## Функционал <a id="link4"></a>
@@ -1472,6 +1467,17 @@
 
     new_r           | -                     | Новый R-пакет
     del_r           | -                     | Удалить указанный R-пакет
+
+  # Команды системы управления фронтендом #
+  #---------------------------------------#
+
+    Команда                 К.Команда                   Описание
+    ----------------------------------------------------------------------------------------------------------------------
+    -                       m1:suf                      Trigger for all processes of frontend control system
+    suf_collect_deps        m1:suf_collect_deps         Collect all bower-dependencies from bower.json of DLW-packages to bower.json of the project
+    suf_install_deps        m1:suf_install_deps         Install all bower-dependencies in bower.json of the project
+
+
 
 
   # Обработчики событий #

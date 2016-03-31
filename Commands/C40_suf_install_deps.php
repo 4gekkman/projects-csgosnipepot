@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Synchronize models of all M-packages and their relationships with corresponding workbench models
+ *    - Install all bower-dependencies in bower.json of the project
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C37_workbench_sync_all extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C40_suf_install_deps extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,57 +135,26 @@ class C37_workbench_sync_all extends Job { // TODO: добавить "implements
     /**
      * Оглавление
      *
-     *  1. Получить массив ID всех установленных M-пакетов
-     *  2. Для каждого из них выполнить команду m1:workbenck_sync
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
-
-    //-----------------------------//
-    // Синхронизировать все модели //
-    //-----------------------------//
-    $res = call_user_func(function() { try {
-
-      // 1. Получить массив ID всех установленных M-пакетов
-
-        // Получить
-        $dirs = r1_fs('vendor/4gekkman')->directories();
-
-        // Отфильтровать из него все каталоги, имена которых не являются именами M-пакетов
-        $mpacks = array_values(array_filter($dirs, function($item){
-          if(preg_match("/^[M]{1}[0-9]*$/ui", $item)) return true; else return false;
-        }));
-
-        // Отсортировать их по возрастанию номера в ID
-        usort($mpacks, function($a,$b){
-          $a = preg_replace("/^M/ui","",$a);
-          $b = preg_replace("/^M/ui","",$b);
-          if ($a == $b) {
-              return 0;
-          }
-          return ($a < $b) ? -1 : 1;
-        });
-
-      // 2. Для каждого из них выполнить команду m1:workbenck_sync
-      foreach($mpacks as $mpack) {
-        $result = runcommand('\M1\Commands\C36_workbench_sync', ['data'=>['packid'=>$mpack]]);
-        if($result['status'] != 0) {
-          Log::info('Error: '.$result['data']);
-          write2log('Error: '.$result['data']);
-          throw new \Exception($result['data']);
-        }
-      }
-
-      // 3. Подождать 3 секунды, чтобы дать возможность создаться моделям
-      sleep(3);
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C37_workbench_sync_all from M-package M1 have ended with error: '.$e->getMessage();
+      write2log('install', []);
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C40_suf_install_deps from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C37_workbench_sync_all']);
+        write2log($errortext, ['M1', 'C40_suf_install_deps']);
         return [
           "status"  => -2,
           "data"    => $errortext
