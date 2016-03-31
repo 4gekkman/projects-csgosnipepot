@@ -214,7 +214,7 @@ class C39_suf_collect_deps extends Job { // TODO: добавить "implements S
         $file['dependencies'] = $dependencies->toArray();
 
         // 3.4. Заменить $file
-        $this->storage->put('bower.json', $file);
+        $this->storage->put('bower.json', json_encode($file, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C39_suf_collect_deps from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
