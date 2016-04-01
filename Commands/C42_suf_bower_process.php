@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Every used bower-pack in app must have corresponding data in R5, this command looks for bower-packs that does not.
+ *    - Walk thru all bower packages, invoke gulp task for each from R5
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C41_suf_check_deps extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C42_suf_bower_process extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,75 +135,45 @@ class C41_suf_check_deps extends Job { // TODO: добавить "implements Sho
     /**
      * Оглавление
      *
-     *  1. Получить массив имён всех каталогов в public/public/bower
-     *  2. Получить массив имён всех каталогов в пакете R5, папке data4bower
-     *  3. Получить массив имён bower-пакетов, для которых нет данных в R5
-     *  4. Если массив $diff не пуст, сообщить в логи
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------------------------------------------------//
-    // Если какие-либо bower-пакеты приложения не обеспечены данными из R5, сообщить об этом //
-    //---------------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try {
+    //-----------------------------------------------------------------------//
+    // Обойти все bower-пакеты, и выполнить для каждого его gulp task из R5  //
+    //-----------------------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить массив имён всех каталогов в public/public/bower
-      $bowerpacks = call_user_func(function(){
-
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        return $this->storage->directories();
-
-      });
-
-      // 2. Получить массив имён всех каталогов в пакете R5, папке data4bower
-      // - Исключить каталог с шаблоном __sample__
-      $r5data4bowerpacks = call_user_func(function(){
-
-        // 2.1. Получить массив имён каталогов
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $dirs = $this->storage->directories();
-
-        // 2.2. Исключить из него имя __sample__
-        $dirs = collect($dirs)->filter(function($item){
-          if($item == '__sample__') return false;
-          else return true;
-        })->values()->toArray();
-
-        // 2.3. Вернуть результат
-        return $dirs;
-
-      });
-
-      // 3. Получить массив имён bower-пакетов, для которых нет данных в R5
-      $diff = collect($bowerpacks)->diff(collect($r5data4bowerpacks))->values();
-
-      // 4. Если массив $diff не пуст, сообщить в логи
-      if(!empty($diff)) {
-        $msg = "Внимание! Для следующих bower-пакетов нет навигационных данных в R5: ".$diff->implode(', ');
-        write2log($msg, []);
-        \Log::info($msg, []);
+      // 1. Получить свежие сведения
+      // - Список имён всех установленных bower-пакетов приложения
+      // - Список имён bower-пакетов, для которых есть навигац-ые данные в R5
+      // - Список имён bower-пакетов, для которых нет навигац-ых данных в R5
+      $info = runcommand('\M1\Commands\C41_suf_check_deps');
+      if($info['status'] != 0) {
+        Log::info('Error: '.$info['data']);
+        write2log('Error: '.$info['data']);
       }
+      $bowerpacks         = $info['data']['bowerpacks'];
+      $r5data4bowerpacks  = $info['data']['r5data4bowerpacks'];
+      $diff               = $info['data']['diff'];
 
-      // 5. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "bowerpacks"          => $bowerpacks,
-          "r5data4bowerpacks"   => $r5data4bowerpacks,
-          "diff"                => $diff
-        ]
-      ];
+      // 2. Обойти все $r5data4bowerpacks и выполнить их gulp tasks
+      collect($r5data4bowerpacks)->each(function($packname){
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C41_suf_check_deps from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+
+      });
+
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C42_suf_bower_process from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C41_suf_check_deps']);
+        write2log($errortext, ['M1', 'C42_suf_bower_process']);
         return [
           "status"  => -2,
           "data"    => $errortext

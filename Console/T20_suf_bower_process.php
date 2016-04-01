@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Trigger for all processes of frontend control system
+ *    - Walk thru all bower packages, invoke gulp task for each from R5
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T16_suf extends Command
+class T20_suf_bower_process extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T16_suf extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:suf';
+    protected $signature = 'm1:suf_bower_process';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Trigger for all processes of frontend control system';
+    protected $description = 'Walk thru all bower packages, invoke gulp task for each from R5';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -152,11 +152,28 @@ class T16_suf extends Command
   public function handle()
   {
 
-    Artisan::queue('m1:suf_collect_deps');
-    Artisan::queue('m1:suf_install_deps');
-    Artisan::queue('m1:suf_bower_process');
+    /**
+     * Оглавление
+     *
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
+     *
+     */
 
-    $this->info("SUF tasks have queued");
+    // 1. Выполнить команду
+    $result = runcommand('\M1\Commands\C42_suf_bower_process');
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
 
   }
 

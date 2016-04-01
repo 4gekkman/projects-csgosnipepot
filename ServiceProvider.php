@@ -126,7 +126,8 @@
           '\M1\Console\T16_suf',
           '\M1\Console\T17_suf_collect_deps',
           '\M1\Console\T18_suf_install_deps',
-          '\M1\Console\T19_suf_check_deps'
+          '\M1\Console\T19_suf_check_deps',
+          '\M1\Console\T20_suf_bower_process'
         ];
 
         // Регистрация команд в методе register
