@@ -125,7 +125,8 @@
           '\M1\Console\T15_clear_interpack_rels',
           '\M1\Console\T16_suf',
           '\M1\Console\T17_suf_collect_deps',
-          '\M1\Console\T18_suf_install_deps'
+          '\M1\Console\T18_suf_install_deps',
+          '\M1\Console\T19_suf_check_deps'
         ];
 
         // Регистрация команд в методе register

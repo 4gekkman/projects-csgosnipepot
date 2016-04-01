@@ -1526,7 +1526,7 @@
     -                       m1:suf                      Trigger for all processes of frontend control system
     suf_collect_deps        m1:suf_collect_deps         Collect all bower-dependencies from bower.json of DLW-packages to bower.json of the project
     suf_install_deps        m1:suf_install_deps         Install all bower-dependencies in bower.json of the project
-
+    suf_check_deps          m1:suf_check_deps           Every used bower-pack in app must have corresponding data in R5, this command looks for bower-packs that does not.
 
 
 
