@@ -18,7 +18,8 @@
 			"composer/semver": "~1.0",
 			"4gekkman/R1": "~1.0",
 			"4gekkman/R2": "~1.0",
-			"4gekkman/R4": "~1.0"
+			"4gekkman/R4": "~1.0",
+			"4gekkman/R5": "~1.0"
 		},
     "autoload": {
         "psr-4": {"M1\\": ""}
