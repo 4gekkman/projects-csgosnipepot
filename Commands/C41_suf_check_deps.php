@@ -160,7 +160,7 @@ class C41_suf_check_deps extends Job { // TODO: добавить "implements Sho
       });
 
       // 2. Получить массив имён всех каталогов в пакете R5, папке data4bower
-      // - Исключить каталог с шаблоном __sample__
+      // - Исключить каталог с шаблоном __sample__ и каталог node_modules
       $r5data4bowerpacks = call_user_func(function(){
 
         // 2.1. Получить массив имён каталогов
@@ -171,7 +171,7 @@ class C41_suf_check_deps extends Job { // TODO: добавить "implements Sho
 
         // 2.2. Исключить из него имя __sample__
         $dirs = collect($dirs)->filter(function($item){
-          if($item == '__sample__') return false;
+          if($item == '__sample__' || $item == 'node_modules') return false;
           else return true;
         })->values()->toArray();
 
@@ -184,7 +184,7 @@ class C41_suf_check_deps extends Job { // TODO: добавить "implements Sho
       $diff = collect($bowerpacks)->diff(collect($r5data4bowerpacks))->values();
 
       // 4. Если массив $diff не пуст, сообщить в логи
-      if(!empty($diff)) {
+      if(count($diff) !== 0) {
         $msg = "Внимание! Для следующих bower-пакетов нет навигационных данных в R5: ".$diff->implode(', ');
         write2log($msg, []);
         \Log::info($msg, []);
