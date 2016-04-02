@@ -1528,7 +1528,7 @@
     suf_install_deps        m1:suf_install_deps         Install all bower-dependencies in bower.json of the project
     suf_check_deps          m1:suf_check_deps           Every used bower-pack in app must have corresponding data in R5, this command looks for bower-packs that does not.
     suf_bower_process       m1:suf_bower_process        Walk thru all bower packages, invoke gulp task for each from R5
-
+    suf_dlw_process         m1:suf_dlw_process          Walk thru all DLW-packages, invoke it's gulp task for each
 
   # Обработчики событий #
   #---------------------#

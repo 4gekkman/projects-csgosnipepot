@@ -1,4 +1,12 @@
 {
   "name": "L1",
-  "dependencies": {}
+  "dependencies": {},
+  "mains": {
+    "css": [
+			"public/public/D1/css/c.css"
+		],
+    "js": [
+			"public/public/D1/js/j.js"
+		]
+  }
 }

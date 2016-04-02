@@ -178,7 +178,7 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
           throw new \Exception("$comid is not valid (must match \"/^[0-9]+$/ui\")");
 
         // 4] $description
-        if(!preg_match("/^[-0-9a-z\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$/ui", $description))
+        if(!preg_match("/^[-0-9a-z\/\\\\_!№@#$&:()\[\]{}*%?\"`.,\r\n ]*$/ui", $description))
           throw new \Exception("$description is not valid (must match \"/^[-0-9a-z\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$/ui\")");
 
       // 3. Проверить существование M-пакета $mpackid

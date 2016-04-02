@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Collect all bower-dependencies from bower.json of DLW-packages to bower.json of the project
+ *    - Walk thru all DLW-packages, invoke it's gulp task for each
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C39_suf_collect_deps extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C43_suf_dlw_process extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,16 +135,16 @@ class C39_suf_collect_deps extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1. Получить массив ID всех установленных D,L,W-пакетов
-     *  2. Собрать коллекцию всех уникальных dependencies из bower.json пакетов $packages
-     *  3. Записать собранные $dependencies в bower.json проекта
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
-    //-----------------------------------------------------------------------------------//
-    // Собрать bower-зависимости со всех DLW-пакетов, без повторов, в bower.json проекта //
-    //-----------------------------------------------------------------------------------//
+
+    //--------------------------------------------------------------//
+    // Обойти все DLW-пакеты, и выполнить для каждого его gulp task //
+    //--------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить массив ID всех установленных D,L,W-пакетов
@@ -152,76 +152,29 @@ class C39_suf_collect_deps extends Job { // TODO: добавить "implements S
         $query->whereIn('name',['D','L','W']);
       })->pluck('id_inner');
 
-      // 2. Собрать коллекцию всех уникальных dependencies из bower.json пакетов $packages
-      // - В случае наличия среди зависимостей одного пакета разных версий, вызывать ошибку.
-      // - Повторяющиеся пакеты одной и той же версии сливать в один (исключить дубли).
-      $dependencies = call_user_func(function() USE ($packages) {
+      // 2. Получить имя проекта
+      $projectname = call_user_func(function(){
 
-        // 2.1. Подготовить коллекцию для результата
-        $result = collect([]);
-
-        // 2.2. Пробежаться по всем $packages
-        $packages->each(function($package) USE (&$result) {
-
-          // 1] Проверить существование файла bower.json в DLW-пакете $package
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package)]);
-          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-          if(!$this->storage->exists('bower.json'))
-            throw new \Exception('В пакете '.$package.' не найден файл bower.json');
-
-          // 2] Получить содержимое bower.json в формате php-массива
-          $file = json_decode($this->storage->get('bower.json'), true);
-
-          // 3] Добавить зависимости из $file в $result
-          foreach($file['dependencies'] as $dependency => $version) {
-
-            // 3.1] Если в $result ещё нет $dependency, добавить
-            if(!$result->has($dependency))
-              $result[$dependency] = $version;
-
-            // 3.2] Если в $result уже есть $dependency
-            else {
-
-              // 3.2.1] И если этот $dependency имеет отличную от $version версию
-              // - Завершить с ошибкой
-              if($result[$dependency] !== $version)
-                throw new \Exception('Среди зависимостей DLW-пакетов найдены 2-ве оные с разными версиями, что запрещено. Речь идёт о зависимости '.$dependency);
-
-            }
-
-          }
-
-        });
-
-        // 2.n. Вернуть результат
-        return $result;
+        return basename(dirname(dirname(dirname(dirname(dirname(__DIR__))))));
 
       });
 
-      // 3. Записать собранные $dependencies в bower.json проекта
+      // 3. Обойти все каталоги всех DLW-пакетов $packages
+      collect($packages)->each(function($packname) USE ($projectname) {
 
-        // 3.1. Проверить существование bower.json проекта
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        if(!$this->storage->exists('bower.json'))
-          throw new \Exception('Не найден файл bower.json проекта');
+        // 3.1. Сформировать команду
+        $cmd = "cd /c/WebDev/projects/".$projectname."/project/vendor/4gekkman/".$packname." && npm link gulp && gulp run";
 
-        // 3.2. Получить содержимое bower.json
-        $file = json_decode($this->storage->get('bower.json'), true);
+        // 3.2. Выполнить команду
+        shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
-        // 3.3. Вставить $dependencies в $file
-        $file['dependencies'] = $dependencies->toArray();
-
-        // 3.4. Заменить $file
-        $this->storage->put('bower.json', json_encode($file, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+      });
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C39_suf_collect_deps from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C43_suf_dlw_process from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C39_suf_collect_deps']);
+        write2log($errortext, ['M1', 'C43_suf_dlw_process']);
         return [
           "status"  => -2,
           "data"    => $errortext
