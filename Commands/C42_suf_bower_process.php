@@ -161,21 +161,14 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
       $r5data4bowerpacks  = $info['data']['r5data4bowerpacks'];
       $diff               = $info['data']['diff'];
 
-      // 2. Получить имя проекта
-      $projectname = call_user_func(function(){
-
-        return basename(dirname(dirname(dirname(dirname(dirname(__DIR__))))));
-
-      });
-
-      // 3. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
+      // 2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
       // - Для каждого отдать команду gulp'у в контейнере node выполнить задачу run файла gulpfile.js
-      collect($r5data4bowerpacks)->each(function($packname) USE ($projectname) {
+      collect($r5data4bowerpacks)->each(function($packname) {
 
-        // 3.1. Сформировать команду
-        $cmd = "cd /c/WebDev/projects/".$projectname."/project/vendor/4gekkman/R5/data4bower/".$packname." && gulp run";
+        // 2.1. Сформировать команду
+        $cmd = "cd ".base_path()."/vendor/4gekkman/R5/data4bower/".$packname." && gulp run";
 
-        // 3.2. Выполнить команду
+        // 2.2. Выполнить команду
         shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
       });

@@ -152,20 +152,13 @@ class C43_suf_dlw_process extends Job { // TODO: добавить "implements Sh
         $query->whereIn('name',['D','L','W']);
       })->pluck('id_inner');
 
-      // 2. Получить имя проекта
-      $projectname = call_user_func(function(){
+      // 2. Обойти все каталоги всех DLW-пакетов $packages
+      collect($packages)->each(function($packname) {
 
-        return basename(dirname(dirname(dirname(dirname(dirname(__DIR__))))));
+        // 2.1. Сформировать команду
+        $cmd = "cd ".base_path()."/vendor/4gekkman/".$packname." && npm link gulp && gulp run";
 
-      });
-
-      // 3. Обойти все каталоги всех DLW-пакетов $packages
-      collect($packages)->each(function($packname) USE ($projectname) {
-
-        // 3.1. Сформировать команду
-        $cmd = "cd /c/WebDev/projects/".$projectname."/project/vendor/4gekkman/".$packname." && npm link gulp && gulp run";
-
-        // 3.2. Выполнить команду
+        // 2.2. Выполнить команду
         shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
       });

@@ -146,20 +146,13 @@ class C40_suf_install_deps extends Job { // TODO: добавить "implements S
     //-----------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить имя проекта
-      $projectname = call_user_func(function(){
-
-        return basename(dirname(dirname(dirname(dirname(dirname(__DIR__))))));
-
-      });
-
-      // 2. Установить bower-зависимости проекта
+      // 1. Установить bower-зависимости проекта
       // - Отправив команду контейнеру node
 
-        // 2.1. Сформировать команду
-        $cmd = "cd /c/WebDev/projects/".$projectname."/project && bower --allow-root install && bower --allow-root prune";
+        // 1.1. Сформировать команду
+        $cmd = "cd ".base_path()." && bower --allow-root install && bower --allow-root prune";
 
-        // 2.2. Выполнить команду
+        // 1.2. Выполнить команду
         shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
     DB::commit(); } catch(\Exception $e) {
