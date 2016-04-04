@@ -147,7 +147,160 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
     //-----------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Составить индекс bower-зависимостей
+      // 1. Написать функцию для получени плоского стека из N-мерного массива
+      $get_flat_stack = function($arr) {
+
+        // 1.1. Получить плоский стек, и одновременно индекс глубины
+        // - Ключами служат элементы стека, а значениями - показатели грубины.
+        // - Самый неглубокий уровень - 1. Чем глубже, бем больше цифра.
+        $stack = call_user_func(function() USE ($arr) {
+
+          // 1] Подготовить массив для результата
+          $results = [];
+
+          // 2] Подготовить рекурсивную функцию для обхода $arr
+          $recursive = function($subarr, &$results, $level) USE (&$recursive) {
+            foreach($subarr as $key => $value) {
+
+              // 2.1] Добавить все $keys в $results со значением $level
+              $results[$key] = $level;
+
+              // 2.2. Если $value это не пустой массив, запустить $recursive для него
+              if(count($value) != 0)
+                $recursive($value, $results, +$level+1);
+
+            }
+          };
+
+          // 3] Сформировать плоский стек
+          $recursive($arr, $results, 1);
+
+          // n] Вернуть результат
+          return $results;
+
+        });
+
+        // 1.2. Отсортировать $stack по убыванию по индексу глубины
+        uasort($stack, function($a,$b){
+          return gmp_cmp($b,$a);
+        });
+
+        // 1.3. Получить из стека индексированный массив со значеняими - бывшими ключами
+        $stack = array_keys($stack);
+
+        // 1.4. Вернуть результаты
+        return $stack;
+
+      };
+
+      // 2. Получить полное дерево всех bower-зависимостей
+      // - Каждый узел должен содрежать только имя bower-зависимости, и всё
+      $get_full_bower_tree = function(){
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Сформировать команду
+        $cmd = "cd ".base_path()." && bower -j --allow-root list";
+
+        // 3] Получить информацию в формате json
+        $json = shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
+
+        // 4] Написать рекурсивную функцию для формирования дерева
+        $recursive = function($dependencies, &$dest) USE (&$recursive) {
+
+          // Обойти все $dependencies
+          foreach($dependencies as $key => $value) {
+
+            // 4.1. Добавить все ключи из $dependencies в $dest
+            // - Со значениями - пустыми массивами
+            $dest[$key] = [];
+
+            // 4.2. Для каждого ключа применить $recursive
+            // - Но только если его dependencies не пустой массив
+            if(count($value['dependencies']) != 0)
+              $recursive($value['dependencies'], $dest[$key]);
+
+          }
+
+        };
+
+        // 5] Сформировать дерево
+        $recursive(json_decode($json, true)['dependencies'], $results);
+
+        // 6] Вернуть результаты
+        return $results;
+
+      };
+
+      // 3. Написать функцию для полечения ветки дерева с указанным корнем
+      // - Она ищет в дереве узел с указанным значением.
+      // - И возвращает поддерево (ветку) этого дерева с корнем в этом узле.
+      // - Если ничего не находит, возвращает пустой массив.
+      $get_sub_tree = function($tree, $node) {
+
+        // 3.1. Подготовить массив для результатов
+        $results = [];
+
+        // 3.2. Написать рекурсивную функцию для поиска ветки
+        $recursive = function($tree, $node, &$results) USE (&$recursive) {
+
+          // Обойти все $dependencies
+          foreach($tree as $key => $value) {
+
+            // 1] Если $key == $node, добавить $value в $results и завершить
+            if($key === $node) {
+              $results[$key] = $value;
+              break;
+            }
+
+            // 2] Если нет, и $value не пустой массив, выполнить $recursive для него
+            else {
+              if(count($value) != 0)
+                $recursive($value, $node, $results);
+            }
+
+          }
+
+        };
+
+        // 3.3. Сформировать дерево
+        $recursive($tree, $node, $results);
+
+        // 3.4. Вернуть результаты
+        return $results;
+
+      };
+
+      // 4. Написать функцию для извлечения mains указанного bower-пакета из R5
+      $get_bower_mains_from_R5 = function($packname){
+
+        // 4.1. Подготовить массив для результатов
+        $results = [];
+
+        // 4.2. Проверить существование файла bower.json в DLW-пакете $package
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists('mains.json'))
+          throw new \Exception('Для bower-пакета '.$packname.' не найден файл mains.json в R5');
+
+        // 4.3. Получить содержимое mains.json в формате php-массива
+        $file = json_decode($this->storage->get('mains.json'), true);
+
+        // 4.4. Если в массиве $file нет ключей css или js, возбудить исключение
+        if(!array_key_exists('css', $file['mains']) || !array_key_exists('js', $file['mains']))
+          throw new \Exception('В файле mains.json пакета '.$packname.' в R5 нет необходимых ключей "css" или "js"');
+
+        // 4.5. Добавить в $results содержимое mains
+        $results = $file['mains'];
+
+        // 4.n. Вернуть результаты
+        return $results;
+
+      };
+
+      // 5. Составить индекс bower-зависимостей
       // - Для каждой зависимости д.б.: дерево (его ветка), плоский стек и mains
       // - Массив-индекс должен выглядеть примерно так:
       //
@@ -179,34 +332,45 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
       //            "<path4>"
       //          ]
       //        ]
-      //      ]
+      //      ],
+      //      "<pack2>" => [...]
       //    ]
       //
-      $index_bower = call_user_func(function(){
+      $index_bower = call_user_func(function() USE ($get_flat_stack, $get_full_bower_tree, $get_sub_tree, $get_bower_mains_from_R5) {
 
-        // 1.1.
+        // 5.1. Подготовить массив для результатов
+        $results = [];
 
-        // 1.1. Получить информацию обо всём дереве bower-зависимостей
-        $bowerdeps = call_user_func(function(){
+        // 5.2. Получить полное дерево всех bower-зависимостей
+        // - Каждый узел должен содрежать только имя bower-зависимости, и всё
+        $tree = $get_full_bower_tree();
 
-          // 1] Сформировать команду
-          $cmd = "cd ".base_path()." && bower -j --allow-root list";
+        // 5.3. Получить полный плоский стек всех bower-зависимостей
+        $stack = $get_flat_stack($tree);
 
-          // 2] Получить информацию в формате json
-          $json = shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
+        // 5.4. Пробежаться по всему $stack
+        foreach($stack as $dep) {
 
-          // 3] Вернуть зависимости
-          return json_decode($json, true)['dependencies'];
+          // 1] Добавить пустой массив с ключём $dep в $results
+          $results[$dep] = [];
 
-        });
+          // 2] Добавить ключ tree и наполнить его
+          $results[$dep]['tree'] = $get_sub_tree($tree, $dep);
 
-        // 1.2. Составить полное дерево bower-зависимостей
+          // 3] Добавить ключ stack и наполнить его
+          $results[$dep]['stack'] = $get_flat_stack($results[$dep]['tree']);
 
+          // 4] Добавить ключ mains и наполнить его
+          $results[$dep]['mains'] = $get_bower_mains_from_R5($dep);
 
+        }
+
+        // 5.5. Вернуть результаты
+        return $results;
 
       });
 
-
+      write2log($index_bower, []);
 
 
 
