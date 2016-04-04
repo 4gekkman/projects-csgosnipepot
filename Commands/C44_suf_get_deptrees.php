@@ -135,8 +135,17 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1. Составить индекс bower-зависимостей с дерево, плоским стеком и mains
+     *  1. Написать функцию для получени плоского стека из N-мерного массива
+     *  2. Написать функцию для получения полного дерева всех bower-зависимостей
+     *  3. Написать функцию для получения ветки дерева с указанным корнем
+     *  4. Написать функцию для извлечения mains указанного bower-пакета из R5
+     *  5. Составить индекс bower-зависимостей
      *
+     *  6. Написать функцию для получения полного дерева всех DLW-зависимостей
+     *  7. Написать функцию для извлечения mains указанного DLW-пакета
+     *  8. Написать функцию для получения списка bower-зависимостей указанного DLW-пакета
+     *  9. Написать функцию для проверки, находится ли bower-пакет X в ветке bower-пакета Y
+     *  10. Составить индекс DLW-зависимостей
      *
      *  N. Вернуть статус 0
      *
@@ -163,7 +172,19 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
             foreach($subarr as $key => $value) {
 
               // 2.1] Добавить все $keys в $results со значением $level
-              $results[$key] = $level;
+
+                // 2.1.1] Если в $results нет такого $key
+                if(!array_key_exists($key, $results))
+                  $results[$key] = $level;
+
+                // 2.1.2] Если в $results есть такой $key
+                else {
+
+                  // Если $level > $results[$key], заменить $level
+                  if($level > $results[$key])
+                    $results[$key] = $level;
+
+                }
 
               // 2.2. Если $value это не пустой массив, запустить $recursive для него
               if(count($value) != 0)
@@ -193,30 +214,30 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
       };
 
-      // 2. Получить полное дерево всех bower-зависимостей
-      // - Каждый узел должен содрежать только имя bower-зависимости, и всё
+      // 2. Написать функцию для получения полного дерева всех bower-зависимостей
+      // - Каждый узел должен содержать только лишь имя bower-зависимости
       $get_full_bower_tree = function(){
 
-        // 1] Подготовить массив для результатов
+        // 2.1. Подготовить массив для результатов
         $results = [];
 
-        // 2] Сформировать команду
+        // 2.2. Сформировать команду
         $cmd = "cd ".base_path()." && bower -j --allow-root list";
 
-        // 3] Получить информацию в формате json
+        // 2.3. Получить информацию в формате json
         $json = shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
-        // 4] Написать рекурсивную функцию для формирования дерева
+        // 2.4. Написать рекурсивную функцию для формирования дерева
         $recursive = function($dependencies, &$dest) USE (&$recursive) {
 
           // Обойти все $dependencies
           foreach($dependencies as $key => $value) {
 
-            // 4.1. Добавить все ключи из $dependencies в $dest
+            // 1] Добавить все ключи из $dependencies в $dest
             // - Со значениями - пустыми массивами
             $dest[$key] = [];
 
-            // 4.2. Для каждого ключа применить $recursive
+            // 2] Для каждого ключа применить $recursive
             // - Но только если его dependencies не пустой массив
             if(count($value['dependencies']) != 0)
               $recursive($value['dependencies'], $dest[$key]);
@@ -225,15 +246,15 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
         };
 
-        // 5] Сформировать дерево
+        // 2.5. Сформировать дерево
         $recursive(json_decode($json, true)['dependencies'], $results);
 
-        // 6] Вернуть результаты
+        // 2.6. Вернуть результаты
         return $results;
 
       };
 
-      // 3. Написать функцию для полечения ветки дерева с указанным корнем
+      // 3. Написать функцию для получения ветки дерева с указанным корнем
       // - Она ищет в дереве узел с указанным значением.
       // - И возвращает поддерево (ветку) этого дерева с корнем в этом узле.
       // - Если ничего не находит, возвращает пустой массив.
@@ -295,7 +316,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
         // 4.5. Добавить в $results содержимое mains
         $results = $file['mains'];
 
-        // 4.n. Вернуть результаты
+        // 4.6. Вернуть результаты
         return $results;
 
       };
@@ -370,7 +391,207 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
       });
 
-      write2log($index_bower, []);
+      //  6. Написать функцию для получения полного дерева всех DLW-зависимостей
+      // - Каждый узел должен содержать только лишь имя bower-зависимости
+      $get_full_dlw_tree = function(){
+
+        // 6.1. Подготовить массив для результатов
+        $results = [];
+
+        // 6.2. Получить коллекцию всех установленных D,L,W-пакетов,
+        $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+          $query->whereIn('name',['D','L','W']);
+        })->get();
+
+        // 6.3. Написать рекурсивную функцию для формирования дерева
+        $recursive = function($packages, &$dest) USE (&$recursive) {
+
+          // Обойти все $dependencies
+          foreach($packages as $package) {
+
+            // 1] Получить коллекцию DLW-пакетов, от которой зависит $package
+            $dependencies = $package->packages->filter(function($pack){
+              return in_array($pack->packtypes->name, ['D','L','W']);
+            });
+
+            // 2] Добавить все id_inner из $packages в $dest
+            // - Со значениями - пустыми массивами
+            $dest[$package->id_inner] = [];
+
+            // 3] Для каждого ключа применить $recursive
+            // - Но только если его dependencies не пустой массив
+            if(!empty($dependencies) != 0)
+              $recursive($dependencies, $dest[$package->id_inner]);
+
+          }
+
+        };
+
+        // 6.4. Сформировать дерево
+        $recursive($packages, $results);
+
+        // 6.5. Вернуть результаты
+        return $results;
+
+      };
+
+      //  7. Написать функцию для извлечения mains указанного DLW-пакета
+      $get_dlw_mains = function($packname){
+
+        // 7.1. Подготовить массив для результатов
+        $results = [];
+
+        // 7.2. Проверить существование файла bower.json в DLW-пакете $package
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists('bower.json'))
+          throw new \Exception('Для DLW-пакета '.$packname.' не найден файл bower.json');
+
+        // 7.3. Получить содержимое mains.json в формате php-массива
+        $file = json_decode($this->storage->get('bower.json'), true);
+
+        // 7.4. Если в массиве $file нет ключей css или js, возбудить исключение
+        if(!array_key_exists('css', $file['mains']) || !array_key_exists('js', $file['mains']))
+          throw new \Exception('В файле bower.json пакета '.$packname.' нет необходимых ключей "css" или "js"');
+
+        // 7.5. Добавить в $results содержимое mains
+        $results = $file['mains'];
+
+        // 7.n. Вернуть результаты
+        return $results;
+
+      };
+
+      //  8. Написать функцию для получения списка bower-зависимостей указанного DLW-пакета
+      $get_dlw_bower_deps = function($packname) USE ($get_sub_tree, $get_flat_stack, $get_full_bower_tree) {
+
+        // 8.1. Подготовить массив для результатов
+        $results = [];
+
+        // 8.2. Проверить существование файла bower.json в DLW-пакете $package
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$this->storage->exists('bower.json'))
+          throw new \Exception('Для DLW-пакета '.$packname.' не найден файл bower.json');
+
+        // 8.3. Получить содержимое mains.json в формате php-массива
+        $file = json_decode($this->storage->get('bower.json'), true);
+
+        // 8.4. Если в массиве $file нет ключа dependencies, возбудить исключение
+        if(!array_key_exists('dependencies', $file))
+          throw new \Exception('В файле bower.json пакета '.$packname.' нет необходимого ключа "dependencies"');
+
+        // 8.5. Получить содержимое dependencies
+        $results = array_keys($file['dependencies']);
+
+        // 8.6. Вернуть результаты
+        return $results;
+
+      };
+
+      // 9. Написать функцию для проверки, находится ли bower-пакет X в ветке bower-пакета Y
+      $check_bower_packs_deps = function($pack_x, $pack_y) USE ($get_full_bower_tree, $get_sub_tree, $get_flat_stack) {
+
+        // 9.1. Получить полное дерево всех bower-зависимостей
+        $tree = $get_full_bower_tree();
+
+        // 9.2. Получить поддеревья для пакетов X/Y
+        $subtree_x = $get_sub_tree($tree, $pack_x);
+        $subtree_y = $get_sub_tree($tree, $pack_y);
+
+        // 9.3. Получить плоские стеки поддеревьев X/Y
+        $stack_x = $get_flat_stack($subtree_x);
+        $stack_y = $get_flat_stack($subtree_y);
+
+        // 9.4. Вернуть результат
+        return in_array($pack_x, $stack_y);
+
+      };
+
+      // 10. Составить индекс DLW-зависимостей
+      // - Для каждой зависимости д.б.: дерево (его ветка), плоский стек, mains и bowers
+      // - Массив-индекс должен выглядеть примерно так:
+      //
+      //    [
+      //      "<pack1>" => [
+      //        "tree"   => [
+      //          "<pack1>" => [
+      //            "<pack2>" => [
+      //              "<pack3>" => [],
+      //              "<pack4>" => [],
+      //            ],
+      //            "<pack5>" => []
+      //          ]
+      //        ],
+      //        "stack"  => [
+      //          "<pack4>",
+      //          "<pack3>",
+      //          "<pack2>",
+      //          "<pack5>",
+      //          "<pack1>"
+      //        ]
+      //        "mains"  => [
+      //          "css"  => [
+      //            "<path1>",
+      //            "<path2>"
+      //          ],
+      //          "js"   => [
+      //            "<path3>",
+      //            "<path4>"
+      //          ]
+      //        ],
+      //        "bowers" => [
+      //          "animate.css",
+      //          "headjs"
+      //        ]
+      //      ],
+      //      "<pack2>" => [...]
+      //    ]
+      //
+      $index_dlw = call_user_func(function() USE ($get_full_dlw_tree, $get_flat_stack, $get_sub_tree, $get_dlw_mains, $get_dlw_bower_deps) {
+
+        // 10.1. Подготовить массив для результатов
+        $results = [];
+
+        // 10.2. Получить полное дерево всех dlw-зависимостей
+        // - Каждый узел должен содрежать только имя bower-зависимости, и всё
+        $tree = $get_full_dlw_tree();
+
+        // 10.3. Получить полный плоский стек всех dlw-зависимостей
+        $stack = $get_flat_stack($tree);
+
+        // 10.4. Пробежаться по всему $stack
+        foreach($stack as $dep) {
+
+          // 1] Добавить пустой массив с ключём $dep в $results
+          $results[$dep] = [];
+
+          // 2] Добавить ключ tree и наполнить его
+          $results[$dep]['tree'] = $get_sub_tree($tree, $dep);
+
+          // 3] Добавить ключ stack и наполнить его
+          $results[$dep]['stack'] = $get_flat_stack($results[$dep]['tree']);
+
+          // 4] Добавить ключ mains и наполнить его
+          $results[$dep]['mains'] = $get_dlw_mains($dep);
+
+          // 5] Добавить ключ bowers и наполнить его
+          $results[$dep]['bowers'] = $get_dlw_bower_deps($dep);
+          
+        }
+
+        write2log($results, []);
+
+        // 10.n. Вернуть результаты
+        return $results;
+
+      });
+
+
+
+
 
 
 
