@@ -135,18 +135,76 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Составить индекс bower-зависимостей с дерево, плоским стеком и mains
      *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //-----------------------------------------------------------------------------------------------//
+    // Сформировать деревья и плоские стеки зависимостей для suf_blade_integrate и suf_watch_setting //
+    //-----------------------------------------------------------------------------------------------//
+    $res = call_user_func(function() { try {
 
+      // 1. Составить индекс bower-зависимостей
+      // - Для каждой зависимости д.б.: дерево (его ветка), плоский стек и mains
+      // - Массив-индекс должен выглядеть примерно так:
+      //
+      //    [
+      //      "<pack1>" => [
+      //        "tree"   => [
+      //          "<pack1>" => [
+      //            "<pack2>" => [
+      //              "<pack3>" => [],
+      //              "<pack4>" => [],
+      //            ],
+      //            "<pack5>" => []
+      //          ]
+      //        ],
+      //        "stack"  => [
+      //          "<pack4>",
+      //          "<pack3>",
+      //          "<pack2>",
+      //          "<pack5>",
+      //          "<pack1>"
+      //        ]
+      //        "mains"  => [
+      //          "css"  => [
+      //            "<path1>",
+      //            "<path2>"
+      //          ],
+      //          "js"   => [
+      //            "<path3>",
+      //            "<path4>"
+      //          ]
+      //        ]
+      //      ]
+      //    ]
+      //
+      $index_bower = call_user_func(function(){
+
+        // 1.1.
+
+        // 1.1. Получить информацию обо всём дереве bower-зависимостей
+        $bowerdeps = call_user_func(function(){
+
+          // 1] Сформировать команду
+          $cmd = "cd ".base_path()." && bower -j --allow-root list";
+
+          // 2] Получить информацию в формате json
+          $json = shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
+
+          // 3] Вернуть зависимости
+          return json_decode($json, true)['dependencies'];
+
+        });
+
+        // 1.2. Составить полное дерево bower-зависимостей
+
+
+
+      });
 
 
 
@@ -181,7 +239,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
       // - Значение: массив с 3-мя значениями "tree"/ "stack"/ "mains".
       //     tree: содержит ветку с корнем в этом bower-пакете.
       //     stack: содержит плоский стек ветки tree.
-      //     mains: содержит 2 массива css/js с путями к cs/css файлам пакета.
+      //     mains: содержит 2 массива css/js с путями к css/js файлам пакета.
 
 
       // ------------ dlw ------------
@@ -236,7 +294,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C44_suf_get_deptrees from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
