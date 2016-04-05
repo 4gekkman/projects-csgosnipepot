@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Auto fill mains.json of bower packs by data from main from bower.json of pack, if mains of pack is totally empty
+ *    - Integrate css/js paths from suf_get_deptrees to blade-docs of D-packs between corresponding marks
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C45_suf_bower_automain extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C46_suf_blade_integrate extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -142,143 +142,112 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
      *
      */
 
-    //--------------------------------------------------------------------------------------------------------------------------//
-    // Авто-ки заполнить mains.json bower-пакетов данными из main из bower.json соотв.пакетов, если mains пакета полностью пуст //
-    //--------------------------------------------------------------------------------------------------------------------------//
+    //-----------------------------------------------------------------------------------------------//
+    // Интегрировать css/js пути из suf_get_deptrees в blade-документы D-пакетов между соотв.метками //
+    //-----------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить свежие сведения
-      // - Список имён всех установленных bower-пакетов приложения
-      // - Список имён bower-пакетов, для которых есть навигац-ые данные в R5
-      // - Список имён bower-пакетов, для которых нет навигац-ых данных в R5
-      $info = runcommand('\M1\Commands\C41_suf_check_deps');
-      if($info['status'] != 0) {
-        Log::info('Error: '.$info['data']);
-        write2log('Error: '.$info['data']);
+      // 1. Получить индекс со всеми css/js зависимостями для всех D-пакетов
+      $index = runcommand('\M1\Commands\C44_suf_get_deptrees');
+      if($index['status'] != 0) {
+        Log::info('Error: '.$index['data']);
+        write2log('Error: '.$index['data']);
       }
-      $bowerpacks         = $info['data']['bowerpacks'];
-      $r5data4bowerpacks  = $info['data']['r5data4bowerpacks'];
-      $diff               = $info['data']['diff'];
+      $index = $index['data'];
 
-      // 2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
-      collect($r5data4bowerpacks)->each(function($packname) {
+      // 2. Получить массив ID всех D-пакетов
+      $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+        $query->whereIn('name',['D']);
+      })->pluck('id_inner');
 
-        // 2.1. Получить содержимое mains.json пакета $packname в виде массива
-        $mains = call_user_func(function() USE ($packname) {
+      // 3. Обойти все D-пакеты из $packages
+      foreach($packages as $package) {
 
-          // 1] Проверить существование файла mains.json в для bower-пакета $package
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
-          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-          if(!$this->storage->exists('mains.json'))
-            throw new \Exception('Для bower-пакета '.$packname.' не найден файл mains.json в R5');
+        // 3.1. Сформировать строку для вставки CSS для $package
+        $css = call_user_func(function() USE ($index, $package) {
 
-          // 2] Получить содержимое mains.json в формате php-массива
-          $file = json_decode($this->storage->get('mains.json'), true);
+          // 1] Подготовить строку для результата
+          $result = "<!-- document css: start -->" . PHP_EOL;
 
-          // 3] Если в массиве $file нет ключей css или js, возбудить исключение
-          if(!array_key_exists('css', $file['mains']) || !array_key_exists('js', $file['mains']))
-            throw new \Exception('В файле mains.json пакета '.$packname.' в R5 нет необходимых ключей "css" или "js"');
+          // 2] Добавить пути к CSS-файлам
+          collect($index[$package]['css'])->each(function($path) USE (&$result, $package) {
 
-          // 4] Вернуть результат
-          return $file;
+            // 1] Добавить пробелы
+            $result = $result . '  ';
 
-        });
+            // 2] Добавить путь
+            $result = $result . '<link rel="stylesheet" type="text/css" href="' . asset($path) . '">';
 
-        // 2.2. Если массивы $mains['mains']['css'] и $mains['mains']['js'] не пусты, перейти к след.итерации
-        if(count($mains['mains']['css']) !== 0 || count($mains['mains']['js']) !== 0) return;
-
-        // 2.3. Получить содержимое main bower-пакета $packname в виде массива
-        // - Если, конечно, bower.json пакета и поле main в нём присутствуют
-        $mains_from_bowerjson = call_user_func(function() USE ($packname) {
-
-          // 1] Проверить существование файла bower.json в bower-пакете $package
-          // - Если он не существует, вернуть пустой массив
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('public/public/bower/'.$packname)]);
-          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-          if(!$this->storage->exists('bower.json')) return [];
-
-          // 2] Получить содержимое bower.json в формате php-массива
-          $file = json_decode($this->storage->get('bower.json'), true);
-
-          // 3] Если в $file отсутствует поле main, вернуть пустой массив
-
-            // 3.1] Проверить
-            if(!array_key_exists('main', $file)) return [];
-
-            // 3.2] Сообщить о том, что для $packname идёт автовставка mains
-            $msg = "У bower-пакета ".$packname." в R5 в mains.json пусты массивы с css/js, команда C45_suf_bower_automain проводит автовставку данных из bower.json пакета...";
-            write2log($msg, []);
-            \Log::info($msg, []);
-
-          // 4] Извлечь из $file все пути, заканчивающиеся на .css
-          $main_css = call_user_func(function() USE ($file, $packname) {
-
-            // 4.1] Подготовить массив для результатов
-            $results = [];
-
-            // 4.2] Пробежаться по $file['main']
-            foreach($file['main'] as $path) {
-              if(preg_match("/^.*\.css$/ui", $path) !== 0 && !in_array($path, $results))
-                array_push($results, "public/public/bower/" . $packname . "/" . $path);
-            }
-
-            // 4.n] Вернуть результаты
-            return $results;
+            // 3] Добавить перенос строки
+            $result = $result . PHP_EOL;
 
           });
 
-          // 5] Извлечь из $file все пути, заканчивающиеся на .js
-          $main_js = call_user_func(function() USE ($file, $packname) {
+          // 3] Финальные штрихи для $result
+          $result = $result . "  <!-- document css: stop -->";
 
-            // 5.1] Подготовить массив для результатов
-            $results = [];
-
-            // 5.2] Пробежаться по $file['main']
-            foreach($file['main'] as $path) {
-              if(preg_match("/^.*\.js$/ui", $path) !== 0 && !in_array($path, $results))
-                array_push($results, "public/public/bower/" . $packname . "/" . $path);
-            }
-
-            // 5.n] Вернуть результаты
-            return $results;
-
-          });
-
-          // 6] Вернуть результаты
-          return [
-            "css" => $main_css,
-            "js"  => $main_js
-          ];
+          // 4] Вернуть $result
+          return $result;
 
         });
 
-        // 2.4. Если в $mains_from_bowerjson пусто
-        if(count($mains_from_bowerjson['css']) == 0 && count($mains_from_bowerjson['js']) == 0) {
-          $msg = "У bower-пакета ".$packname." в R5 в mains.json пусты массивы с css/js, команда C45_suf_bower_automain проводит автовставку данных из bower.json пакета... но данные не обнаружены, либо bower.json отсутствует у пакета, либо в нём нет поля main, либо в поле main нет путей к css/js файлам.";
-          write2log($msg, []);
-          \Log::info($msg, []);
-        }
+        // 3.2. Сформировать строку для вставки JS для $package
+        $js = call_user_func(function() USE ($index, $package) {
 
-        // 2.5. Записать в $mains данные из $mains_from_bowerjson
-        $mains['mains']['css'] = $mains_from_bowerjson['css'];
-        $mains['mains']['js'] = $mains_from_bowerjson['js'];
+          // 1] Подготовить строку для результата
+          $result = "<!-- document js: start -->" . PHP_EOL;
 
-        // 2.6. Заменить $mains для $packname
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('mains.json', json_encode($mains, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+          // 2] Добавить пути к CSS-файлам
+          collect($index[$package]['js'])->each(function($path) USE (&$result, $package) {
 
-      });
+            // 1] Добавить пробелы
+            $result = $result . '  ';
+
+            // 2] Добавить путь
+            $result = $result . '<script src="' . asset($path) . '"></script>';
+
+            // 3] Добавить перенос строки
+            $result = $result . PHP_EOL;
+
+          });
+
+          // 3] Финальные штрихи для $result
+          $result = $result . "  <!-- document js: stop -->";
+
+          // 4] Вернуть $result
+          return $result;
+
+        });
+
+        // 3.3. Вставить $css и $js в blade-документ D-пакета $package
+
+          // 1] Проверить существование файла view.blade.php в $package
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package)]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+          if(!$this->storage->exists('view.blade.php'))
+            throw new \Exception('В пакете '.$package.' не найден файл view.blade.php');
+
+          // 2] Получить содержимое view.blade.php
+          $file = $this->storage->get('view.blade.php');
+
+          // 3] Вставить $css в $file
+          $file = preg_replace("#<!-- document css: start -->.*<!-- document css: stop -->#smuiU", $css, $file);
+
+          // 4] Вставить $js в $file
+          $file = preg_replace("#<!-- document js: start -->.*<!-- document js: stop -->#smuiU", $js, $file);
+
+          // 5] Заменить $file
+          $this->storage->put('view.blade.php', $file);
+
+      }
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C45_suf_bower_automain from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C46_suf_blade_integrate from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C45_suf_bower_automain']);
+        write2log($errortext, ['M1', 'C46_suf_blade_integrate']);
         return [
           "status"  => -2,
           "data"    => $errortext

@@ -22,7 +22,9 @@
 <!-------------------*/ ?>
 @section('css')
 
-  <link rel="stylesheet" type="text/css" href="{{ asset(json_decode($data, true)['packid'].'/c.min.css') }}">
+  <!-- document css: start -->
+
+  <!-- document css: stop -->
 
 @stop
 
@@ -72,7 +74,10 @@
   <?php /*------------------------------------>
   <!-- 4.2. Подключение JS этого документа  -->
   <!--------------------------------------*/ ?>
-    <script src="{{ asset(json_decode($data, true)['packid'].'/j.min.js') }}"></script>
+
+  <!-- document js: start -->
+
+  <!-- document js: stop -->
 
 
 @stop
