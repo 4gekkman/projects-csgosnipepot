@@ -147,6 +147,9 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
      *  9. Написать функцию для проверки, находится ли bower-пакет X в ветке bower-пакета Y
      *  10. Составить индекс DLW-зависимостей
      *
+     *  11. Сформировать итоговый css/js индекс для всех D-пакетов
+     *  12. Сформировать и вернуть ответ с итоговым css/js индексом
+     *
      *  N. Вернуть статус 0
      *
      */
@@ -216,7 +219,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
       // 2. Написать функцию для получения полного дерева всех bower-зависимостей
       // - Каждый узел должен содержать только лишь имя bower-зависимости
-      $get_full_bower_tree = function(){
+      $get_full_bower_tree = call_user_func(function(){
 
         // 2.1. Подготовить массив для результатов
         $results = [];
@@ -252,7 +255,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
         // 2.6. Вернуть результаты
         return $results;
 
-      };
+      });
 
       // 3. Написать функцию для получения ветки дерева с указанным корнем
       // - Она ищет в дереве узел с указанным значением.
@@ -364,7 +367,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
         // 5.2. Получить полное дерево всех bower-зависимостей
         // - Каждый узел должен содрежать только имя bower-зависимости, и всё
-        $tree = $get_full_bower_tree();
+        $tree = $get_full_bower_tree;
 
         // 5.3. Получить полный плоский стек всех bower-зависимостей
         $stack = $get_flat_stack($tree);
@@ -494,18 +497,18 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
       // 9. Написать функцию для проверки, находится ли bower-пакет X в ветке bower-пакета Y
       $check_bower_packs_deps = function($pack_x, $pack_y) USE ($get_full_bower_tree, $get_sub_tree, $get_flat_stack) {
 
-        // 9.1. Получить полное дерево всех bower-зависимостей
-        $tree = $get_full_bower_tree();
+        // 9.1. Получить полное дерево bower-зависимостей
+        $tree = $get_full_bower_tree;
 
-        // 9.2. Получить поддеревья для пакетов X/Y
+        // 9.1. Получить поддеревья для пакетов X/Y
         $subtree_x = $get_sub_tree($tree, $pack_x);
         $subtree_y = $get_sub_tree($tree, $pack_y);
 
-        // 9.3. Получить плоские стеки поддеревьев X/Y
+        // 9.2. Получить плоские стеки поддеревьев X/Y
         $stack_x = $get_flat_stack($subtree_x);
         $stack_y = $get_flat_stack($subtree_y);
 
-        // 9.4. Вернуть результат
+        // 9.3. Вернуть результат
         return in_array($pack_x, $stack_y);
 
       };
@@ -579,105 +582,259 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
           // 5] Добавить ключ bowers и наполнить его
           $results[$dep]['bowers'] = $get_dlw_bower_deps($dep);
-          
+
         }
 
-        write2log($results, []);
-
-        // 10.n. Вернуть результаты
+        // 10.5. Вернуть результаты
         return $results;
 
       });
 
+      // 11. Сформировать итоговый css/js индекс для всех D-пакетов
+      // - Он содержит итоговые массивы css/js для вставки в blade-документы D-пакетов.
+      // - В каком порядке пути в массивах идут, в таком и надо вставлять их в документ.
+      // - Массив-индекс должен выглядеть примерно так:
+      //
+      //    [
+      //      "<D-pack1>" => [
+      //        "css"   => [
+      //          "some/path/to/file.css",
+      //          "some/path/to/file.css"
+      //        ],
+      //        "js"  => [
+      //          "some/path/to/file.js",
+      //          "some/path/to/file.js"
+      //        ]
+      //      ],
+      //      "<D-pack2>" => [...]
+      //    ]
+      //
+      $index_final = call_user_func(function() USE ($index_dlw, $check_bower_packs_deps, $get_full_bower_tree, $index_bower, $get_flat_stack) {
 
+        // 11.1. Подготовить массив для результатов
+        $results = [];
 
+        // 11.2. Получить массив ID всех D-пакетов
+        $dpacks = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+          $query->whereIn('name',['D']);
+        })->pluck('id_inner');
 
+        // 11.3. Получить итоговый индекс css/js путей для bower-зависимостей D-пакетов
+        $index_dpacks_bower = call_user_func(function() USE ($index_dlw, $check_bower_packs_deps, $get_full_bower_tree, $index_bower, $get_flat_stack, $dpacks){
 
+          // 1] Подготовить массив для результатов
+          $results = [];
 
+          // 2] Пробежаться по всем $dpacks
+          foreach($dpacks as $dpack) {
 
+            // 2.1] Извлечь stack этого D-пакета
+            $stack = $index_dlw[$dpack]['stack'];
 
+            // 2.2] Получить все bower-зависимости из $stack без повторов
+            $allbowers = call_user_func(function() USE ($stack, $index_dlw, $get_full_bower_tree) {
 
+              // 1) Подготовить массив для результата
+              $results = [];
 
-      // ------------ bower ------------
+              // 2) Пробежаться по всем $stack
+              foreach($stack as $dep) {
 
-      // --- Как составить дерево bower-зависимостей ---
-      // - Код для получения json с информацией обо всём дереве:
-      //    $cmd = "cd ".base_path()." && bower -j --allow-root list";
-      //    $json = shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
-      // - Надо пробежатсья по всем зависимостям рекурсивно, смотреть dependencies.
-      // - В итоге: массив-дерево имён bower-пакетов.
+                // 2.1) Извлечь bowers для $dep
+                $bowers = $index_dlw[$dep]['bowers'];
 
-      // --- Как получить плоский стек bower-зависимостей ---
-      // - Каждой зависимости присваиваем индекс глубины (начинается с 1, и чем глубже, тем выше).
-      // - Зависимостс с бОльшим индексом подключаются раньше зависимостей с мЕньшим.
-      // - Зависимости на одном уровне могут подключатсья в произвольном порядке.
-      // - Все дубли сливаются в один с наибольшим среди них индексом.
+                // 2.2) Добавить в $results те $bowers, которых там ещё нет
+                foreach($bowers as $bower) {
+                  if(!in_array($bower, $results))
+                    array_push($results, $bower);
+                }
 
-      // --- Где брать paths для css и js для каждой из bower-зависимостей
-      // - Для bower-пакета <name> искать их в R5/data4bower/<name>/mains.json
-      // - В mains -> css лежит массив с путями (в нужном порядке) к css-файлам пакета.
-      // - В mains -> js лежит массив с путями (в нужном порядке) к js-файлам пакета.
+              }
 
-      // --- Составление индекса с деревом, плоским стеком и mains
-      // - Необходимо создать следующий массив-индекс.
-      // - Ключ: имя каждого bower-пакета из дерева bower-зависимостей.
-      // - Значение: массив с 3-мя значениями "tree"/ "stack"/ "mains".
-      //     tree: содержит ветку с корнем в этом bower-пакете.
-      //     stack: содержит плоский стек ветки tree.
-      //     mains: содержит 2 массива css/js с путями к css/js файлам пакета.
+              // n) Вернуть результат
+              return $results;
 
+            });
 
-      // ------------ dlw ------------
+            // 2.3] Получить массив лишь "независимых" bowers
+            // - Каждое значение проверить на независимость с помощью $check_bower_packs_deps
+            $independent_bowers = collect($allbowers)->filter(function($value) USE ($allbowers, $check_bower_packs_deps, $get_full_bower_tree) {
 
-      // --- Как составить дерево DLW-зависимостей
-      // - С помощью базы данных M1.
+              // 2.3.1] Произвести проверку на независимость
+              // - Но только, если $bower !== $value
+              foreach($allbowers as $bower)
+                if($bower !== $value && $check_bower_packs_deps($value, $bower)) return false;
 
-      // --- Как получить плоский стек DLW-зависимостей
-      // - Точно также, как для bower-зависимостей.
+              // 2.3.2] Вернуть true (значение независимо, если курсор дошёл сюда)
+              return true;
 
-      // --- Где брать paths для css и js для каждой из DLW-зависимостей
-      // - Для DLW-пакета <name> искать их в vendor/4gekkman/<name>/bower.json
-      // - В mains -> css лежит массив с путями (в нужном порядке) к css-файлам пакета.
-      // - В mains -> js лежит массив с путями (в нужном порядке) к js-файлам пакета.
+            })->toArray();
 
-      // --- Составление индекса с деревом, плоским стеком и mains
-      // - Необходимо создать следующий массив-индекс.
-      // - Ключ: имя каждого dlw-пакета из дерева dlw-зависимостей.
-      // - Значение: массив с 4-мя значениями "tree"/ "stack"/ "mains".
-      //     tree: содержит ветку с корнем в этом dlw-пакете.
-      //     stack: содержит плоский стек ветки tree.
-      //     mains: содержит 2 массива css/js с путями к cs/css файлам пакета.
-      //     bowers: содержит список bower-зависимостей этого dlw-пакета
+            // 2.4] Сформировать из $independent_bowers дерево
+            $independent_tree = call_user_func(function() USE ($independent_bowers, $index_bower){
 
+              // 1) Подготовить массив для результата
+              $results = [];
 
+              // 2) Пробежаться по $independent_bowers
+              foreach($independent_bowers as $ib) {
+                $results[$ib] = $index_bower[$ib]['tree'][$ib];
+              }
 
+              // n) Вернуть результат
+              return $results;
 
-      // ------------ dlw + bower ------------
+            });
 
-      // --- Каков будет взаимный порядок подключения к blade dlw/bower пакетов
-      // - Сначала будет подключаться полностью весь стек bower-пакетов.
-      // - А затем будет подключаться полностью весь стек dlw-пакетов.
+            // 2.5] Получить плоский стек из $independent_bowers
+            $independent_stack = $get_flat_stack($independent_tree);
 
-      // --- Как будет получаться итоговый стек bower-пакетов
-      // - Будет получен полный список без повторов bower-пакетов, от которых
-      //   зависит указанное дерево DLW-пакетов.
-      // - Нам понадобится функция, проверяющая, состоит ли указанный bower-пакет
-      //   в дереве другого указанного bower-пакета.
-      // - С помощью этой функции будет проверен каждый bower-пакет-зависимость
-      //   дерева DLW-пакетов, относительно каждого из этого же дерева.
-      // - Будет найден список bower-пакетов, которые не состоят ни в одном из
-      //   деревьев других bower-пакетов, то есть являются в данной конфигурации
-      //   корнями своих собственных деревьев.
-      // - Далее с помощью ранее составленного индекса, для каждого bower-пакета,
-      //   являющегося корнем, мы получим плоский стек bower-зависимостей.
-      // - И добавляем эти плоские стеки от разных корней в итоговый плоский стек
-      //   в любом порядке.
+            // 2.6] Сформировать итоговые css/js списки для D-пакета dpack
+            // - И добавить эту информации в $results
+            $results[$dpack] = call_user_func(function() USE ($independent_stack, $index_bower) {
 
-      // --- Как будет получаться итоговый стек DLW-пакетов
-      // - С помощью ранее составленного индекса берём и получаем плоский стек
-      //   DLW-пакетов для нужного D-пакета. Всё.
+              // 1) Подготовить массив для результата
+              $results = [
+                "css" => [],
+                "js"  => []
+              ];
 
+              // 2) Пробежаться по всем пакетам в $independent_stack
+              foreach($independent_stack as $bower) {
 
+                // 2.1) Добавить все css-ки в $results['css'] из $index_bower
+                foreach($index_bower[$bower]['mains']['css'] as $css) {
+                  if(!empty($css))
+                    array_push($results['css'], $css);
+                }
+
+                // 2.2) Добавить все js-ки в $results['js'] из $index_bower
+                foreach($index_bower[$bower]['mains']['js'] as $js) {
+                  if(!empty($js))
+                    array_push($results['js'], $js);
+                }
+
+              }
+
+              // 3) Вернуть результат
+              return $results;
+
+            });
+
+          }
+
+          // 3] Вернуть результаты
+          return $results;
+
+        });
+
+        // 11.4. Получить итоговый индекс css/js путей для DLW-зависимостей D-пакетов
+        $index_dpacks_dlw = call_user_func(function() USE ($index_dlw, $check_bower_packs_deps, $get_full_bower_tree, $index_bower, $get_flat_stack, $dpacks){
+
+          // 1] Подготовить массив для результатов
+          $results = [];
+
+          // 2] Пробежаться по всем $dpacks
+          // - И сформировать итоговые css/js списки для D-пакета dpack
+          // - И добавить эту информации в $results
+          foreach($dpacks as $dpack) {
+            $results[$dpack] = call_user_func(function() USE ($index_dlw, $dpack) {
+
+              // 1) Подготовить массив для результата
+              $results = [
+                "css" => [],
+                "js"  => []
+              ];
+
+              // 2) Получить плоский стек DLW-зависимостей $dpack
+              $stack = $index_dlw[$dpack]['stack'];
+
+              // 3) Обойти весь $stack с начала до конца
+              foreach($stack as $dep) {
+
+                // 3.1) Добавить все css-ки в $results['css'] из $index_bower
+                foreach($index_dlw[$dep]['mains']['css'] as $css) {
+                  if(!empty($css))
+                    array_push($results['css'], $css);
+                }
+
+                // 3.2) Добавить все js-ки в $results['js'] из $index_bower
+                foreach($index_dlw[$dep]['mains']['js'] as $js) {
+                  if(!empty($js))
+                    array_push($results['js'], $js);
+                }
+
+              }
+
+              // n) Вернуть результат
+              return $results;
+
+            });
+          }
+
+          // 3] Вернуть результат
+          return $results;
+
+        });
+
+        // 11.5. Объединить итоговые bower- и dlw-индексы в единый индекс
+        $index_dpacks_dlw = call_user_func(function() USE ($index_dpacks_bower, $index_dpacks_dlw){
+
+          // 1] Подготовить массив для результата
+          $results = [];
+
+          // 2] Получить массив ID всех D-пакетов
+          $dpacks = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+            $query->whereIn('name',['D']);
+          })->pluck('id_inner');
+
+          // 3] Сформировать единый индекс
+          foreach($dpacks as $dpack) {
+
+            // 3.1. Подготовить массивы для результатов
+            $results[$dpack] = [
+              "css" => [],
+              "js"  => []
+            ];
+
+            // 3.2. Сначала добавить данные из $index_dpacks_bower
+
+              // 3.2.1. Добавить css
+              foreach($index_dpacks_bower[$dpack]['css'] as $css)
+                array_push($results[$dpack]['css'], $css);
+
+              // 3.2.2. Добавить js
+              foreach($index_dpacks_bower[$dpack]['js'] as $js)
+                array_push($results[$dpack]['js'], $js);
+
+            // 3.3. Теперь добавить данные из $index_dpacks_dlw
+
+              // 3.3.1. Добавить css
+              foreach($index_dpacks_dlw[$dpack]['css'] as $css)
+                array_push($results[$dpack]['css'], $css);
+
+              // 3.3.2. Добавить js
+              foreach($index_dpacks_dlw[$dpack]['js'] as $js)
+                array_push($results[$dpack]['js'], $js);
+
+          }
+
+          // 4] Вернуть результат
+          return $results;
+
+        });
+
+        // 11.6. Вернуть результаты
+        $results = $index_dpacks_dlw;
+        return $results;
+
+      });
+
+      // 12. Сформировать и вернуть ответ с итоговым css/js индексом
+      return [
+        "status"  => 0,
+        "data"    => $index_final
+      ];
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C44_suf_get_deptrees from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
