@@ -833,7 +833,10 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
       // 12. Сформировать и вернуть ответ с итоговым css/js индексом
       return [
         "status"  => 0,
-        "data"    => $index_final
+        "data"    => [
+          "index_final" => $index_final,
+          "index_dlw"   => $index_dlw
+        ]
       ];
 
     } catch(\Exception $e) {

@@ -131,7 +131,8 @@
           '\M1\Console\T21_suf_dlw_process',
           '\M1\Console\T22_suf_get_deptrees',
           '\M1\Console\T23_suf_bower_automain',
-          '\M1\Console\T24_suf_blade_integrate'
+          '\M1\Console\T24_suf_blade_integrate',
+          '\M1\Console\T25_suf_watch_setting'
         ];
 
         // Регистрация команд в методе register

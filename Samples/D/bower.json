@@ -3,10 +3,10 @@
   "dependencies": {},
   "mains": {
     "css": [
-			"public/public/D1/css/c.css"
+			"public/D1/css/c.css"
 		],
     "js": [
-			"public/public/D1/js/j.js"
+			"public/D1/js/j.js"
 		]
   }
 }

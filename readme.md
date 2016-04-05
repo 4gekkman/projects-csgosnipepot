@@ -1532,6 +1532,7 @@
     suf_get_deptrees        m1:suf_get_deptrees         This command forms dependencies trees for suf_blade_integrate and suf_watch_setting
     suf_bower_automain      m1:suf_bower_automain       Auto fill mains.json of bower packs by data from main from bower.json of pack, if mains of pack is totally empty
     suf_blade_integrate     m1:suf_blade_integrate      Integrate css/js paths from suf_get_deptrees to blade-docs of D-packs between corresponding marks
+    suf_watch_setting       m1:suf_watch_setting        Setting gulpfile.js of D-packs - past between marks sources and dests to watch
 
   # Обработчики событий #
   #---------------------#

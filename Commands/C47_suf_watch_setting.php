@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Auto fill mains.json of bower packs by data from main from bower.json of pack, if mains of pack is totally empty
+ *    - Setting gulpfile.js of D-packs - past between marks sources and dests to watch
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C45_suf_bower_automain extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C47_suf_watch_setting extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,150 +135,197 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
     /**
      * Оглавление
      *
-     *  1. Получить свежие сведения
-     *  2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------------------------------------------------------------------------------------------//
-    // Авто-ки заполнить mains.json bower-пакетов данными из main из bower.json соотв.пакетов, если mains пакета полностью пуст //
-    //--------------------------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------------//
+    // Настроить для каждого D-пакета gulpfile.js, разместив между спец.маркерами пути к каталогам sources и dest //
+    //------------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить свежие сведения
-      // - Список имён всех установленных bower-пакетов приложения
-      // - Список имён bower-пакетов, для которых есть навигац-ые данные в R5
-      // - Список имён bower-пакетов, для которых нет навигац-ых данных в R5
-      $info = runcommand('\M1\Commands\C41_suf_check_deps');
-      if($info['status'] != 0) {
-        Log::info('Error: '.$info['data']);
-        write2log('Error: '.$info['data']);
+      // 1. Получить массив ID всех D-пакетов
+      $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+        $query->whereIn('name',['D']);
+      })->pluck('id_inner');
+
+      // 2. Получить dlw-индекс с помощью C44_suf_get_deptrees
+      $index = runcommand('\M1\Commands\C44_suf_get_deptrees');
+      if($index['status'] != 0) {
+        Log::info('Error: '.$index['data']);
+        write2log('Error: '.$index['data']);
       }
-      $bowerpacks         = $info['data']['bowerpacks'];
-      $r5data4bowerpacks  = $info['data']['r5data4bowerpacks'];
-      $diff               = $info['data']['diff'];
+      $index = $index['data']['index_dlw'];
 
-      // 2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
-      collect($r5data4bowerpacks)->each(function($packname) {
+      // 3. Обойти все D-пакеты из $packages
+      foreach($packages as $package) {
 
-        // 2.1. Получить содержимое mains.json пакета $packname в виде массива
-        $mains = call_user_func(function() USE ($packname) {
+        // 3.1. Получить плоский стек зависимостей D-пакета $package
+        $stack = $index[$package]['stack'];
 
-          // 1] Проверить существование файла mains.json в для bower-пакета $package
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
-          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-          if(!$this->storage->exists('mains.json'))
-            throw new \Exception('Для bower-пакета '.$packname.' не найден файл mains.json в R5');
+        // 3.2. Сформировать строку с sources для вставки в gulpfile.js пакета $package
+        $sources = call_user_func(function() USE ($stack, $package) {
 
-          // 2] Получить содержимое mains.json в формате php-массива
-          $file = json_decode($this->storage->get('mains.json'), true);
+          // 0] Подготовить строку для результата
+          $result = "// sources: start" . PHP_EOL;
 
-          // 3] Если в массиве $file нет ключей css или js, возбудить исключение
-          if(!array_key_exists('css', $file['mains']) || !array_key_exists('js', $file['mains']))
-            throw new \Exception('В файле mains.json пакета '.$packname.' в R5 нет необходимых ключей "css" или "js"');
+          // 1] Добавить пути к исходникам типа styles
+          call_user_func(function() USE (&$result, $package, $stack) {
 
-          // 4] Вернуть результат
-          return $file;
+            // 1.1] Начать массив sources["styles"]
+            $result = $result . '    ' . 'sources["styles"] = [';
 
-        });
+            // 1.2] Добавить путь к public пакетов из $stack с их исходными фронтенд-ресурсами
+            collect($stack)->each(function($inner_id) USE (&$result, $package) {
+              $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/Public/css/**/*.*", ';
+            });
 
-        // 2.2. Если массивы $mains['mains']['css'] и $mains['mains']['js'] не пусты, перейти к след.итерации
-        if(count($mains['mains']['css']) !== 0 || count($mains['mains']['js']) !== 0) return;
-
-        // 2.3. Получить содержимое main bower-пакета $packname в виде массива
-        // - Если, конечно, bower.json пакета и поле main в нём присутствуют
-        $mains_from_bowerjson = call_user_func(function() USE ($packname) {
-
-          // 1] Проверить существование файла bower.json в bower-пакете $package
-          // - Если он не существует, вернуть пустой массив
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('public/public/bower/'.$packname)]);
-          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-          if(!$this->storage->exists('bower.json')) return [];
-
-          // 2] Получить содержимое bower.json в формате php-массива
-          $file = json_decode($this->storage->get('bower.json'), true);
-
-          // 3] Если в $file отсутствует поле main, вернуть пустой массив
-
-            // 3.1] Проверить
-            if(!array_key_exists('main', $file)) return [];
-
-            // 3.2] Сообщить о том, что для $packname идёт автовставка mains
-            $msg = "У bower-пакета ".$packname." в R5 в mains.json пусты массивы с css/js, команда C45_suf_bower_automain проводит автовставку данных из bower.json пакета...";
-            write2log($msg, []);
-            \Log::info($msg, []);
-
-          // 4] Извлечь из $file все пути, заканчивающиеся на .css
-          $main_css = call_user_func(function() USE ($file, $packname) {
-
-            // 4.1] Подготовить массив для результатов
-            $results = [];
-
-            // 4.2] Пробежаться по $file['main']
-            foreach($file['main'] as $path) {
-              if(preg_match("/^.*\.css$/ui", $path) !== 0 && !in_array($path, $results))
-                array_push($results, "public/bower/" . $packname . "/" . $path);
-            }
-
-            // 4.n] Вернуть результаты
-            return $results;
+            // 1.n] Завершить массив sources["styles"]
+            $result = $result . PHP_EOL . '    ' . '];' . PHP_EOL;
 
           });
 
-          // 5] Извлечь из $file все пути, заканчивающиеся на .js
-          $main_js = call_user_func(function() USE ($file, $packname) {
+          // 2] Добавить пути к исходникам типа javascript
+          call_user_func(function() USE (&$result, $package, $stack) {
 
-            // 5.1] Подготовить массив для результатов
-            $results = [];
+            // 2.1] Начать массив sources["javascript"]
+            $result = $result . '    ' . 'sources["javascript"] = [';
 
-            // 5.2] Пробежаться по $file['main']
-            foreach($file['main'] as $path) {
-              if(preg_match("/^.*\.js$/ui", $path) !== 0 && !in_array($path, $results))
-                array_push($results, "public/bower/" . $packname . "/" . $path);
-            }
+            // 2.2] Добавить путь к public пакетов из $stack с их исходными фронтенд-ресурсами
+            collect($stack)->each(function($inner_id) USE (&$result, $package) {
+              $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/Public/js/**/*.*", ';
+            });
 
-            // 5.n] Вернуть результаты
-            return $results;
+            // 2.n] Завершить массив sources["javascript"]
+            $result = $result . PHP_EOL . '    ' . '];' . PHP_EOL;
 
           });
 
-          // 6] Вернуть результаты
-          return [
-            "css" => $main_css,
-            "js"  => $main_js
-          ];
+          // 3] Добавить пути к исходникам типа assets
+          call_user_func(function() USE (&$result, $package, $stack) {
+
+            // 3.1] Начать массив sources["assets"]
+            $result = $result . '    ' . 'sources["assets"] = [';
+
+            // 3.2] Добавить путь к public пакетов из $stack с их исходными фронтенд-ресурсами
+            collect($stack)->each(function($inner_id) USE (&$result, $package) {
+              $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/Public/assets/**/*.*", ';
+            });
+
+            // 3.n] Завершить массив sources["javascript"]
+            $result = $result . PHP_EOL . '    ' . '];';
+
+          });
+
+          // 4] Добавить перенос строки в конце
+          $result = $result . PHP_EOL;
+
+          // 5] Финальные штрихи для $result
+          $result = $result . "    // sources: end";
+
+          // 6] Вернуть $result
+          return $result;
 
         });
 
-        // 2.4. Если в $mains_from_bowerjson пусто
-        if(count($mains_from_bowerjson['css']) == 0 && count($mains_from_bowerjson['js']) == 0) {
-          $msg = "У bower-пакета ".$packname." в R5 в mains.json пусты массивы с css/js, команда C45_suf_bower_automain проводит автовставку данных из bower.json пакета... но данные не обнаружены, либо bower.json отсутствует у пакета, либо в нём нет поля main, либо в поле main нет путей к css/js файлам.";
-          write2log($msg, []);
-          \Log::info($msg, []);
-        }
+        // 3.3. Сформировать строку с dests для вставки в gulpfile.js пакета $package
+        $dests = call_user_func(function() USE ($stack, $package) {
 
-        // 2.5. Записать в $mains данные из $mains_from_bowerjson
-        $mains['mains']['css'] = $mains_from_bowerjson['css'];
-        $mains['mains']['js'] = $mains_from_bowerjson['js'];
+          // 0] Подготовить строку для результата
+          $result = "// dests: start" . PHP_EOL;
 
-        // 2.6. Заменить $mains для $packname
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('mains.json', json_encode($mains, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+          // 1] Добавить пути к результатам типа styles
+          call_user_func(function() USE (&$result, $package, $stack) {
 
-      });
+            // 1.1] Начать массив dests["styles"]
+            $result = $result . '    ' . 'dests["styles"] = [';
+
+            // 1.2] Добавить путь к public пакетов из $stack с их результирующими фронтенд-ресурсами
+            collect($stack)->each(function($inner_id) USE (&$result, $package) {
+              $result = $result . PHP_EOL . '      ' . '"../../../public/'.$inner_id.'/css/**/*.*", ';
+            });
+
+            // 1.n] Завершить массив dests["styles"]
+            $result = $result . PHP_EOL . '    ' . '];' . PHP_EOL;
+
+          });
+
+          // 2] Добавить пути к результатам типа javascript
+          call_user_func(function() USE (&$result, $package, $stack) {
+
+            // 2.1] Начать массив dests["javascript"]
+            $result = $result . '    ' . 'dests["javascript"] = [';
+
+            // 2.2] Добавить путь к public пакетов из $stack с их результирующим фронтенд-ресурсами
+            collect($stack)->each(function($inner_id) USE (&$result, $package) {
+              $result = $result . PHP_EOL . '      ' . '"../../../public/'.$inner_id.'/js/**/*.*", ';
+            });
+
+            // 2.n] Завершить массив dests["javascript"]
+            $result = $result . PHP_EOL . '    ' . '];' . PHP_EOL;
+
+          });
+
+          // 3] Добавить пути к результатам типа assets
+          call_user_func(function() USE (&$result, $package, $stack) {
+
+            // 3.1] Начать массив dests["assets"]
+            $result = $result . '    ' . 'dests["assets"] = [';
+
+            // 3.2] Добавить путь к public пакетов из $stack с их результирующими фронтенд-ресурсами
+            collect($stack)->each(function($inner_id) USE (&$result, $package) {
+              $result = $result . PHP_EOL . '      ' . '"../../../public/'.$inner_id.'/assets/**/*.*", ';
+            });
+
+            // 3.n] Завершить массив dests["javascript"]
+            $result = $result . PHP_EOL . '    ' . '];';
+
+          });
+
+          // 4] Добавить перенос строки в конце
+          $result = $result . PHP_EOL;
+
+          // 5] Финальные штрихи для $result
+          $result = $result . "    // dests: end";
+
+          // 6] Вернуть $result
+          return $result;
+
+        });
+
+        // 3.4. Вставить $sources и $dests в gulpfile.js D-пакета $package
+
+          // 1] Проверить существование файла gulpfile.js в $package
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package)]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+          if(!$this->storage->exists('gulpfile.js'))
+            throw new \Exception('В пакете '.$package.' не найден файл gulpfile.js');
+
+          // 2] Получить содержимое gulpfile.js
+          $file = $this->storage->get('gulpfile.js');
+
+          // 3] Вставить $sources в $file
+          $file = preg_replace("#// sources: start.*// sources: end#smuiU", $sources, $file);
+
+          // 4] Вставить $dests в $file
+          $file = preg_replace("#// dests: start.*// dests: end#smuiU", $dests, $file);
+
+          // 5] Заменить $file
+          $this->storage->put('gulpfile.js', $file);
+
+      }
+
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C45_suf_bower_automain from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C47_suf_watch_setting from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C45_suf_bower_automain']);
+        write2log($errortext, ['M1', 'C47_suf_watch_setting']);
         return [
           "status"  => -2,
           "data"    => $errortext

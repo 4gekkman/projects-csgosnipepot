@@ -84,6 +84,10 @@
         // - Которая поставит в очередь ряд других к.команд
         Artisan::call('m1:afterupdate');
 
+        // 3.2. Выполнить к.команду suf
+        // - Котрая поставит в очередь ряд других к.команд
+        Artisan::call('m1:suf');
+
         // 3.n. Возбудить событие
         Event::fire(new \R2\Event([
           'keys'  =>  ['m1:devmode_request_event'],
