@@ -1530,6 +1530,7 @@
     suf_bower_process       m1:suf_bower_process        Walk thru all bower packages, invoke gulp task for each from R5
     suf_dlw_process         m1:suf_dlw_process          Walk thru all DLW-packages, invoke it's gulp task for each
     suf_get_deptrees        m1:suf_get_deptrees         This command forms dependencies trees for suf_blade_integrate and suf_watch_setting
+    suf_bower_automain      m1:suf_bower_automain       Auto fill mains.json of bower packs by data from main from bower.json of pack, if mains of pack is totally empty
 
   # Обработчики событий #
   #---------------------#

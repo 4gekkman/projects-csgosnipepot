@@ -302,7 +302,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
         // 4.1. Подготовить массив для результатов
         $results = [];
 
-        // 4.2. Проверить существование файла bower.json в DLW-пакете $package
+        // 4.2. Проверить существование файла mains.json в DLW-пакете $package
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
