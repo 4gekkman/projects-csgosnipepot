@@ -144,7 +144,7 @@ class C3_allrespublish extends Job { // TODO: добавить "implements Shoul
     //--------------------------------------------//
     $res = call_user_func(function() { try {
 
-      Artisan::call('vendor:publish', ['--tag' => ['M','D','L','W','R','P','K'], '--force' => true]);
+      Artisan::call('vendor:publish', ['--tag' => ['M','D','L','W','R'], '--force' => true]);
 
     } catch(\Exception $e) {
         DB::rollback();

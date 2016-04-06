@@ -145,7 +145,7 @@ class C43_suf_dlw_process extends Job { // TODO: добавить "implements Sh
     //--------------------------------------------------------------//
     // Обойти все DLW-пакеты, и выполнить для каждого его gulp task //
     //--------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить массив ID всех установленных D,L,W-пакетов
       $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
@@ -153,19 +153,23 @@ class C43_suf_dlw_process extends Job { // TODO: добавить "implements Sh
       })->pluck('id_inner');
 
       // 2. Обойти все каталоги всех DLW-пакетов $packages
-      collect($packages)->each(function($packname) {
 
-        // 2.1. Сформировать команду
-        $cmd = "cd ".base_path()."/vendor/4gekkman/".$packname." && npm link gulp && gulp run";
+        // 2.1. Подготовить переменную для команды
+        $cmd = '';
 
-        // 2.2. Выполнить команду
+        // 2.2. Наполнить $cmd
+        collect($packages)->each(function($packname) USE (&$cmd) {
+
+          if(!empty($cmd)) $cmd = $cmd . ' && ';
+          $cmd = $cmd . "cd ".base_path()."/vendor/4gekkman/".$packname." && npm link gulp && gulp run";
+
+        });
+
+        // 2.3. Выполнить команду $cmd в контейнере node
         shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
-      });
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C43_suf_dlw_process from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M1', 'C43_suf_dlw_process']);
         return [

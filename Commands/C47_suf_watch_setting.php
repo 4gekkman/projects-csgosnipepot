@@ -135,7 +135,9 @@ class C47_suf_watch_setting extends Job { // TODO: добавить "implements 
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить массив ID всех D-пакетов
+     *  2. Получить dlw-индекс с помощью C44_suf_get_deptrees
+     *  3. Обойти все D-пакеты из $packages
      *
      *
      *  N. Вернуть статус 0

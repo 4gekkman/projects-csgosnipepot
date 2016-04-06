@@ -146,7 +146,7 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
     //-----------------------------------------------------------------------//
     // Обойти все bower-пакеты, и выполнить для каждого его gulp task из R5  //
     //-----------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить свежие сведения
       // - Список имён всех установленных bower-пакетов приложения
@@ -163,20 +163,23 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
 
       // 2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
       // - Для каждого отдать команду gulp'у в контейнере node выполнить задачу run файла gulpfile.js
-      collect($r5data4bowerpacks)->each(function($packname) {
 
-        // 2.1. Сформировать команду
-        $cmd = "cd ".base_path()."/vendor/4gekkman/R5/data4bower/".$packname." && gulp run";
+        // 2.1. Подготовить переменную для команды
+        $cmd = '';
 
-        // 2.2. Выполнить команду
+        // 2.2. Наполнить $cmd
+        collect($r5data4bowerpacks)->each(function($packname) USE (&$cmd) {
+
+          if(!empty($cmd)) $cmd = $cmd . ' && ';
+          $cmd = $cmd . "cd ".base_path()."/vendor/4gekkman/R5/data4bower/".$packname." && gulp run";
+
+        });
+
+        // 2.3. Выполнить команду $cmd в контейнере node
         shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
-      });
-
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C42_suf_bower_process from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M1', 'C42_suf_bower_process']);
         return [

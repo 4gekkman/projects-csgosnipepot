@@ -107,7 +107,7 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m1:run")->withoutOverlapping()->cron("0,15,30,45 * * * * *");'
+          '$schedule->command("m1:run")->withoutOverlapping()->cron("0,10,20,30,40,50 * * * * *");'
         ];
 
       //----------------------------------------------------//
