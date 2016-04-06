@@ -188,9 +188,6 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
         ];
     }}); if(!empty($res)) return $res;
 
-$cmd = "cd ".base_path()."/vendor/4gekkman/R5/data4bower/knockoutjs && gulp run";
-shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
-
     //---------------------//
     // N. Вернуть статус 0 //
     //---------------------//

@@ -150,7 +150,7 @@ class C40_suf_install_deps extends Job { // TODO: добавить "implements S
       // - Отправив команду контейнеру node
 
         // 1.1. Сформировать команду
-        $cmd = "cd ".base_path()." && bower --allow-root install && bower --allow-root prune";
+        $cmd = "cd ".base_path('vendor/4gekkman/R5')." && bower --allow-root install && bower --allow-root update && bower --allow-root prune";
 
         // 1.2. Выполнить команду
         shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
