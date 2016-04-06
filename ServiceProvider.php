@@ -103,7 +103,7 @@
         // Пример: "$schedule->command("m1:parseapp")->withoutOverlapping()->hourly();"
         $add2schedule = [
         ];
-
+//$schedule->command("m1:parseapp")->withoutOverlapping()->everyFiveMinutes();
       //----------------------------------------------------//
       // 2. Регистрация консольных команд документов модуля //
       //----------------------------------------------------//
@@ -132,7 +132,9 @@
           '\M1\Console\T22_suf_get_deptrees',
           '\M1\Console\T23_suf_bower_automain',
           '\M1\Console\T24_suf_blade_integrate',
-          '\M1\Console\T25_suf_watch_setting'
+          '\M1\Console\T25_suf_watch_setting',
+          '\M1\Console\T26_queue_show',
+          '\M1\Console\T27_queue_clear'
         ];
 
         // Регистрация команд в методе register

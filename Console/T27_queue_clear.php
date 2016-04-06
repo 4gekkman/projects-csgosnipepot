@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Setting gulpfile.js of D-packs - past between marks sources and dests to watch
+ *    - Clear the queue
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T25_suf_watch_setting extends Command
+class T27_queue_clear extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T25_suf_watch_setting extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:suf_watch_setting';
+    protected $signature = 'm1:queue_clear';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Setting gulpfile.js of D-packs - past between marks sources and dests to watch';
+    protected $description = 'Clear the queue';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -152,27 +152,9 @@ class T25_suf_watch_setting extends Command
   public function handle()
   {
 
-    /**
-     * Оглавление
-     *
-     *  1. Выполнить команду
-     *  2. В случае неудачи, вывести текст ошибки
-     *  3. В случае успеха, вывести соотв.сообщение
-     *
-     */
-
-    // 1. Выполнить команду
-    $result = runcommand('\M1\Commands\C47_suf_watch_setting');
-
-
-    // 2. В случае неудачи, вывести текст ошибки
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
-    }
-
-    // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+    // Очистить очередь
+    Queue::getRedis()->command('DEL',['queues:default']);
+    $this->info('Очередь очищена');
 
   }
 

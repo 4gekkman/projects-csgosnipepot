@@ -285,7 +285,7 @@ class C35_m_schedules_update extends Job { // TODO: добавить "implements
         $this->storage->put('app/Console/Kernel.php', $kernel);
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C35_m_schedules_update from M-package M1 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C35_m_schedules_update from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M1', 'C35_m_schedules_update']);

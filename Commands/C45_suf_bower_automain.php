@@ -136,7 +136,8 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
      * Оглавление
      *
      *  1. Получить свежие сведения
-     *  2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
+     *  2. Создать в R5/data4bower из __sample__ папочки для bower-пакетов $diff
+     *  3. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
      *
      *  N. Вернуть статус 0
      *
@@ -160,10 +161,56 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
       $r5data4bowerpacks  = $info['data']['r5data4bowerpacks'];
       $diff               = $info['data']['diff'];
 
-      // 2. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
+      // 2. Создать в R5/data4bower из __sample__ папочки для bower-пакетов $diff
+      foreach($diff as $bowerpack) {
+
+        // 2.1. Скопировать и переименовать каталог M
+        // - Из vendor/4gekkman/R5/data4bower/__sample__ в vendor/4gekkman/R5/data4bower/$bowerpack
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor')]);
+        $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->copyDirectory('vendor/4gekkman/R5/data4bower/__sample__', 'vendor/4gekkman/R5/data4bower/'.$bowerpack);
+
+        // 2.2. Дождаться, пока mains.json в новом каталоге будет создан
+
+          // 1] Подготовить объект-storage
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+          // 2] В этом цикле будут проверяться условия, и если не выполнены, то sleep(1)
+          // - Условия такие:
+          //   1) Существует ли папочка $bowerpack в data4bower
+          //   2) Существует ли файл mains.json в папочке $bowerpack
+          //   3) Существует ли в файле mains.json поле ["mains"]
+          //   4) Существует ли в файле mains.json поля ["mains"]["css"] и ["mains"]["js"]
+          $condition = 0;
+          while(!$condition) {
+
+            if(
+                $this->storage->exists($bowerpack) &&
+                $this->storage->exists($bowerpack.'/mains.json') &&
+                array_key_exists('mains', json_decode($this->storage->get($bowerpack.'/mains.json'), true)) &&
+                array_key_exists('css', json_decode($this->storage->get($bowerpack.'/mains.json'), true)['mains']) &&
+                array_key_exists('js', json_decode($this->storage->get($bowerpack.'/mains.json'), true)['mains'])
+            ) $condition = 1;
+
+          }
+
+        // 2.3. Добавить $bowerpack в $r5data4bowerpacks
+        array_push($r5data4bowerpacks, $bowerpack);
+
+        // 2.4. Сообщить о том, что для $bowerpack создан каталог в R5/data4bower
+        $msg = "У пакета ".$bowerpack." отсутствовал навигационный каталог в R5/data4bower, поэтому он был создан автоматически командой suf_bower_automain";
+        write2log($msg, []);
+        Log::info($msg);
+
+      }
+
+      // 3. Обойти все все навигационные папочки из $r5data4bowerpacks для bower-пакетов
       collect($r5data4bowerpacks)->each(function($packname) {
 
-        // 2.1. Получить содержимое mains.json пакета $packname в виде массива
+        // 3.1. Получить содержимое mains.json пакета $packname в виде массива
         $mains = call_user_func(function() USE ($packname) {
 
           // 1] Проверить существование файла mains.json в для bower-пакета $package
@@ -185,10 +232,10 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
 
         });
 
-        // 2.2. Если массивы $mains['mains']['css'] и $mains['mains']['js'] не пусты, перейти к след.итерации
+        // 3.2. Если массивы $mains['mains']['css'] и $mains['mains']['js'] не пусты, перейти к след.итерации
         if(count($mains['mains']['css']) !== 0 || count($mains['mains']['js']) !== 0) return;
 
-        // 2.3. Получить содержимое main bower-пакета $packname в виде массива
+        // 3.3. Получить содержимое main bower-пакета $packname в виде массива
         // - Если, конечно, bower.json пакета и поле main в нём присутствуют
         $mains_from_bowerjson = call_user_func(function() USE ($packname) {
 
@@ -218,10 +265,24 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
             // 4.1] Подготовить массив для результатов
             $results = [];
 
-            // 4.2] Пробежаться по $file['main']
-            foreach($file['main'] as $path) {
-              if(preg_match("/^.*\.css$/ui", $path) !== 0 && !in_array($path, $results))
-                array_push($results, "public/bower/" . $packname . "/" . $path);
+            // 4.2] Если $file['main'] это массив
+            if(is_array($file['main'])) {
+
+              // Пробежаться по $file['main']
+              foreach($file['main'] as $path) {
+                if(preg_match("/^.*\.css$/ui", $path) !== 0 && !in_array($path, $results))
+                  array_push($results, "public/bower/" . $packname . "/" . $path);
+              }
+
+            }
+
+            // 4.3] Если $file['main'] это строка
+            if(is_string($file['main'])) {
+
+              // Пробежаться по $file['main']
+              if(preg_match("/^.*\.css$/ui", $file['main']) !== 0 && !in_array($file['main'], $results))
+                array_push($results, "public/bower/" . $packname . "/" . $file['main']);
+
             }
 
             // 4.n] Вернуть результаты
@@ -235,10 +296,24 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
             // 5.1] Подготовить массив для результатов
             $results = [];
 
-            // 5.2] Пробежаться по $file['main']
-            foreach($file['main'] as $path) {
-              if(preg_match("/^.*\.js$/ui", $path) !== 0 && !in_array($path, $results))
-                array_push($results, "public/bower/" . $packname . "/" . $path);
+            // 5.2] Если $file['main'] это массив
+            if(is_array($file['main'])) {
+
+              // Пробежаться по $file['main']
+              foreach($file['main'] as $path) {
+                if(preg_match("/^.*\.js$/ui", $path) !== 0 && !in_array($path, $results))
+                  array_push($results, "public/bower/" . $packname . "/" . $path);
+              }
+
+            }
+
+            // 5.3] Если $file['main'] это строка
+            if(is_string($file['main'])) {
+
+              // Пробежаться по $file['main']
+              if(preg_match("/^.*\.js$/ui", $file['main']) !== 0 && !in_array($file['main'], $results))
+                array_push($results, "public/bower/" . $packname . "/" . $file['main']);
+
             }
 
             // 5.n] Вернуть результаты
@@ -254,18 +329,18 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
 
         });
 
-        // 2.4. Если в $mains_from_bowerjson пусто
+        // 3.4. Если в $mains_from_bowerjson пусто
         if(count($mains_from_bowerjson['css']) == 0 && count($mains_from_bowerjson['js']) == 0) {
           $msg = "У bower-пакета ".$packname." в R5 в mains.json пусты массивы с css/js, команда C45_suf_bower_automain проводит автовставку данных из bower.json пакета... но данные не обнаружены, либо bower.json отсутствует у пакета, либо в нём нет поля main, либо в поле main нет путей к css/js файлам.";
           write2log($msg, []);
           \Log::info($msg, []);
         }
 
-        // 2.5. Записать в $mains данные из $mains_from_bowerjson
+        // 3.5. Записать в $mains данные из $mains_from_bowerjson
         $mains['mains']['css'] = $mains_from_bowerjson['css'];
         $mains['mains']['js'] = $mains_from_bowerjson['js'];
 
-        // 2.6. Заменить $mains для $packname
+        // 3.6. Заменить $mains для $packname
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());

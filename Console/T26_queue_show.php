@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Setting gulpfile.js of D-packs - past between marks sources and dests to watch
+ *    - Send list of tasks in queue to log
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T25_suf_watch_setting extends Command
+class T26_queue_show extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T25_suf_watch_setting extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:suf_watch_setting';
+    protected $signature = 'm1:queue_show';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Setting gulpfile.js of D-packs - past between marks sources and dests to watch';
+    protected $description = 'Send list of tasks in queue to log';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -152,27 +152,18 @@ class T25_suf_watch_setting extends Command
   public function handle()
   {
 
-    /**
-     * Оглавление
-     *
-     *  1. Выполнить команду
-     *  2. В случае неудачи, вывести текст ошибки
-     *  3. В случае успеха, вывести соотв.сообщение
-     *
-     */
+    // 1. Получить текущее содержимое очереди
+    $queue = Queue::getRedis()->command('LRANGE',['queues:default', '0', '-1']);
 
-    // 1. Выполнить команду
-    $result = runcommand('\M1\Commands\C47_suf_watch_setting');
-
-
-    // 2. В случае неудачи, вывести текст ошибки
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
-      return;
+    // 2. Вывести очередь
+    write2log(PHP_EOL . PHP_EOL . '----------------------------------------' . PHP_EOL .           '---------- Содержимое очереди ----------' . PHP_EOL .           '----------------------------------------');
+    foreach($queue as $task) {
+      write2log(mb_substr(json_encode(json_decode($task, true)['data'],JSON_UNESCAPED_UNICODE), 0, 25), []);
     }
+    write2log(' --> конец <-- ' . PHP_EOL . '----------------------------------------' . PHP_EOL);
 
-    // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+    // 3. Сообщить о том, что содержимое очереди отправлено в лог
+    $this->info('Текущее содержимое очереди отправлено в лог M2' . PHP_EOL);
 
   }
 
