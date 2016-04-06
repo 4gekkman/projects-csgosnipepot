@@ -67,7 +67,7 @@ class MD4_protocols extends Model {
   //------------------//
 
     // relationships start
-    public function routes() { return $this->belongsToMany('\M4\Models\MD1_routes', 'm4.md1001', 'id_protocol', 'id_route'); }
+
     // relationships stop
 
 

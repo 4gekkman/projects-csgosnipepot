@@ -67,7 +67,7 @@ class MD6_uris extends Model {
   //------------------//
 
     // relationships start
-    public function routes() { return $this->belongsToMany('\M4\Models\MD1_routes', 'm4.md1003', 'id_uri', 'id_route'); }
+
     // relationships stop
 
 
