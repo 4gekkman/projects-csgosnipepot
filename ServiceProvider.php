@@ -100,10 +100,16 @@
       //-----------------------------------------------------//
 
         // Список подготовленных для добавление в планировщик строк
-        // Пример: "$schedule->command("m1:parseapp")->withoutOverlapping()->hourly();"
+        // - Статья про cron-формат: http://www.nncron.ru/help/EN/working/cron-format.htm
+        // - Примеры:
+        //
+        //    $schedule->command("m1:parseapp")->withoutOverlapping()->hourly();                        // каждый час
+        //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
+        //
         $add2schedule = [
+          '$schedule->command("m1:run")->withoutOverlapping()->cron("0,15,30,45 * * * * *");'
         ];
-//$schedule->command("m1:parseapp")->withoutOverlapping()->everyFiveMinutes();
+
       //----------------------------------------------------//
       // 2. Регистрация консольных команд документов модуля //
       //----------------------------------------------------//
@@ -134,7 +140,8 @@
           '\M1\Console\T24_suf_blade_integrate',
           '\M1\Console\T25_suf_watch_setting',
           '\M1\Console\T26_queue_show',
-          '\M1\Console\T27_queue_clear'
+          '\M1\Console\T27_queue_clear',
+          '\M1\Console\T28_run'
         ];
 
         // Регистрация команд в методе register

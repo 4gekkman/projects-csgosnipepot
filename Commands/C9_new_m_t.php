@@ -364,7 +364,9 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
 
 
     } catch(\Exception $e) {
-        $errortext = "Creating of console command for M-package have ended with error: ".$e->getMessage();
+        $errortext = 'Invoking of command C9_new_m_t from M-package M1 have ended on line "'.$e->getMessage();
+        Log::info($errortext);
+        write2log($errortext, ['M1', 'C9_new_m_t']);
         return [
           "status"  => -2,
           "data"    => $errortext

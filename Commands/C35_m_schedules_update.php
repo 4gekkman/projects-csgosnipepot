@@ -181,14 +181,10 @@ class C35_m_schedules_update extends Job { // TODO: добавить "implements
           $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
           $sp = $this->storage->get('ServiceProvider.php');
 
-          // 2.2.2. Получить содержимое массива $add2schedule из $sp в виде массива
-          preg_match("/add2schedule *= *\[.*\]/smuiU", $sp, $add2schedule);
-          $add2schedule = preg_replace("/add2schedule *= */smuiU", '', $add2schedule);
-          $add2schedule = preg_replace("/['\n\r\s\[\]]/smuiU", '', $add2schedule);
-          $add2schedule = explode(',', $add2schedule[0]);
-          $add2schedule = array_values(array_filter($add2schedule, function($item){
-            return !empty($item);
-          }));
+          // 2.2.2. Извлечь массив $add2schedule из $sp
+          $add2schedule_temp = [];
+          preg_match('#\$add2schedule = \[.*\];#smuiU', $sp, $add2schedule_temp);
+          $add2schedule = eval($add2schedule_temp[0].' return $add2schedule; ');
 
           // 2.2.3. Добавить содержимое $add2schedule в $schedule_actual без повторов
           foreach($add2schedule as $item) {
