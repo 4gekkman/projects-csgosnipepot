@@ -107,7 +107,7 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m1:suf")->withoutOverlapping()->cron("0,10,20,30,40,50 * * * * *");'
+          '$schedule->command("m1:run_light")->withoutOverlapping()->cron("0,10,20,30,40,50 * * * * *");'
         ];
 
       //----------------------------------------------------//
@@ -141,7 +141,8 @@
           '\M1\Console\T25_suf_watch_setting',
           '\M1\Console\T26_queue_show',
           '\M1\Console\T27_queue_clear',
-          '\M1\Console\T28_run'
+          '\M1\Console\T28_run',
+          '\M1\Console\T29_run_light'
         ];
 
         // Регистрация команд в методе register
