@@ -9,12 +9,15 @@
 
 	1. Подключить необходимые NPM-пакеты
 	2. Создать файл с датой последнего исполнения рядом с gulpfile.js
-	3. Обработать файл Public/css/c.scss
-	4. Обработать файлы в каталоге Public/js
-	5. Обработать каталог Public/assets
+	3. Получить необходимые данные от suf_watch_setting
+		3.1. Получить массив путей к каталогам и файлам с фронтенд-исходниками
+		3.2. Получить массив путей к каталогам и файлам с фронтенд-результатами
+	4. Создать набор задач "styles"_<номер> для обработки стилей
+	5. Создать набор задач "javascript"_<номер> для обработки js-скриптов
+	6. Создать набор задач "assets"_<номер> для обработки assets
+	7. Сформировать задачу run для запуска всех i-ых задач
 
-	x. Выполнить все необходимые задачи этого gulpfile
-	y. Функционал для инкрементальной вёрстки с realtime-обновлением документа
+	x. Функционал для инкрементальной вёрстки с realtime-обновлением документа
 	n. Примеры часто используемых задач
 
 		▪ Обработать SCSS-исходники
@@ -36,6 +39,7 @@ const uglify = require('../R5/node_modules/gulp-uglify');
 const concat = require('../R5/node_modules/gulp-concat');
 const fs = require('fs');
 const sourcemaps = require('../R5/node_modules/gulp-sourcemaps');
+const browserSync = require('../R5/node_modules/browser-sync').create();
 
 // 2. Создать файл с датой последнего исполнения рядом с gulpfile.js
 gulp.task('lastuse', function(callback) {
@@ -45,47 +49,9 @@ gulp.task('lastuse', function(callback) {
 
 });
 
-// 3. Обработать файл Public/css/c.scss
-gulp.task('styles', function(callback){
+// 3. Получить необходимые данные от suf_watch_setting
 
-	return gulp.src('Public/css/c.scss')
-			.pipe(sourcemaps.init())
-			.pipe(sass())
-			.pipe(cssnano())
-			.pipe(sourcemaps.write())
-			.pipe(gulp.dest('../../../public/public/D1/css'));
-
-});
-
-// 4. Обработать файлы в каталоге Public/js
-gulp.task('javascript', function(callback){
-
-	return gulp.src(['Public/js/m.js', 'Public/js/f.js', 'Public/js/j.js'])
-			.pipe(sourcemaps.init())
-			.pipe(concat('j.js'))
-			.pipe(uglify())
-			.pipe(sourcemaps.write())
-			.pipe(gulp.dest('../../../public/public/D1/js'));
-
-});
-
-// 5. Обработать каталог Public/assets
-gulp.task('assets', function(){
-	return gulp.src('Public/assets/**', {since: gulp.lastRun('assets')})
-			.pipe(gulp.dest('../../../public/public/D1/assets'));
-});
-
-
-
-
-// x. Выполнить все необходимые задачи этого gulpfile
-gulp.task('run', gulp.series(
-	gulp.parallel('lastuse', 'styles', 'javascript', 'assets')
-));
-
-// y. Функционал для инкрементальной вёрстки с realtime-обновлением документа
-
-	// y.1. Подготовить массив путей к каталогам с фронтенд-исходниками
+	// 3.1. Получить массив путей к каталогам и файлам с фронтенд-исходниками
 	// - Для этого D-пакета, а также всех LW-пакетов, от которых он зависит
 	var sources = [];
 	sources['styles'] = [];
@@ -93,18 +59,24 @@ gulp.task('run', gulp.series(
 	sources['assets'] = [];
 
 		// sources: start
-		sources['styles'] = [
+    sources["styles"] = [
+      "../W1/Public/css/**/*.*", 
+      "../L1/Public/css/**/*.*", 
+      "../D1/Public/css/**/*.*", 
+    ];
+    sources["javascript"] = [
+      "../W1/Public/js/", 
+      "../L1/Public/js/", 
+      "../D1/Public/js/", 
+    ];
+    sources["assets"] = [
+      "../W1/Public/assets/**/*.*", 
+      "../L1/Public/assets/**/*.*", 
+      "../D1/Public/assets/**/*.*", 
+    ];
+    // sources: end
 
-		];
-		sources['javascript'] = [
-
-		];
-		sources['assets'] = [
-
-		];
-		// sources: end
-
-	// y.2. Подготовить массив путей к каталогам с фронтенд-результатами
+	// 3.2. Получить массив путей к каталогам и файлам с фронтенд-результатами
 	// - Для этого D-пакета, а также всех LW-пакетов, от которых он зависит
 	var dests = [];
 	dests['styles'] = [];
@@ -113,52 +85,122 @@ gulp.task('run', gulp.series(
 	dests['php'] = [];
 
 		// dests: start
-		dests['styles'] = [
+    dests["styles"] = [
+      "../../../public/public/W1/css", 
+      "../../../public/public/L1/css", 
+      "../../../public/public/D1/css", 
+    ];
+    dests["javascript"] = [
+      "../../../public/public/W1/js", 
+      "../../../public/public/L1/js", 
+      "../../../public/public/D1/js", 
+    ];
+    dests["assets"] = [
+      "../../../public/public/W1/assets", 
+      "../../../public/public/L1/assets", 
+      "../../../public/public/D1/assets", 
+    ];
+    dests["php"] = [
+      "../W1/**/*.php", 
+      "../L1/**/*.php", 
+      "../D1/**/*.php", 
+    ];
+    // dests: end
 
-		];
-		dests['javascript'] = [
+// 4. Создать набор задач "styles"_<номер> для обработки стилей
+for(var stylesnum=0; stylesnum<sources["styles"].length; stylesnum++) {
 
-		];
-		dests['assets'] = [
+	// Создать i-ую задачу
+	module.exports['styles_'+stylesnum] = function(stylesnum, callback){
 
-		];
-		dests['php'] = [
+		return gulp.src(sources["styles"][stylesnum])
+				.pipe(sourcemaps.init())
+				.pipe(sass())
+				.pipe(cssnano())
+				.pipe(sourcemaps.write())
+				.pipe(gulp.dest(dests["styles"][stylesnum]));
 
-		];
-		// dests: end
+	};
 
-	// y.3. Следить за файлами в sources, запускать задачу при их изменении
+}
+
+// 5. Создать набор задач "javascript"_<номер> для обработки js-скриптов
+for(var javascriptnum=0; javascriptnum<sources["javascript"].length; javascriptnum++) {
+
+	// Создать i-ую задачу
+	module.exports['javascript_'+javascriptnum] = function(javascriptnum, callback){
+
+		return gulp.src([sources["javascript"][javascriptnum]+'m.js', sources["javascript"][javascriptnum]+'f.js', sources["javascript"][javascriptnum]+'j.js'])
+				.pipe(sourcemaps.init())
+				.pipe(concat('j.js'))
+				.pipe(uglify())
+				.pipe(sourcemaps.write())
+				.pipe(gulp.dest(dests["javascript"][javascriptnum]));
+
+	};
+
+}
+
+// 6. Создать набор задач "assets"_<номер> для обработки assets
+for(var assetsnum=0; assetsnum<sources["assets"].length; assetsnum++) {
+
+	// Создать i-ую задачу
+	module.exports['assets_'+assetsnum] = function(assetsnum, callback){
+
+		return gulp.src(sources["assets"][assetsnum], {since: gulp.lastRun('assets_'+assetsnum)})
+				.pipe(gulp.dest(dests["assets"][assetsnum]));
+
+	};
+
+}
+
+// 7. Сформировать задачу run для запуска всех i-ых задач
+
+	// 7.1. Сформировать массив со списком задач
+	var runtasks = ['lastuse'];
+	for(var i=0; i<sources['styles'].length; i++) {
+		runtasks.push(function(callback){ return module.exports['styles_'+this.index](this.index, callback); }.bind({"index": i}));
+		runtasks.push(function(callback){ return module.exports['javascript_'+this.index](this.index, callback); }.bind({"index": i}));
+		runtasks.push(function(callback){ return module.exports['assets_'+this.index](this.index, callback); }.bind({"index": i}));
+	}
+
+	// 7.2. Сформировать задачу run
+	gulp.task('run', gulp.parallel(runtasks));
+
+// x. Функционал для инкрементальной вёрстки с realtime-обновлением документа
+
+	// x.1. Следить за файлами в sources, запускать задачу при их изменении
 	gulp.task('watch', function(){
 
 		// styles
 		for(var i=0; i<sources['styles'].length; i++) {
-			gulp.watch(sources['styles'][i], {usePolling: true}, gulp.series('styles'));
+			gulp.watch(sources['styles'][i], {usePolling: true}, function(callback){ return module.exports['styles_'+this.index](this.index, callback); }.bind({"index": i}));
 		}
 
 		// javascript
 		for(var i=0; i<sources['javascript'].length; i++) {
-			gulp.watch(sources['javascript'][i], {usePolling: true}, gulp.series('javascript'));
+			gulp.watch(sources['javascript'][i], {usePolling: true}, function(callback){ return module.exports['javascript_'+this.index](this.index, callback); }.bind({"index": i}));
 		}
 
 		// assets
 		for(var i=0; i<sources['assets'].length; i++) {
-			gulp.watch(sources['assets'][i], {usePolling: true}, gulp.series('assets'));
+			gulp.watch(sources['assets'][i], {usePolling: true}, function(callback){ return module.exports['assets_'+this.index](this.index, callback); }.bind({"index": i}));
 		}
 
 	});
 
-	// y.4. Настройка browser-sync
+	// x.2. Настройка browser-sync
 	// - Запустить мини-сервер для отладки blade-документа этого D-пакета (либо можно использовать прокси)
 	// - Следить за файлами в dests, перезагружать документ при их изменении
 	gulp.task('serve', function(){
 
-		// y.4.1] Запустить proxy
+		// x.2.1] Запустить proxy
 		browserSync.init({
 			proxy: "localhost",
 			ws: true
 		});
 
-		// y.4.2] Отслеживать изменения в указанных файлах
+		// x.2.2] Отслеживать изменения в указанных файлах
 
 			// styles
 			for(var i=0; i<dests['styles'].length; i++) {
@@ -182,9 +224,11 @@ gulp.task('run', gulp.series(
 
 	});
 
-	// y.5. Задача для запуска watch и serve параллельно
+	// x.3. Задача для запуска watch и serve параллельно
 	gulp.task('dev',
 			gulp.series('run', gulp.parallel('watch', 'serve')));
+
+
 
 // n. Примеры часто используемых задач
 
