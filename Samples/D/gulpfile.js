@@ -110,6 +110,7 @@ gulp.task('run', gulp.series(
 	dests['styles'] = [];
 	dests['javascript'] = [];
 	dests['assets'] = [];
+	dests['php'] = [];
 
 		// dests: start
 		dests['styles'] = [
@@ -119,6 +120,9 @@ gulp.task('run', gulp.series(
 
 		];
 		dests['assets'] = [
+
+		];
+		dests['php'] = [
 
 		];
 		// dests: end
@@ -169,6 +173,11 @@ gulp.task('run', gulp.series(
 			// assets
 			for(var i=0; i<dests['assets'].length; i++) {
 				browserSync.watch(dests['assets'][i], {usePolling: true}).on('change', browserSync.reload);
+			}
+
+			// php
+			for(var i=0; i<dests['php'].length; i++) {
+				browserSync.watch(dests['php'][i], {usePolling: true}).on('change', browserSync.reload);
 			}
 
 	});
