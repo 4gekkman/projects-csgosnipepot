@@ -183,6 +183,7 @@ class C47_suf_watch_setting extends Job { // TODO: добавить "implements 
             // 1.2] Добавить путь к public пакетов из $stack с их исходными фронтенд-ресурсами
             collect($stack)->each(function($inner_id) USE (&$result, $package) {
               $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/Public/css/**/*.*", ';
+              $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/**/*.php", ';
             });
 
             // 1.n] Завершить массив sources["styles"]
@@ -199,6 +200,7 @@ class C47_suf_watch_setting extends Job { // TODO: добавить "implements 
             // 2.2] Добавить путь к public пакетов из $stack с их исходными фронтенд-ресурсами
             collect($stack)->each(function($inner_id) USE (&$result, $package) {
               $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/Public/js/**/*.*", ';
+              $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/**/*.php", ';
             });
 
             // 2.n] Завершить массив sources["javascript"]
@@ -215,6 +217,7 @@ class C47_suf_watch_setting extends Job { // TODO: добавить "implements 
             // 3.2] Добавить путь к public пакетов из $stack с их исходными фронтенд-ресурсами
             collect($stack)->each(function($inner_id) USE (&$result, $package) {
               $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/Public/assets/**/*.*", ';
+              $result = $result . PHP_EOL . '      ' . '"../'.$inner_id.'/**/*.php", ';
             });
 
             // 3.n] Завершить массив sources["javascript"]

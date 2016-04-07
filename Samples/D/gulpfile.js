@@ -150,7 +150,8 @@ gulp.task('run', gulp.series(
 
 		// y.4.1] Запустить proxy
 		browserSync.init({
-			proxy: "localhost"
+			proxy: "localhost",
+			ws: true
 		});
 
 		// y.4.2] Отслеживать изменения в указанных файлах
