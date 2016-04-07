@@ -171,7 +171,7 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
         collect($r5data4bowerpacks)->each(function($packname) USE (&$cmd) {
 
           if(!empty($cmd)) $cmd = $cmd . ' && ';
-          $cmd = $cmd . "cd ".base_path()."/vendor/4gekkman/R5/data4bower/".$packname." && gulp run";
+          $cmd = $cmd . "cd ".base_path('vendor/4gekkman/R5/data4bower/'.$packname)." && gulp run";
 
         });
 
@@ -187,6 +187,7 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
           "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
+
 
     //---------------------//
     // N. Вернуть статус 0 //

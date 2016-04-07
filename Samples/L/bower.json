@@ -1,6 +1,8 @@
 {
   "name": "L1",
-  "dependencies": {},
+  "dependencies": {
+		"4gekkman-bower-jslib1": "latest"
+	},
   "mains": {
     "css": [
 			"public/L1/css/c.css"

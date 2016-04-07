@@ -203,7 +203,7 @@ class C39_suf_collect_deps extends Job { // TODO: добавить "implements S
 
         // 3.1. Проверить существование bower.json проекта
         config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('')]);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5')]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         if(!$this->storage->exists('bower.json'))
           throw new \Exception('Не найден файл bower.json проекта');

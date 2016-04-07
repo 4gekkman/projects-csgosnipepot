@@ -225,7 +225,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
         $results = [];
 
         // 2.2. Сформировать команду
-        $cmd = "cd ".base_path()." && bower -j --allow-root list";
+        $cmd = "cd ".base_path('vendor/4gekkman/R5')." && bower -j --allow-root list";
 
         // 2.3. Получить информацию в формате json
         $json = shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');

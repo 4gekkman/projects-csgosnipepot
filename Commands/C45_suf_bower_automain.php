@@ -164,7 +164,7 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
       // 2. Создать в R5/data4bower из __sample__ папочки для bower-пакетов $diff
       foreach($diff as $bowerpack) {
 
-        // 2.1. Скопировать и переименовать каталог M
+        // 2.1. Скопировать и переименовать каталог __sample__
         // - Из vendor/4gekkman/R5/data4bower/__sample__ в vendor/4gekkman/R5/data4bower/$bowerpack
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path('vendor')]);

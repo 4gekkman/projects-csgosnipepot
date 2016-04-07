@@ -161,7 +161,7 @@ class C43_suf_dlw_process extends Job { // TODO: добавить "implements Sh
         collect($packages)->each(function($packname) USE (&$cmd) {
 
           if(!empty($cmd)) $cmd = $cmd . ' && ';
-          $cmd = $cmd . "cd ".base_path()."/vendor/4gekkman/".$packname." && npm link gulp && gulp run";
+          $cmd = $cmd . "cd ".base_path("/vendor/4gekkman/".$packname)." && npm link gulp && gulp run";
 
         });
 
