@@ -215,10 +215,31 @@ class T9_del extends Command
           // 2.3] Спросить
           $params['packid'] = $this->choice('Which M-package do you want to delete?', $packages->toArray());
 
-        // 3] Спросить, удалять ли конфиг модуля, или оставить
+        // 3] Если от $params['packid'] зависит любой другой пакет, сообщить и завершить
+
+          // 3.1] Получить массив ID пакетов, которые зависят от $params['packid']
+          $dependencies = call_user_func(function() USE ($params) {
+
+            // 1) Получить коллекцию всех пакетов
+            $packages = \M1\Models\MD2_packages::query()->get();
+
+            // 2) Отфильтровать из неё все пакеты, не зависящие от $params['packid']
+            return $packages->filter(function($package) USE ($params, $packages) {
+
+              return in_array($params['packid'], $package->packages->pluck('id_inner')->toArray());
+
+            });
+
+          })->pluck('id_inner')->toArray();
+
+          // 3.2] Если $dependencies не пуста, сообщить и завершить
+          if(count($dependencies) != 0)
+            throw new \Exception("Can't delete ".$params['packid'].", because this pack is dependency of: ".implode(', ', $dependencies));
+
+        // 4] Спросить, удалять ли конфиг модуля, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
-        // 4] Спросить, удалять ли БД модуля, или оставить
+        // 5] Спросить, удалять ли БД модуля, или оставить
         $params['deldb'] = $this->choice('[NOT REQUIRED] Should we delete the package database?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
@@ -426,7 +447,28 @@ class T9_del extends Command
           // 2.3] Спросить
           $params['packid'] = $this->choice('Which D-package do you want to delete?', $packages->toArray());
 
-        // 3] Спросить, удалять ли конфиг пакета, или оставить
+        // 3] Если от $params['packid'] зависит любой другой пакет, сообщить и завершить
+
+          // 3.1] Получить массив ID пакетов, которые зависят от $params['packid']
+          $dependencies = call_user_func(function() USE ($params) {
+
+            // 1) Получить коллекцию всех пакетов
+            $packages = \M1\Models\MD2_packages::query()->get();
+
+            // 2) Отфильтровать из неё все пакеты, не зависящие от $params['packid']
+            return $packages->filter(function($package) USE ($params, $packages) {
+
+              return in_array($params['packid'], $package->packages->pluck('id_inner')->toArray());
+
+            });
+
+          })->pluck('id_inner')->toArray();
+
+          // 3.2] Если $dependencies не пуста, сообщить и завершить
+          if(count($dependencies) != 0)
+            throw new \Exception("Can't delete ".$params['packid'].", because this pack is dependency of: ".implode(', ', $dependencies));
+
+        // 4] Спросить, удалять ли конфиг пакета, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
@@ -458,7 +500,28 @@ class T9_del extends Command
           // 2.3] Спросить
           $params['packid'] = $this->choice('Which W-package do you want to delete?', $packages->toArray());
 
-        // 3] Спросить, удалять ли конфиг пакета, или оставить
+        // 3] Если от $params['packid'] зависит любой другой пакет, сообщить и завершить
+
+          // 3.1] Получить массив ID пакетов, которые зависят от $params['packid']
+          $dependencies = call_user_func(function() USE ($params) {
+
+            // 1) Получить коллекцию всех пакетов
+            $packages = \M1\Models\MD2_packages::query()->get();
+
+            // 2) Отфильтровать из неё все пакеты, не зависящие от $params['packid']
+            return $packages->filter(function($package) USE ($params, $packages) {
+
+              return in_array($params['packid'], $package->packages->pluck('id_inner')->toArray());
+
+            });
+
+          })->pluck('id_inner')->toArray();
+
+          // 3.2] Если $dependencies не пуста, сообщить и завершить
+          if(count($dependencies) != 0)
+            throw new \Exception("Can't delete ".$params['packid'].", because this pack is dependency of: ".implode(', ', $dependencies));
+
+        // 4] Спросить, удалять ли конфиг пакета, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
@@ -490,7 +553,28 @@ class T9_del extends Command
           // 2.3] Спросить
           $params['packid'] = $this->choice('Which L-package do you want to delete?', $packages->toArray());
 
-        // 3] Спросить, удалять ли конфиг пакета, или оставить
+        // 3] Если от $params['packid'] зависит любой другой пакет, сообщить и завершить
+
+          // 3.1] Получить массив ID пакетов, которые зависят от $params['packid']
+          $dependencies = call_user_func(function() USE ($params) {
+
+            // 1) Получить коллекцию всех пакетов
+            $packages = \M1\Models\MD2_packages::query()->get();
+
+            // 2) Отфильтровать из неё все пакеты, не зависящие от $params['packid']
+            return $packages->filter(function($package) USE ($params, $packages) {
+
+              return in_array($params['packid'], $package->packages->pluck('id_inner')->toArray());
+
+            });
+
+          })->pluck('id_inner')->toArray();
+
+          // 3.2] Если $dependencies не пуста, сообщить и завершить
+          if(count($dependencies) != 0)
+            throw new \Exception("Can't delete ".$params['packid'].", because this pack is dependency of: ".implode(', ', $dependencies));
+
+        // 4] Спросить, удалять ли конфиг пакета, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
@@ -518,6 +602,27 @@ class T9_del extends Command
 
           // 2.3] Спросить
           $params['packid'] = $this->choice('Which R-package do you want to delete?', $packages->toArray());
+
+        // 3] Если от $params['packid'] зависит любой другой пакет, сообщить и завершить
+
+          // 3.1] Получить массив ID пакетов, которые зависят от $params['packid']
+          $dependencies = call_user_func(function() USE ($params) {
+
+            // 1) Получить коллекцию всех пакетов
+            $packages = \M1\Models\MD2_packages::query()->get();
+
+            // 2) Отфильтровать из неё все пакеты, не зависящие от $params['packid']
+            return $packages->filter(function($package) USE ($params, $packages) {
+
+              return in_array($params['packid'], $package->packages->pluck('id_inner')->toArray());
+
+            });
+
+          })->pluck('id_inner')->toArray();
+
+          // 3.2] Если $dependencies не пуста, сообщить и завершить
+          if(count($dependencies) != 0)
+            throw new \Exception("Can't delete ".$params['packid'].", because this pack is dependency of: ".implode(', ', $dependencies));
 
         // n] Вернуть $params
         return $params;
@@ -580,8 +685,8 @@ class T9_del extends Command
     //-------------------------------------------------------------//
     // 4. Обновить приложение после удаления существующего ресурса //
     //-------------------------------------------------------------//
-    //Artisan::queue('m1:afterupdate');
-    //Artisan::queue('m1:suf');
+    Artisan::queue('m1:afterupdate');
+    Artisan::queue('m1:suf');
 
   }
 

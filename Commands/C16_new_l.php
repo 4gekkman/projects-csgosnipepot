@@ -198,7 +198,7 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
         // 2.3. Если $packid передан, определить, доступен ли он
         if(!empty($packid)) {
           if(in_array($packid, $packids)) {
-            throw new \Exception("Can't create L-package with id $packid, because D-package with id $packid already exists.");
+            throw new \Exception("Can't create L-package with id $packid, because L-package with id $packid already exists.");
           }
         }
 

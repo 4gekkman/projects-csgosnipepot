@@ -289,7 +289,7 @@ class C28_del_l extends Job { // TODO: добавить "implements ShouldQueue"
         $errortext = 'Invoking of command C28_del_l from M-package M1 have ended with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+        write2log($errortext, ['M1', 'del_l']);
         return [
           "status"  => -2,
           "data"    => $errortext

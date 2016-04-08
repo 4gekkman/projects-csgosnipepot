@@ -2,20 +2,20 @@
 		"extra": {
 			"version": "1.0.0"
 		},
-    "name": "4gekkman/w1",
-		"description": "W1 - Виджет",
+    "name": "4gekkman/PARAMpackfullname_strtolowerPARAM",
+		"description": "PARAMpackfullnamePARAM - PARAMdescriptionPARAM",
     "license": "4gekkman@gmail.com",
     "authors": [
         {
             "name": "4gekkman",
             "email": "4gekkman@gmail.com",
-						"homepage": "https://github.com/4gekkman/w1"
+						"homepage": "https://github.com/4gekkman/PARAMpackfullname_strtolowerPARAM"
         }
     ],
     "require": {
-			"4gekkman/M1": "~1.0"
-		},
+      "4gekkman/M1": "~1.0"
+    },
     "autoload": {
-        "psr-4": {"W1\\": ""}
+        "psr-4": {"PARAMpackfullnamePARAM\\": ""}
     }
 }

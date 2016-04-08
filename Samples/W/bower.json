@@ -1,14 +1,14 @@
 {
-  "name": "W1",
+  "name": "PARAMpackfullnamePARAM",
   "dependencies": {
 		"4gekkman-bower-jslib1": "latest"
 	},
   "mains": {
     "css": [
-			"public/W1/css/c.css"
+			"public/PARAMpackfullnamePARAM/css/c.css"
 		],
     "js": [
-			"public/W1/js/j.js"
+			"public/PARAMpackfullnamePARAM/js/j.js"
 		]
   }
 }

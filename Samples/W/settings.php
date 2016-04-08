@@ -26,17 +26,10 @@ return [
      *    ]
      */
     'routing' => [
-      'dev.app' => [
+      'PARAMappurlPARAM' => [
         'http' => [
           '' => [
-            '/',
-            '/test'
-          ],
-          's1.' => [
-            '/'
-          ],
-          's2.s1.' => [
-            '/'
+            '/widgets/PARAMpackfullname_strtolowerPARAM'
           ]
         ]
       ]
@@ -64,12 +57,12 @@ return [
     //------------------------------//
     'aboutpack' => [
       'RU' => [
-        'name'        => 'Новый виджет',
-        'description' => 'Это новый W-пакет',
+        'name'        => 'PARAMnamePARAM',
+        'description' => 'PARAMdescriptionPARAM',
       ],
       'EN' => [
-        'name'        => 'New widget',
-        'description' => 'It is new W-package',
+        'name'        => 'PARAMnamePARAM',
+        'description' => 'PARAMdescriptionPARAM',
       ]
     ],
 
