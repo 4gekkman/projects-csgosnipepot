@@ -141,6 +141,10 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
      *  1. Провести валидацию входящих параметров
      *  2. Определить $packid
      *  3. Сформировать внутренний ID пакета (напр.: D1)
+     *  4. Скопировать и переименовать каталог D
+     *  5. Заменить плейсхолдеры в файлах нового D-пакета
+     *  6. Добавить пр.имён D-пакета в composer.json проекта -> autoload -> psr-4
+     *  7. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -204,8 +208,145 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
       // 3. Сформировать внутренний ID пакета (напр.: D1)
       $packfullname = 'D'.$packid;
 
+      // 4. Скопировать и переименовать каталог D
+      // - Из Samples в vendor/4gekkman
+      // - Назвать его именем $packfullname
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path('vendor')]);
+      $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
+      $this->storage->copyDirectory('vendor/4gekkman/M1/Samples/D', 'vendor/4gekkman/'.$packfullname);
 
-      
+      // 5. Заменить плейсхолдеры в файлах нового D-пакета
+
+        // 5.0. Подготовить storage
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packfullname)]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 5.1. В bower.json
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullnamePARAM --> $packfullname
+        $file = $this->storage->get('bower.json');
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $this->storage->put('bower.json', $file);
+
+        // 5.2. В composer.json
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullnamePARAM             --> $packfullname
+        //   • PARAMpackfullname_strtolowerPARAM  --> mb_strtolower($packfullname)
+        //   • PARAMdescriptionPARAM              --> $description
+        $file = $this->storage->get('composer.json');
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
+        $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
+        $this->storage->put('composer.json', $file);
+
+        // 5.3. В Controller.php
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullnamePARAM --> $packfullname
+        //   • PARAMlayoutidPARAM     --> $layoutid
+        $file = $this->storage->get('Controller.php');
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMlayoutidPARAM/ui", $layoutid, $file);
+        $this->storage->put('Controller.php', $file);
+
+        // 5.4. В readme.md
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullnamePARAM             --> $packfullname
+        //   • PARAMpackfullname_strtolowerPARAM  --> mb_strtolower($packfullname)
+        //   • PARAMdescriptionPARAM              --> $description
+        $file = $this->storage->get('readme.md');
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
+        $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
+        $this->storage->put('readme.md', $file);
+
+        // 5.5. В ServiceProvider.php
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullnamePARAM             --> $packfullname
+        //   • PARAMpackfullname_strtolowerPARAM  --> mb_strtolower($packfullname)
+        $file = $this->storage->get('ServiceProvider.php');
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
+        $this->storage->put('ServiceProvider.php', $file);
+
+        // 5.6. В settings.php
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullname_strtolowerPARAM  --> mb_strtolower($packfullname)
+        //   • PARAMappurlPARAM                   --> config('app.url')
+        //   • PARAMnamePARAM                     --> $name
+        //   • PARAMdescriptionPARAM              --> $description
+        $file = $this->storage->get('settings.php');
+        $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
+        $file = preg_replace("/PARAMappurlPARAM/ui", config('app.url'), $file);
+        $file = preg_replace("/PARAMnamePARAM/ui", $name, $file);
+        $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
+        $this->storage->put('settings.php', $file);
+
+        // 5.7. В view.blade.php
+        // - Заменить следующие плейсхолдеры:
+        //   • PARAMpackfullnamePARAM             --> $packfullname
+        //   • PARAMdescriptionPARAM              --> $description
+        $file = $this->storage->get('view.blade.php');
+        $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
+        $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
+        $this->storage->put('view.blade.php', $file);
+
+      // 6. Добавить пр.имён D-пакета в composer.json проекта -> autoload -> psr-4
+
+        // 14.1. Получить содержимое composer.json проекта
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $composer = $this->storage->get('composer.json');
+
+        // 6.2. Получить содержимое объекта "psr-4" из $composer в виде массива
+        preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
+        $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
+        $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
+        $namespaces = explode(',', $namespaces[0]);
+        $namespaces = array_values(array_filter($namespaces, function($item){
+          return !empty($item);
+        }));
+
+        // 6.3. Добавить в $namespaces пространство имён нового пакета
+        array_push($namespaces, '"' . $packfullname . '\\\\":"vendor/4gekkman/' . $packfullname . '"');
+
+        // 6.4. Сформировать строку в формате значения "psr-4" из composer.json
+
+          // 1] Подготовить строку для результата
+          $namespaces_result = "{" . PHP_EOL;
+
+          // 2] Вставить в $namespaces_result все значения из $commands
+          for($i=0; $i<count($namespaces); $i++) {
+            if($i != count($namespaces)-1 )
+              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . "," . PHP_EOL;
+            else
+              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . PHP_EOL;
+          }
+
+          // 3] Завершить квадратной скобкой c запятой
+          $namespaces_result = $namespaces_result . "        }";
+
+        // 6.5. Заменить все \\\\ в $namespaces_result на \\\\\\
+        $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
+
+        // 6.6. Вставить $namespaces_result в $composer
+        $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
+
+        // 6.7. Заменить $composer
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => base_path()]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put('composer.json', $composer);
+
+      // 7. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "packfullname" => $packfullname,
+        ]
+      ];
 
 
     } catch(\Exception $e) {

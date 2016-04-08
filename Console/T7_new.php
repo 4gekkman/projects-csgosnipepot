@@ -562,7 +562,7 @@ class T7_new extends Command
             case "mct"    : $this->info("New command '".$result['data']['comfullname']."' and console command '" .$result['data']['ccomfullname']. "' were successfully created for M-package '".$result['data']['package']."'."); break;
             case "mm"     : $this->info("New model '".$result['data']['modelfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
 
-            case "d"      : $this->info(""); break;
+            case "d"      : $this->info("New D-package '".$result['data']['packfullname']."' was successfully created."); break;
             case "w"      : $this->info(""); break;
             case "l"      : $this->info(""); break;
             case "r"      : $this->info("New R-package '".$result['data']['packfullname']."' was successfully created."); break;

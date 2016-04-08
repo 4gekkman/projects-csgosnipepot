@@ -28,17 +28,10 @@ return [
      */
     // routing start
     'routing' => [
-      'dev.app' => [
+      'PARAMappurlPARAM' => [
         'http' => [
           '' => [
-            '/',
-            '/test'
-          ],
-          's1.' => [
-            '/'
-          ],
-          's2.s1.' => [
-            '/'
+            '/PARAMpackfullname_strtolowerPARAM'
           ]
         ]
       ]
@@ -67,12 +60,12 @@ return [
     //------------------------------//
     'aboutpack' => [
       'RU' => [
-        'name'        => 'Новый документ',
-        'description' => 'Это новый D-пакет',
+        'name'        => 'PARAMnamePARAM',
+        'description' => 'PARAMdescriptionPARAM',
       ],
       'EN' => [
-        'name'        => 'New document',
-        'description' => 'It is new D-package',
+        'name'        => 'PARAMnamePARAM',
+        'description' => 'PARAMdescriptionPARAM',
       ]
     ],
 

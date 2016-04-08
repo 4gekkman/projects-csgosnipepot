@@ -752,13 +752,13 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
               // 3) Обойти весь $stack с начала до конца
               foreach($stack as $dep) {
 
-                // 3.1) Добавить все css-ки в $results['css'] из $index_bower
+                // 3.1) Добавить все css-ки в $results['css'] из $index_dlw
                 foreach($index_dlw[$dep]['mains']['css'] as $css) {
                   if(!empty($css))
                     array_push($results['css'], $css);
                 }
 
-                // 3.2) Добавить все js-ки в $results['js'] из $index_bower
+                // 3.2) Добавить все js-ки в $results['js'] из $index_dlw
                 foreach($index_dlw[$dep]['mains']['js'] as $js) {
                   if(!empty($js))
                     array_push($results['js'], $js);

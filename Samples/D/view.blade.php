@@ -11,7 +11,7 @@
 <!---------------------*/ ?>
 @section('title')
 
-  <title>D1 - Документ</title>
+  <title>PARAMpackfullnamePARAM - PARAMdescriptionPARAM</title>
 
 @stop
 

@@ -19,8 +19,8 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   D1:1              (v)      Описание
- *                  POST-API2   D1:2              (v)      Описание
+ *                  POST-API1   PARAMpackfullnamePARAM:1              (v)      Описание
+ *                  POST-API2   PARAMpackfullnamePARAM:2              (v)      Описание
  *
  *
  *
@@ -30,9 +30,8 @@
 //-------------------------------//
 // Пространство имён контроллера //
 //-------------------------------//
-// - Пример: D1
 
-  namespace D123;
+  namespace PARAMpackfullnamePARAM;
 
 
 //---------------------------------//
@@ -86,8 +85,8 @@ class Controller extends BaseController {
   //-------------------------------------------------//
   // ID пакета, которому принадлежит этот контроллер //
   //-------------------------------------------------//
-  public $packid = "D1";
-  public $layoutid = "L1";
+  public $packid = "PARAMpackfullnamePARAM";
+  public $layoutid = "PARAMlayoutidPARAM";
 
   //--------------------------------------//
   // GET-API. Обработка всех GET-запросов //
@@ -95,14 +94,6 @@ class Controller extends BaseController {
   public function getIndex() {
 
     // 1. Выполнить задачу
-//    $response = runcommand(
-//
-//        '\M1\Commands\C1_command',  // Какую команду выполнить
-//        $data,                      // Какие данные передать команде
-//        lib_current_user_id()       // ID пользователя, от чьего имени выполнить команду
-//
-//    );
-
 
 
 
@@ -129,7 +120,7 @@ class Controller extends BaseController {
     //------------------------------------------//
     // 1] Получить значение опций key и command //
     //------------------------------------------//
-    // - $key       - ключ операции (напр.: D1:1)
+    // - $key       - ключ операции (напр.: PARAMpackfullnamePARAM:1)
     // - $command   - полный путь команды, которую требуется выполнить
     $key        = Input::get('key');
     $command    = Input::get('command');
@@ -177,9 +168,9 @@ class Controller extends BaseController {
     if(!empty($key) && empty($command)) {
 
       //-----------------------------//
-      // Нестандартная операция D1:1 //
+      // Нестандартная операция PARAMpackfullnamePARAM:1 //
       //-----------------------------//
-      if($key == 'D1:1') {
+      if($key == 'PARAMpackfullnamePARAM:1') {
 
 
 
