@@ -9,9 +9,8 @@
   //-------------------------------------//
   // Пространство имён сервис-провайдера //
   //-------------------------------------//
-  // - Например: L1
 
-    namespace L1;
+    namespace PARAMpackfullnamePARAM;
 
 
   //---------------------------------//
@@ -39,7 +38,7 @@
 
         // 1] ID пакета //
         //--------------//
-        $packid = "L1";
+        $packid = "PARAMpackfullnamePARAM";
 
       //----------------------------------//
       // 2. Код (руками не редактировать) //
@@ -47,7 +46,7 @@
 
         // 1] Публикация публичных ресурсов документа в Public проекта //
         //-------------------------------------------------------------//
-        // Пример: L1/Public ---> Public/L1
+        // Пример: PARAMpackfullnamePARAM/Public ---> Public/PARAMpackfullnamePARAM
         // $this->publishes([
         //     __DIR__.'/Public' => base_path('Public/'.basename(__DIR__)),
         // ], 'L');
@@ -55,8 +54,8 @@
         // 2] Регистрация представления документа в приложении //
         //-----------------------------------------------------//
         // Шаблон ключа:          [id пакета]
-        // Пример ключа:          L1
-        // Пример использования:  L1::layout
+        // Пример ключа:          PARAMpackfullnamePARAM
+        // Пример использования:  PARAMpackfullnamePARAM::layout
         $this->loadViewsFrom(__DIR__, basename(__DIR__));
 
         // 3] Публикация настроек пакета в config проекта //
@@ -70,8 +69,8 @@
 
         // 4] Регистрация файлов локализации L-пакета //
         //--------------------------------------------//
-        // - Доступ из php  : trans('l1.welcome')
-        // - Доступ из blade: {{ trans('l1.welcome') }}
+        // - Доступ из php  : trans('PARAMpackfullname_strtolowerPARAM.welcome')
+        // - Доступ из blade: {{ trans('PARAMpackfullname_strtolowerPARAM.welcome') }}
 
           // RU //
           //----//

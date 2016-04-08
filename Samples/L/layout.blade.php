@@ -69,11 +69,11 @@
   <script>
 
     // 1. Подготовить объект для JS-кода шаблона
-    window['{{ "layout_" . json_decode($data, true)["layoutid"] }}'] = {};
+    window["layout_PARAMpackfullnamePARAM"] = {};
 
     // 2. Принять данные для шаблона
 
-      window['{{ "layout_" . json_decode($data, true)["layoutid"] }}'].csrf_token  = "{{ csrf_token() }}";
+      window["layout_PARAMpackfullnamePARAM"].csrf_token  = "{{ csrf_token() }}";
 
   </script>
 

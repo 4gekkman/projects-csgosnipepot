@@ -162,8 +162,7 @@ class T7_new extends Command
     //-------------------------------------------------------//
     // 0. Обновить приложение перед созданием нового ресурса //
     //-------------------------------------------------------//
-    //Artisan::call('m1:parseapp');
-    //$this->callSilent('m1:afterupdate');
+    // $this->call('m1:afterupdate');
 
     //-------------------------------------------------------------//
     // 1. Выяснить тип ресурса, который пользователь хочет создать //
@@ -456,9 +455,22 @@ class T7_new extends Command
 
       // 2.9. Если $restype == "l"
       if($restype == 'l') {
-        $params = [
 
-        ];
+        // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
+        $params = [];
+
+        // 2] Спросить у пользователя, какое имя задать новому L-пакету
+        $params['name'] = $this->ask("[NOT REQUIRED] Type name for the new L-package in english", 0);
+
+        // 3] Спросить у пользователя, какое описание задать новому L-пакету
+        $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new L-package in english", 0);
+
+        // 4] Спросить у пользователя, какой id задать новому L-пакету
+        $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new L-package", 0);
+
+        // n] Вернуть $params
+        return $params;
+
       }
 
       // 2.10. Если $restype == "r"
@@ -563,8 +575,8 @@ class T7_new extends Command
             case "mm"     : $this->info("New model '".$result['data']['modelfullname']."' was successfully created for M-package '".$result['data']['package']."'."); break;
 
             case "d"      : $this->info("New D-package '".$result['data']['packfullname']."' was successfully created."); break;
-            case "w"      : $this->info(""); break;
-            case "l"      : $this->info(""); break;
+            case "w"      : $this->info(""); break; //$this->info("New W-package '".$result['data']['packfullname']."' was successfully created."); break;
+            case "l"      : $this->info("New L-package '".$result['data']['packfullname']."' was successfully created."); break;
             case "r"      : $this->info("New R-package '".$result['data']['packfullname']."' was successfully created."); break;
 
             case "mdlw_u" : $this->info("New config update '".$result['data']['updatenum']."' for package '".$result['data']['packid']."' was successfully created."); break;
@@ -575,8 +587,8 @@ class T7_new extends Command
     //------------------------------------------------------//
     // 4. Обновить приложение после создания нового ресурса //
     //------------------------------------------------------//
-    //Artisan::call('m1:parseapp');
-    //$this->callSilent('m1:afterupdate');
+    //Artisan::queue('m1:afterupdate');
+    //Artisan::queue('m1:suf');
 
 
 

@@ -1011,7 +1011,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     } catch(\Exception $e) {
-        Log::info('Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage());
+        Log::info('Event firing ("m1:afterupdate") has failed with error: '.$e->getMessage());
         return [
           "status"  => -2,
           "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()

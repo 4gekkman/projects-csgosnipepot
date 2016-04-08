@@ -26,17 +26,10 @@ return [
      *    ]
      */
     'routing' => [
-      'dev.app' => [
+      'PARAMappurlPARAM' => [
         'http' => [
           '' => [
-            '/',
-            '/test'
-          ],
-          's1.' => [
-            '/'
-          ],
-          's2.s1.' => [
-            '/'
+            '/layouts/PARAMpackfullname_strtolowerPARAM'
           ]
         ]
       ]
@@ -64,12 +57,12 @@ return [
     //------------------------------//
     'aboutpack' => [
       'RU' => [
-        'name'        => 'Новый шаблон',
-        'description' => 'Это новый L-пакет',
+        'name'        => 'PARAMnamePARAM',
+        'description' => 'PARAMdescriptionPARAM',
       ],
       'EN' => [
-        'name'        => 'New layout',
-        'description' => 'It is new L-package',
+        'name'        => 'PARAMnamePARAM',
+        'description' => 'PARAMdescriptionPARAM',
       ]
     ],
 

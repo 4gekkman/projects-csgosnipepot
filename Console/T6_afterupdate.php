@@ -158,6 +158,7 @@ class T6_afterupdate extends Command
     Artisan::queue('m1:m_schedules_update');
     Artisan::queue('m1:workbench_sync_all');
     Artisan::queue('m1:clear_interpack_rels');
+    Artisan::queue('m1:parseapp');
     exec('composer dump-autoload');
 
     $this->info("afterupdate success");

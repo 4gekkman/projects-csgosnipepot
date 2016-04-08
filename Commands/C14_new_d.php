@@ -235,10 +235,12 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
         //   • PARAMpackfullnamePARAM             --> $packfullname
         //   • PARAMpackfullname_strtolowerPARAM  --> mb_strtolower($packfullname)
         //   • PARAMdescriptionPARAM              --> $description
+        //   • PARAMlayoutidPARAM                 --> $layoutid
         $file = $this->storage->get('composer.json');
         $file = preg_replace("/PARAMpackfullnamePARAM/ui", $packfullname, $file);
         $file = preg_replace("/PARAMpackfullname_strtolowerPARAM/ui", mb_strtolower($packfullname), $file);
         $file = preg_replace("/PARAMdescriptionPARAM/ui", $description, $file);
+        $file = preg_replace("/PARAMlayoutidPARAM/ui", $layoutid, $file);
         $this->storage->put('composer.json', $file);
 
         // 5.3. В Controller.php
@@ -294,7 +296,7 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
 
       // 6. Добавить пр.имён D-пакета в composer.json проекта -> autoload -> psr-4
 
-        // 14.1. Получить содержимое composer.json проекта
+        // 6.1. Получить содержимое composer.json проекта
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path()]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
@@ -352,7 +354,7 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C14_new_d from M-package M1 have ended with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+        write2log($errortext, ['M1', 'new_d']);
         return [
           "status"  => -2,
           "data"    => $errortext

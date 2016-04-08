@@ -47,12 +47,12 @@ gulp.task('lastuse', function(callback) {
 // 3. Обработать файл Public/css/c.scss
 gulp.task('styles', function(callback){
 
-	return gulp.src('Public/css/c.scss')
+	return gulp.src('Public/css/**/*.*')
 			.pipe(sourcemaps.init())
 			.pipe(sass())
 			.pipe(cssnano())
 			.pipe(sourcemaps.write())
-			.pipe(gulp.dest('../../../public/public/L1/css'));
+			.pipe(gulp.dest('../../../public/public/PARAMpackfullnamePARAM/css'));
 
 });
 
@@ -64,14 +64,14 @@ gulp.task('javascript', function(callback){
 			.pipe(concat('j.js'))
 			.pipe(uglify())
 			.pipe(sourcemaps.write())
-			.pipe(gulp.dest('../../../public/public/L1/js'));
+			.pipe(gulp.dest('../../../public/public/PARAMpackfullnamePARAM/js'));
 
 });
 
 // 5. Обработать каталог Public/assets
 gulp.task('assets', function(){
 	return gulp.src('Public/assets/**', {since: gulp.lastRun('assets')})
-			.pipe(gulp.dest('../../../public/public/L1/assets'));
+			.pipe(gulp.dest('../../../public/public/PARAMpackfullnamePARAM/assets'));
 });
 
 

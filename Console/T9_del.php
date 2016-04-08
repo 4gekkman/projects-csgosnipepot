@@ -163,9 +163,7 @@ class T9_del extends Command
     //--------------------------------------------------------------//
     // 0. Обновить приложение перед удалением существующего ресурса //
     //--------------------------------------------------------------//
-    $this->callSilent('m1:afterupdate');
-    Artisan::call('m1:parseapp');
-
+    // $this->call('m1:afterupdate');
 
     //-------------------------------------------------------------//
     // 1. Выяснить тип ресурса, который пользователь хочет удалить //
@@ -410,7 +408,26 @@ class T9_del extends Command
         // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
         $params = [];
 
+        // 2] Спросить у пользователя, какой D-пакет он хочет удалить
 
+          // 2.1] Получить инфу обо всех D-пакетах
+          // - В формате: id пакета => описание пакета
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+            $query->where('name','=','D');
+          })->pluck('aboutpack', 'id_inner');
+          $packages = $packages->map(function($item, $key){
+            return json_decode($item,true)['EN']['description'];
+          });
+
+          // 2.2] Если коллекция $packages пуста, сообщить и завершить
+          if($packages->count() == 0)
+            throw new \Exception('There is no D-packages in the app, which could be deleted.');
+
+          // 2.3] Спросить
+          $params['packid'] = $this->choice('Which D-package do you want to delete?', $packages->toArray());
+
+        // 3] Спросить, удалять ли конфиг пакета, или оставить
+        $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
         return $params;
@@ -423,7 +440,29 @@ class T9_del extends Command
         // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
         $params = [];
 
+        // 2] Спросить у пользователя, какой W-пакет он хочет удалить
 
+          // 2.1] Получить инфу обо всех W-пакетах
+          // - В формате: id пакета => описание пакета
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+            $query->where('name','=','W');
+          })->pluck('aboutpack', 'id_inner');
+          $packages = $packages->map(function($item, $key){
+            return json_decode($item,true)['EN']['description'];
+          });
+
+          // 2.2] Если коллекция $packages пуста, сообщить и завершить
+          if($packages->count() == 0)
+            throw new \Exception('There is no W-packages in the app, which could be deleted.');
+
+          // 2.3] Спросить
+          $params['packid'] = $this->choice('Which W-package do you want to delete?', $packages->toArray());
+
+        // 3] Спросить, удалять ли конфиг пакета, или оставить
+        $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
+
+        // n] Вернуть $params
+        return $params;
 
       }
 
@@ -433,7 +472,26 @@ class T9_del extends Command
         // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
         $params = [];
 
+        // 2] Спросить у пользователя, какой L-пакет он хочет удалить
 
+          // 2.1] Получить инфу обо всех L-пакетах
+          // - В формате: id пакета => описание пакета
+          $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+            $query->where('name','=','L');
+          })->pluck('aboutpack', 'id_inner');
+          $packages = $packages->map(function($item, $key){
+            return json_decode($item,true)['EN']['description'];
+          });
+
+          // 2.2] Если коллекция $packages пуста, сообщить и завершить
+          if($packages->count() == 0)
+            throw new \Exception('There is no L-packages in the app, which could be deleted.');
+
+          // 2.3] Спросить
+          $params['packid'] = $this->choice('Which L-package do you want to delete?', $packages->toArray());
+
+        // 3] Спросить, удалять ли конфиг пакета, или оставить
+        $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
         return $params;
@@ -510,9 +568,9 @@ class T9_del extends Command
             case "mh"  : $this->info("Event handler '".$result['data']['handlerfullname']."' was successfully deleted from M-package '".$result['data']['package']."'."); break;
             case "mm"  : $this->info("Model '".$result['data']['modelfullname']."' was successfully deleted from M-package '".$result['data']['package']."'."); break;
 
-            case "d"   : $this->info(""); break;
-            case "w"   : $this->info(""); break;
-            case "l"   : $this->info(""); break;
+            case "d"   : $this->info("D-package '".$result['data']['packfullname']."' was successfully deleted. Was the config deleted: ".$result['data']['delconf']); break;
+            case "w"   : $this->info("W-package '".$result['data']['packfullname']."' was successfully deleted. Was the config deleted: ".$result['data']['delconf']); break;
+            case "l"   : $this->info("L-package '".$result['data']['packfullname']."' was successfully deleted. Was the config deleted: ".$result['data']['delconf']); break;
             case "r"   : $this->info("R-package '".$result['data']['packfullname']."' was successfully deleted."); break;
 
             default    : $this->info("Success");
@@ -522,8 +580,8 @@ class T9_del extends Command
     //-------------------------------------------------------------//
     // 4. Обновить приложение после удаления существующего ресурса //
     //-------------------------------------------------------------//
-    $this->callSilent('m1:afterupdate');
-    Artisan::call('m1:parseapp');
+    //Artisan::queue('m1:afterupdate');
+    //Artisan::queue('m1:suf');
 
   }
 
