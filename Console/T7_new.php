@@ -162,8 +162,8 @@ class T7_new extends Command
     //-------------------------------------------------------//
     // 0. Обновить приложение перед созданием нового ресурса //
     //-------------------------------------------------------//
-    Artisan::call('m1:parseapp');
-    $this->callSilent('m1:afterupdate');
+    //Artisan::call('m1:parseapp');
+    //$this->callSilent('m1:afterupdate');
 
     //-------------------------------------------------------------//
     // 1. Выяснить тип ресурса, который пользователь хочет создать //
@@ -426,9 +426,25 @@ class T7_new extends Command
 
       // 2.7. Если $restype == "d"
       if($restype == 'd') {
-        $params = [
 
-        ];
+        // 1] Подготовить массив для значений запрашиваемых у пользователя параметров
+        $params = [];
+
+        // 2] Спросить у пользователя id шаблона для нового D-пакета
+        $params['layoutid'] = $this->ask("[REQUIRED] Type id for the new D-package", "L1");
+
+        // 3] Спросить у пользователя, какое имя задать новому D-пакету
+        $params['name'] = $this->ask("[NOT REQUIRED] Type name for the new D-package in english", 0);
+
+        // 4] Спросить у пользователя, какое описание задать новому D-пакету
+        $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new D-package in english", 0);
+
+        // 5] Спросить у пользователя, какой id задать новому D-пакету
+        $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new D-package", 0);
+
+        // n] Вернуть $params
+        return $params;
+
       }
 
       // 2.8. Если $restype == "w"
@@ -559,8 +575,8 @@ class T7_new extends Command
     //------------------------------------------------------//
     // 4. Обновить приложение после создания нового ресурса //
     //------------------------------------------------------//
-    Artisan::call('m1:parseapp');
-    $this->callSilent('m1:afterupdate');
+    //Artisan::call('m1:parseapp');
+    //$this->callSilent('m1:afterupdate');
 
 
 

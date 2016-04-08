@@ -59,21 +59,7 @@ gulp.task('lastuse', function(callback) {
 	sources['assets'] = [];
 
 		// sources: start
-    sources["styles"] = [
-      "../W1/Public/css/**/*.*", 
-      "../L1/Public/css/**/*.*", 
-      "../D1/Public/css/**/*.*", 
-    ];
-    sources["javascript"] = [
-      "../W1/Public/js/", 
-      "../L1/Public/js/", 
-      "../D1/Public/js/", 
-    ];
-    sources["assets"] = [
-      "../W1/Public/assets/**/*.*", 
-      "../L1/Public/assets/**/*.*", 
-      "../D1/Public/assets/**/*.*", 
-    ];
+
     // sources: end
 
 	// 3.2. Получить массив путей к каталогам и файлам с фронтенд-результатами
@@ -85,26 +71,7 @@ gulp.task('lastuse', function(callback) {
 	dests['php'] = [];
 
 		// dests: start
-    dests["styles"] = [
-      "../../../public/public/W1/css", 
-      "../../../public/public/L1/css", 
-      "../../../public/public/D1/css", 
-    ];
-    dests["javascript"] = [
-      "../../../public/public/W1/js", 
-      "../../../public/public/L1/js", 
-      "../../../public/public/D1/js", 
-    ];
-    dests["assets"] = [
-      "../../../public/public/W1/assets", 
-      "../../../public/public/L1/assets", 
-      "../../../public/public/D1/assets", 
-    ];
-    dests["php"] = [
-      "../W1/**/*.php", 
-      "../L1/**/*.php", 
-      "../D1/**/*.php", 
-    ];
+
     // dests: end
 
 // 4. Создать набор задач "styles"_<номер> для обработки стилей

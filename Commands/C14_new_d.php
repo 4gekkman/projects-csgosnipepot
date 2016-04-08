@@ -14,7 +14,10 @@
  *
  *    [
  *      "data" => [
- *
+ *        layoutid      // id шаблона (L-пакета) для этого D-пакета
+ *        name          // имя пакета на английском
+ *        description   // описание пакета на английском
+ *        packid        // желаемый id пакета
  *      ]
  *    ]
  *
@@ -135,25 +138,78 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Определить $packid
+     *  3. Сформировать внутренний ID пакета (напр.: D1)
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //-----------------------//
+    // Создать новый D-пакет //
+    //-----------------------//
+    $res = call_user_func(function() { try {
+
+      // 1. Провести валидацию и извлечение входящих параметров
+
+        // 1.1. Провести валидацию
+        $validator = r4_validate($this->data, [
+
+          "layoutid"        => ["required", "regex:/(^0$|^L[1-9]+$)/ui"],
+          "name"            => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
+          "description"     => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
+          "packid"          => ["required", "regex:/(^0$|^[0-9]+$)/ui"],
+
+        ]); if($validator['status'] == -1) {
+
+          throw new \Exception($validator['data']);
+
+        }
+
+        // 1.2. Произвести извлечение
+        $layoutid     = $this->data['layoutid'] ?: "L1";
+        $name         = $this->data['name'] ?: "";
+        $description  = $this->data['description'] ?: "Описание нового D-пакета";
+        $packid       = $this->data['packid'] ?: "";
+
+      // 2. Определить $packid
+
+        // 2.1. Получить список ID (номеров) всех D-пакетов
+        $packids = array_map(function($item){
+          return mb_substr($item, 1);
+        }, \M1\Models\MD2_packages::whereHas('packtypes',function($query) {
+            $query->where('name','=','D');
+        })->pluck('id_inner')->toArray());
+
+        // 2.2. Если $packid не передан, определить его автоматически
+        if(empty($packid)) {
+          $packid = call_user_func(function() USE ($packids) {
+            if(!is_array($packids) || empty($packids)) {
+              return 1;
+            }
+            else {
+              return +max($packids) + 1;
+            }
+          });
+        }
+
+        // 2.3. Если $packid передан, определить, доступен ли он
+        if(!empty($packid)) {
+          if(in_array($packid, $packids)) {
+            throw new \Exception("Can't create D-package with id $packid, because D-package with id $packid already exists.");
+          }
+        }
+
+      // 3. Сформировать внутренний ID пакета (напр.: D1)
+      $packfullname = 'D'.$packid;
 
 
-      // ...
+      
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C14_new_d from M-package M1 have ended with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M1', 'parseapp']);
         return [
