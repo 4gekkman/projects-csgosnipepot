@@ -1135,10 +1135,17 @@
   # Команды для организации автосохранения на github для MDLWR-пакетов #
   #--------------------------------------------------------------------#
 
-    github_make           | m1:github_                | Создать новый удалённый репозиторий на github для указанного MDLWR-пакета
-    github_               |                           | Создать новый локальный репозиторий для для указанного MDLWR-пакета
-    github_               |                           | 
-    github_
+    github_check          | m1:github_check           | Checks if 4gekkman acc is accessible for the app
+
+    github_new            | m1:github_new             | Organize autosave to github for specified MDLWR-pack
+    github_new_local      | m1:github_new_local       | Создать новый локальный репозиторий для указанного MDLWR-пакета, связав его с удалённым
+    github_new_remote     | m1:github_new_remote      | Создать новый удалённый репозиторий на github для указанного MDLWR-пакета
+    github_new_autopush   | m1:github_new_autopush    | Добавить запись о новом MDLWR-пакете в GitAutoPushScripts, выполнить push
+
+    github_del            | m1:github_del             | Отменяет автосохранение на github для указанного MDLWR-пакета
+    github_del_local      | m1:github_del_local       | Удалить локальный репозиторий для указанного MDLWR-пакета
+    github_del_remote     | m1:github_del_remote      | Удалить удалённый репозиторий на github для указанного MDLWR-пакета
+    github_del_autopush   | m1:github_del_autopush    | Удалить запись об указанном MDLWR-пакете из GitAutoPushScripts
 
   # Команды и к.команды CLI-приложения для разработки по управлению ресурсами #
   #---------------------------------------------------------------------------#

@@ -142,7 +142,9 @@
           '\M1\Console\T26_queue_show',
           '\M1\Console\T27_queue_clear',
           '\M1\Console\T28_run',
-          '\M1\Console\T29_run_light'
+          '\M1\Console\T29_run_light',
+          '\M1\Console\T30_github_check',
+          '\M1\Console\T30_github_new'
         ];
 
         // Регистрация команд в методе register
