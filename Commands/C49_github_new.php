@@ -166,18 +166,17 @@ class C49_github_new extends Job { // TODO: добавить "implements ShouldQ
       }
 
       // 3. Создать новый удалённый репозиторий на github для MDLWR-пакета
+      $result = runcommand('\M1\Commands\C52_github_new_remote', ["id_inner" => $this->data['id_inner']]);
+      if($result['status'] != 0) {
+        Log::info('Error: '.$result['data']);
+        write2log('Error: '.$result['data']);
+      }
 
-        // 3.1. Проверить работоспособность пароля и токена для github, указанных в конфиге M1
-        $check = runcommand('\M1\Commands\C48_github_check');
-        if($check['status'] != 0) {
-          Log::info('Error: '.$check['data']['errormsg']);
-          write2log('Error: '.$check['data']['errormsg']);
-        }
 
-        // 3.2. Получить токен от github
-        $token = $check['data']['token'];
 
-        write2log($token, []);
+
+
+
 
 
 

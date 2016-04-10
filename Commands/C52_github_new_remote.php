@@ -135,8 +135,11 @@ class C52_github_new_remote extends Job { // TODO: добавить "implements 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Принять входящие данные и провести валидацию
+     *  2. Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+     *  3. Получить токен от github
+     *  4. Подготовить команду для создания нового репозитория
+     *  5. Создать новый репозиторий, выполнив $command
      *
      *  N. Вернуть статус 0
      *
@@ -147,8 +150,32 @@ class C52_github_new_remote extends Job { // TODO: добавить "implements 
     //----------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Принять входящие данные и провести валидацию
+      $validator = r4_validate($this->data, [
 
-      write2log('C52_github_new_remote', []);
+        "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+      $check = runcommand('\M1\Commands\C48_github_check');
+      if($check['status'] != 0) {
+        Log::info('Error: '.$check['data']['errormsg']);
+        write2log('Error: '.$check['data']['errormsg']);
+      }
+
+      // 3. Получить токен от github
+      $token = $check['data']['token'];
+
+      // 4. Подготовить команду для создания нового репозитория
+      $command = "curl -i -H 'Authorization: token $token' -d '{\"name\": \"".$this->data['id_inner']."\"}' https://api.github.com/user/repos";
+
+      // 5. Создать новый репозиторий, выполнив $command
+      $result = shell_exec($command);
 
 
     DB::commit(); } catch(\Exception $e) {
