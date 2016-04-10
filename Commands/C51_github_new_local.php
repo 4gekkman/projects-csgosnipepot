@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Checks if 4gekkman acc is accessible for the app
+ *    - Create new local repo for specified MDLWR-pack, and bind local and remote reps
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -24,9 +24,6 @@
  *    [
  *      status          // 0 - всё ОК, -1 - нет доступа, -2 - ошибка
  *      data            // результат выполнения команды
- *        errormsg      // если статус не 0, тут будет текст ошибки
- *        password      // пароль от github
- *        token         // токен от github
  *    ]
  *
  *  Значение data в зависимости от статуса
@@ -104,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C48_github_check extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C51_github_new_local extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -138,146 +135,66 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
     /**
      * Оглавление
      *
-     *  1. Подготовить storage
-     *  2. Проверить валидность пароля
-     *  3. Проверить валидность токена
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------//
-    // Проверить валидность пароля и токена //
-    //--------------------------------------//
-    // - Которые находятся в файлах.
-    // - Адреса к которым указаны вконфиге M1.
-    $res = call_user_func(function() { try {
+    //-----------------------------------------------------------------------------------//
+    // Создать из указанного MDLWR-пакета локальный репозиторий, связать его с удалённым //
+    //-----------------------------------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Подготовить storage
+      // 1. Принять входящие данные и провести валидацию
+      $validator = r4_validate($this->data, [
+
+        "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Сформировать путь к каталогу с репозиторием
+      $path = base_path('vendor/4gekkman/'.$this->data['id_inner']);
+
+      // 3. Подготовить storage
       config(['filesystems.default' => 'local']);
-      config(['filesystems.disks.local.root' => "/"]);
+      config(['filesystems.disks.local.root' => base_path('vendor/4gekkman')]);
       $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
 
-      // 2. Проверить валидность пароля
+      // 4. Проверить существование $path
+      if(!$this->storage->exists($this->data['id_inner']))
+        throw new \Exception('Каталога '.$this->data['id_inner'].' в vendor/4gekkman не существует.');
 
-        // Проверить
-        $is_pass_valid = call_user_func(function() {
+      // 5. Удалить каталог .git, если таковой имеется в каталоге MDLWR-пакета
+      if($this->storage->exists($this->data['id_inner'].'/.git'))
+        $this->storage->deleteDirectory($this->data['id_inner'].'/.git');
 
-          // 2.1. Получить путь к файлу с паролем из конфига M1
-          $path = config("M1.github_password");
-          if(empty($path))
-            return [
-              "password"  => "",
-              "error_msg" => "Проверка пароля: в конфиге M1 (поле 'github_password') не указан путь к файлу с паролем"
-            ];
+      // 6. Сформировать команды "git init.." и "git remote add.."
 
-          // 2.2. Проверить существование файла по адресу $path/password
-          if(!$this->storage->exists($path))
-            return [
-              "password"  => "",
-              "error_msg" => "Проверка пароля: не найден файл с паролем по адресу: '".$path."'"
-            ];
+        // 6.1. Формируем "git init.."
+        $cmd_init = "cd " . $path . " && " . "git init";
 
-          // 2.3. Получить содержимое файла $path
-          $password = $this->storage->get($path);
+        // 6.2. Формируем "git remote add.."
+        $cmd_remote_add = "cd " . $path . " && " . "git remote add " . $this->data['id_inner'] . " git@github.com:4gekkman/" . $this->data['id_inner'];
 
-          // 2.4. Сформировать запрос
-          $request = "curl -u 4gekkman:".$password." https://api.github.com/authorizations";
+      // 7. Выполнить сформированные команды
+      shell_exec($cmd_init);
+      shell_exec($cmd_remote_add);
 
-          // 2.5. Отправить запрос и получить ответ, преобразовав его в массив
-          $responce = json_decode(shell_exec($request), true);
-
-          // 2.6. Если в $responce есть поле "message" с сообщением "Bad credentials", завершить
-          if(array_key_exists('message', $responce) && $responce['message'] == "Bad credentials")
-            return [
-              "password"  => $password,
-              "error_msg" => "Проверка пароля: неверный пароль"
-            ];
-
-          // 2.8. Вернуть результат
-          return [
-            "password"        => $password,
-            "authorizations"  => $responce,
-            "error_msg"       => ""
-          ];
-
-        });
-
-        // Если пароль не валиден, сообщить
-        if(!empty($is_pass_valid['error_msg']))
-          throw new \Exception($is_pass_valid['error_msg']);
-
-      // 3. Проверить валидность токена
-
-        // Проверить
-        $is_token_valid = call_user_func(function() USE ($is_pass_valid){
-
-          // 3.1. Получить путь к файлу с токеном из конфига M1
-          $path = config("M1.github_oauth2");
-          if(empty($path))
-            return [
-              "password"  => "",
-              "error_msg" => "Проверка пароля: в конфиге M1 (поле 'github_oauth2') не указан путь к файлу с токеном"
-            ];
-
-          // 3.2. Проверить существование файла по адресу $path/password
-          if(!$this->storage->exists($path))
-            return [
-              "token"  => "",
-              "error_msg" => "Проверка пароля: не найден файл с токеном по адресу: '".$path."'"
-            ];
-
-          // 3.3. Получить содержимое файла $path
-          $token = $this->storage->get($path);
-
-          // 3.4. Получить последние 8 символов токена
-          $last_eight = mb_substr($token, -8);
-
-          // 3.5. Пробежаться по авторизациям из $is_pass_valid, и попробовать найти токен
-          foreach($is_pass_valid['authorizations'] as $auth) {
-
-            if($last_eight == $auth["token_last_eight"])
-              return [
-                "token"           => $token,
-                "error_msg"       => ""
-              ];
-          }
-
-          // 3.5. Если курсо дошёл сюда, значет токен не найден
-          return [
-            "token"           => $token,
-            "error_msg"       => "Валидация токена: среди доступных авторизаций токен из файла не найден"
-          ];
-
-        });
-
-        // Если токен не валиден, сообщить
-        if(!empty($is_token_valid['error_msg']))
-          throw new \Exception($is_token_valid['error_msg']);
-
-      // 4. Вернуть результат
-      return [
-        "status"  => 0,
-        "data"    => [
-          "errormsg" => "",
-          "password" => $is_pass_valid['password'],
-          "token"    => $is_token_valid['token']
-        ]
-      ];
-
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C48_github_check from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C48_github_new_local from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C48_github_check']);
-      return [
-        "status"  => -2,
-        "data"    => [
-          "errormsg" => $errortext,
-          "password" => "",
-          "token"    => ""
-        ]
-      ];
+        write2log($errortext, ['M1', 'C48_github_new_local']);
+        return [
+          "status"  => -2,
+          "data"    => $errortext
+        ];
     }}); if(!empty($res)) return $res;
 
 

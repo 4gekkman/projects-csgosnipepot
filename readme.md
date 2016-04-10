@@ -1138,9 +1138,9 @@
     github_check          | m1:github_check           | Checks if 4gekkman acc is accessible for the app
 
     github_new            | m1:github_new             | Organize autosave to github for specified MDLWR-pack
-    github_new_local      | m1:github_new_local       | Создать новый локальный репозиторий для указанного MDLWR-пакета, связав его с удалённым
-    github_new_remote     | m1:github_new_remote      | Создать новый удалённый репозиторий на github для указанного MDLWR-пакета
-    github_new_autopush   | m1:github_new_autopush    | Добавить запись о новом MDLWR-пакете в GitAutoPushScripts, выполнить push
+    github_new_local      | m1:github_new_local       | Create new local repo for specified MDLWR-pack, and bind local and remote reps
+    github_new_remote     | m1:github_new_remote      | Create new remote repo in github for MDLWR-pack
+    github_new_autopush   | m1:github_new_autopush    | Add note about the new MDLWR-pack in GitAutoPushScripts
 
     github_del            | m1:github_del             | Отменяет автосохранение на github для указанного MDLWR-пакета
     github_del_local      | m1:github_del_local       | Удалить локальный репозиторий для указанного MDLWR-пакета

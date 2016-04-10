@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T30_github_new extends Command
+class T31_github_new extends Command
 {
 
   //---------------------------//
@@ -90,7 +90,7 @@ class T30_github_new extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:github_new';
+    protected $signature = 'm1:github_new {id_inner}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
@@ -162,7 +162,7 @@ class T30_github_new extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M1\Commands\C48_github_new');
+    $result = runcommand('\M1\Commands\C49_github_new', ["id_inner" => $this->argument("id_inner")]);
 
 
     // 2. В случае неудачи, вывести текст ошибки

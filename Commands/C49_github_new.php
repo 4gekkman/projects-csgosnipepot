@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C48_github_new extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C49_github_new extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -142,13 +142,65 @@ class C48_github_new extends Job { // TODO: добавить "implements ShouldQ
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------------------------------//
+    // Организовать автосохранение на github указанного MDLWR-пакета //
+    //---------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Принять входящие данные и провести валидацию
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Создать из указанного MDLWR-пакета локальный репозиторий, связать его с удалённым
+      $result = runcommand('\M1\Commands\C51_github_new_local', ["id_inner" => $this->data['id_inner']]);
+      if($result['status'] != 0) {
+        Log::info('Error: '.$result['data']);
+        write2log('Error: '.$result['data']);
+      }
+
+      // 3. Создать новый удалённый репозиторий на github для MDLWR-пакета
+
+        // 3.1. Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+        $check = runcommand('\M1\Commands\C48_github_check');
+        if($check['status'] != 0) {
+          Log::info('Error: '.$check['data']['errormsg']);
+          write2log('Error: '.$check['data']['errormsg']);
+        }
+
+        // 3.2. Получить токен от github
+        $token = $check['data']['token'];
+
+        write2log($token, []);
+
+
+
+
+//      write2log('C49_github_new');
+//
+//      $result = runcommand('\M1\Commands\C51_github_new_local');
+//      if($result['status'] != 0) {
+//        Log::info('Error: '.$result['data']);
+//        write2log('Error: '.$result['data']);
+//      }
+//
+//      $result = runcommand('\M1\Commands\C52_github_new_remote');
+//      if($result['status'] != 0) {
+//        Log::info('Error: '.$result['data']);
+//        write2log('Error: '.$result['data']);
+//      }
+//
+//      $result = runcommand('\M1\Commands\C50_github_new_autopush');
+//      if($result['status'] != 0) {
+//        Log::info('Error: '.$result['data']);
+//        write2log('Error: '.$result['data']);
+//      }
 
 
     DB::commit(); } catch(\Exception $e) {
