@@ -161,20 +161,20 @@ class T30_github_new extends Command
      *
      */
 
-//    // 1. Выполнить команду
-//    $result = runcommand('\M1\Commands\C1_command');
-//
-//
-//    // 2. В случае неудачи, вывести текст ошибки
-//    if($result['status'] != 0) {
-//      $this->error('Error: '.$result['data']);
-//      return;
-//    }
-//
-//
-//    // 3. В случае успеха, вывести соотв.сообщение
-//    $this->info("Success");
-//
+    // 1. Выполнить команду
+    $result = runcommand('\M1\Commands\C48_github_new');
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
+
   }
 
 }

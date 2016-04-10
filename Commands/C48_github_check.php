@@ -135,8 +135,9 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Подготовить storage
+     *  2. Проверить валидность пароля
+     *  3. Проверить валидность токена
      *
      *  N. Вернуть статус 0
      *
@@ -155,60 +156,111 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
       $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
 
       // 2. Проверить валидность пароля
-      $is_pass_valid = call_user_func(function() {
 
-        // 2.1. Получить путь к файлу с паролем из конфига M1
-        $path = config("M1.github_password");
-        if(empty($path)) return false;
+        // Проверить
+        $is_pass_valid = call_user_func(function() {
 
-        // 2.2. Проверить существование файла по адресу $path/password
-        if(!$this->storage->exists('c/WebDev'))
-          throw new \Exception('Не найден файл с паролем по адресу: "'.$path.'".');
+          // 2.1. Получить путь к файлу с паролем из конфига M1
+          $path = config("M1.github_password");
+          if(empty($path))
+            return [
+              "password"  => "",
+              "error_msg" => "Проверка пароля: в конфиге M1 (поле 'github_password') не указан путь к файлу с паролем"
+            ];
 
-        write2log($this->storage->directories($path), []);
+          // 2.2. Проверить существование файла по адресу $path/password
+          if(!$this->storage->exists($path))
+            return [
+              "password"  => "",
+              "error_msg" => "Проверка пароля: не найден файл с паролем по адресу: '".$path."'"
+            ];
 
-      });
+          // 2.3. Получить содержимое файла $path
+          $password = $this->storage->get($path);
 
+          // 2.4. Сформировать запрос
+          $request = "curl -u 4gekkman:".$password." https://api.github.com/authorizations";
 
+          // 2.5. Отправить запрос и получить ответ, преобразовав его в массив
+          $responce = json_decode(shell_exec($request), true);
 
+          // 2.6. Если в $responce есть поле "message" с сообщением "Bad credentials", завершить
+          if(array_key_exists('message', $responce) && $responce['message'] == "Bad credentials")
+            return [
+              "password"  => $password,
+              "error_msg" => "Проверка пароля: неверный пароль"
+            ];
 
-//      // 1. Получить путь к файлу с токеном
-//      $path = $this->data['path'];
-//
-//      // 2. Получить значение токена
-//      $token = call_user_func(function() USE ($path) {
-//
-//        // 2.1. Подготовить storage
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => "/"]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//
-//        // 2.2. Проверить существование файла по адресу $path
-//        if(!$this->storage->exists($path))
-//          throw new \Exception('Не найден файл с токеном по адресу: "'.$path.'".');
-//
-//        // 2.3. Получить содержимое файла по адресу $path
-//        $file = $this->storage->get($path);
-//
-//        write2log($file, []);
+          // 2.8. Вернуть результат
+          return [
+            "password"        => $password,
+            "authorizations"  => $responce,
+            "error_msg"       => ""
+          ];
 
+        });
 
+        // Если пароль не валиден, сообщить
+        if(!empty($is_pass_valid['error_msg']))
+          return [
+            "status"  => 0,
+            "data"    => $is_pass_valid['error_msg']
+          ];
 
+      // 3. Проверить валидность токена
 
+        // Проверить
+        $is_token_valid = call_user_func(function() USE ($is_pass_valid){
 
+          // 3.1. Получить путь к файлу с токеном из конфига M1
+          $path = config("M1.github_oauth2");
+          if(empty($path))
+            return [
+              "password"  => "",
+              "error_msg" => "Проверка пароля: в конфиге M1 (поле 'github_oauth2') не указан путь к файлу с токеном"
+            ];
 
-        // 1.1. Подготовить storage
-//        config(['filesystems.default' => 'local']);
-//        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$package)]);
-//        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-//        if(!$this->storage->exists('gulpfile.js'))
-//          throw new \Exception('В пакете '.$package.' не найден файл gulpfile.js');
-//
+          // 3.2. Проверить существование файла по адресу $path/password
+          if(!$this->storage->exists($path))
+            return [
+              "token"  => "",
+              "error_msg" => "Проверка пароля: не найден файл с токеном по адресу: '".$path."'"
+            ];
+
+          // 3.3. Получить содержимое файла $path
+          $token = $this->storage->get($path);
+
+          // 3.4. Получить последние 8 символов токена
+          $last_eight = mb_substr($token, -8);
+
+          // 3.5. Пробежаться по авторизациям из $is_pass_valid, и попробовать найти токен
+          foreach($is_pass_valid['authorizations'] as $auth) {
+
+            if($last_eight == $auth["token_last_eight"])
+              return [
+                "token"           => $token,
+                "error_msg"       => ""
+              ];
+          }
+
+          // 3.5. Если курсо дошёл сюда, значет токен не найден
+          return [
+            "token"           => $token,
+            "error_msg"       => "Валидация токена: среди доступных авторизаций токен из файла не найден"
+          ];
+
+        });
+
+        // Если токен не валиден, сообщить
+        if(!empty($is_token_valid['error_msg']))
+          return [
+            "status"  => 0,
+            "data"    => $is_token_valid['error_msg']
+          ];
 
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C48_github_check from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M1', 'C48_github_check']);
         return [
