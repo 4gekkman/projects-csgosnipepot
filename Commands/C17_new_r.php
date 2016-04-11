@@ -145,7 +145,8 @@ class C17_new_r extends Job { // TODO: добавить "implements ShouldQueue"
      *  7. Заменить плейсхолдеры в файле readme.md
      *  8. Заменить плейсхолдеры в файле ServiceProvider.php
      *  9. Добавить пр.имён R-пакета в composer.json проекта -> autoload -> psr-4
-     *  10. Вернуть результаты
+     *  10. Создать новый репозиторий для нового пакета
+     *  11. Вернуть результаты
      *
      */
 
@@ -157,6 +158,7 @@ class C17_new_r extends Job { // TODO: добавить "implements ShouldQueue"
       // 1. Получить входящие параметры
       $endescription = empty($this->data['endescription']) ? "New R-package" : $this->data['endescription'];
       $packid = $this->data['packid'];
+      $github = $this->data['github'];
 
       // 2. Провести валидацию входящих параметров
 
@@ -167,6 +169,10 @@ class C17_new_r extends Job { // TODO: добавить "implements ShouldQueue"
         // 2] $packid
         if(!preg_match("/^[0-9]+$/ui", $packid))
           throw new \Exception("packid is not valid (must match \"/^[0-9]+$/ui\")");
+
+        // 3] $github
+        if(!preg_match("/^(yes|no)$/ui", $github))
+          throw new \Exception("github is not valid (must match \"/^(yes|no)$/ui\")");
 
       // 3. Определить $packid
 
@@ -307,7 +313,15 @@ class C17_new_r extends Job { // TODO: добавить "implements ShouldQueue"
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('composer.json', $composer);
 
-      // 10. Вернуть результаты
+      // 10. Создать новый репозиторий для нового пакета
+      // - Если $github == 'yes'
+      if($github == 'yes') {
+        $result = runcommand('\M1\Commands\C49_github_new', ["id_inner" => $packfullname]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+      }
+
+      // 11. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [

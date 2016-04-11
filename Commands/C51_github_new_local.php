@@ -150,7 +150,7 @@ class C51_github_new_local extends Job { // TODO: добавить "implements S
     //-----------------------------------------------------------------------------------//
     // Создать из указанного MDLWR-пакета локальный репозиторий, связать его с удалённым //
     //-----------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Принять входящие данные и провести валидацию
       $validator = r4_validate($this->data, [
@@ -191,11 +191,10 @@ class C51_github_new_local extends Job { // TODO: добавить "implements S
       shell_exec($cmd_init);
       shell_exec($cmd_remote_add);
 
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C48_github_new_local from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C51_github_new_local from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C48_github_new_local']);
+        write2log($errortext, ['M1', 'C51_github_new_local']);
         return [
           "status"  => -2,
           "data"    => $errortext

@@ -143,7 +143,8 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
      *  4. Скопировать и переименовать каталог L
      *  5. Заменить плейсхолдеры в файлах нового L-пакета
      *  6. Добавить пр.имён L-пакета в composer.json проекта -> autoload -> psr-4
-     *  7. Вернуть результаты
+     *  7. Создать новый репозиторий для нового пакета
+     *  8. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -162,6 +163,7 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
           "name"            => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "description"     => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "packid"          => ["required", "regex:/(^0$|^[0-9]+$)/ui"],
+          "github"          => ["required", "regex:/(^(yes|no)$/ui"],
 
         ]); if($validator['status'] == -1) {
 
@@ -173,6 +175,7 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
         $name         = $this->data['name'] ?: "";
         $description  = $this->data['description'] ?: "Описание нового L-пакета";
         $packid       = $this->data['packid'] ?: "";
+        $github       = $this->data['github'];
 
       // 2. Определить $packid
 
@@ -340,7 +343,15 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('composer.json', $composer);
 
-      // 7. Вернуть результаты
+      // 7. Создать новый репозиторий для нового пакета
+      // - Если $github == 'yes'
+      if($github == 'yes') {
+        $result = runcommand('\M1\Commands\C49_github_new', ["id_inner" => $packfullname]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+      }
+
+      // 8. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [

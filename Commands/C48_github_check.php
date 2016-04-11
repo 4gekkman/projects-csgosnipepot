@@ -141,14 +141,16 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
      *  1. Подготовить storage
      *  2. Проверить валидность пароля
      *  3. Проверить валидность токена
+     *  4. Проверить существование ps-скрипта
+     *  5. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------//
-    // Проверить валидность пароля и токена //
-    //--------------------------------------//
+    //----------------------------------------------------------------//
+    // Проверить валидность пароля, токена и существование ps-скрипта //
+    //----------------------------------------------------------------//
     // - Которые находятся в файлах.
     // - Адреса к которым указаны вконфиге M1.
     $res = call_user_func(function() { try {
@@ -216,15 +218,15 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
           $path = config("M1.github_oauth2");
           if(empty($path))
             return [
-              "password"  => "",
-              "error_msg" => "Проверка пароля: в конфиге M1 (поле 'github_oauth2') не указан путь к файлу с токеном"
+              "token"     => "",
+              "error_msg" => "Валидация токена: в конфиге M1 (поле 'github_oauth2') не указан путь к файлу с токеном"
             ];
 
           // 3.2. Проверить существование файла по адресу $path/password
           if(!$this->storage->exists($path))
             return [
               "token"  => "",
-              "error_msg" => "Проверка пароля: не найден файл с токеном по адресу: '".$path."'"
+              "error_msg" => "Валидация токена: не найден файл с токеном по адресу: '".$path."'"
             ];
 
           // 3.3. Получить содержимое файла $path
@@ -243,7 +245,7 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
               ];
           }
 
-          // 3.5. Если курсо дошёл сюда, значет токен не найден
+          // 3.5. Если курсор дошёл сюда, значет токен не найден
           return [
             "token"           => $token,
             "error_msg"       => "Валидация токена: среди доступных авторизаций токен из файла не найден"
@@ -255,7 +257,43 @@ class C48_github_check extends Job { // TODO: добавить "implements Shoul
         if(!empty($is_token_valid['error_msg']))
           throw new \Exception($is_token_valid['error_msg']);
 
-      // 4. Вернуть результат
+      // 4. Проверить существование ps-скрипта
+
+        // Проверить
+        $is_psscript_exists = call_user_func(function(){
+
+          // 4.1. Получить путь к powershell-скрипту
+          $path = config("M1.github_powershell");
+          if(empty($path))
+            return [
+              "psscript"  => "",
+              "error_msg" => "Проверка ps-скрипта: в конфиге M1 (поле 'github_powershell') не указан путь к файлу со скриптом"
+            ];
+
+          // 4.2. Проверить существование файла по адресу $path/password
+          if(!$this->storage->exists($path))
+            return [
+              "psscript"  => "",
+              "error_msg" => "Проверка ps-скрипта: не найден файл с ps-скриптом по адресу: '".$path."'"
+            ];
+
+          // 4.3. Получить содержимое файла $path
+          $psscript = $this->storage->get($path);
+
+          // 4.4. Вернуть результат
+          return [
+            "psscript"        => $psscript,
+            "error_msg"       => ""
+          ];
+
+        });
+
+        // Если ps-скрипт не существует
+        if(!empty($is_psscript_exists['error_msg']))
+          throw new \Exception($is_psscript_exists['error_msg']);
+
+
+      // 5. Вернуть результат
       return [
         "status"  => 0,
         "data"    => [

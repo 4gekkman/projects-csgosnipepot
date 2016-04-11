@@ -135,8 +135,11 @@ class C49_github_new extends Job { // TODO: добавить "implements ShouldQ
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Принять входящие данные и провести валидацию
+     *  2. Проверить валидность пароля, токена и существование ps-скрипта
+     *  3. Создать из указанного MDLWR-пакета локальный репозиторий, связать его с удалённым
+     *  4. Создать новый удалённый репозиторий на github для MDLWR-пакета
+     *  5. Добавить запись об указанном MDLWR-пакете в GitAutoPushScripts
      *
      *  N. Вернуть статус 0
      *
@@ -145,7 +148,7 @@ class C49_github_new extends Job { // TODO: добавить "implements ShouldQ
     //---------------------------------------------------------------//
     // Организовать автосохранение на github указанного MDLWR-пакета //
     //---------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Принять входящие данные и провести валидацию
       $validator = r4_validate($this->data, [
@@ -158,55 +161,31 @@ class C49_github_new extends Job { // TODO: добавить "implements ShouldQ
 
       }
 
-      // 2. Создать из указанного MDLWR-пакета локальный репозиторий, связать его с удалённым
+      // 2. Проверить валидность пароля, токена и существование ps-скрипта
+      $result = runcommand('\M1\Commands\C48_github_check');
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 3. Создать из указанного MDLWR-пакета локальный репозиторий, связать его с удалённым
       $result = runcommand('\M1\Commands\C51_github_new_local', ["id_inner" => $this->data['id_inner']]);
-      if($result['status'] != 0) {
-        Log::info('Error: '.$result['data']);
-        write2log('Error: '.$result['data']);
-      }
+      if($result['status'] != 0)
+        throw new \Exception($result['data']);
 
-      // 3. Создать новый удалённый репозиторий на github для MDLWR-пакета
+      // 4. Создать новый удалённый репозиторий на github для MDLWR-пакета
       $result = runcommand('\M1\Commands\C52_github_new_remote', ["id_inner" => $this->data['id_inner']]);
-      if($result['status'] != 0) {
-        Log::info('Error: '.$result['data']);
-        write2log('Error: '.$result['data']);
-      }
+      if($result['status'] != 0)
+        throw new \Exception($result['data']);
+
+      // 5. Добавить запись об указанном MDLWR-пакете в GitAutoPushScripts
+      $result = runcommand('\M1\Commands\C50_github_new_autopush', ["id_inner" => $this->data['id_inner']]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']);
 
 
-
-
-
-
-
-
-
-
-//      write2log('C49_github_new');
-//
-//      $result = runcommand('\M1\Commands\C51_github_new_local');
-//      if($result['status'] != 0) {
-//        Log::info('Error: '.$result['data']);
-//        write2log('Error: '.$result['data']);
-//      }
-//
-//      $result = runcommand('\M1\Commands\C52_github_new_remote');
-//      if($result['status'] != 0) {
-//        Log::info('Error: '.$result['data']);
-//        write2log('Error: '.$result['data']);
-//      }
-//
-//      $result = runcommand('\M1\Commands\C50_github_new_autopush');
-//      if($result['status'] != 0) {
-//        Log::info('Error: '.$result['data']);
-//        write2log('Error: '.$result['data']);
-//      }
-
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C48_github_new from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C49_github_new from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C48_github_new']);
+        write2log($errortext, ['M1', 'C49_github_new']);
         return [
           "status"  => -2,
           "data"    => $errortext

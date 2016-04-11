@@ -153,7 +153,8 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
      *  12. Заменить плейсхолдеры в файле ServiceProvider.php
      *  13. Переименовать файл Database/_m1_model.mwb
      *  14. Добавить пр.имён M-пакета в composer.json проекта -> autoload -> psr-4
-     *  15. Вернуть результаты
+     *  15. Создать новый репозиторий для нового пакета
+     *  16. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -170,6 +171,7 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
       $rudescription = empty($this->data['rudescription']) ? "Новый M-пакет" : $this->data['rudescription'];
       $endescription = empty($this->data['endescription']) ? "New M-package" : $this->data['endescription'];
       $packid = $this->data['packid'];
+      $github = $this->data['github'];
 
       // 2. Провести валидацию входящих параметров
 
@@ -192,6 +194,10 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
         // 5] $packid
         if(!preg_match("/^[0-9]+$/ui", $packid))
           throw new \Exception("packid is not valid (must match \"/^[0-9]+$/ui\")");
+
+        // 6] $github
+        if(!preg_match("/^(yes|no)$/ui", $github))
+          throw new \Exception("github is not valid (must match \"/^(yes|no)$/ui\")");
 
       // 3. Определить $packid
 
@@ -404,7 +410,15 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('composer.json', $composer);
 
-      // 15. Вернуть результаты
+      // 15. Создать новый репозиторий для нового пакета
+      // - Если $github == 'yes'
+      if($github == 'yes') {
+        $result = runcommand('\M1\Commands\C49_github_new', ["id_inner" => $packfullname]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+      }
+
+      // 16. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
@@ -415,7 +429,9 @@ class C7_new_m extends Job { // TODO: добавить "implements ShouldQueue" 
 
 
     } catch(\Exception $e) {
-        $errortext = "Creating of new M-package have ended with error: ".$e->getMessage();
+        $errortext = 'Invoking of command C7_new_m from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        Log::info($errortext);
+        write2log($errortext, ['M1', 'C49_github_new']);
         return [
           "status"  => -2,
           "data"    => $errortext

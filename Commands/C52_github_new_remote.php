@@ -148,7 +148,7 @@ class C52_github_new_remote extends Job { // TODO: добавить "implements 
     //----------------------------------------------------------------//
     // Создать новый удалённый репозиторий на github для MDLWR-пакета //
     //----------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Принять входящие данные и провести валидацию
       $validator = r4_validate($this->data, [
@@ -178,11 +178,10 @@ class C52_github_new_remote extends Job { // TODO: добавить "implements 
       $result = shell_exec($command);
 
 
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C48_github_new_remote from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C52_github_new_remote from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C48_github_new_remote']);
+        write2log($errortext, ['M1', 'C52_github_new_remote']);
         return [
           "status"  => -2,
           "data"    => $errortext

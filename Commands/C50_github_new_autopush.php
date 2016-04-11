@@ -135,8 +135,11 @@ class C50_github_new_autopush extends Job { // TODO: добавить "implement
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Принять входящие данные и провести валидацию
+     *  2. Получить массив ID всех MDLWR-пакетов
+     *  3. Добавить в него $this->data['id_inner']
+     *  4. Сформировать строку $laravelpacks
+     *  5. Подменить $laravelpacks в powershell-скрипте
      *
      *  N. Вернуть статус 0
      *
@@ -145,17 +148,73 @@ class C50_github_new_autopush extends Job { // TODO: добавить "implement
     //----------------------------------------------------------------//
     // Добавить запись об указанном MDLWR-пакете в GitAutoPushScripts //
     //----------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
+
+      // 1. Принять входящие данные и провести валидацию
+      $validator = r4_validate($this->data, [
+
+        "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Получить массив ID всех MDLWR-пакетов
+      $ids = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+        $query->whereIn('name',['M','D','L','W','R']);
+      })->pluck('id_inner')->toArray();
+
+      // 3. Добавить в него $this->data['id_inner']
+      array_push($ids, $this->data['id_inner']);
+
+      // 4. Сформировать строку $laravelpacks
+      $laravelpacks = call_user_func(function() USE ($ids) {
+
+        // 1] Подготовить строку для результата
+        $result = '$laravelpacks = @(';
+
+        // 2] Вставить в $result все $ids
+        foreach($ids as $id) {
+          $result = $result . '"' . $id . '",';
+        }
+
+        // 3] Если последний символ в $result == ',', удадилть его
+        $result = rtrim($result, ",");
+
+        // 3] Завершающий штрих
+        $result = $result . ')';
+
+        // 4] Вернуть $result
+        return $result;
+
+      });
+
+      // 5. Подменить $laravelpacks в powershell-скрипте
+
+        // 5.1. Получить путь к powershell-скрипту
+        $powershell_path = config('M1.github_powershell');
+
+        // 5.2. Подготовить storage
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => "/"]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+        // 5.3. Получить содержимое файла $path
+        $psscript = $this->storage->get($powershell_path);
+
+        // 5.4. Вставить $psscript в $file
+        $psscript = preg_replace('#\$laravelpacks = @\(.*\)#smuiU', $laravelpacks, $psscript);
+
+        // 5.5. Заменить $file
+        $this->storage->put($powershell_path, $psscript);
 
 
-      write2log('C50_github_new_autopush', []);
-
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C48_github_new_autopush from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C50_github_new_autopush from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'C48_github_new_autopush']);
+        write2log($errortext, ['M1', 'C50_github_new_autopush']);
         return [
           "status"  => -2,
           "data"    => $errortext
