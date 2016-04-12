@@ -160,13 +160,57 @@ class C43_suf_dlw_process extends Job { // TODO: добавить "implements Sh
         // 2.2. Наполнить $cmd
         collect($packages)->each(function($packname) USE (&$cmd) {
 
-          if(!empty($cmd)) $cmd = $cmd . ' && ';
-          $cmd = $cmd . "cd ".base_path("/vendor/4gekkman/".$packname)." && npm link gulp && gulp run";
+          // 1] Получить и удалить старую контрольную сумму
+          $checksum_old = call_user_func(function() USE ($packname) {
+
+            // 1.1] Подготовить массив для результата
+            $result = "";
+
+            // 1.2] Подготовить storage
+            config(['filesystems.default' => 'local']);
+            config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/'.$packname)]);
+            $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+            // 1.3] Записать контрольную сумму для gulpfile, и удалить файл checksum
+            if($this->storage->exists('checksum')) {
+              $result = $this->storage->get('checksum');
+              $this->storage->delete('checksum');
+            }
+
+            // 1.3] Вернуть результат
+            return $result;
+
+          });
+
+          // 2] Получить свежую контрольную сумму
+          $checksum_new = md5(implode('',[
+            r1_checksum(base_path('vendor/4gekkman/'.$packname.'/gulpfile.js')),
+            r1_checksum(base_path('vendor/4gekkman/'.$packname.'/Public'))
+          ]));
+
+          // 3] Записать новую checksum в DLW-пакет
+          $this->storage->put('checksum', $checksum_new);
+
+          // 4] Проверить, отличаются ли $checksum_new от $checksum_old
+          $is_checksum_changed = call_user_func(function() USE ($checksum_old, $checksum_new) {
+
+            if($checksum_old == $checksum_new) return false;
+            return true;
+
+          });
+
+          // 5] Добавить команду на выполнение gulpfile.js пакета $packname в $cmd
+          // - Если $is_checksum_changed == true
+          if($is_checksum_changed) {
+            if(!empty($cmd)) $cmd = $cmd . ' && ';
+            $cmd = $cmd . "cd ".base_path("vendor/4gekkman/".$packname)." && npm link gulp && gulp run";
+          }
 
         });
 
-        // 2.3. Выполнить команду $cmd в контейнере node
-        shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
+        // 2.3. Выполнить команду $cmd в контейнере node, если она не пуста
+        if(!empty($cmd))
+          shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C43_suf_dlw_process from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

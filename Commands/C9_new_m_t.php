@@ -313,13 +313,9 @@ class C9_new_m_t extends Job { // TODO: добавить "implements ShouldQueue
         $sp = $this->storage->get('ServiceProvider.php');
 
         // 10.2. Получить содержимое массива $add2schedule из $sp в виде массива
-        preg_match("/add2schedule *= *\[.*\]/smuiU", $sp, $add2schedule);
-        $add2schedule = preg_replace("/add2schedule *= */smuiU", '', $add2schedule);
-        $add2schedule = preg_replace("/['\n\r\s\[\]]/smuiU", '', $add2schedule);
-        $add2schedule = explode(',', $add2schedule[0]);
-        $add2schedule = array_values(array_filter($add2schedule, function($item){
-          return !empty($item);
-        }));
+        $add2schedule_temp = [];
+        preg_match('#\$add2schedule = \[.*\];#smuiU', $sp, $add2schedule_temp);
+        $add2schedule = eval($add2schedule_temp[0].' return $add2schedule; ');
 
         // 10.3. Добавить в $add2schedule запись про новую команду
         // - Но только, если таковой ещё нет, и если она не пуста

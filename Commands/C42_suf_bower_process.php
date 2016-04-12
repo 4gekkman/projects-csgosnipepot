@@ -167,18 +167,6 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
         // 2.1. Подготовить переменную для команды
         $cmd = '';
 
-        // 2.2. Подготовить 2 хранилища: с bower-пакетами и их драйверами
-
-          // 2.2.1] Хранилище с bower-пакетами
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
-          $this->storage_packs = new \Illuminate\Filesystem\FilesystemManager(app());
-
-          // 2.2.2] Хранилище с драйверами bower-пакетов
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
-          $this->storage_drivers = new \Illuminate\Filesystem\FilesystemManager(app());
-
         // 2.2. Наполнить $cmd
         collect($r5data4bowerpacks)->each(function($packname) USE (&$cmd) {
 
@@ -192,30 +180,43 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
             ];
 
             // 1.2] Записать контрольную сумму для gulpfile, и удалить файл checksum
+            config(['filesystems.default' => 'local']);
+            config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
+            $this->storage_drivers = new \Illuminate\Filesystem\FilesystemManager(app());
             if($this->storage_drivers->exists($packname.'/checksum')) {
               $result["gulpfile"] = $this->storage_drivers->get($packname.'/checksum');
               $this->storage_drivers->delete($packname.'/checksum');
             }
 
             // 1.3] Записать контрольную сумму для bowerpack, и удалить файл checksum
+            config(['filesystems.default' => 'local']);
+            config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
+            $this->storage_packs = new \Illuminate\Filesystem\FilesystemManager(app());
             if($this->storage_packs->exists($packname.'/checksum')) {
               $result["bowerpack"] = $this->storage_packs->get($packname.'/checksum');
-              $this->storage_drivers->delete($packname.'/checksum');
+              $this->storage_packs->delete($packname.'/checksum');
             }
 
             // 1.4] Вернуть результат
             return $result;
 
           });
-write2log($checksums_old, []);
+
           // 2] Получить свежие контрольные суммы
           $checksums_new = [
-            "gulpfile"  => r1_checksum('vendor/4gekkman/R5/data4bower/'.$packname.'/gulpfile.js'),
-            "bowerpack" => r1_checksum('public/public/bower/'.$packname),
+            "gulpfile"  => r1_checksum(base_path('vendor/4gekkman/R5/data4bower/'.$packname.'/gulpfile.js')),
+            "bowerpack" => r1_checksum(base_path('public/public/bower/'.$packname)),
           ];
-write2log($checksums_new, []);
+
           // 3] Записать новые checksum в bower-пакет и драйвер
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
+          $this->storage_drivers = new \Illuminate\Filesystem\FilesystemManager(app());
           $this->storage_drivers->put($packname.'/checksum', $checksums_new['gulpfile']);
+
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
+          $this->storage_packs = new \Illuminate\Filesystem\FilesystemManager(app());
           $this->storage_packs->put($packname.'/checksum', $checksums_new['bowerpack']);
 
           // 4] Проверить, отличаются ли $checksums_new от $checksums_old
@@ -237,10 +238,9 @@ write2log($checksums_new, []);
 
         });
 
-
         // 2.3. Выполнить команду $cmd в контейнере node, если она не пуста
-//        if(!empty($cmd))
-//          shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
+        if(!empty($cmd))
+          shell_exec('sshpass -p "password" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@node "'.$cmd.'"');
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C42_suf_bower_process from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
