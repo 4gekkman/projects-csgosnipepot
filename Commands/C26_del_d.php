@@ -139,11 +139,12 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
      *
      *  1. Получить входящие параметры
      *  2. Проверить существование D-пакета $packid
-     *  3. Удалить каталог D-пакета $packid
-     *  4. Удалить пр.имён D-пакета из composer.json проекта -> autoload -> psr-4
-     *  5. Удалить файл-конфиг D-пакета (если требуется)
-     *  6. Удалить запись о пакете из providers в config/app.php
-     *  7. Вернуть результаты
+     *  3. Отменить автосохранение пакета $packid на github
+     *  4. Удалить каталог D-пакета $packid
+     *  5. Удалить пр.имён D-пакета из composer.json проекта -> autoload -> psr-4
+     *  6. Удалить файл-конфиг D-пакета (если требуется)
+     *  7. Удалить запись о пакете из providers в config/app.php
+     *  8. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -163,21 +164,26 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
       if(empty($pack))
         throw new \Exception("Package $packid does not exist.");
 
-      // 3. Удалить каталог D-пакета $packid
+      // 3. Отменить автосохранение пакета $packid на github
+      $result = runcommand('\M1\Commands\C53_github_del', ["id_inner" => $packid]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']);
+
+      // 4. Удалить каталог D-пакета $packid
       config(['filesystems.default' => 'local']);
       config(['filesystems.disks.local.root' => base_path()]);
       $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
       $this->storage->deleteDirectory('vendor/4gekkman/'.$packid);
 
-      // 4. Удалить пр.имён D-пакета из composer.json проекта -> autoload -> psr-4
+      // 5. Удалить пр.имён D-пакета из composer.json проекта -> autoload -> psr-4
 
-        // 4.1. Получить содержимое composer.json проекта
+        // 5.1. Получить содержимое composer.json проекта
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path()]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $composer = $this->storage->get('composer.json');
 
-        // 4.2. Получить содержимое объекта "psr-4" из $composer в виде массива
+        // 5.2. Получить содержимое объекта "psr-4" из $composer в виде массива
         preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
         $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
         $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
@@ -186,12 +192,12 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
           return !empty($item);
         }));
 
-        // 4.3. Удалить из $namespaces запись, содержащую 'vendor/4gekkman/'.$packid
+        // 5.3. Удалить из $namespaces запись, содержащую 'vendor/4gekkman/'.$packid
         $namespaces = array_values(array_filter($namespaces, function($item) USE ($packid) {
           return !preg_match("#vendor/4gekkman/".$packid."#ui", $item);
         }));
 
-        // 4.4. Сформировать строку в формате значения "psr-4" из composer.json
+        // 5.4. Сформировать строку в формате значения "psr-4" из composer.json
 
           // 1] Подготовить строку для результата
           $namespaces_result = "{" . PHP_EOL;
@@ -207,19 +213,19 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
           // 3] Завершить квадратной скобкой c запятой
           $namespaces_result = $namespaces_result . "        }";
 
-        // 4.5. Заменить все \\\\ в $namespaces_result на \\\\\\
+        // 5.5. Заменить все \\\\ в $namespaces_result на \\\\\\
         $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
 
-        // 4.6. Вставить $namespaces_result в $composer
+        // 5.6. Вставить $namespaces_result в $composer
         $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
 
-        // 4.7. Заменить $composer
+        // 5.7. Заменить $composer
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path()]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $this->storage->put('composer.json', $composer);
 
-      // 5. Удалить файл-конфиг D-пакета (если требуется)
+      // 6. Удалить файл-конфиг D-пакета (если требуется)
       if($delconf == "yes") {
 
         config(['filesystems.default' => 'local']);
@@ -229,24 +235,24 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
 
       }
 
-      // 6. Удалить запись о пакете из providers в config/app.php
+      // 7. Удалить запись о пакете из providers в config/app.php
 
-        // 6.1. Получить содержимое конфига app.php
+        // 7.1. Получить содержимое конфига app.php
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path('config')]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
         $config = $this->storage->get('app.php');
 
-        // 6.2. Получить текущий список провайдеров из конфига app.php
+        // 7.2. Получить текущий список провайдеров из конфига app.php
         // - И отфильтровать 1 так, чтобы удалить регистрацию всех провайдеров не моих пакетов.
         $approviders = config('app.providers');
 
-        // 6.3. Удалить из $approviders запись, содержащую $packid.'\ServiceProvider::class'
+        // 7.3. Удалить из $approviders запись, содержащую $packid.'\ServiceProvider::class'
         $approviders = array_values(array_filter($approviders, function($item) USE ($packid) {
           return !preg_match("/^".$packid."\\\\ServiceProvider$/ui", $item);
         }));
 
-        // 6.4. С помощью regex вставить $approviders в providers конфига $config
+        // 7.4. С помощью regex вставить $approviders в providers конфига $config
 
           // 1] Сформировать строку в формате массива из $approviders
           $providers_str = call_user_func(function() USE ($approviders) {
@@ -276,7 +282,7 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
           // 3] Заменить config
           $this->storage->put('app.php', $config);
 
-      // 7. Вернуть результаты
+      // 8. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
@@ -286,10 +292,9 @@ class C26_del_d extends Job { // TODO: добавить "implements ShouldQueue"
       ];
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C26_del_d from M-package M1 have ended with error: '.$e->getMessage();
-        DB::rollback();
+        $errortext = 'Invoking of command C26_del_d from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M1', 'parseapp']);
+        write2log($errortext, ['M1', 'del_d']);
         return [
           "status"  => -2,
           "data"    => $errortext

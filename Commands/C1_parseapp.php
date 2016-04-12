@@ -390,7 +390,17 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         $file_exists = file_exists(base_path('config/'.$packname.'.php'));
 
         // 2] Получить массив имён и описаний пакеты
-        if(!$file_exists) $aboutpack = "";
+        if(!$file_exists)
+          $aboutpack = [
+           "RU" => [
+             "name" => "",
+             "description" => "",
+           ],
+           "EN" => [
+             "name" => "",
+             "description" => "",
+           ],
+         ];
         else $aboutpack = config($packname.'.aboutpack');
 
         // 3] Вернуть названия

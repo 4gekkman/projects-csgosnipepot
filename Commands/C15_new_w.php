@@ -163,7 +163,7 @@ class C15_new_w extends Job { // TODO: добавить "implements ShouldQueue"
           "name"            => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "description"     => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "packid"          => ["required", "regex:/(^0$|^[0-9]+$)/ui"],
-          "github"          => ["required", "regex:/(^(yes|no)$/ui"],
+          "github"          => ["required", "regex:/^(yes|no)$/ui"],
 
         ]); if($validator['status'] == -1) {
 

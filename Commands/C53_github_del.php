@@ -7,16 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Delete M-package
+ *    - Cancels autosave to github for the MDLWR-pack, which must be removed
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        packid      // ID M-пакета для удаления
- *        delconf     // yes/no удалять ли конфиг M-пакета
- *        deldb       // yes/no удалять ли БД M-пакета
+ *
  *      ]
  *    ]
  *
@@ -48,7 +46,7 @@
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Commands
+// - Пример:  M1\Commands
 
   namespace M1\Commands;
 
@@ -103,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C20_del_m extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C53_github_del extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -137,172 +135,57 @@ class C20_del_m extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1. Получить входящие параметры
-     *  2. Проверить существование M-пакета $packid
-     *  3. Отменить автосохранение пакета $packid на github
-     *  4. Удалить каталог M-пакета $packid
-     *  5. Удалить пр.имён M-пакета из composer.json проекта -> autoload -> psr-4
-     *  6. Удалить файл-конфиг M-пакета (если требуется)
-     *  7. Удалить БД пакета (если требуется)
-     *  8. Удалить запись о пакете из providers в config/app.php
-     *  9. Вернуть результаты
+     *  1. Принять входящие данные и провести валидацию
+     *  2. Проверить существование пакета $this->data['id_inner']
+     *  3. Проверить валидность пароля, токена и существование ps-скрипта
+     *  4. Удалить для указанного MDLWR-пакета удалённый репозиторий на github
+     *  5. Удалить для указанного MDLWR-пакета запись из GitAutoPushScripts
+     *
+     *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------//
-    // Удалить указанный M-пакет //
-    //---------------------------//
+    //---------------------------------------------------------------//
+    // Отменить автосохранение на github для указанного MDLWR-пакета //
+    //---------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить входящие параметры
-      $packid   = $this->data['packid'];
-      $deldb    = $this->data['deldb'];
-      $delconf  = $this->data['delconf'];
+      // 1. Принять входящие данные и провести валидацию
+      $validator = r4_validate($this->data, [
 
-      // 2. Проверить существование M-пакета $packid
-      $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
-      if(empty($pack))
-        throw new \Exception("Package $packid does not exist.");
+        "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
 
-      // 3. Отменить автосохранение пакета $packid на github
-      $result = runcommand('\M1\Commands\C53_github_del', ["id_inner" => $packid]);
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Проверить существование пакета $this->data['id_inner']
+      $package = \M1\Models\MD2_packages::where('id_inner', $this->data['id_inner'])->first();
+      if(empty($package))
+        throw new \Exception("Пакет ".$this->data['id_inner']." не существует.");
+
+      // 3. Проверить валидность пароля, токена и существование ps-скрипта
+      $result = runcommand('\M1\Commands\C48_github_check');
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 4. Удалить для указанного MDLWR-пакета удалённый репозиторий на github
+      $result = runcommand('\M1\Commands\C54_github_del_remote', ["id_inner" => $this->data['id_inner']]);
       if($result['status'] != 0)
         throw new \Exception($result['data']);
 
-      // 4. Удалить каталог M-пакета $packid
-      config(['filesystems.default' => 'local']);
-      config(['filesystems.disks.local.root' => base_path()]);
-      $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
-      $this->storage->deleteDirectory('vendor/4gekkman/'.$packid);
-
-      // 5. Удалить пр.имён M-пакета из composer.json проекта -> autoload -> psr-4
-
-        // 5.1. Получить содержимое composer.json проекта
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path()]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $composer = $this->storage->get('composer.json');
-
-        // 5.2. Получить содержимое объекта "psr-4" из $composer в виде массива
-        preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
-        $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
-        $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
-        $namespaces = explode(',', $namespaces[0]);
-        $namespaces = array_values(array_filter($namespaces, function($item){
-          return !empty($item);
-        }));
-
-        // 5.3. Удалить из $namespaces запись, содержащую 'vendor/4gekkman/'.$packid
-        $namespaces = array_values(array_filter($namespaces, function($item) USE ($packid) {
-          return !preg_match("#vendor/4gekkman/".$packid."#ui", $item);
-        }));
-
-        // 5.4. Сформировать строку в формате значения "psr-4" из composer.json
-
-          // 1] Подготовить строку для результата
-          $namespaces_result = "{" . PHP_EOL;
-
-          // 2] Вставить в $namespaces_result все значения из $commands
-          for($i=0; $i<count($namespaces); $i++) {
-            if($i != count($namespaces)-1 )
-              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . "," . PHP_EOL;
-            else
-              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . PHP_EOL;
-          }
-
-          // 3] Завершить квадратной скобкой c запятой
-          $namespaces_result = $namespaces_result . "        }";
-
-        // 5.5. Заменить все \\\\ в $namespaces_result на \\\\\\
-        $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
-
-        // 5.6. Вставить $namespaces_result в $composer
-        $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
-
-        // 5.7. Заменить $composer
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path()]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('composer.json', $composer);
-
-      // 6. Удалить файл-конфиг M-пакета (если требуется)
-      if($delconf == "yes") {
-
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('config')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->delete($packid.'.php');
-
-      }
-
-      // 7. Удалить БД пакета (если требуется)
-      if($deldb == "yes") {
-
-        $packid_lowcase = mb_strtolower($packid);
-        DB::select( DB::raw("DROP DATABASE $packid_lowcase") );
-
-      }
-
-      // 8. Удалить запись о пакете из providers в config/app.php
-
-        // 8.1. Получить содержимое конфига app.php
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('config')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $config = $this->storage->get('app.php');
-
-        // 8.2. Получить текущий список провайдеров из конфига app.php
-        // - И отфильтровать 1 так, чтобы удалить регистрацию всех провайдеров не моих пакетов.
-        $approviders = config('app.providers');
-
-        // 8.3. Удалить из $approviders запись, содержащую $packid.'\ServiceProvider::class'
-        $approviders = array_values(array_filter($approviders, function($item) USE ($packid) {
-          return !preg_match("/^".$packid."\\\\ServiceProvider$/ui", $item);
-        }));
-
-        // 8.4. С помощью regex вставить $approviders в providers конфига $config
-
-          // 1] Сформировать строку в формате массива из $approviders
-          $providers_str = call_user_func(function() USE ($approviders) {
-
-            // 1.1] Подготовить строку для результата
-            $result = "[" . PHP_EOL;
-
-            // 1.2] Вставить в $result все значения из $approviders
-            for($i=0; $i<count($approviders); $i++) {
-              if($i != count($approviders)-1 )
-                $result = $result . "        " . $approviders[$i] . "::class," . PHP_EOL;
-              else
-                $result = $result . "        " . $approviders[$i] . "::class" . PHP_EOL;
-            }
-
-            // 1.3] Завершить квадратной скобкой c запятой
-            $result = $result . "    ],";
-
-            // 1.4] Вернуть результат
-            return $result;
-
-          });
-
-          // 2] Вставить $providers_str в $config
-          $config = preg_replace("#'providers' *=> *\[.*\],#smuiU", "'providers' => ".$providers_str, $config);
-
-          // 3] Заменить config
-          $this->storage->put('app.php', $config);
-
-      // 9. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "packfullname"  => $packid,
-          "deldb"         => $deldb,
-          "delconf"       => $delconf
-        ]
-      ];
-
+      // 5. Удалить для указанного MDLWR-пакета запись из GitAutoPushScripts
+      $result = runcommand('\M1\Commands\C55_github_del_autopush', ["id_inner" => $this->data['id_inner']]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']);
 
     } catch(\Exception $e) {
-        $errortext = "Deleting of the M-package have ended with error: ".$e->getMessage();
+        $errortext = 'Invoking of command C53_github_del from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
+        Log::info($errortext);
+        write2log($errortext, ['M1', 'C53_github_del']);
         return [
           "status"  => -2,
           "data"    => $errortext

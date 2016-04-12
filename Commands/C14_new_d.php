@@ -165,7 +165,7 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
           "name"            => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "description"     => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "packid"          => ["required", "regex:/(^0$|^[0-9]+$)/ui"],
-          "github"          => ["required", "regex:/(^(yes|no)$/ui"],
+          "github"          => ["required", "regex:/^(yes|no)$/ui"],
 
         ]); if($validator['status'] == -1) {
 
@@ -363,7 +363,7 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
 
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C14_new_d from M-package M1 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C14_new_d from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
         write2log($errortext, ['M1', 'new_d']);
         return [

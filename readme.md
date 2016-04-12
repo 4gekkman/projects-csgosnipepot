@@ -1142,10 +1142,9 @@
     github_new_remote     | -                         | Create new remote repo in github for MDLWR-pack
     github_new_autopush   | -                         | Add note about the new MDLWR-pack in GitAutoPushScripts
 
-    github_del            | m1:github_del             | Отменяет автосохранение на github для указанного MDLWR-пакета
-    github_del_local      | -                         | Удалить локальный репозиторий для указанного MDLWR-пакета
-    github_del_remote     | -                         | Удалить удалённый репозиторий на github для указанного MDLWR-пакета
-    github_del_autopush   | -                         | Удалить запись об указанном MDLWR-пакете из GitAutoPushScripts
+    github_del            | m1:github_del             | Cancels autosave to github for the MDLWR-pack, which must be removed
+    github_del_remote     | -                         | Delete the remote repo in github of the specified MDLWR-pack
+    github_del_autopush   | -                         | Remove note about the MDLWR-pack in GitAutoPushScripts, which must be removed
 
   # Команды и к.команды CLI-приложения для разработки по управлению ресурсами #
   #---------------------------------------------------------------------------#

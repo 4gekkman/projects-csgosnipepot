@@ -7,12 +7,12 @@
 /**
  *  Что делает
  *  ----------
- *    - Organize autosave to github for specified MDLWR-pack
+ *    - Cancels autosave to github for the MDLWR-pack, which must be removed
  *
  *  Аргументы
  *  ---------
  *
- *    id_inner      // ID того MDLWR-пакета, для которого надо организовать автосохранениен на github
+ *    id_inner      // ID того MDLWR-пакета, для которого надо отменить автосохранениен на github
  *
  *  Опции
  *  -----
@@ -77,7 +77,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T31_github_new extends Command
+class T32_github_del extends Command
 {
 
   //---------------------------//
@@ -91,13 +91,13 @@ class T31_github_new extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:github_new {id_inner}';
+    protected $signature = 'm1:github_del {id_inner}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Organize autosave to github for specified MDLWR-pack';
+    protected $description = 'Cancels autosave to github for the MDLWR-pack, which must be removed';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -163,7 +163,7 @@ class T31_github_new extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M1\Commands\C49_github_new', ["id_inner" => $this->argument("id_inner")]);
+    $result = runcommand('\M1\Commands\C53_github_del', ["id_inner" => $this->argument("id_inner")]);
 
 
     // 2. В случае неудачи, вывести текст ошибки
