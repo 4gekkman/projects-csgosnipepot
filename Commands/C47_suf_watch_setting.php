@@ -337,8 +337,6 @@ class C47_suf_watch_setting extends Job { // TODO: добавить "implements 
 
       }
 
-
-
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C47_suf_watch_setting from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
