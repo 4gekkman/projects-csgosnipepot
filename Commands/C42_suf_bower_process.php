@@ -209,15 +209,20 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
           ];
 
           // 3] Записать новые checksum в bower-пакет и драйвер
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
-          $this->storage_drivers = new \Illuminate\Filesystem\FilesystemManager(app());
-          $this->storage_drivers->put($packname.'/checksum', $checksums_new['gulpfile']);
 
-          config(['filesystems.default' => 'local']);
-          config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
-          $this->storage_packs = new \Illuminate\Filesystem\FilesystemManager(app());
-          $this->storage_packs->put($packname.'/checksum', $checksums_new['bowerpack']);
+            // 3.1] В драйвер
+            config(['filesystems.default' => 'local']);
+            config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower')]);
+            $this->storage_drivers = new \Illuminate\Filesystem\FilesystemManager(app());
+            $this->storage_drivers->put($packname.'/checksum', $checksums_new['gulpfile']);
+
+            // 3.2] В bower-пакет
+            // - Но только если такой каталог уже существует
+            config(['filesystems.default' => 'local']);
+            config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
+            $this->storage_packs = new \Illuminate\Filesystem\FilesystemManager(app());
+            if($this->storage_drivers->exists($packname))
+              $this->storage_packs->put($packname.'/checksum', $checksums_new['bowerpack']);
 
           // 4] Проверить, отличаются ли $checksums_new от $checksums_old
           $is_checksum_changed = call_user_func(function() USE ($checksums_old, $checksums_new) {
