@@ -151,7 +151,7 @@ class T29_run_light extends Command
   //
   public function handle()
   {
-
+write2log(555, []);
     // 1. Проверить, существует ли файл с настройками пакета M1
     $file_exists = file_exists(base_path('config/M1.php'));
 
