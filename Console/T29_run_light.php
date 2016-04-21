@@ -166,9 +166,9 @@ class T29_run_light extends Command
     // 3. Если режим разработки включен, выполнить команды
     if($development_mode) {
 
-      Artisan::queue('m1:allrespublish');
       Artisan::queue('m1:parseapp');
       Artisan::queue('m1:sp_regs_update');
+      Artisan::queue('m1:allrespublish');
       Artisan::queue('m1:mdlw_cfgs_update');
       Artisan::queue('m1:m_schedules_update');
       exec('composer dump-autoload');
