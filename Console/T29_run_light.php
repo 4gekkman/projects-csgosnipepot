@@ -168,12 +168,12 @@ class T29_run_light extends Command
 
       Artisan::queue('m1:parseapp');
       Artisan::queue('m1:sp_regs_update');
-      exec('composer dump-autoload');
       Artisan::queue('m1:allrespublish');
       Artisan::queue('m1:mdlw_cfgs_update');
       Artisan::queue('m1:m_schedules_update');
 
       Artisan::call('m1:suf');
+      Artisan::queue('m1:parseapp');
       $this->info('Задачи run в очереди.');
       write2log('Задачи run в очереди.', []);
 

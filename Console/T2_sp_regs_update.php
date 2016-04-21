@@ -152,14 +152,18 @@ class T2_sp_regs_update extends Command
     $result = runcommand('\M1\Commands\C2_sp_regs_update');
 
 
-    // 2. В случае неудачи, вывести текст ошибки:
+    // 2. Выполнить dupm-autoload
+    exec('composer dump-autoload');
+
+
+    // 3. В случае неудачи, вывести текст ошибки:
     if($result['status'] != 0) {
       $this->error('Error: '.$result['data']);
       return;
     }
 
 
-    // 3. В случае успеха, вывести соотв.сообщение
+    // 4. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
 
   }
