@@ -442,7 +442,7 @@ class T7_new extends Command
         $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new D-package in english", 0);
 
         // 5] Спросить у пользователя, настраивать ли автосохранение на github для пакета
-        $params['github'] = $this->choice('[NOT REQUIRED] Do you want to create a new repo on github for the pack, make in packs folder a local repo, and turn on autopush to github every 3 hours?', ['no', 'yes'], 1);
+        $params['github'] = $this->choice('[NOT REQUIRED] Do you want to create a new repo on github for the pack, make in packs folder a local repo, and turn on autopush to github every 3 hours?', ['no', 'yes'], 0);
 
         // 6] Спросить у пользователя, какой id задать новому D-пакету
         $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new D-package", 0);
@@ -465,7 +465,7 @@ class T7_new extends Command
         $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new W-package in english", 0);
 
         // 4] Спросить у пользователя, настраивать ли автосохранение на github для пакета
-        $params['github'] = $this->choice('[NOT REQUIRED] Do you want to create a new repo on github for the pack, make in packs folder a local repo, and turn on autopush to github every 3 hours?', ['no', 'yes'], 1);
+        $params['github'] = $this->choice('[NOT REQUIRED] Do you want to create a new repo on github for the pack, make in packs folder a local repo, and turn on autopush to github every 3 hours?', ['no', 'yes'], 0);
 
         // 5] Спросить у пользователя, какой id задать новому L-пакету
         $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new W-package", 0);
@@ -488,7 +488,7 @@ class T7_new extends Command
         $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new L-package in english", 0);
 
         // 4] Спросить у пользователя, настраивать ли автосохранение на github для пакета
-        $params['github'] = $this->choice('[NOT REQUIRED] Do you want to create a new repo on github for the pack, make in packs folder a local repo, and turn on autopush to github every 3 hours?', ['no', 'yes'], 1);
+        $params['github'] = $this->choice('[NOT REQUIRED] Do you want to create a new repo on github for the pack, make in packs folder a local repo, and turn on autopush to github every 3 hours?', ['no', 'yes'], 0);
 
         // 5] Спросить у пользователя, какой id задать новому L-пакету
         $params['packid'] = $this->ask("[NOT REQUIRED] Type id for the new L-package", 0);
