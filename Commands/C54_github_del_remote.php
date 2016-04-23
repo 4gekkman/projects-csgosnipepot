@@ -137,6 +137,9 @@ class C54_github_del_remote extends Job { // TODO: добавить "implements 
      *
      *  1. Принять входящие данные и провести валидацию
      *  2. Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+     *  3. Получить токен от github
+     *  4. Подготовить команду для удаления репозитория
+     *  5. Удалить репозиторий, выполнив $command
      *
      *  N. Вернуть статус 0
      *
@@ -168,10 +171,10 @@ class C54_github_del_remote extends Job { // TODO: добавить "implements 
       // 3. Получить токен от github
       $token = $check['data']['token'];
 
-      // 4. Подготовить команду для создания нового репозитория
+      // 4. Подготовить команду для удаления репозитория
       $command = "curl -i -X 'DELETE' -H 'Authorization: token $token' https://api.github.com/repos/4gekkman/".$this->data['id_inner'];
 
-      // 5. Создать новый репозиторий, выполнив $command
+      // 5. Удалить репозиторий, выполнив $command
       $result = shell_exec($command);
 
     } catch(\Exception $e) {
