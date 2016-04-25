@@ -90,7 +90,7 @@ class T29_run_light extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:run_light';
+    protected $signature = 'm1:run_light {--force}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
@@ -164,7 +164,7 @@ class T29_run_light extends Command
       $development_mode = true;
 
     // 3. Если режим разработки включен, выполнить команды
-    if($development_mode) {
+    if($development_mode || $this->option()['force'] === true) {
 
       Artisan::queue('m1:parseapp');
       Artisan::queue('m1:sp_regs_update');
