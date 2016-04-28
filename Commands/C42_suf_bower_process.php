@@ -221,7 +221,7 @@ class C42_suf_bower_process extends Job { // TODO: добавить "implements 
             config(['filesystems.default' => 'local']);
             config(['filesystems.disks.local.root' => base_path('public/public/bower')]);
             $this->storage_packs = new \Illuminate\Filesystem\FilesystemManager(app());
-            if($this->storage_drivers->exists($packname))
+            if($this->storage_packs->exists($packname))
               $this->storage_packs->put($packname.'/checksum', $checksums_new['bowerpack']);
 
           // 4] Проверить, отличаются ли $checksums_new от $checksums_old
