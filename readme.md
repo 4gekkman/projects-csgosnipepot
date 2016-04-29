@@ -1196,7 +1196,7 @@
     - Для этого ввести (заменив <name> на имя пакета, а <url> на путь к github-репозиторию пакета):
 
         bower register <name> <url>
-
+        bower register 4gekkman-bower-prefixfree https://github.com/4gekkman/4gekkman-bower-prefixfree    // пример
 
 
 ```

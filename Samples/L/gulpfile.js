@@ -34,6 +34,7 @@ const cssnano = require('../R5/node_modules/gulp-cssnano');
 const uglify = require('../R5/node_modules/gulp-uglify');
 const concat = require('../R5/node_modules/gulp-concat');
 const fs = require('fs');
+const autoprefixer = require('../R5/node_modules/gulp-autoprefixer');
 const sourcemaps = require('../R5/node_modules/gulp-sourcemaps');
 
 // 2. Создать файл с датой последнего исполнения рядом с gulpfile.js
@@ -50,6 +51,7 @@ gulp.task('styles', function(callback){
 	return gulp.src('Public/css/**/*.*')
 			.pipe(sourcemaps.init())
 			.pipe(sass())
+			.pipe(autoprefixer())
 			.pipe(cssnano())
 			.pipe(sourcemaps.write())
 			.pipe(gulp.dest('../../../public/public/PARAMpackfullnamePARAM/css'));

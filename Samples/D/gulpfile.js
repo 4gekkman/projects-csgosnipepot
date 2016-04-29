@@ -36,6 +36,7 @@ const cssnano = require('../R5/node_modules/gulp-cssnano');
 const uglify = require('../R5/node_modules/gulp-uglify');
 const concat = require('../R5/node_modules/gulp-concat');
 const fs = require('fs');
+const autoprefixer = require('../R5/node_modules/gulp-autoprefixer');
 const sourcemaps = require('../R5/node_modules/gulp-sourcemaps');
 const browserSync = require('../R5/node_modules/browser-sync').create();
 
@@ -81,6 +82,7 @@ for(var stylesnum=0; stylesnum<sources["styles"].length; stylesnum++) {
 		return gulp.src(sources["styles"][stylesnum])
 				.pipe(sourcemaps.init())
 				.pipe(sass())
+				.pipe(autoprefixer())
 				.pipe(cssnano())
 				.pipe(sourcemaps.write())
 				.pipe(gulp.dest(dests["styles"][stylesnum]));
