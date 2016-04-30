@@ -280,8 +280,9 @@ class C6_groups extends Job { // TODO: добавить "implements ShouldQueue"
 
       // 2. Сформировать запрос с учётом фильтров, извлечь данные
 
-        // 2.1. Зачать формированиез запроса
+        // 2.1. Зачать формирование запроса
         $query = \M5\Models\MD2_groups::query();
+        $groups_total = with(clone $query)->count();
 
         // 2.2. Учесть все фильтры
 
@@ -348,8 +349,9 @@ class C6_groups extends Job { // TODO: добавить "implements ShouldQueue"
           }
 
         // 2.3. Получить pages_total и items_at_page
+        $groups_filtered  = with(clone $query)->count();
         $items_at_page    = $this->data['items_at_page'];
-        $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
+        $pages_total      = (+$groups_filtered < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
         $page             = $this->data['page'];
 
         // 2.4. Получить коллекцию групп
@@ -359,8 +361,10 @@ class C6_groups extends Job { // TODO: добавить "implements ShouldQueue"
       return [
         "status"  => 0,
         "data"    => [
-          "groups"      => $groups,
-          "pages_total" => $pages_total
+          "groups"          => $groups,
+          "pages_total"     => $pages_total,
+          "groups_total"    => $groups_total,
+          "groups_filtered" => $groups_filtered
         ]
       ];
 
