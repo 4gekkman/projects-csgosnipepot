@@ -364,7 +364,8 @@ class C6_groups extends Job { // TODO: добавить "implements ShouldQueue"
           "groups"          => $groups,
           "pages_total"     => $pages_total,
           "groups_total"    => $groups_total,
-          "groups_filtered" => $groups_filtered
+          "groups_filtered" => $groups_filtered,
+          "items_at_page"   => $this->data['items_at_page']
         ]
       ];
 
