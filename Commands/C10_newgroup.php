@@ -209,6 +209,9 @@ class C10_newgroup extends Job { // TODO: добавить "implements ShouldQue
             continue;
           }
 
+          // Если $key == 'timestamp', продолжить
+          if($key == 'timestamp') continue;
+
           // В общем случае
           $group[$key] = $value === "NULL" ? NULL : $value;
 
@@ -235,7 +238,10 @@ class C10_newgroup extends Job { // TODO: добавить "implements ShouldQue
         write2log($errortext, ['M5', 'C10_newgroup']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 
