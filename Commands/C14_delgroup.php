@@ -191,7 +191,10 @@ class C14_delgroup extends Job { // TODO: добавить "implements ShouldQue
         if(!empty($name)) throw new \Exception("Группа с именем'".$name."' не найдена.");
       }
 
-      // 5. Мягко удалить группу $group
+      // 5. Удалить группу $group и все её связи
+      $group->users()->detach();
+      $group->privileges()->detach();
+      $group->tags()->detach();
       $group->delete();
 
       // 6. Сделать commit

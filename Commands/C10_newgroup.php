@@ -141,7 +141,7 @@ class C10_newgroup extends Job { // TODO: добавить "implements ShouldQue
      *  2. Провести валидацию входящих параметров
      *  3. Попробовать найти группу с таким именем
      *  4. Если $params['isadmin'] == 'yes' проверить, нет ли уже в системе группы администраторов
-     *  5. Если $group не найдена
+     *  5. Если $group не найдена среди мягко-удалённых
      *  6. Сделать commit
      *  7. Вернуть результаты
      *
@@ -185,7 +185,7 @@ class C10_newgroup extends Job { // TODO: добавить "implements ShouldQue
       }
 
       // 3. Попробовать найти группу с таким именем
-      $group = \M5\Models\MD2_groups::withTrashed()->where('name', $params['name'])->first();
+      $group = \M5\Models\MD2_groups::where('name', $params['name'])->first();
       if(!empty($group))
         throw new \Exception("Группа с name '$group->name' уже есть в системе, её ID = ".$group->id);
 
@@ -195,7 +195,7 @@ class C10_newgroup extends Job { // TODO: добавить "implements ShouldQue
         if(!empty($isadmin)) throw new \Exception('В системе можеть быть лишь 1 группа администраторов, и таковая уже имеется с именем '.$isadmin->name.' и с ID = '.$isadmin->id);
       }
 
-      // 5. Если $group не найдена
+      // 5. Если $group не найдена среди мягко-удалённых
 
         // 5.1. Создать новую группу
         $group = new \M5\Models\MD2_groups();

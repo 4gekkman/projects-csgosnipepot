@@ -168,8 +168,13 @@ class C33_delgroups extends Job { // TODO: добавить "implements ShouldQu
           // 2.1. Попробовать найти группу, которую требуется удалить
           $group2del = \M5\Models\MD2_groups::find($id);
 
-          // 2.2. Если найдена, мягко удалить её
-          if(!empty($group2del)) $group2del->delete();
+          // 2.2. Если найдена, удалить её и все её связи
+          if(!empty($group2del)) {
+            $group2del->users()->detach();
+            $group2del->privileges()->detach();
+            $group2del->tags()->detach();
+            $group2del->delete();
+          }
 
         });
       }

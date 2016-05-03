@@ -60,7 +60,6 @@ class MD4_tags extends Model {
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
-    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//
