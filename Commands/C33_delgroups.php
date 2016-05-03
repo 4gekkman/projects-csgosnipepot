@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Change a group
+ *    - Delete groups with ids from passed array
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        ids       | Массив ID групп, которые надо удалить
  *      ]
  *    ]
  *
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C18_changegroup extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C33_delgroups extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,47 +135,25 @@ class C18_changegroup extends Job { // TODO: добавить "implements Should
     /**
      * Оглавление
      *
-     *  1. Принять входящие параметры
-     *  2. Провести валидацию входящих параметров
-     *  3. Попробовать найти группу с таким именем
-     *  4. Если $params['isadmin'] == 'yes' проверить, нет ли уже в системе группы администраторов
-     *  5. Внести изменения в $group
-     *  6. Сделать commit
-     *  7. Вернуть результаты
+     *  1. Провести валидацию
+     *  2. Удалить все группы, чьи ID передали в IDS
+     *  3. Если selectall == true, удалить все группы, проходящие переданные фильтры
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------//
-    // Изменить группу //
-    //-----------------//
+    //-------------------------------------------------------//
+    // 1. Удалить все группы, чьи ID были переданы в массиве //
+    //-------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять входящие параметры
+      // 1. Провести валидацию
+      $validator = r4_validate($this->data, [
 
-        // 1.1. Принять
-        $params = $this->data;
-
-        // 1.2. Обработать
-        foreach($params as $key => $value) {
-          if($value == "0" || $value == "undef") $params[$key] = "";
-          if($value === "NULL") $params[$key] = "NULL";
-        }
-
-        // 1.3. Отфильтровать из $params пустые значения
-        $params = array_filter($params, function($item){
-          if($item === "") return false;
-          return true;
-        });
-
-      // 2. Провести валидацию входящих параметров
-      $validator = r4_validate($params, [
-
-        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "name"            => ["sometimes", "regex:/^[a-zа-яё]{1}[a-zа-яё0-9]*$/ui"],
-        "description"     => ["sometimes", "regex:/^(.+|)$/ui"],
-        "isadmin"         => ["sometimes", "in:yes,no"]
+        "ids"              => ["required", "array"],                     // IDS должен быть массивом
+        "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "selectall"        => ["required", "boolean"]
 
       ]); if($validator['status'] == -1) {
 
@@ -183,63 +161,32 @@ class C18_changegroup extends Job { // TODO: добавить "implements Should
 
       }
 
-      // 3. Попробовать найти группу с именем $params['name']
-      // - Если такая уже есть, и её ID не совпадает с $params['id'], завершить
-      if(array_key_exists('name', $params)) {
-        $group = \M5\Models\MD2_groups::withTrashed()->where('name', $params['name'])->first();
-        if(!empty($group) && $group->id != $params['id'])
-          throw new \Exception("Группа с name '$group->name' уже есть в системе, её ID = ".$group->id);
+      // 2. Если selectall == false, удалить все группы, чьи ID передали в IDS
+      if($this->data['selectall'] == false) {
+        collect($this->data['ids'])->each(function($id){
+
+          // 2.1. Попробовать найти группу, которую требуется удалить
+          $group2del = \M5\Models\MD2_groups::find($id);
+
+          // 2.2. Если найдена, мягко удалить её
+          if(!empty($group2del)) $group2del->delete();
+
+        });
       }
 
-      // 4. Если $params['isadmin'] == 'yes' проверить, нет ли уже в системе группы администраторов
-      if(array_key_exists('isadmin', $params) && $params['isadmin'] == 'yes') {
-        $isadmin = \M5\Models\MD2_groups::withTrashed()->where('isadmin', 1)->first();
-        if(!empty($isadmin)) throw new \Exception('В системе можеть быть лишь 1 группа администраторов, и таковая уже имеется с именем '.$isadmin->name.' и с ID = '.$isadmin->id);
+      // 3. Если selectall == true, удалить все группы, проходящие переданные фильтры
+      else {
+
+        // 3.1. ...
+
       }
 
-      // 5. Внести изменения в $group
-
-        // 5.1. Найти группу $group по ID
-        $group = \M5\Models\MD2_groups::find($params['id']);
-        if(empty($group))
-          throw new \Exception("Группа с id '".$params['id']."' не найдена.");
-
-        // 5.2. Внести изменения
-        foreach($params as $key => $value) {
-
-          // Если $key == 'isadmin'
-          if($key == 'isadmin') {
-            $group[$key] = $value == 'yes' ? 1 : 0;
-            continue;
-          }
-
-          // Если $key == 'timestamp', продолжить
-          if($key == 'timestamp') continue;
-
-          // В общем случае
-          $group[$key] = $value === "NULL" ? NULL : $value;
-
-        }
-
-        // 5.3. Созранить изменения
-        $group->save();
-
-      // 6. Сделать commit
-      DB::commit();
-
-      // 7. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "name"      => $group->name,
-        ]
-      ];
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C18_changegroup from M-package M5 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C33_delgroups from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C18_changegroup']);
+        write2log($errortext, ['M5', 'C33_delgroups']);
         return [
           "status"  => -2,
           "data"    => [
