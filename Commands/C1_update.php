@@ -245,6 +245,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
                 $privilege = new \M5\Models\MD3_privileges();
                 $privilege->name = 'access_'.$package->id_inner;
                 $privilege->id_privtype = $access->id;
+                $privilege->description = json_decode($package->aboutpack, true)['EN']['description'];
                 $privilege->save();
               }
 
@@ -252,6 +253,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
               else if($privilege->trashed()) {
                 $privilege->restore();
                 $privilege->id_privtype = $access->id;
+                $privilege->description = json_decode($package->aboutpack, true)['EN']['description'];
                 $privilege->save();
               }
 
@@ -290,6 +292,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
                 $privilege = new \M5\Models\MD3_privileges();
                 $privilege->name = 'exec_'.$command->packages[0]->id_inner.'_'.$command->id_inner;
                 $privilege->id_privtype = $exec->id;
+                $privilege->description = $command->description;
                 $privilege->save();
               }
 
@@ -297,6 +300,7 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
               else if($privilege->trashed()) {
                 $privilege->restore();
                 $privilege->id_privtype = $exec->id;
+                $privilege->description = $command->description;
                 $privilege->save();
               }
 
@@ -400,72 +404,72 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
 
           }
 
-      // 4. Добавить польз-м те права, с которыми у них общие теги
-      // - Извлекать их по 100 штук за раз.
-      \M5\Models\MD1_users::chunk(100, function($users){
-        foreach($users as $user) {
-
-          // 1] Получить все теги, связанные с $user
-          $tags = $user->tags;
-          $tags_ids = $tags->pluck('id');
-
-          // 2] Получить коллекцию всех прав, имеющих теги $tags
-          $privileges = \M5\Models\MD3_privileges::whereHas('tags', function($query) USE ($tags_ids) {
-
-            $query->whereIn('id', $tags_ids);
-
-          })->get();
-
-          // 3] Связать $user с правами из $privileges
-          // - Добавлять лишь те связи, которых ещё не существует
-          foreach($privileges as $privilege) {
-            if(!$privilege->users->contains($user->id))
-              $privilege->users()->attach($user->id);
-          }
-
-        }
-      });
-
-      // 5. Добавить группам те права, с которыми у них общие теги
-      // - Извлекать их по 100 штук за раз.
-      \M5\Models\MD2_groups::chunk(100, function($groups){
-        foreach($groups as $group) {
-
-          // 1] Получить все теги, связанные с $group
-          $tags = $group->tags;
-          $tags_ids = $tags->pluck('id');
-
-          // 2] Получить коллекцию всех прав, имеющих теги $tags
-          $privileges = \M5\Models\MD3_privileges::whereHas('tags', function($query) USE ($tags_ids) {
-
-            $query->whereIn('id', $tags_ids);
-
-          })->get();
-
-          // 3] Связать $group с правами из $privileges
-          // - Добавлять лишь те связи, которых ещё не существует
-          foreach($privileges as $privilege) {
-            if(!$privilege->groups->contains($group->id))
-              $privilege->groups()->attach($group->id);
-          }
-
-        }
-      });
-
-      // 6. Добавить все права группе с флагом "администраторы"
-
-        // 1] Попробовать найти группу с флагом "администраторы"
-        $admingroup = \M5\Models\MD2_groups::where('isadmin', 1)->first();
-
-        // 2] Если $admingroup не пуста, наделить её всеми правами
-        if(!empty($admingroup)) {
-          \M5\Models\MD3_privileges::chunk(100, function($privileges) USE ($admingroup) {
-            foreach($privileges as $privilege) {
-              if(!$privilege->groups->contains($admingroup->id))
-                $privilege->groups()->attach($admingroup->id);
-            }
-          });
-        }
+//      // 4. Добавить польз-м те права, с которыми у них общие теги
+//      // - Извлекать их по 100 штук за раз.
+//      \M5\Models\MD1_users::chunk(100, function($users){
+//        foreach($users as $user) {
+//
+//          // 1] Получить все теги, связанные с $user
+//          $tags = $user->tags;
+//          $tags_ids = $tags->pluck('id');
+//
+//          // 2] Получить коллекцию всех прав, имеющих теги $tags
+//          $privileges = \M5\Models\MD3_privileges::whereHas('tags', function($query) USE ($tags_ids) {
+//
+//            $query->whereIn('id', $tags_ids);
+//
+//          })->get();
+//
+//          // 3] Связать $user с правами из $privileges
+//          // - Добавлять лишь те связи, которых ещё не существует
+//          foreach($privileges as $privilege) {
+//            if(!$privilege->users->contains($user->id))
+//              $privilege->users()->attach($user->id);
+//          }
+//
+//        }
+//      });
+//
+//      // 5. Добавить группам те права, с которыми у них общие теги
+//      // - Извлекать их по 100 штук за раз.
+//      \M5\Models\MD2_groups::chunk(100, function($groups){
+//        foreach($groups as $group) {
+//
+//          // 1] Получить все теги, связанные с $group
+//          $tags = $group->tags;
+//          $tags_ids = $tags->pluck('id');
+//
+//          // 2] Получить коллекцию всех прав, имеющих теги $tags
+//          $privileges = \M5\Models\MD3_privileges::whereHas('tags', function($query) USE ($tags_ids) {
+//
+//            $query->whereIn('id', $tags_ids);
+//
+//          })->get();
+//
+//          // 3] Связать $group с правами из $privileges
+//          // - Добавлять лишь те связи, которых ещё не существует
+//          foreach($privileges as $privilege) {
+//            if(!$privilege->groups->contains($group->id))
+//              $privilege->groups()->attach($group->id);
+//          }
+//
+//        }
+//      });
+//
+//      // 6. Добавить все права группе с флагом "администраторы"
+//
+//        // 1] Попробовать найти группу с флагом "администраторы"
+//        $admingroup = \M5\Models\MD2_groups::where('isadmin', 1)->first();
+//
+//        // 2] Если $admingroup не пуста, наделить её всеми правами
+//        if(!empty($admingroup)) {
+//          \M5\Models\MD3_privileges::chunk(100, function($privileges) USE ($admingroup) {
+//            foreach($privileges as $privilege) {
+//              if(!$privilege->groups->contains($admingroup->id))
+//                $privilege->groups()->attach($admingroup->id);
+//            }
+//          });
+//        }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_update from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

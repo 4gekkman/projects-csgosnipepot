@@ -361,11 +361,12 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
       return [
         "status"  => 0,
         "data"    => [
-          "privileges"    => $privileges,
-          "pages_total"   => $pages_total,
-          "privs_total"    => $privs_total,
-          "privs_filtered" => $privs_filtered,
-          "items_at_page"   => $this->data['items_at_page']
+          "privileges"      => $privileges,
+          "pages_total"     => $pages_total,
+          "privs_total"     => $privs_total,
+          "privs_filtered"  => $privs_filtered,
+          "items_at_page"   => $this->data['items_at_page'],
+          "privtypes"       => \M5\Models\MD5_privtypes::all()
         ]
       ];
 

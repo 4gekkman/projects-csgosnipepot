@@ -173,7 +173,7 @@ class C33_delgroups extends Job { // TODO: добавить "implements ShouldQu
             $group2del->users()->detach();
             $group2del->privileges()->detach();
             $group2del->tags()->detach();
-            $group2del->delete();
+            $group2del->forceDelete();
           }
 
         });

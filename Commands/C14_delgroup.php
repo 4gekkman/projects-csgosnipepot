@@ -195,7 +195,7 @@ class C14_delgroup extends Job { // TODO: добавить "implements ShouldQue
       $group->users()->detach();
       $group->privileges()->detach();
       $group->tags()->detach();
-      $group->delete();
+      $group->forceDelete();
 
       // 6. Сделать commit
       DB::commit();

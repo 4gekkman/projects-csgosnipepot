@@ -60,6 +60,7 @@ class MD3_privileges extends Model {
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
+    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//

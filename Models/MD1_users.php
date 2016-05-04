@@ -60,6 +60,7 @@ class MD1_users extends Model {
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
+    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//
