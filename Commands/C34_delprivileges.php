@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change a privilege
+ *    - Delete custom privileges with ids from passed array
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C19_changeprivilege extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C34_delprivileges extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,46 +135,25 @@ class C19_changeprivilege extends Job { // TODO: добавить "implements Sh
     /**
      * Оглавление
      *
-     *  1. Принять входящие параметры
-     *  2. Провести валидацию входящих параметров
-     *  3. Попробовать найти право с именем 'custom_'.$params['name']
-     *  4. Получить ID для нового значения типа права
-     *  5. Внести изменения в $privilege
-     *  6. Сделать commit
-     *  7. Вернуть результаты
+     *  1. Провести валидацию
+     *  2. Если selectall == false, удалить все кастомные права, чьи ID передали в IDS
+     *  3. Если selectall == true, удалить все кастомные права, проходящие переданные фильтры
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------//
-    // Изменить кастомное право //
-    //--------------------------//
+    //-------------------------------------------------------------//
+    // Удалить все кастомные права, чьи ID были переданы в массиве //
+    //-------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять входящие параметры
+      // 1. Провести валидацию
+      $validator = r4_validate($this->data, [
 
-        // 1.1. Принять
-        $params = $this->data;
-
-        // 1.2. Обработать
-        foreach($params as $key => $value) {
-          if($value == "0" || $value == "undef") $params[$key] = "";
-          if($value === "NULL") $params[$key] = "NULL";
-        }
-
-        // 1.3. Отфильтровать из $params пустые значения
-        $params = array_filter($params, function($item){
-          if($item === "") return false;
-          return true;
-        });
-
-      // 2. Провести валидацию входящих параметров
-      $validator = r4_validate($params, [
-
-        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "name"            => ["sometimes", "regex:/^[a-zа-яё]{1}[-_a-zа-яё0-9]*$/ui"],
-        "description"     => ["sometimes", "regex:/^(.+|)$/ui"]
+        "ids"              => ["required", "array"],                     // IDS должен быть массивом
+        "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "selectall"        => ["required", "boolean"]
 
       ]); if($validator['status'] == -1) {
 
@@ -182,68 +161,45 @@ class C19_changeprivilege extends Job { // TODO: добавить "implements Sh
 
       }
 
-      // 3. Попробовать найти право с именем 'custom_'.$params['name']
-      if(array_key_exists('name', $params)) {
-        $privilege = \M5\Models\MD3_privileges::withTrashed()->where('name', 'custom_'.mb_strtolower($params['name']))->first();
-        if(!empty($privilege))
-          throw new \Exception("Право 'custom_$privilege->name' уже есть в системе, его ID = ".$privilege->id);
-      }
+      // 2. Если selectall == false, удалить все кастомные права, чьи ID передали в IDS
+      if($this->data['selectall'] == false) {
+        collect($this->data['ids'])->each(function($id){
 
-      // 4. Получить ID для нового значения типа права
-      $privtype = \M5\Models\MD5_privtypes::where('name','custom')->first();
-      if(empty($privtype)) throw new \Exception('В таблице типов прав не удалось найти тип custom');
-      $params['id_privtype'] = $privtype->id;
+          // 2.1. Попробовать найти кастомное право, которое требуется удалить
+          $privilege2del = \M5\Models\MD3_privileges::whereHas('privtypes', function($query){
+            $query->where('name', 'custom');
+          })->find($id);
 
-      // 5. Внести изменения в $privilege
-
-        // 5.1. Найти право $privilege по ID
-        $privilege = \M5\Models\MD3_privileges::find($params['id']);
-        if(empty($privilege))
-          throw new \Exception("Право с id '".$params['id']."' не найдено.");
-
-        // 5.2. Внести изменения
-        foreach($params as $key => $value) {
-
-          // Если $key == 'name'
-          if($key == 'name') {
-            $privilege[$key] = 'custom_'.mb_strtolower($value);
-            continue;
+          // 2.2. Если найдена, удалить её и все её связи
+          if(!empty($privilege2del)) {
+            $privilege2del->users()->detach();
+            $privilege2del->groups()->detach();
+            $privilege2del->tags()->detach();
+            if(r1_rel_exists("m5","md3_privileges","m1_packages"))
+              $privilege2del->m1_packages()->detach();
+            if(r1_rel_exists("m5","md3_privileges","m1_commands"))
+              $privilege2del->m1_commands()->detach();
+            $privilege2del->forceDelete();
           }
 
-          // Если $key == 'timestamp', продолжить
-          if($key == 'timestamp') continue;
+        });
+      }
 
-          // В общем случае
-          $privilege[$key] = $value === "NULL" ? NULL : $value;
+      // 3. Если selectall == true, удалить все кастомные права, проходящие переданные фильтры
+      else {
 
-        }
+        // 3.1. ...
 
-        // 5.3. Созранить изменения
-        $privilege->save();
+      }
 
-      // 6. Сделать commit
-      DB::commit();
-
-      // 7. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "name"      => $privilege->name,
-        ]
-      ];
-
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C19_changeprivilege from M-package M5 have ended with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C34_delprivileges from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C19_changeprivilege']);
+        write2log($errortext, ['M5', 'C34_delprivileges']);
         return [
           "status"  => -2,
-          "data"    => [
-            "errortext" => $errortext,
-            "errormsg" => $e->getMessage()
-          ]
+          "data"    => $errortext
         ];
     }}); if(!empty($res)) return $res;
 
