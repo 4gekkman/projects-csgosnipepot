@@ -282,6 +282,7 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
 
         // 2.1. Зачать формированиез запроса
         $query = \M5\Models\MD3_privileges::query();
+        $privs_total = with(clone $query)->count();
 
         // 2.2. Учесть все фильтры
 
@@ -348,19 +349,23 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
           }
 
         // 2.3. Получить pages_total и items_at_page
+        $privs_filtered  = with(clone $query)->count();
         $items_at_page    = $this->data['items_at_page'];
         $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
         $page             = $this->data['page'];
 
         // 2.4. Получить коллекцию групп
-        $privileges = with(clone $query)->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
+        $privileges = with(clone $query)->with(['privtypes'])->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
 
       // 3. Вернуть результат
       return [
         "status"  => 0,
         "data"    => [
           "privileges"    => $privileges,
-          "pages_total"   => $pages_total
+          "pages_total"   => $pages_total,
+          "privs_total"    => $privs_total,
+          "privs_filtered" => $privs_filtered,
+          "items_at_page"   => $this->data['items_at_page']
         ]
       ];
 
