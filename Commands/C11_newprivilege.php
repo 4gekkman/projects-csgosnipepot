@@ -242,6 +242,9 @@ class C11_newprivilege extends Job { // TODO: добавить "implements Shoul
             continue;
           }
 
+          // Если $key == 'timestamp', продолжить
+          if($key == 'timestamp') continue;
+
           // В общем случае
           $privilege[$key] = $value === "NULL" ? NULL : $value;
 
@@ -271,7 +274,10 @@ class C11_newprivilege extends Job { // TODO: добавить "implements Shoul
         write2log($errortext, ['M5', 'C11_newprivilege']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 
