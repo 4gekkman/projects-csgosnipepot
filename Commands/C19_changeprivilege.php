@@ -185,7 +185,7 @@ class C19_changeprivilege extends Job { // TODO: добавить "implements Sh
       // 3. Попробовать найти право с именем 'custom_'.$params['name']
       if(array_key_exists('name', $params)) {
         $privilege = \M5\Models\MD3_privileges::withTrashed()->where('name', 'custom_'.mb_strtolower($params['name']))->first();
-        if(!empty($privilege))
+        if(!empty($privilege) && $privilege->id != $params['id'])
           throw new \Exception("Право 'custom_$privilege->name' уже есть в системе, его ID = ".$privilege->id);
       }
 
@@ -206,7 +206,10 @@ class C19_changeprivilege extends Job { // TODO: добавить "implements Sh
 
           // Если $key == 'name'
           if($key == 'name') {
-            $privilege[$key] = 'custom_'.mb_strtolower($value);
+            if(preg_match("/^custom_/ui", mb_strtolower($value)) == 0)
+              $privilege[$key] = 'custom_'.mb_strtolower($value);
+            else
+              $privilege[$key] = mb_strtolower($value);
             continue;
           }
 
