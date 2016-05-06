@@ -288,6 +288,7 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
 
         // 2.1. Зачать формированиез запроса
         $query = \M5\Models\MD1_users::query();
+        $users_total = with(clone $query)->count();
 
         // 2.2. Учесть все фильтры
 
@@ -356,6 +357,7 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
           }
 
         // 2.3. Получить pages_total и items_at_page
+        $users_filtered   = with(clone $query)->count();
         $items_at_page    = $this->data['items_at_page'];
         $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
         $page             = $this->data['page'];
@@ -367,8 +369,12 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
       return [
         "status"  => 0,
         "data"    => [
-          "users"       => $users,
-          "pages_total" => $pages_total
+          "users"           => $users,
+          "pages_total"     => $pages_total,
+          "users_total"     => $users_total,
+          "users_filtered"  => $users_filtered,
+          "items_at_page"   => $this->data['items_at_page'],
+          "genders"         => \M5\Models\MD11_genders::all()
         ]
       ];
 

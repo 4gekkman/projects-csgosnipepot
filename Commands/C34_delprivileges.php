@@ -199,7 +199,10 @@ class C34_delprivileges extends Job { // TODO: добавить "implements Shou
         write2log($errortext, ['M5', 'C34_delprivileges']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 

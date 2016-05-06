@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change a tag
+ *    - Delete tags with ids from passed array
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C20_changetag extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C35_deltags extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,44 +135,25 @@ class C20_changetag extends Job { // TODO: добавить "implements ShouldQu
     /**
      * Оглавление
      *
-     *  1. Принять входящие параметры
-     *  2. Провести валидацию входящих параметров
-     *  3. Попробовать найти тег с таким именем
-     *  4. Внести изменения в $tag
-     *  5. Сделать commit
-     *  6. Вернуть результаты
+     *  1. Провести валидацию
+     *  2. Удалить все теги, чьи ID передали в IDS
+     *  3. Если selectall == true, удалить все теги, проходящие переданные фильтры
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------//
-    // Изменить тег //
-    //--------------//
+    //--------------------------------------------------//
+    // Удалить все теги, чьи ID были переданы в массиве //
+    //--------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять входящие параметры
+      // 1. Провести валидацию
+      $validator = r4_validate($this->data, [
 
-        // 1.1. Принять
-        $params = $this->data;
-
-        // 1.2. Обработать
-        foreach($params as $key => $value) {
-          if($value == "0" || $value == "undef") $params[$key] = "";
-          if($value === "NULL") $params[$key] = "NULL";
-        }
-
-        // 1.3. Отфильтровать из $params пустые значения
-        $params = array_filter($params, function($item){
-          if($item === "") return false;
-          return true;
-        });
-
-      // 2. Провести валидацию входящих параметров
-      $validator = r4_validate($params, [
-
-        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "name"            => ["required", "regex:/^[a-zа-яё]{1}[-_:0-9a-zа-яё]*$/ui"]
+        "ids"              => ["required", "array"],                     // IDS должен быть массивом
+        "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "selectall"        => ["required", "boolean"]
 
       ]); if($validator['status'] == -1) {
 
@@ -180,48 +161,37 @@ class C20_changetag extends Job { // TODO: добавить "implements ShouldQu
 
       }
 
-      // 3. Попробовать найти тег с таким именем
-      $tag = \M5\Models\MD4_tags::withTrashed()->where('name', mb_strtolower($params['name']))->first();
-      if(!empty($tag))
-        throw new \Exception("Тег с name '$tag->name' уже есть в системе, его ID = ".$tag->id);
+      // 2. Если selectall == false, удалить все теги, чьи ID передали в IDS
+      if($this->data['selectall'] == false) {
+        collect($this->data['ids'])->each(function($id){
 
-      // 4. Внести изменения в $tag
+          // 2.1. Попробовать найти тег, который требуется удалить
+          $tag2del = \M5\Models\MD4_tags::find($id);
 
-        // 4.1. Найти тег $tag по ID
-        $tag = \M5\Models\MD4_tags::find($params['id']);
-        if(empty($tag))
-          throw new \Exception("Тег с id '".$params['id']."' не найден.");
+          // 2.2. Если найден, удалить его и все его связи
+          if(!empty($tag2del)) {
+            $tag2del->users()->detach();
+            $tag2del->privileges()->detach();
+            $tag2del->groups()->detach();
+            $tag2del->forceDelete();
+          }
 
-        // 4.2. Внести изменения
-        foreach($params as $key => $value) {
+        });
+      }
 
-          // Если $key == 'timestamp', продолжить
-          if($key == 'timestamp') continue;
+      // 3. Если selectall == true, удалить все теги, проходящие переданные фильтры
+      else {
 
-          // В общем случае
-          $tag[$key] = $value === "NULL" ? NULL : $value;
+        // 3.1. ...
 
-        }
+      }
 
-        // 4.3. Созранить изменения
-        $tag->save();
-
-      // 5. Сделать commit
-      DB::commit();
-
-      // 6. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "name"      => $tag->name,
-        ]
-      ];
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C20_changetag from M-package M5 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C35_deltags from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C20_changetag']);
+        write2log($errortext, ['M5', 'C35_deltags']);
         return [
           "status"  => -2,
           "data"    => [
