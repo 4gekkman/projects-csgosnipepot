@@ -158,7 +158,10 @@ class PARAMcomfullnamePARAM extends Job { // TODO: добавить "implements 
         write2log($errortext, ['PARAMmpackidPARAM', 'PARAMcomfullnamePARAM']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 
