@@ -193,6 +193,9 @@ class C12_newtag extends Job { // TODO: добавить "implements ShouldQueue
         // 4.2. Указать св-ва
         foreach($params as $key => $value) {
 
+          // Если $key == 'timestamp', продолжить
+          if($key == 'timestamp') continue;
+
           // В общем случае
           $tag[$key] = $value === "NULL" ? NULL : $value;
 
@@ -221,7 +224,10 @@ class C12_newtag extends Job { // TODO: добавить "implements ShouldQueue
         write2log($errortext, ['M5', 'C12_newtag']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 

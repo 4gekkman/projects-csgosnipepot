@@ -135,8 +135,9 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Сформировать запрос с учётом фильтров, извлечь данные
+     *  3. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
@@ -281,6 +282,7 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
 
         // 2.1. Зачать формированиез запроса
         $query = \M5\Models\MD4_tags::query();
+        $tags_total = with(clone $query)->count();
 
         // 2.2. Учесть все фильтры
 
@@ -347,6 +349,7 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
           }
 
         // 2.3. Получить pages_total и items_at_page
+        $tags_filtered    = with(clone $query)->count();
         $items_at_page    = $this->data['items_at_page'];
         $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
         $page             = $this->data['page'];
@@ -358,8 +361,11 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
       return [
         "status"  => 0,
         "data"    => [
-          "tags"        => $tags,
-          "pages_total" => $pages_total
+          "tags"            => $tags,
+          "pages_total"     => $pages_total,
+          "tags_total"      => $tags_total,
+          "tags_filtered"   => $tags_filtered,
+          "items_at_page"   => $this->data['items_at_page']
         ]
       ];
 
