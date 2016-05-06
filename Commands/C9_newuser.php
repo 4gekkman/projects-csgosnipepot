@@ -147,13 +147,12 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
      *
      *  1. Принять входящие параметры
      *  2. Провести валидацию входящих параметров
-     *  3. Проверить на коллизии по столбцам из logins
-     *  4. Обновить данные в таблице полов
-     *  5. Получить ID для нового значения пола
-     *  6. Если $this->data['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
-     *  7. Создать нового пользователя
-     *  8. Сделать commit
-     *  9. Вернуть результаты
+     *  3. Получить ID для нового значения пола
+     *  4. Если $this->data['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
+     *  5. Попробовать найти пользователя с таким email или phone
+     *  6. Создать нового пользователя
+     *  7. Сделать commit
+     *  8. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -171,7 +170,7 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
 
         // 1.2. Обработать
         foreach($params as $key => $value)
-          if($value == "0") $params[$key] = null;
+          if(empty($value) || $value == "0") $params[$key] = null;
 
         // 1.3. Отфильтровать из $params пустые значения
         $params = array_filter($params, function($item){
@@ -187,19 +186,14 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
         "patronymic"      => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
 
         "email"           => ["sometimes", "email"],
-        "phone"           => ["sometimes", "numeric"],
+        "phone"           => ["sometimes", "regex:/^[0-9]+$/ui"],
         "password"        => ["sometimes", "min:".config("M5.common_min_chars_in_pass")],
-
-        "secret_question" => ["required_with:secret_phrase"],
-        "secret_phrase"   => ["required_with:secret_question", "min:".config("M5.phraseauth_length")],
 
         "gender"          => ["required", "in:m,f,u"],
         "birthday"        => ["sometimes", "date"],
 
-        "skype"           => ["sometimes", "string"],
-        "other_contacts"  => ["sometimes", "string"],
-
-        "isanonymous"     => ["required", "in:yes,no"]
+        "isanonymous"     => ["required", "in:yes,no"],
+        "adminnote"       => ["sometimes", "string"]
 
       ]); if($validator['status'] == -1) {
 
@@ -207,107 +201,69 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
 
       }
 
-      // 3. Проверить на коллизии по столбцам из logins
-
-        // 3.1. Получить содержимое параметра logins конфига M5
-        // - Отфильтровав из него id, если есть
-        $logins = config("M5.logins");
-        if(is_null($logins))
-          throw new \Exception("Какая-то проблема с параметром 'logins' конфига 'M5' - он равен NULL. Возможно, конфиг не опубликован, или параметр в нём отсутствует");
-        $logins = array_filter($logins, function($item){ return !$item == 'id'; });
-
-        // 3.2. Проверить
-        foreach($logins as $login) {
-          if(in_array($login, array_flip($params))) {
-            $user = \M5\Models\MD1_users::withTrashed()->where($login, $params[$login])->first();
-            if(!empty($user))
-              throw new \Exception("Пользователь с ".$login." '".$params[$login]."' уже есть в системе, его ID = ".$user->id);
-          }
-        }
-
-      // 4. Обновить данные в таблице полов
-
-        // 4.1. Мягко удалить всё из таблицы полов
-        \M5\Models\MD11_genders::query()->delete();
-
-        // 4.2. Восстановить / Создать записи в MD11_genders
-
-          // 1] m
-          $gender = \M5\Models\MD11_genders::withTrashed()->where('name','m')->first();
-          if(!empty($gender) && $gender->trashed()) $gender->restore();
-          if(empty($gender)) {
-            $gender = new \M5\Models\MD11_genders();
-            $gender->name = 'm';
-            $gender->save();
-          }
-
-          // 2] f
-          $gender = \M5\Models\MD11_genders::withTrashed()->where('name','f')->first();
-          if(!empty($gender) && $gender->trashed()) $gender->restore();
-          if(empty($gender)) {
-            $gender = new \M5\Models\MD11_genders();
-            $gender->name = 'f';
-            $gender->save();
-          }
-
-          // 3] u
-          $gender = \M5\Models\MD11_genders::withTrashed()->where('name','u')->first();
-          if(!empty($gender) && $gender->trashed()) $gender->restore();
-          if(empty($gender)) {
-            $gender = new \M5\Models\MD11_genders();
-            $gender->name = 'u';
-            $gender->save();
-          }
-
-      // 5. Получить ID для нового значения пола
-      $gender = \M5\Models\MD11_genders::where('name',$params['gender'])->first();
+      // 3. Получить ID для нового значения пола
+      $gender = \M5\Models\MD11_genders::where('name', $params['gender'])->first();
       if(empty($gender)) throw new \Exception('В таблице полов не удалось найти пол '.$params['gender']);
 
-      // 6. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
+      // 4. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
       if($params['isanonymous'] == 'yes') {
         $isanonymous = \M5\Models\MD1_users::withTrashed()->where('isanonymous', 1)->first();
         if(!empty($isanonymous)) throw new \Exception('В системе можеть быть лишь 1 анонимный пользователь, и таковой уже имеется с ID = '.$isanonymous->id);
       }
 
-      // 7. Создать нового пользователя
+      // 5. Попробовать найти пользователя с таким email или phone
 
-        // 7.1. Создать нового пользователя
+        // email
+        $newuser = \M5\Models\MD1_users::where('email', $params['email'])->first();
+        if(!empty($newuser))
+          throw new \Exception("Пользователь с email '$newuser->email' уже есть в системе, его ID = ".$newuser->id);
+
+        // phone
+        $newuser = \M5\Models\MD1_users::where('phone', $params['phone'])->first();
+        if(!empty($newuser))
+          throw new \Exception("Пользователь с phone '$newuser->phone' уже есть в системе, его ID = ".$newuser->id);
+
+      // 6. Создать нового пользователя
+
+        // 6.1. Создать нового пользователя
         $user = new \M5\Models\MD1_users();
 
-        // 7.2. Указать св-ва пользователя
+        // 6.2. Указать св-ва пользователя
         foreach($params as $key => $value) {
 
-          // 7.1. Если $key == 'password'
+          // Если $key == 'timestamp', продолжить
+          if($key == 'timestamp') continue;
+
+          // Если $key == 'password'
           if($key == 'password') {
             $user["password_hash"] = Hash::make($value);
             continue;
           }
 
-          // 7.2. Если $key == 'isanonymous'
+          // Если $key == 'isanonymous'
           if($key == 'isanonymous') {
             $user[$key] = $value == 'yes' ? 1 : 0;
             continue;
           }
 
-          // 7.3. Если $key == 'gender'
+          // Если $key == 'gender'
           if($key == 'gender') {
             $user[$key] = $gender->id;
             continue;
           }
 
-          // 7.n. В общем случае
+          // В общем случае
           $user[$key] = $value;
 
         }
 
-        // 7.3. Сохранить
+        // 6.3. Сохранить
         $user->save();
 
-
-      // 8. Сделать commit
+      // 7. Сделать commit
       DB::commit();
 
-      // 9. Вернуть результаты
+      // 8. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
@@ -322,7 +278,10 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
         write2log($errortext, ['M5', 'C9_newuser']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 
