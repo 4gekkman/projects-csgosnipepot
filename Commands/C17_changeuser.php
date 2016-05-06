@@ -137,7 +137,7 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
      *
      *  1. Принять входящие параметры
      *  2. Провести валидацию входящих параметров
-     *  3. Проверить на коллизии по столбцам из logins
+     *  3. Попробовать найти пользователя с таким email или phone
      *  4. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
      *  5. Если требуется изменить пол, получить ID для нового пола
      *  6. Попробовать найти пользователя с указанным ID
@@ -161,7 +161,7 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
 
         // 1.2. Обработать
         foreach($params as $key => $value)
-          if($value == "0") $params[$key] = null;
+          if($value == "0" || $value == "0") $params[$key] = null;
 
         // 1.3. Отфильтровать из $params пустые значения
         $params = array_filter($params, function($item){
@@ -178,20 +178,14 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
         "surname"         => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
         "patronymic"      => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
 
-        "email"           => ["sometimes", "email"],
-        "phone"           => ["sometimes", "numeric"],
-        "password"        => ["sometimes", "min:".config("M5.common_min_chars_in_pass")],
+        "email"           => ["required", "email"],
+        "phone"           => ["sometimes", "regex:/^[0-9]+$/ui"],
 
-        "secret_question" => ["required_with:secret_phrase"],
-        "secret_phrase"   => ["required_with:secret_question", "min:".config("M5.phraseauth_length")],
-
-        "gender"          => ["sometimes", "in:m,f,u"],
+        "gender"          => ["required", "in:m,f,u"],
         "birthday"        => ["sometimes", "date"],
 
-        "skype"           => ["sometimes", "string"],
-        "other_contacts"  => ["sometimes", "string"],
-
-        "isanonymous"     => ["sometimes", "in:yes,no"]
+        "isanonymous"     => ["required", "in:yes,no"],
+        "adminnote"       => ["sometimes", "string"]
 
       ]); if($validator['status'] == -1) {
 
@@ -199,21 +193,30 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
 
       }
 
-      // 3. Проверить на коллизии по столбцам из logins
+      // 3. Попробовать найти пользователя с таким email или phone
 
-        // 3.1. Получить содержимое параметра logins конфига M5
-        $logins = config("M5.logins");
-        if(is_null($logins))
-          throw new \Exception("Какая-то проблема с параметром 'logins' конфига 'M5' - он равен NULL. Возможно, конфиг не опубликован, или параметр в нём отсутствует");
-        $logins = array_filter($logins, function($item){ return !$item == 'id'; });
+        // email
+        if(!empty($params['email'])) {
 
-        // 3.2. Проверить
-        foreach($logins as $login) {
-          if(in_array($login, array_flip($params)) && $login != "id") {
-            $user = \M5\Models\MD1_users::withTrashed()->where($login, $params[$login])->first();
-            if(!empty($user))
-              throw new \Exception("Пользователь с ".$login." '".$params[$login]."' уже есть в системе, его ID = ".$user->id);
-          }
+          // 1] Искать
+          $user2edit = \M5\Models\MD1_users::where('email', $params['email'])->first();
+
+          // 2] Если найден другой пользователь, завершить
+          if(!empty($user2edit) && $user2edit->id != $params['id'])
+            throw new \Exception("Пользователь с email '$user2edit->email' уже есть в системе, его ID = ".$user2edit->id);
+
+        }
+
+        // phone
+        if(!empty($params['phone'])) {
+
+          // 1] Искать
+          $user2edit = \M5\Models\MD1_users::where('phone', $params['phone'])->first();
+
+          // 2] Если найден другой пользователь, завершить
+          if(!empty($user2edit) && $user2edit->id != $params['id'])
+            throw new \Exception("Пользователь с phone '$user2edit->phone' уже есть в системе, его ID = ".$user2edit->id);
+
         }
 
       // 4. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
@@ -234,31 +237,54 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
         throw new \Exception("Пользователь с id '".$params['id']."' не найден в системе среди активных (не мягко удалённых) аккаунтов");
 
       // 7. Внести изменения в $user
-      foreach($params as $key => $value) {
 
-        // 7.1. Если $key == 'password'
-        if($key == 'password') {
-          $user["password_hash"] = Hash::make($value);
-          continue;
+        // 7.1. Отменить "подтверждённость" email, если он изменился
+        if($user->id == $params['id'] && $user->email != $params['email']) {
+          $user->is_email_approved = 0;
         }
 
-        // 7.2. Если $key == 'isanonymous'
-        if($key == 'isanonymous') {
-          $user[$key] = $value == 'yes' ? 1 : 0;
-          continue;
+        // 7.2. Отменить "подтверждённость" phone, если он изменился
+        if($user->id == $params['id'] && $user->phone != $params['phone']) {
+          $user->is_phone_approved = 0;
         }
 
-        // 7.3. Если $key == 'gender'
-        if($key == 'gender') {
-          $user[$key] = $gender->id;
-          continue;
+        // 7.3. Внести основные изменения
+        foreach($params as $key => $value) {
+
+          // Если $key == 'timestamp', продолжить
+          if($key == 'timestamp') continue;
+
+          // Если $key == 'is_email_approved', продолжить
+          if($key == 'is_email_approved') continue;
+
+          // Если $key == 'is_phone_approved', продолжить
+          if($key == 'is_phone_approved') continue;
+
+          // Если $key == 'password'
+          if($key == 'password') {
+            $user["password_hash"] = Hash::make($value);
+            continue;
+          }
+
+          // Если $key == 'isanonymous'
+          if($key == 'isanonymous') {
+            $user[$key] = $value == 'yes' ? 1 : 0;
+            continue;
+          }
+
+          // Если $key == 'gender'
+          if($key == 'gender') {
+            $user[$key] = $gender->id;
+            continue;
+          }
+
+          // В общем случае
+          $user[$key] = $value;
+
         }
 
-        // 7.n. В общем случае
-        $user[$key] = $value;
-
-      }
-      $user->save();
+        // 7.n. Сохранить
+        $user->save();
 
       // 8. Сделать commit
       DB::commit();
@@ -273,13 +299,16 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C17_changeuser from M-package M5 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C17_changeuser from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M5', 'C17_changeuser']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 

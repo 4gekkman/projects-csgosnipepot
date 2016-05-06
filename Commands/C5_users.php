@@ -365,6 +365,12 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
         // 2.4. Получить коллекцию пользователей
         $users = with(clone $query)->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
 
+        // 2.5. Убрать из $users поле "password_hash"
+        $users = $users->map(function(&$value, $key){
+          $value->password_hash = "";
+          return $value;
+        });
+
       // 3. Вернуть результат
       return [
         "status"  => 0,
