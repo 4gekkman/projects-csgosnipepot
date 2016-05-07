@@ -204,6 +204,9 @@ class C19_changeprivilege extends Job { // TODO: добавить "implements Sh
         // 5.2. Внести изменения
         foreach($params as $key => $value) {
 
+          // Если $key == 'id', продолжить
+          if($key == 'id') continue;
+
           // Если $key == 'name'
           if($key == 'name') {
             if(preg_match("/^custom_/ui", mb_strtolower($value)) == 0)

@@ -207,6 +207,9 @@ class C18_changegroup extends Job { // TODO: добавить "implements Should
         // 5.2. Внести изменения
         foreach($params as $key => $value) {
 
+          // Если $key == 'id', продолжить
+          if($key == 'id') continue;
+
           // Если $key == 'isadmin'
           if($key == 'isadmin') {
             $group[$key] = $value == 'yes' ? 1 : 0;

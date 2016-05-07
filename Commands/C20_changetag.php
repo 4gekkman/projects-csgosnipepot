@@ -195,6 +195,9 @@ class C20_changetag extends Job { // TODO: добавить "implements ShouldQu
         // 4.2. Внести изменения
         foreach($params as $key => $value) {
 
+          // Если $key == 'id', продолжить
+          if($key == 'id') continue;
+
           // Если $key == 'timestamp', продолжить
           if($key == 'timestamp') continue;
 
