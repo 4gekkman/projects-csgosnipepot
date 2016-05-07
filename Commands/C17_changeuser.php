@@ -185,6 +185,7 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
         "birthday"        => ["sometimes", "date"],
 
         "isanonymous"     => ["required", "in:yes,no"],
+        "is_blocked"      => ["required", "in:yes,no"],
         "adminnote"       => ["sometimes", "string"]
 
       ]); if($validator['status'] == -1) {
@@ -268,6 +269,12 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
 
           // Если $key == 'isanonymous'
           if($key == 'isanonymous') {
+            $user[$key] = $value == 'yes' ? 1 : 0;
+            continue;
+          }
+
+          // Если $key == 'is_blocked'
+          if($key == 'is_blocked') {
             $user[$key] = $value == 'yes' ? 1 : 0;
             continue;
           }
