@@ -142,13 +142,28 @@ class C37_attach2users extends Job { // TODO: добавить "implements Shoul
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //----------------------------------------------------------------------//
+    // Связать указанных пользователей с указанными группами/правами/тегами //
+    //----------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "selected"            => ["required", "numeric"],
+        "who"         => ["r4_defined", "regex:/^([1-9]+[0-9]*|)$/ui"],
+        "items_at_page"   => ["required", "numeric"],
+        "filters"         => ["r4_defined", "json"]
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+
+      write2log($this->data['selected'], []);
+      write2log($this->data['who'], []);
 
 
     DB::commit(); } catch(\Exception $e) {
