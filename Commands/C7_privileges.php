@@ -136,8 +136,10 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Сформировать запрос с учётом фильтров, извлечь данные
-     *  3. Вернуть результат
+     *  2. Декодировать json-строку с фильтрами
+     *  3. Провести валидацию значений фильтров, если $filters не пуста
+     *  4. Сформировать запрос с учётом фильтров, извлечь данные
+     *  5. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
@@ -149,216 +151,125 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
     $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-        // 1.1. Общая валидация
-        $validator = r4_validate($this->data, [
+        "page"            => ["required", "numeric"],
+        "pages_total"     => ["r4_defined", "regex:/^([1-9]+[0-9]*|)$/ui"],
+        "items_at_page"   => ["required", "numeric"],
+        "filters"         => ["r4_defined", "json"]
 
-          "page"            => ["required", "numeric"],
-          "pages_total"     => ["r4_defined", "regex:/^([1-9]+[0-9]*|)$/ui"],
-          "items_at_page"   => ["required", "numeric"],
-          "filters"         => ["required", "array"]
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Декодировать json-строку с фильтрами
+      $filters = json_decode($this->data['filters'], true);
+
+      // 3. Провести валидацию значений фильтров, если $filters не пуста
+      if(!empty($filters)) {
+        $validator = r4_validate($filters, [
+
+          "0.value"               => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of privileges
+          "1.value"               => ["r4_defined", "string"],                                        // Email
+          "2.value.access"        => ["r4_defined", "boolean"],                                       // Privilege type -> Access
+          "2.value.exec"          => ["r4_defined", "boolean"],                                       // Privilege type -> Exec
+          "2.value.custom"        => ["r4_defined", "boolean"],                                       // Privilege type -> Custom
+          "3.value"               => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of users
+          "4.value"               => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of groups
+          "5.value"               => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of tags
 
         ]); if($validator['status'] == -1) {
 
           throw new \Exception($validator['data']);
 
         }
+      }
 
-        // 1.2. Валидация наличия полного набора ключей для фильтров
-        $validator = r4_validate($this->data['filters'], [
+      // 4. Сформировать запрос с учётом фильтров, извлечь данные
 
-          "ids"             => ["r4_defined", "array"],
-          "names"           => ["r4_defined", "array"],
-          "users"           => ["r4_defined", "array"],
-          "tags"            => ["r4_defined", "array"],
-          "groups"          => ["r4_defined", "array"],
-          "privtypes"       => ["r4_defined", "array"],
-          "m1_packages"     => ["r4_defined", "array"],
-          "m1_commands"     => ["r4_defined", "array"]
-
-        ]); if($validator['status'] == -1) {
-
-          throw new \Exception($validator['data']);
-
-        }
-
-        // 1.3. Получить список всех доступных типов прав
-        $privtypes = \M5\Models\MD5_privtypes::all();
-        if(empty($privtypes))
-          throw new \Exception('Таблица типов прав MD5_privtypes пуста.');
-        $privtypes = implode(",", $privtypes->pluck('name')->toArray());
-
-        // 1.4. Валидация содержимого фильтров
-
-          // 1] ids
-          $validator = r4_validate($this->data['filters']['ids'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['ids'] as $key => $value) {
-              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 2] names
-          $validator = r4_validate($this->data['filters']['names'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['names'] as $key => $value) {
-              $result[$key] = ["required", "regex:/^[a-zа-яё]{1}[a-zа-яё0-9]*$/ui"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 3] users
-          $validator = r4_validate($this->data['filters']['users'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['users'] as $key => $value) {
-              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 4] tags
-          $validator = r4_validate($this->data['filters']['tags'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['tags'] as $key => $value) {
-              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 5] groups
-          $validator = r4_validate($this->data['filters']['groups'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['groups'] as $key => $value) {
-              $result[$key] = ["required", "regex:/^[a-zа-яё]{1}[a-zа-яё0-9]*$/ui"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 6] privtypes
-          $validator = r4_validate($this->data['filters']['privtypes'], call_user_func(function() USE ($privtypes) {
-            $result = [];
-            foreach($this->data['filters']['privtypes'] as $key => $value) {
-              $result[$key] = ["required", "in:".$privtypes];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 7] m1_packages
-          $validator = r4_validate($this->data['filters']['m1_packages'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['m1_packages'] as $key => $value) {
-              $result[$key] = ["required"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 7] m1_commands
-          $validator = r4_validate($this->data['filters']['m1_commands'], call_user_func(function() {
-            $result = [];
-            foreach($this->data['filters']['m1_commands'] as $key => $value) {
-              $result[$key] = ["required"];
-            }
-            return $result;
-          })); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-      // 2. Сформировать запрос с учётом фильтров, извлечь данные
-
-        // 2.1. Зачать формированиез запроса
+        // 4.1. Зачать формированиез запроса
         $query = \M5\Models\MD3_privileges::query();
         $privs_total = with(clone $query)->count();
 
-        // 2.2. Учесть все фильтры
+        // 4.2. Учесть все фильтры
+        if(!empty($filters)) {
 
-          // 1] ids
-          if(count($this->data['filters']['ids']) != 0) {
-            $query->whereIn('id', $this->data['filters']['ids']);
+          // 1] IDs of privileges
+          if($filters[0]['on'] === true) {
+            $ids_of_privs = explode(',', $filters[0]['value']);
+            if(!empty($ids_of_privs) && !empty($ids_of_privs[0]))
+              $query->whereIn('id', $ids_of_privs);
           }
 
-          // 2] names
-          if(count($this->data['filters']['names']) != 0) {
-            $query->whereIn('name', $this->data['filters']['names']);
+          // 2] Name
+          if(!empty($filters[1]['value']) && $filters[1]['on'] === true) {
+            $query->where('name', 'like', $filters[1]['value'] . '%');
           }
 
-          // 3] users
-          if(count($this->data['filters']['users']) != 0) {
-            $query->whereHas('users', function($query){
-              $query->whereIn('id', $this->data['filters']['users']);
-            });
-          }
+          // 3] Privilege type
+          if($filters[2]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
 
-          // 4] tags
-          if(count($this->data['filters']['tags']) != 0) {
-            $query->whereHas('tags', function($query){
-              $query->whereIn('id', $this->data['filters']['tags']);
-            });
-          }
-
-          // 5] groups
-          if(count($this->data['filters']['groups']) != 0) {
-            $query->whereHas('groups', function($query){
-              $query->whereIn('id', $this->data['filters']['groups']);
-            });
-          }
-
-          // 6] privtypes
-          if(count($this->data['filters']['privtypes']) != 0) {
-            $query->whereHas('privileges', function($query){
-              $query->whereHas('privtypes', function($query){
-                $query->whereIn('name', $this->data['filters']['privtypes']);
-              });
-            });
-          }
-
-          // 7] m1_packages
-          if(r1_rel_exists("M5", "MD3_privileges", "m1_packages")) {
-            if(count($this->data['filters']['m1_packages']) != 0) {
-              $query->whereHas('privileges', function($query){
-                $query->whereHas('m1_packages', function($query){
-                  $query->whereIn('id_inner', $this->data['filters']['m1_packages']);
+              if($filters[2]['value']['access'] === true)
+                $query->whereHas('privtypes', function($query) {
+                  $query->where('name', 'access');
                 });
-              });
-            }
-          }
 
-          // 8] m1_commands
-          if(r1_rel_exists("M5", "MD3_privileges", "m1_commands")) {
-            if(count($this->data['filters']['m1_commands']) != 0) {
-              $query->whereHas('privileges', function($query){
-                $query->whereHas('m1_commands', function($query){
-                  $query->whereIn('uid', $this->data['filters']['m1_commands']);
+              if($filters[2]['value']['exec'] === true)
+                $query->orWhereHas('privtypes', function($query) {
+                  $query->where('name', 'exec');
                 });
-              });
-            }
+
+              if($filters[2]['value']['custom'] === true)
+                $query->orWhereHas('privtypes', function($query) {
+                  $query->where('name', 'custom');
+                });
+
+            });
           }
 
-        // 2.3. Получить pages_total и items_at_page
+          // 4] IDs of users
+          if($filters[3]['on'] === true) {
+            $ids_of_users = explode(',', $filters[3]['value']);
+            if(!empty($ids_of_users) && !empty($ids_of_users[0]))
+              $query->whereHas('users', function($query) USE ($ids_of_users) {
+                $query->whereIn('id', $ids_of_users);
+              });
+          }
+
+          // 5] IDs of groups
+          if($filters[4]['on'] === true) {
+            $ids_of_groups = explode(',', $filters[4]['value']);
+            if(!empty($ids_of_groups) && !empty($ids_of_groups[0]))
+              $query->whereHas('groups', function($query) USE ($ids_of_groups) {
+                $query->whereIn('id', $ids_of_groups);
+              });
+          }
+
+          // 6] IDs of tags
+          if($filters[5]['on'] === true) {
+            $ids_of_tags = explode(',', $filters[5]['value']);
+            if(!empty($ids_of_tags) && !empty($ids_of_tags[0]))
+              $query->whereHas('tags', function($query) USE ($ids_of_tags) {
+                $query->whereIn('id', $ids_of_tags);
+              });
+          }
+
+        }
+
+        // 4.3. Получить pages_total и items_at_page
         $privs_filtered       = with(clone $query)->count();
         $privs_filtered_ids   = with(clone $query)->pluck('id');
         $items_at_page        = $this->data['items_at_page'];
         $pages_total          = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
         $page                 = $this->data['page'];
 
-        // 2.4. Получить коллекцию групп
+        // 4.4. Получить коллекцию групп
         $privileges = with(clone $query)->with(['privtypes'])->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
 
-      // 3. Вернуть результат
+      // 5. Вернуть результат
       return [
         "status"  => 0,
         "data"    => [
