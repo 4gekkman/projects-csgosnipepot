@@ -368,7 +368,8 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
           "privs_filtered"      => $privs_filtered,
           "items_at_page"       => $this->data['items_at_page'],
           "privtypes"           => \M5\Models\MD5_privtypes::all(),
-          "privs_filtered_ids"  => $privs_filtered_ids
+          "privs_filtered_ids"  => $privs_filtered_ids,
+          "selected_priv_ids"   => (!empty($this->data['selected_priv_ids']) && is_array($this->data['selected_priv_ids'])) ? $this->data['selected_priv_ids'] : []
         ]
       ];
 

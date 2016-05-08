@@ -352,6 +352,7 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
                     $query->whereIn('id', $ids_of_privs);
                   });
                 });
+
               });
           }
 
@@ -409,7 +410,8 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
           "users_filtered"      => $users_filtered,
           "items_at_page"       => $this->data['items_at_page'],
           "genders"             => \M5\Models\MD11_genders::all(),
-          "users_filtered_ids"  => $users_filtered_ids
+          "users_filtered_ids"  => $users_filtered_ids,
+          "selected_user_ids"   => (!empty($this->data['selected_user_ids']) && is_array($this->data['selected_user_ids'])) ? $this->data['selected_user_ids'] : []
         ]
       ];
 

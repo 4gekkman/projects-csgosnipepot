@@ -367,7 +367,8 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
           "tags_total"          => $tags_total,
           "tags_filtered"       => $tags_filtered,
           "items_at_page"       => $this->data['items_at_page'],
-          "tags_filtered_ids"   => $tags_filtered_ids
+          "tags_filtered_ids"   => $tags_filtered_ids,
+          "selected_tag_ids"    => (!empty($this->data['selected_tag_ids']) && is_array($this->data['selected_tag_ids'])) ? $this->data['selected_tag_ids'] : []
         ]
       ];
 
