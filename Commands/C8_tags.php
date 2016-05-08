@@ -349,10 +349,11 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
           }
 
         // 2.3. Получить pages_total и items_at_page
-        $tags_filtered    = with(clone $query)->count();
-        $items_at_page    = $this->data['items_at_page'];
-        $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
-        $page             = $this->data['page'];
+        $tags_filtered        = with(clone $query)->count();
+        $tags_filtered_ids   = with(clone $query)->pluck('id');
+        $items_at_page        = $this->data['items_at_page'];
+        $pages_total          = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
+        $page                 = $this->data['page'];
 
         // 2.4. Получить коллекцию групп
         $tags = with(clone $query)->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
@@ -361,11 +362,12 @@ class C8_tags extends Job { // TODO: добавить "implements ShouldQueue" -
       return [
         "status"  => 0,
         "data"    => [
-          "tags"            => $tags,
-          "pages_total"     => $pages_total,
-          "tags_total"      => $tags_total,
-          "tags_filtered"   => $tags_filtered,
-          "items_at_page"   => $this->data['items_at_page']
+          "tags"                => $tags,
+          "pages_total"         => $pages_total,
+          "tags_total"          => $tags_total,
+          "tags_filtered"       => $tags_filtered,
+          "items_at_page"       => $this->data['items_at_page'],
+          "tags_filtered_ids"   => $tags_filtered_ids
         ]
       ];
 

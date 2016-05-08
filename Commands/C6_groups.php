@@ -349,10 +349,11 @@ class C6_groups extends Job { // TODO: добавить "implements ShouldQueue"
           }
 
         // 2.3. Получить pages_total и items_at_page
-        $groups_filtered  = with(clone $query)->count();
-        $items_at_page    = $this->data['items_at_page'];
-        $pages_total      = (+$groups_filtered < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
-        $page             = $this->data['page'];
+        $groups_filtered      = with(clone $query)->count();
+        $groups_filtered_ids  = with(clone $query)->pluck('id');
+        $items_at_page        = $this->data['items_at_page'];
+        $pages_total          = (+$groups_filtered < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
+        $page                 = $this->data['page'];
 
         // 2.4. Получить коллекцию групп
         $groups = with(clone $query)->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
@@ -361,11 +362,12 @@ class C6_groups extends Job { // TODO: добавить "implements ShouldQueue"
       return [
         "status"  => 0,
         "data"    => [
-          "groups"          => $groups,
-          "pages_total"     => $pages_total,
-          "groups_total"    => $groups_total,
-          "groups_filtered" => $groups_filtered,
-          "items_at_page"   => $this->data['items_at_page']
+          "groups"                => $groups,
+          "pages_total"           => $pages_total,
+          "groups_total"          => $groups_total,
+          "groups_filtered"       => $groups_filtered,
+          "items_at_page"         => $this->data['items_at_page'],
+          "groups_filtered_ids"   => $groups_filtered_ids
         ]
       ];
 

@@ -349,10 +349,11 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
           }
 
         // 2.3. Получить pages_total и items_at_page
-        $privs_filtered  = with(clone $query)->count();
-        $items_at_page    = $this->data['items_at_page'];
-        $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
-        $page             = $this->data['page'];
+        $privs_filtered       = with(clone $query)->count();
+        $privs_filtered_ids   = with(clone $query)->pluck('id');
+        $items_at_page        = $this->data['items_at_page'];
+        $pages_total          = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
+        $page                 = $this->data['page'];
 
         // 2.4. Получить коллекцию групп
         $privileges = with(clone $query)->with(['privtypes'])->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
@@ -361,12 +362,13 @@ class C7_privileges extends Job { // TODO: добавить "implements ShouldQu
       return [
         "status"  => 0,
         "data"    => [
-          "privileges"      => $privileges,
-          "pages_total"     => $pages_total,
-          "privs_total"     => $privs_total,
-          "privs_filtered"  => $privs_filtered,
-          "items_at_page"   => $this->data['items_at_page'],
-          "privtypes"       => \M5\Models\MD5_privtypes::all()
+          "privileges"          => $privileges,
+          "pages_total"         => $pages_total,
+          "privs_total"         => $privs_total,
+          "privs_filtered"      => $privs_filtered,
+          "items_at_page"       => $this->data['items_at_page'],
+          "privtypes"           => \M5\Models\MD5_privtypes::all(),
+          "privs_filtered_ids"  => $privs_filtered_ids
         ]
       ];
 

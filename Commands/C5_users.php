@@ -137,10 +137,9 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
      *
      *  1. Провести валидацию входящих параметров
      *  2. Декодировать json-строку с фильтрами
-     *
-     *
-     *  2. Сформировать запрос с учётом фильтров, извлечь данные
-     *  3. Вернуть результат
+     *  3. Провести валидацию значений фильтров, если $filters не пуста
+     *  4. Сформировать запрос с учётом фильтров, извлечь данные
+     *  5. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
@@ -168,260 +167,249 @@ class C5_users extends Job { // TODO: добавить "implements ShouldQueue" 
       // 2. Декодировать json-строку с фильтрами
       $filters = json_decode($this->data['filters'], true);
 
-      // 3. Провести валидацию значений фильтров
-      $validator = r4_validate($filters, [
+      // 3. Провести валидацию значений фильтров, если $filters не пуста
+      if(!empty($filters)) {
+        $validator = r4_validate($filters, [
 
-        "0.value"               => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of users
-        "1.value"               => ["r4_defined", "email"],                                         // Email
-        "2.value"               => ["r4_defined", "regex:/^[0-9]*$/ui"],                            // Phone
-        "3.value"               => ["r4_defined", "regex:/^[a-zа-яё]*$/ui"],                        // Name
-        "4.value"               => ["r4_defined", "regex:/^[a-zа-яё]*$/ui"],                        // Surname
-        "5.value"               => ["r4_defined", "regex:/^[a-zа-яё]*$/ui"],                        // Patronymic
-        "6.value.male"          => ["r4_defined", "boolean"],                                       // Gender -> Male
-        "6.value.female"        => ["r4_defined", "boolean"],                                       // Gender -> Female
-        "6.value.undefined"     => ["r4_defined", "boolean"],                                       // Gender -> Undefined
-        "7.value.anonymous"     => ["r4_defined", "boolean"],                                       // Anonymity -> Anonymous
-        "7.value.not_anonymous" => ["r4_defined", "boolean"],                                       // Anonymity -> Not_anonymous
-        "8.value.blocked"       => ["r4_defined", "boolean"],                                       // Block -> Blocked
-        "8.value.not_blocked"   => ["r4_defined", "boolean"],                                       // Block -> Not_blocked
-        "9.value.approved"      => ["r4_defined", "boolean"],                                       // Email approvement -> Approved
-        "9.value.not_approved"  => ["r4_defined", "boolean"],                                       // Email approvement -> Not_approved
-        "10.value.approved"     => ["r4_defined", "boolean"],                                       // Phone approvement -> Approved
-        "10.value.not_approved" => ["r4_defined", "boolean"],                                       // Phone approvement -> Not_approved
-        "11.value"              => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of groups
-        "12.value"              => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of privileges
-        "13.value"              => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of tags
+          "0.value"               => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of users
+          "1.value"               => ["r4_defined", "string"],                                        // Email
+          "2.value"               => ["r4_defined", "regex:/^[0-9]*$/ui"],                            // Phone
+          "3.value"               => ["r4_defined", "regex:/^[a-zа-яё]*$/ui"],                        // Name
+          "4.value"               => ["r4_defined", "regex:/^[a-zа-яё]*$/ui"],                        // Surname
+          "5.value"               => ["r4_defined", "regex:/^[a-zа-яё]*$/ui"],                        // Patronymic
+          "6.value.male"          => ["r4_defined", "boolean"],                                       // Gender -> Male
+          "6.value.female"        => ["r4_defined", "boolean"],                                       // Gender -> Female
+          "6.value.undefined"     => ["r4_defined", "boolean"],                                       // Gender -> Undefined
+          "7.value.anonymous"     => ["r4_defined", "boolean"],                                       // Anonymity -> Anonymous
+          "7.value.not_anonymous" => ["r4_defined", "boolean"],                                       // Anonymity -> Not_anonymous
+          "8.value.blocked"       => ["r4_defined", "boolean"],                                       // Block -> Blocked
+          "8.value.not_blocked"   => ["r4_defined", "boolean"],                                       // Block -> Not_blocked
+          "9.value.approved"      => ["r4_defined", "boolean"],                                       // Email approvement -> Approved
+          "9.value.not_approved"  => ["r4_defined", "boolean"],                                       // Email approvement -> Not_approved
+          "10.value.approved"     => ["r4_defined", "boolean"],                                       // Phone approvement -> Approved
+          "10.value.not_approved" => ["r4_defined", "boolean"],                                       // Phone approvement -> Not_approved
+          "11.value"              => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of groups
+          "12.value"              => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of privileges
+          "13.value"              => ["r4_defined", "regex:/^([1-9]+[0-9]*(,[1-9]+[0-9]*)*|)$/ui"],   // IDs of tags
+          "14.value.admin"        => ["r4_defined", "boolean"],                                       // Admin -> Admin
+          "14.value.not_admin"    => ["r4_defined", "boolean"],                                       // Admin -> Not_admin
 
-      ]); if($validator['status'] == -1) {
+        ]); if($validator['status'] == -1) {
 
-        throw new \Exception($validator['data']);
+          throw new \Exception($validator['data']);
 
+        }
       }
 
+      // 4. Сформировать запрос с учётом фильтров, извлечь данные
 
-
-
-
-
-
-
-//        // 1.2. Валидация наличия полного набора ключей для фильтров
-//        $validator = r4_validate($this->data['filters'], [
-//
-//          "ids"             => ["r4_defined", "array"],
-//          "genders"         => ["r4_defined", "array"],
-//          "groups"          => ["r4_defined", "array"],
-//          "tags"            => ["r4_defined", "array"],
-//          "privileges"      => ["r4_defined", "array"],
-//          "privtypes"       => ["r4_defined", "array"],
-//          "m1_packages"     => ["r4_defined", "array"],
-//          "m1_commands"     => ["r4_defined", "array"]
-//
-//        ]); if($validator['status'] == -1) {
-//
-//          throw new \Exception($validator['data']);
-//
-//        }
-//
-//        // 1.3. Получить список всех доступных полов
-//        $genders = \M5\Models\MD11_genders::all();
-//        if(empty($genders))
-//          throw new \Exception('Таблица полов MD11_genders пуста.');
-//        $genders = implode(",", $genders->pluck('name')->toArray());
-//
-//        // 1.4. Получить список всех доступных типов прав
-//        $privtypes = \M5\Models\MD5_privtypes::all();
-//        if(empty($privtypes))
-//          throw new \Exception('Таблица типов прав MD5_privtypes пуста.');
-//        $privtypes = implode(",", $privtypes->pluck('name')->toArray());
-//
-//        // 1.5. Валидация содержимого фильтров
-//
-//          // 1] ids
-//          $validator = r4_validate($this->data['filters']['ids'], call_user_func(function() {
-//            $result = [];
-//            foreach($this->data['filters']['ids'] as $key => $value) {
-//              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 2] genders
-//          $validator = r4_validate($this->data['filters']['genders'], call_user_func(function() USE ($genders) {
-//            $result = [];
-//            foreach($this->data['filters']['genders'] as $key => $value) {
-//              $result[$key] = ["required", "in:".$genders];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 3] groups
-//          $validator = r4_validate($this->data['filters']['groups'], call_user_func(function() {
-//            $result = [];
-//            foreach($this->data['filters']['groups'] as $key => $value) {
-//              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 4] tags
-//          $validator = r4_validate($this->data['filters']['tags'], call_user_func(function() {
-//            $result = [];
-//            foreach($this->data['filters']['tags'] as $key => $value) {
-//              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 5] privileges
-//          $validator = r4_validate($this->data['filters']['privileges'], call_user_func(function() {
-//            $result = [];
-//            foreach($this->data['filters']['privileges'] as $key => $value) {
-//              $result[$key] = ["required", "regex:/^[1-9]+[0-9]*$/ui"];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 6] privtypes
-//          $validator = r4_validate($this->data['filters']['privtypes'], call_user_func(function() USE ($privtypes) {
-//            $result = [];
-//            foreach($this->data['filters']['privtypes'] as $key => $value) {
-//              $result[$key] = ["required", "in:".$privtypes];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 7] m1_packages
-//          $validator = r4_validate($this->data['filters']['m1_packages'], call_user_func(function() {
-//            $result = [];
-//            foreach($this->data['filters']['m1_packages'] as $key => $value) {
-//              $result[$key] = ["required"];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-//
-//          // 7] m1_commands
-//          $validator = r4_validate($this->data['filters']['m1_commands'], call_user_func(function() {
-//            $result = [];
-//            foreach($this->data['filters']['m1_commands'] as $key => $value) {
-//              $result[$key] = ["required"];
-//            }
-//            return $result;
-//          })); if($validator['status'] == -1) {
-//            throw new \Exception($validator['data']);
-//          }
-
-      // 2. Сформировать запрос с учётом фильтров, извлечь данные
-
-        // 2.1. Зачать формированиез запроса
+        // 4.1. Зачать формированиез запроса
         $query = \M5\Models\MD1_users::query();
         $users_total = with(clone $query)->count();
 
-//        // 2.2. Учесть все фильтры
-//
-//          // 1] ids
-//          if(count($this->data['filters']['ids']) != 0) {
-//            $query->whereIn('id', $this->data['filters']['ids']);
-//          }
-//
-//          // 2] genders
-//          if(count($this->data['filters']['genders']) != 0) {
-//            $query->whereHas('genders', function($query){
-//              $query->whereIn('name', $this->data['filters']['genders']);
-//            });
-//          }
-//
-//          // 3] groups
-//          if(count($this->data['filters']['groups']) != 0) {
-//            $query->whereHas('groups', function($query){
-//              $query->whereIn('id', $this->data['filters']['groups']);
-//            });
-//          }
-//
-//          // 4] tags
-//          if(count($this->data['filters']['tags']) != 0) {
-//            $query->whereHas('tags', function($query){
-//              $query->whereIn('id', $this->data['filters']['tags']);
-//            });
-//          }
-//
-//          // 5] privileges
-//          if(count($this->data['filters']['privileges']) != 0) {
-//            $query->whereHas('privileges', function($query){
-//              $query->whereIn('id', $this->data['filters']['privileges']);
-//            });
-//          }
-//
-//          // 6] privtypes
-//          if(count($this->data['filters']['privtypes']) != 0) {
-//            $query->whereHas('privileges', function($query){
-//              $query->whereHas('privtypes', function($query){
-//                $query->whereIn('name', $this->data['filters']['privtypes']);
-//              });
-//            });
-//          }
-//
-//          // 7] m1_packages
-//          if(r1_rel_exists("M5", "MD3_privileges", "m1_packages")) {
-//            if(count($this->data['filters']['m1_packages']) != 0) {
-//              $query->whereHas('privileges', function($query){
-//                $query->whereHas('m1_packages', function($query){
-//                  $query->whereIn('id_inner', $this->data['filters']['m1_packages']);
-//                });
-//              });
-//            }
-//          }
-//
-//          // 8] m1_commands
-//          if(r1_rel_exists("M5", "MD3_privileges", "m1_commands")) {
-//            if(count($this->data['filters']['m1_commands']) != 0) {
-//              $query->whereHas('privileges', function($query){
-//                $query->whereHas('m1_commands', function($query){
-//                  $query->whereIn('uid', $this->data['filters']['m1_commands']);
-//                });
-//              });
-//            }
-//          }
+        // 4.2. Учесть все фильтры, если $filters не пуста
+        if(!empty($filters)) {
 
-        // 2.3. Получить pages_total и items_at_page
-        $users_filtered   = with(clone $query)->count();
-        $items_at_page    = $this->data['items_at_page'];
-        $pages_total      = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
-        $page             = $this->data['page'];
+          // 1] IDs of users
+          if($filters[0]['on'] === true) {
+            $ids_of_users = explode(',', $filters[0]['value']);
+            if(!empty($ids_of_users) && !empty($ids_of_users[0]))
+              $query->whereIn('id', $ids_of_users);
+          }
 
-        // 2.4. Получить коллекцию пользователей
+          // 2] Email
+          if(!empty($filters[1]['value']) && $filters[1]['on'] === true) {
+            $query->where('email', 'like', $filters[1]['value'] . '%');
+          }
+
+          // 3] Phone
+          if(!empty($filters[2]['value']) && $filters[2]['on'] === true) {
+            $query->where('phone', 'like', $filters[2]['value'] . '%');
+          }
+
+          // 4] Name
+          if(!empty($filters[3]['value']) && $filters[3]['on'] === true) {
+            $query->where('name', 'like', $filters[3]['value'] . '%');
+          }
+
+          // 5] Surname
+          if(!empty($filters[4]['value']) && $filters[4]['on'] === true) {
+            $query->where('surname', 'like', $filters[4]['value'] . '%');
+          }
+
+          // 6] Patronymic
+          if(!empty($filters[5]['value']) && $filters[5]['on'] === true) {
+            $query->where('patronymic', 'like', $filters[5]['value'] . '%');
+          }
+
+          // 7] Gender
+          if($filters[6]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
+
+              if($filters[6]['value']['male'] === true)
+                $query->whereHas('genders', function($query){
+                  $query->where('name', 'm');
+                });
+
+              if($filters[6]['value']['female'] === true)
+                $query->orWhereHas('genders', function($query){
+                  $query->where('name', 'f');
+                });
+
+              if($filters[6]['value']['undefined'] === true)
+                $query->orWhereHas('genders', function($query){
+                  $query->where('name', 'u');
+                });
+
+            });
+          }
+
+          // 8] Anonymity
+          if($filters[7]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
+
+              if($filters[7]['value']['anonymous'] === true)
+                $query->where('isanonymous', 1);
+
+              if($filters[7]['value']['not_anonymous'] === true)
+                $query->orWhere('isanonymous', 0);
+
+            });
+          }
+
+          // 9] Block
+          if($filters[8]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
+
+              if($filters[8]['value']['blocked'] === true)
+                $query->where('is_blocked', 1);
+
+              if($filters[8]['value']['not_blocked'] === true)
+                $query->orWhere('is_blocked', 0);
+
+            });
+          }
+
+          // 10] Email approvement
+          if($filters[9]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
+
+              if($filters[9]['value']['approved'] === true)
+                $query->where('is_email_approved', 1);
+
+              if($filters[9]['value']['not_approved'] === true)
+                $query->orWhere('is_email_approved', 0);
+
+            });
+          }
+
+          // 11] Phone approvement
+          if($filters[10]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
+
+              if($filters[10]['value']['approved'] === true)
+                $query->where('is_phone_approved', 1);
+
+              if($filters[10]['value']['not_approved'] === true)
+                $query->orWhere('is_phone_approved', 0);
+
+            });
+          }
+
+          // 12] IDs of groups
+          if($filters[11]['on'] === true) {
+            $ids_of_groups = explode(',', $filters[11]['value']);
+            if(!empty($ids_of_groups) && !empty($ids_of_groups[0]))
+              $query->whereHas('groups', function($query) USE ($ids_of_groups) {
+                $query->whereIn('id', $ids_of_groups);
+              });
+          }
+
+          // 13] IDs of privileges
+          if($filters[12]['on'] === true) {
+            $ids_of_privs = explode(',', $filters[12]['value']);
+            if(!empty($ids_of_privs) && !empty($ids_of_privs[0]))
+              $query->where(function($query) USE ($ids_of_privs) {
+
+                $query->whereHas('privileges', function($query) USE ($ids_of_privs) {
+                  $query->whereIn('id', $ids_of_privs);
+                })->orWhereHas('groups', function($query) USE ($ids_of_privs){
+
+                  $query->where(function($query) USE ($ids_of_privs) {
+                    $query->whereHas('privileges', function($query) USE ($ids_of_privs) {
+                      $query->whereIn('id', $ids_of_privs);
+                    })->orWhereHas('tags', function($query) USE ($ids_of_privs){
+                      $query->whereHas('privileges', function($query) USE ($ids_of_privs) {
+                        $query->whereIn('id', $ids_of_privs);
+                      });
+                    })->orWhere(function($query){
+                      $query->where('isadmin', 1);
+                    });
+                  });
+
+                })->orWhereHas('tags', function($query) USE ($ids_of_privs){
+                  $query->whereHas('privileges', function($query) USE ($ids_of_privs) {
+                    $query->whereIn('id', $ids_of_privs);
+                  });
+                });
+              });
+          }
+
+          // 14] IDs of tags
+          if($filters[13]['on'] === true) {
+            $ids_of_tags = explode(',', $filters[13]['value']);
+            if(!empty($ids_of_tags) && !empty($ids_of_tags[0]))
+              $query->whereHas('tags', function($query) USE ($ids_of_tags) {
+                $query->whereIn('id', $ids_of_tags);
+              });
+          }
+
+          // 15] Admin
+          if($filters[14]['on'] === true) {
+            $query->where(function($query) USE ($filters) {
+
+              if($filters[14]['value']['admin'] === true && $filters[14]['value']['not_admin'] === false)
+                $query->whereHas('groups', function($query){
+                  $query->where('isadmin', 1);
+                });
+
+              if($filters[14]['value']['not_admin'] === true && $filters[14]['value']['admin'] === false)
+                $query->whereDoesntHave('groups', function($query){
+                  $query->where('isadmin', 1);
+                });
+
+            });
+          }
+
+        }
+
+        // 4.3. Получить pages_total и items_at_page
+        $users_filtered       = with(clone $query)->count();
+        $users_filtered_ids   = with(clone $query)->pluck('id');
+        $items_at_page        = $this->data['items_at_page'];
+        $pages_total          = (+with(clone $query)->count() < +$items_at_page) ? 1 : (int)ceil(+with(clone $query)->count()/$items_at_page);
+        $page                 = $this->data['page'];
+
+        // 4.4. Получить коллекцию пользователей
         $users = with(clone $query)->skip($items_at_page*(+$page-1))->take($items_at_page)->get();
 
-        // 2.5. Убрать из $users поле "password_hash"
+        // 4.5. Убрать из $users поле "password_hash"
         $users = $users->map(function(&$value, $key){
           $value->password_hash = "";
           return $value;
         });
 
-      // 3. Вернуть результат
+      // 5. Вернуть результат
       return [
         "status"  => 0,
         "data"    => [
-          "users"           => $users,
-          "pages_total"     => $pages_total,
-          "users_total"     => $users_total,
-          "users_filtered"  => $users_filtered,
-          "items_at_page"   => $this->data['items_at_page'],
-          "genders"         => \M5\Models\MD11_genders::all()
+          "users"               => $users,
+          "pages_total"         => $pages_total,
+          "users_total"         => $users_total,
+          "users_filtered"      => $users_filtered,
+          "items_at_page"       => $this->data['items_at_page'],
+          "genders"             => \M5\Models\MD11_genders::all(),
+          "users_filtered_ids"  => $users_filtered_ids
         ]
       ];
 
