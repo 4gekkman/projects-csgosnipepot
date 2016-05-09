@@ -135,8 +135,8 @@ class C37_attach2users extends Job { // TODO: добавить "implements Shoul
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Провести связывание
      *
      *  N. Вернуть статус 0
      *
@@ -150,10 +150,17 @@ class C37_attach2users extends Job { // TODO: добавить "implements Shoul
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
 
-        "selected"            => ["required", "numeric"],
-        "who"         => ["r4_defined", "regex:/^([1-9]+[0-9]*|)$/ui"],
-        "items_at_page"   => ["required", "numeric"],
-        "filters"         => ["r4_defined", "json"]
+        "selected"              => ["r4_defined", "array"],
+        "selected.users"        => ["r4_defined", "array"],
+        "selected.users.*"      => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.groups"       => ["r4_defined", "array"],
+        "selected.groups.*"     => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.privileges"   => ["r4_defined", "array"],
+        "selected.privileges.*" => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.tags"         => ["r4_defined", "array"],
+        "selected.tags.*"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "who"                   => ["r4_defined", "array"],
+        "who.*"                 => ["in:groups,privs,tags"],
 
       ]); if($validator['status'] == -1) {
 
@@ -161,10 +168,49 @@ class C37_attach2users extends Job { // TODO: добавить "implements Shoul
 
       }
 
+      // 2. Провести связывание
+      foreach($this->data['who'] as $who) {
 
-      write2log($this->data['selected'], []);
-      write2log($this->data['who'], []);
+        // 2.1. С группами
+        if($who == "groups") {
+          foreach($this->data['selected']['users'] as $user) {
+            $user2attach = \M5\Models\MD1_users::find($user);
+            if(!empty($user2attach)) {
+              foreach($this->data['selected']['groups'] as $item) {
+                if(!$user2attach->groups->contains($item))
+                  $user2attach->groups()->attach($item);
+              }
+            }
+          }
+        }
 
+        // 2.2. С правами
+        if($who == "privs") {
+          foreach($this->data['selected']['users'] as $user) {
+            $user2attach = \M5\Models\MD1_users::find($user);
+            if(!empty($user2attach)) {
+              foreach($this->data['selected']['privs'] as $item) {
+                if(!$user2attach->privileges->contains($item))
+                  $user2attach->privileges()->attach($item);
+              }
+            }
+          }
+        }
+
+        // 2.3. С тегами
+        if($who == "tags") {
+          foreach($this->data['selected']['users'] as $user) {
+            $user2attach = \M5\Models\MD1_users::find($user);
+            if(!empty($user2attach)) {
+              foreach($this->data['selected']['tags'] as $item) {
+                if(!$user2attach->tags->contains($item))
+                  $user2attach->tags()->attach($item);
+              }
+            }
+          }
+        }
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C37_attach2users from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

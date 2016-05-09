@@ -135,21 +135,82 @@ class C38_detach2users extends Job { // TODO: добавить "implements Shoul
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Провести отвязывание
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //----------------------------------------------------------------//
+    // Отвязать указанных пользователей от указанных групп/прав/тегов //
+    //----------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "selected"              => ["r4_defined", "array"],
+        "selected.users"        => ["r4_defined", "array"],
+        "selected.users.*"      => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.groups"       => ["r4_defined", "array"],
+        "selected.groups.*"     => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.privileges"   => ["r4_defined", "array"],
+        "selected.privileges.*" => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.tags"         => ["r4_defined", "array"],
+        "selected.tags.*"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "who"                   => ["r4_defined", "array"],
+        "who.*"                 => ["in:groups,privs,tags"],
 
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Провести отвязывание
+      foreach($this->data['who'] as $who) {
+
+        // 2.1. От групп
+        if($who == "groups") {
+          foreach($this->data['selected']['users'] as $user) {
+            $user2detach = \M5\Models\MD1_users::find($user);
+            if(!empty($user2detach)) {
+              foreach($this->data['selected']['groups'] as $item) {
+                if($user2detach->groups->contains($item))
+                  $user2detach->groups()->detach($item);
+              }
+            }
+          }
+        }
+
+        // 2.2. От прав
+        if($who == "privs") {
+          foreach($this->data['selected']['users'] as $user) {
+            $user2detach = \M5\Models\MD1_users::find($user);
+            if(!empty($user2detach)) {
+              foreach($this->data['selected']['privs'] as $item) {
+                if($user2detach->privileges->contains($item))
+                  $user2detach->privileges()->detach($item);
+              }
+            }
+          }
+        }
+
+        // 2.3. От тегов
+        if($who == "tags") {
+          foreach($this->data['selected']['users'] as $user) {
+            $user2detach = \M5\Models\MD1_users::find($user);
+            if(!empty($user2detach)) {
+              foreach($this->data['selected']['tags'] as $item) {
+                if($user2detach->tags->contains($item))
+                  $user2detach->tags()->detach($item);
+              }
+            }
+          }
+        }
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C38_detach2users from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

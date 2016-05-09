@@ -135,21 +135,82 @@ class C41_attach2privileges extends Job { // TODO: добавить "implements 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Провести связывание
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------------------------------------//
+    // Связать указанные права с указанными пользователями/группами/тегами //
+    //---------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "selected"              => ["r4_defined", "array"],
+        "selected.users"        => ["r4_defined", "array"],
+        "selected.users.*"      => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.groups"       => ["r4_defined", "array"],
+        "selected.groups.*"     => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.privileges"   => ["r4_defined", "array"],
+        "selected.privileges.*" => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.tags"         => ["r4_defined", "array"],
+        "selected.tags.*"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "who"                   => ["r4_defined", "array"],
+        "who.*"                 => ["in:users,groups,tags"],
 
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Провести связывание
+      foreach($this->data['who'] as $who) {
+
+        // 2.1. С пользователями
+        if($who == "users") {
+          foreach($this->data['selected']['privileges'] as $priv) {
+            $priv2attach = \M5\Models\MD3_privileges::find($priv);
+            if(!empty($priv2attach)) {
+              foreach($this->data['selected']['users'] as $item) {
+                if(!$priv2attach->users->contains($item))
+                  $priv2attach->users()->attach($item);
+              }
+            }
+          }
+        }
+
+        // 2.2. С группами
+        if($who == "groups") {
+          foreach($this->data['selected']['privileges'] as $priv) {
+            $priv2attach = \M5\Models\MD3_privileges::find($priv);
+            if(!empty($priv2attach)) {
+              foreach($this->data['selected']['groups'] as $item) {
+                if(!$priv2attach->groups->contains($item))
+                  $priv2attach->groups()->attach($item);
+              }
+            }
+          }
+        }
+
+        // 2.3. С тегами
+        if($who == "tags") {
+          foreach($this->data['selected']['privileges'] as $priv) {
+            $priv2attach = \M5\Models\MD3_privileges::find($priv);
+            if(!empty($priv2attach)) {
+              foreach($this->data['selected']['tags'] as $item) {
+                if(!$priv2attach->tags->contains($item))
+                  $priv2attach->tags()->attach($item);
+              }
+            }
+          }
+        }
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C41_attach2privileges from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

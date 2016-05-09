@@ -135,21 +135,82 @@ class C43_attach2tags extends Job { // TODO: добавить "implements Should
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Провести связывание
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------------------------------------//
+    // Связать указанные теги с указанными пользователями/группами/правами //
+    //---------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "selected"              => ["r4_defined", "array"],
+        "selected.users"        => ["r4_defined", "array"],
+        "selected.users.*"      => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.groups"       => ["r4_defined", "array"],
+        "selected.groups.*"     => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.privileges"   => ["r4_defined", "array"],
+        "selected.privileges.*" => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "selected.tags"         => ["r4_defined", "array"],
+        "selected.tags.*"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "who"                   => ["r4_defined", "array"],
+        "who.*"                 => ["in:users,groups,privs"],
 
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Провести связывание
+      foreach($this->data['who'] as $who) {
+
+        // 2.1. С пользователями
+        if($who == "users") {
+          foreach($this->data['selected']['tags'] as $tag) {
+            $tag2attach = \M5\Models\MD4_tags::find($tag);
+            if(!empty($tag2attach)) {
+              foreach($this->data['selected']['users'] as $item) {
+                if(!$tag2attach->users->contains($item))
+                  $tag2attach->users()->attach($item);
+              }
+            }
+          }
+        }
+
+        // 2.2. С группами
+        if($who == "groups") {
+          foreach($this->data['selected']['tags'] as $tag) {
+            $tag2attach = \M5\Models\MD4_tags::find($tag);
+            if(!empty($tag2attach)) {
+              foreach($this->data['selected']['groups'] as $item) {
+                if(!$tag2attach->groups->contains($item))
+                  $tag2attach->groups()->attach($item);
+              }
+            }
+          }
+        }
+
+        // 2.3. С правами
+        if($who == "privs") {
+          foreach($this->data['selected']['tags'] as $tag) {
+            $tag2attach = \M5\Models\MD4_tags::find($tag);
+            if(!empty($tag2attach)) {
+              foreach($this->data['selected']['privs'] as $item) {
+                if(!$tag2attach->privileges->contains($item))
+                  $tag2attach->privileges()->attach($item);
+              }
+            }
+          }
+        }
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C43_attach2tags from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
