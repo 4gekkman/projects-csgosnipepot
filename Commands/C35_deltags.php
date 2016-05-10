@@ -153,6 +153,8 @@ class C35_deltags extends Job { // TODO: добавить "implements ShouldQueu
 
         "ids"              => ["required", "array"],                     // IDS должен быть массивом
         "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "filtered_ids"     => ["required", "array"],                     // filtered_ids должен быть массивом
+        "filtered_ids.*"   => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в filtered_ids д.б. полож.целыми числами
         "selectall"        => ["required", "boolean"]
 
       ]); if($validator['status'] == -1) {
@@ -179,11 +181,22 @@ class C35_deltags extends Job { // TODO: добавить "implements ShouldQueu
         });
       }
 
-      // 3. Если selectall == true, удалить все теги, проходящие переданные фильтры
+      // 3. Если selectall == true, удалить все теги из filtered_ids
       else {
+        collect($this->data['filtered_ids'])->each(function($id){
 
-        // 3.1. ...
+          // 2.1. Попробовать найти тег, который требуется удалить
+          $tag2del = \M5\Models\MD4_tags::find($id);
 
+          // 2.2. Если найден, удалить его и все его связи
+          if(!empty($tag2del)) {
+            $tag2del->users()->detach();
+            $tag2del->privileges()->detach();
+            $tag2del->groups()->detach();
+            $tag2del->forceDelete();
+          }
+
+        });
       }
 
 

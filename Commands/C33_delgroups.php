@@ -153,6 +153,8 @@ class C33_delgroups extends Job { // TODO: добавить "implements ShouldQu
 
         "ids"              => ["required", "array"],                     // IDS должен быть массивом
         "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "filtered_ids"     => ["required", "array"],                     // filtered_ids должен быть массивом
+        "filtered_ids.*"   => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в filtered_ids д.б. полож.целыми числами                     // filtered_ids должен быть массивом
         "selectall"        => ["required", "boolean"]
 
       ]); if($validator['status'] == -1) {
@@ -179,11 +181,22 @@ class C33_delgroups extends Job { // TODO: добавить "implements ShouldQu
         });
       }
 
-      // 3. Если selectall == true, удалить все группы, проходящие переданные фильтры
+      // 3. Если selectall == true, удалить все группы из filtered_ids
       else {
+        collect($this->data['filtered_ids'])->each(function($id){
 
-        // 3.1. ...
+          // 2.1. Попробовать найти группу, которую требуется удалить
+          $group2del = \M5\Models\MD2_groups::find($id);
 
+          // 2.2. Если найдена, удалить её и все её связи
+          if(!empty($group2del)) {
+            $group2del->users()->detach();
+            $group2del->privileges()->detach();
+            $group2del->tags()->detach();
+            $group2del->forceDelete();
+          }
+
+        });
       }
 
 

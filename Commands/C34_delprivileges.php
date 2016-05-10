@@ -153,6 +153,8 @@ class C34_delprivileges extends Job { // TODO: добавить "implements Shou
 
         "ids"              => ["required", "array"],                     // IDS должен быть массивом
         "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "filtered_ids"     => ["required", "array"],                     // filtered_ids должен быть массивом
+        "filtered_ids.*"   => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в filtered_ids д.б. полож.целыми числами
         "selectall"        => ["required", "boolean"]
 
       ]); if($validator['status'] == -1) {
@@ -185,11 +187,28 @@ class C34_delprivileges extends Job { // TODO: добавить "implements Shou
         });
       }
 
-      // 3. Если selectall == true, удалить все кастомные права, проходящие переданные фильтры
+      // 3. Если selectall == true, удалить все кастомные права из filtered_ids
       else {
+        collect($this->data['filtered_ids'])->each(function($id){
 
-        // 3.1. ...
+          // 2.1. Попробовать найти кастомное право, которое требуется удалить
+          $privilege2del = \M5\Models\MD3_privileges::whereHas('privtypes', function($query){
+            $query->where('name', 'custom');
+          })->find($id);
 
+          // 2.2. Если найдена, удалить её и все её связи
+          if(!empty($privilege2del)) {
+            $privilege2del->users()->detach();
+            $privilege2del->groups()->detach();
+            $privilege2del->tags()->detach();
+            if(r1_rel_exists("m5","md3_privileges","m1_packages"))
+              $privilege2del->m1_packages()->detach();
+            if(r1_rel_exists("m5","md3_privileges","m1_commands"))
+              $privilege2del->m1_commands()->detach();
+            $privilege2del->forceDelete();
+          }
+
+        });
       }
 
     DB::commit(); } catch(\Exception $e) {
