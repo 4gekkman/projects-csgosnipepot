@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change password of the user with passed id. Admin version (without old pass).
+ *    - Verify the email of the specified user by the specified code
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -94,15 +94,14 @@
       Illuminate\Support\Facades\URL,
       Illuminate\Support\Facades\Validator,
       Illuminate\Support\Facades\View;
-use Mockery\CountValidator\Exception;
 
-// Доп.классы, которые использует эта команда
+  // Доп.классы, которые использует эта команда
 
 
 //---------//
 // Команда //
 //---------//
-class C45_change_password_admin extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C47_email_verify extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,25 +135,24 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с user_id
-     *  3. Проверить соответствие кол-ва символов в пароле настройкам
-     *  4. Изменить пароль пользователя
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------------------------------------------------//
-    // Изменить пароль пользователя с переданным ID. Административная версия (не надо передавать старый пароль) //
-    //----------------------------------------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
+    // Верефицировать указанный email указанного пользователя по указанному коду //
+    //---------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
 
         "user_id"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
-        "new_password"  => ["r4_defined", "string"]
+        "email"         => ["required", "email"],
+        "code"          => ["required", "regex:/^[0-9]+$/ui"],
 
       ]); if($validator['status'] == -1) {
 
@@ -162,25 +160,54 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
 
       }
 
-      // 2. Попробовать найти пользователя с user_id
+      // 2. Получить коллекцию всех кодов верификации по переданным данным
+      $codes = \M5\Models\MD6_emailvercodes::where('code', $this->data['code'])
+          ->where('email', $this->data['email'])
+          ->whereHas('users', function($query){
+            $query->where('id', $this->data['user_id'])
+              ->where('email', $this->data['email']);
+          })
+          ->get();
+
+      // 3. Отфильтровать из коллекции все истёкшие коды
+      $codes = $codes->filter(function($value, $key) {
+
+        // 1] Получить Carbon-объект с датой и временем создания кода
+        $created_at = $value->created_at;
+
+        // 2] Получить Carbon-объект с текущими серверными датой и временем
+        $now = \Carbon\Carbon::now();
+
+        // 3] Получить разницу в минутах между $now и $created_at
+        $diff_in_min = $now->diffInMinutes($created_at);
+
+        // 4] Если эта разница больше/равна указанному в конфиге времени жизни, отфильтровать этот код
+        if($diff_in_min >= (config('M5.email_verify_code_lifetime_min') ?: 15)) return false;
+
+        // 5] А если меньше, то пропустить
+        return true;
+
+      });
+
+      // 4. Если $codes пуста, завершить
+      if(count($codes) == 0)
+        throw new \Exception('User with id = '.$this->data['user_id'].' and email = '.$this->data['email'].' and not expired verification code '.$this->data['code'].' not found.');
+
+      // 5. Попробовать найти пользователя с user_id
       $user = \M5\Models\MD1_users::find($this->data['user_id']);
       if(empty($user))
         throw new \Exception('User with id = '.$this->data['user_id'].' not found.');
 
-      // 3. Проверить соответствие кол-ва символов в пароле настройкам
-      if(gmp_cmp(count(str_split($this->data['new_password'])), config("M5.min_chars_in_pass")) < 0)
-        throw new Exception('New password is too short. It must be at least '.config("M5.min_chars_in_pass").' chars.');
-
-      // 4. Изменить пароль пользователя
-      $user->password_hash = Hash::make($this->data['new_password']);
+      // 6. Верифицировать email пользователя user_id
+      $user->is_email_approved = 1;
       $user->save();
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C45_change_password_admin from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C47_email_verify from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C45_change_password_admin']);
+        write2log($errortext, ['M5', 'C47_email_verify']);
         return [
           "status"  => -2,
           "data"    => [

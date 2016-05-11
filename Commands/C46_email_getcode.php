@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change password of the user with passed id. Admin version (without old pass).
+ *    - Create and write to DB the new email verification code for the specified user
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -94,15 +94,14 @@
       Illuminate\Support\Facades\URL,
       Illuminate\Support\Facades\Validator,
       Illuminate\Support\Facades\View;
-use Mockery\CountValidator\Exception;
 
-// Доп.классы, которые использует эта команда
+  // Доп.классы, которые использует эта команда
 
 
 //---------//
 // Команда //
 //---------//
-class C45_change_password_admin extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C46_email_getcode extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -137,24 +136,27 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с user_id
-     *  3. Проверить соответствие кол-ва символов в пароле настройкам
-     *  4. Изменить пароль пользователя
+     *  2. Сгенерировать случайный цифровой код
+     *  3. Попробовать найти пользователя с user_id
+     *  4. Добавить новую запись в таблицу кодов подтверждения email
+     *  5. Связать $new с $user
+     *  6. Сделать commit
+     *  7. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------------------------------------------------//
-    // Изменить пароль пользователя с переданным ID. Административная версия (не надо передавать старый пароль) //
-    //----------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------//
+    // Сгенерировать, записать, связать с пользователем, и вернуть случайный цифровой код //
+    //------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
 
         "user_id"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
-        "new_password"  => ["r4_defined", "string"]
+        "email"         => ["required", "email"]
 
       ]); if($validator['status'] == -1) {
 
@@ -162,25 +164,40 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
 
       }
 
-      // 2. Попробовать найти пользователя с user_id
+      // 2. Сгенерировать случайный цифровой код
+      $digits = config("M5.verification_code_length") ?: 4;
+      $code = rand(pow(10, +$digits-1), +pow(10, +$digits)-1);
+
+      // 3. Попробовать найти пользователя с user_id
       $user = \M5\Models\MD1_users::find($this->data['user_id']);
       if(empty($user))
         throw new \Exception('User with id = '.$this->data['user_id'].' not found.');
 
-      // 3. Проверить соответствие кол-ва символов в пароле настройкам
-      if(gmp_cmp(count(str_split($this->data['new_password'])), config("M5.min_chars_in_pass")) < 0)
-        throw new Exception('New password is too short. It must be at least '.config("M5.min_chars_in_pass").' chars.');
+      // 4. Добавить новую запись в таблицу кодов подтверждения email
+      $new = new \M5\Models\MD6_emailvercodes();
+      $new->code = $code;
+      $new->email = $this->data['email'];
+      $new->save();
 
-      // 4. Изменить пароль пользователя
-      $user->password_hash = Hash::make($this->data['new_password']);
-      $user->save();
+      // 5. Связать $new с $user
+      $new->users()->attach($user->id);
+      $new->save();
+
+      // 6. Отправить код по адресу email
+      Mail::raw($code, function($message)
+      {
+        $message->
+            from(config('M5.email_verify_from') ?: 'noreply@verify.com')->
+            to($this->data['email'])->
+            subject(config('M5.email_verify_subj') ?: 'Email verification');
+      });
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C45_change_password_admin from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C46_email_getcode from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C45_change_password_admin']);
+        write2log($errortext, ['M5', 'C46_email_getcode']);
         return [
           "status"  => -2,
           "data"    => [

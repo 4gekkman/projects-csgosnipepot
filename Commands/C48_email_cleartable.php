@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change password of the user with passed id. Admin version (without old pass).
+ *    - Delete from email verification table old codes (out of date)
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -94,15 +94,14 @@
       Illuminate\Support\Facades\URL,
       Illuminate\Support\Facades\Validator,
       Illuminate\Support\Facades\View;
-use Mockery\CountValidator\Exception;
 
-// Доп.классы, которые использует эта команда
+  // Доп.классы, которые использует эта команда
 
 
 //---------//
 // Команда //
 //---------//
-class C45_change_password_admin extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C48_email_cleartable extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,51 +135,27 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с user_id
-     *  3. Проверить соответствие кол-ва символов в пароле настройкам
-     *  4. Изменить пароль пользователя
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------------------------------------------------//
-    // Изменить пароль пользователя с переданным ID. Административная версия (не надо передавать старый пароль) //
-    //----------------------------------------------------------------------------------------------------------//
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Провести валидацию входящих параметров
-      $validator = r4_validate($this->data, [
 
-        "user_id"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
-        "new_password"  => ["r4_defined", "string"]
-
-      ]); if($validator['status'] == -1) {
-
-        throw new \Exception($validator['data']);
-
-      }
-
-      // 2. Попробовать найти пользователя с user_id
-      $user = \M5\Models\MD1_users::find($this->data['user_id']);
-      if(empty($user))
-        throw new \Exception('User with id = '.$this->data['user_id'].' not found.');
-
-      // 3. Проверить соответствие кол-ва символов в пароле настройкам
-      if(gmp_cmp(count(str_split($this->data['new_password'])), config("M5.min_chars_in_pass")) < 0)
-        throw new Exception('New password is too short. It must be at least '.config("M5.min_chars_in_pass").' chars.');
-
-      // 4. Изменить пароль пользователя
-      $user->password_hash = Hash::make($this->data['new_password']);
-      $user->save();
+      // ...
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C45_change_password_admin from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C48_email_cleartable from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C45_change_password_admin']);
+        write2log($errortext, ['M5', 'C48_email_cleartable']);
         return [
           "status"  => -2,
           "data"    => [

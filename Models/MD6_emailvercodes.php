@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD1_users extends Model {
+class MD6_emailvercodes extends Model {
 
   /**
    *
@@ -49,7 +49,7 @@ class MD1_users extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm5.md1_users';
+  protected $table = 'm5.md6_emailvercodes';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
@@ -60,7 +60,6 @@ class MD1_users extends Model {
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
-    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//
@@ -68,12 +67,7 @@ class MD1_users extends Model {
   //------------------//
 
     // relationships start
-    public function groups() { return $this->belongsToMany('\M5\Models\MD2_groups', 'm5.md1002', 'id_user', 'id_group'); }
-    public function privileges() { return $this->belongsToMany('\M5\Models\MD3_privileges', 'm5.md1004', 'id_user', 'id_privilege'); }
-    public function tags() { return $this->belongsToMany('\M5\Models\MD4_tags', 'm5.md1005', 'id_user', 'id_tag'); }
-    public function emailvercodes() { return $this->belongsToMany('\M5\Models\MD6_emailvercodes', 'm5.md1008', 'id_user', 'id_code'); }
-    public function phonevercodes() { return $this->belongsToMany('\M5\Models\MD7_phonevercodes', 'm5.md1009', 'id_user', 'id_code'); }
-    public function genders() { return $this->belongsTo('\M5\Models\MD11_genders', 'gender', 'id'); }
+    public function users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm5.md1008', 'id_code', 'id_user'); }
     // relationships stop
 
 
