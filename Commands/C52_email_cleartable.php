@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C48_email_cleartable extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C52_email_cleartable extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,27 +135,44 @@ class C48_email_cleartable extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Извлекать коды кусками по 100 штук, удалять устаревшие
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //----------------------------------------------------------------//
+    // Очистить таблицу кодов подтверждения email от устаревших кодов //
+    //----------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Извлекать коды кусками по 100 штук, удалять устаревшие
+      \M5\Models\MD6_emailvercodes::query()->chunk(100, function($codes) {
+        foreach ($codes as $code) {
 
-      // ...
+          // 1] Получить Carbon-объект с датой и временем создания кода
+          $created_at = $code->created_at;
 
+          // 2] Получить Carbon-объект с текущими серверными датой и временем
+          $now = \Carbon\Carbon::now();
+
+          // 3] Получить разницу в минутах между $now и $created_at
+          $diff_in_min = $now->diffInMinutes($created_at);
+
+          // 4] Если эта разница больше/равна указанному в конфиге времени жизни, удалить $user
+          if($diff_in_min >= (config('M5.email_verify_code_lifetime_min') ?: 15)) {
+            $code->users()->detach();
+            $code->delete();
+          }
+
+        }
+      });
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C48_email_cleartable from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C52_email_cleartable from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C48_email_cleartable']);
+        write2log($errortext, ['M5', 'C52_email_cleartable']);
         return [
           "status"  => -2,
           "data"    => [

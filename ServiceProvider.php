@@ -107,6 +107,8 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
+          '$schedule->command("m1:email_cleartable")->withoutOverlapping()->hourly();',
+          '$schedule->command("m1:phone_cleartable")->withoutOverlapping()->hourly();'
         ];
 
       //----------------------------------------------------//
@@ -131,7 +133,9 @@
           '\M5\Console\T13_detach',
           '\M5\Console\T14_restore',
           '\M5\Console\T15_getuserprivs',
-          '\M5\Console\T16_getgroupprivs'
+          '\M5\Console\T16_getgroupprivs',
+          '\M5\Console\T17_email_cleartable',
+          '\M5\Console\T18_phone_cleartable'
         ];
 
         // Регистрация команд в методе register

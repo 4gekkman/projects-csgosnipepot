@@ -135,21 +135,76 @@ class C50_phone_verify extends Job { // TODO: добавить "implements Shoul
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Получить коллекцию всех кодов верификации по переданным данным
+     *  3. Отфильтровать из коллекции все истёкшие коды
+     *  4. Если $codes пуста, завершить
+     *  5. Попробовать найти пользователя с user_id
+     *  6. Верифицировать email пользователя user_id
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------------------------------------------//
+    // Верефицировать указанный phone указанного пользователя по указанному коду //
+    //---------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "user_id"       => ["regex:/^([1-9]+[0-9]*|)$/ui"],
+        "phone"         => ["required", "regex:/^[0-9]+$/ui"],
+        "code"          => ["required", "regex:/^[0-9]+$/ui"],
 
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Получить коллекцию всех кодов верификации по переданным данным
+      $codes = \M5\Models\MD7_phonevercodes::where('code', $this->data['code'])
+          ->where('phone', $this->data['phone'])
+          ->whereHas('users', function($query){
+            $query->where('id', $this->data['user_id'])
+              ->where('phone', $this->data['phone']);
+          })
+          ->get();
+
+      // 3. Отфильтровать из коллекции все истёкшие коды
+      $codes = $codes->filter(function($value, $key) {
+
+        // 1] Получить Carbon-объект с датой и временем создания кода
+        $created_at = $value->created_at;
+
+        // 2] Получить Carbon-объект с текущими серверными датой и временем
+        $now = \Carbon\Carbon::now();
+
+        // 3] Получить разницу в минутах между $now и $created_at
+        $diff_in_min = $now->diffInMinutes($created_at);
+
+        // 4] Если эта разница больше/равна указанному в конфиге времени жизни, отфильтровать этот код
+        if($diff_in_min >= (config('M5.phone_verify_code_lifetime_min') ?: 15)) return false;
+
+        // 5] А если меньше, то пропустить
+        return true;
+
+      });
+
+      // 4. Если $codes пуста, завершить
+      if(count($codes) == 0)
+        throw new \Exception('User with id = '.$this->data['user_id'].' and phone = '.$this->data['phone'].' and not expired verification code '.$this->data['code'].' not found.');
+
+      // 5. Попробовать найти пользователя с user_id
+      $user = \M5\Models\MD1_users::find($this->data['user_id']);
+      if(empty($user))
+        throw new \Exception('User with id = '.$this->data['user_id'].' not found.');
+
+      // 6. Верифицировать phone пользователя user_id
+      $user->is_phone_approved = 1;
+      $user->save();
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C50_phone_verify from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
