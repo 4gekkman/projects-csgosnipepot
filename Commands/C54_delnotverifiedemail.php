@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Delete from email verification table old codes (out of date)
+ *    - Every hour check and del users with not verified emails if their time is expired
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C52_email_cleartable extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C54_delnotverifiedemail extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,23 +135,40 @@ class C52_email_cleartable extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1. Извлекать коды кусками по 100 штук, удалять устаревшие
+     *  1. Получить значения параметров из конфиге
+     *  2. Если удаление отключено, завершить
+     *  3. Извлекать пользователей по 100 штук, и удалять просроченных
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------//
-    // Очистить таблицу кодов подтверждения email от устаревших кодов //
-    //----------------------------------------------------------------//
+    //----------------------------------------------------------------------------------------------------------------------------//
+    // Каждый час проверять и удалять пользователей с невериф.email, если оно включено, и они существ.дольше указанного в конфиге //
+    //----------------------------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Извлекать коды кусками по 100 штук, удалять устаревшие
-      \M5\Models\MD6_emailvercodes::query()->chunk(100, function($codes) {
-        foreach ($codes as $code) {
+      // 1. Получить значения параметров из конфиге
+      $on = config('M5.del_users_with_not_ver_emails') ?: false;
+      $hours = config('M5.del_users_with_not_ver_emails_in_hours') ?: 24;
 
-          // 1] Получить Carbon-объект с датой и временем создания кода
-          $created_at = $code->created_at;
+      // 2. Если удаление отключено, завершить
+      if($on == false) {
+        DB::rollback();
+        return [
+          "status"  => 0,
+          "data"    => ""
+        ];
+      }
+
+      // 3. Извлекать пользователей по 100 штук, и удалять просроченных
+      // - И удалять тех, у кого email не верифицирован.
+      // - И у которых с даты регистрации прошло более $hours часов
+      \M5\Models\MD1_users::where('is_email_approved', 0)->chunk(100, function($users) USE ($hours) {
+        foreach ($users as $user) {
+
+          // 1] Получить Carbon-объект с датой и временем создания пользователя
+          $created_at = $user->created_at;
 
           // 2] Получить Carbon-объект с текущими серверными датой и временем
           $now = \Carbon\Carbon::now();
@@ -159,20 +176,24 @@ class C52_email_cleartable extends Job { // TODO: добавить "implements S
           // 3] Получить разницу в минутах между $now и $created_at
           $diff_in_min = $now->diffInMinutes($created_at);
 
-          // 4] Если эта разница больше/равна указанному в конфиге времени жизни, удалить $code
-          if($diff_in_min >= (config('M5.email_verify_code_lifetime_min') ?: 15)) {
-            $code->users()->detach();
-            $code->delete();
+          // 4] Если эта разница больше/равна $hours, удалить $user
+          if($diff_in_min >= $hours) {
+            $user->tags()->detach();
+            $user->privileges()->detach();
+            $user->groups()->detach();
+            $user->emailvercodes()->detach();
+            $user->phonevercodes()->detach();
+            $user->forceDelete();
           }
 
         }
       });
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C52_email_cleartable from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C54_delnotverifiedemail from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C52_email_cleartable']);
+        write2log($errortext, ['M5', 'C54_delnotverifiedemail']);
         return [
           "status"  => -2,
           "data"    => [

@@ -108,7 +108,9 @@
         //
         $add2schedule = [
           '$schedule->command("m1:email_cleartable")->withoutOverlapping()->hourly();',
-          '$schedule->command("m1:phone_cleartable")->withoutOverlapping()->hourly();'
+          '$schedule->command("m1:phone_cleartable")->withoutOverlapping()->hourly();',
+          '$schedule->command("m1:delnotverifiedemail")->withoutOverlapping()->hourly();',
+          '$schedule->command("m1:delnotverifiedphone")->withoutOverlapping()->hourly();'
         ];
 
       //----------------------------------------------------//
@@ -135,7 +137,9 @@
           '\M5\Console\T15_getuserprivs',
           '\M5\Console\T16_getgroupprivs',
           '\M5\Console\T17_email_cleartable',
-          '\M5\Console\T18_phone_cleartable'
+          '\M5\Console\T18_phone_cleartable',
+          '\M5\Console\T19_delnotverifiedemail',
+          '\M5\Console\T20_delnotverifiedphone'
         ];
 
         // Регистрация команд в методе register

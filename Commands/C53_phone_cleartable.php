@@ -159,7 +159,7 @@ class C53_phone_cleartable extends Job { // TODO: добавить "implements S
           // 3] Получить разницу в минутах между $now и $created_at
           $diff_in_min = $now->diffInMinutes($created_at);
 
-          // 4] Если эта разница больше/равна указанному в конфиге времени жизни, удалить $user
+          // 4] Если эта разница больше/равна указанному в конфиге времени жизни, удалить $code
           if($diff_in_min >= (config('M5.phone_verify_code_lifetime_min') ?: 15)) {
             $code->users()->detach();
             $code->delete();

@@ -175,6 +175,8 @@ class C36_delusers extends Job { // TODO: добавить "implements ShouldQue
             $user2del->tags()->detach();
             $user2del->privileges()->detach();
             $user2del->groups()->detach();
+            $user2del->emailvercodes()->detach();
+            $user2del->phonevercodes()->detach();
             $user2del->forceDelete();
           }
 
@@ -193,6 +195,8 @@ class C36_delusers extends Job { // TODO: добавить "implements ShouldQue
             $user2del->tags()->detach();
             $user2del->privileges()->detach();
             $user2del->groups()->detach();
+            $user2del->emailvercodes()->detach();
+            $user2del->phonevercodes()->detach();
             $user2del->forceDelete();
           }
 
