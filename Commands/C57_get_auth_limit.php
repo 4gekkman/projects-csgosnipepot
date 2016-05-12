@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Meet users in before middleware of M5, and write auth data to session cache and to cookie
+ *    - Get auth limit for spec.user using params from config of M5
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id_user           // id пользователя
  *      ]
  *    ]
  *
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C57_get_auth_limit extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,169 +135,71 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию
+     *  2. Попробовать найти пользователя с id_user
+     *  3. Извлечь имена всех групп, в которых состоит пользователь
+     *  4. Извлечь из конфига данные для определения времени жизни аутентификации в минутах
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------//
-    // Теоретический ликбез //
-    /*----------------------//
-
-      > Задачи аутентификационнго кэша
-        - Этот кэш живёт в сессии, пока она жива, то есть до закрытия браузера.
-        - Когда пользователь 1-й раз открывает сайт в браузере, команда meet создаёт этот кэш.
-        - При последующих запросах meet в начале себя этот кэш в сессии обнаруживает,
-          и завершает свою работу (ничего больше не делая).
-        - Это позволяет экономить ресурсы сервера.
-
-      > Задачи аутентификационной куки
-        - Если meet не нашла кэш, она пытается найти аутентификационную куку.
-        - По ней meet узнаёт пользователя, который ранее закрыл браузер, потом
-          открыл его снова, и зашёл на наш сайт.
-        - Meet проверяет по id пользователя и id аутентификационной записи из
-          значения куки, а также по вычисленному времени жизни аутентификации,
-          наличие и валидность аутентиф.записи в таблице аутентификаций.
-        - В случае успеха, meet создаёт новый аутентиф.кэш для пользователя в сессии.
-        - В случае неудачи, meet ищет анонимного пользователя, и если находит, то
-          создаёт аутентификационный кэш и куку с его данными, а если не находит, то
-          создаёт аутентификационный кэш и куку с пустыми данными.
-
-      > Задачи аутентификационной записи
-        - Во-первых, АЗ позволяют одновременно войти в один аккаунт из разных
-          браузеров или устройств, при этом никого "выкидывать" из аккаунта не будет.
-          При этом у каждого такого пользователя сессия и аутентиф.кэш будут свои.
-        - Во-вторых, АЗ позволяет эффективно контролировать возможность входа в аккаунт,
-          например, для заблокированных пользователей все АЗ удаляются, а новые АЗ
-          не могут быть созданы.
-        - Валидность АЗ (не истекла ли она) определяется по следующей методике:
-
-            • Валидна:      if(now - created_at > life_time)
-            • Не валидна:   if(now - created_at >= life_time)
-
-        - Где:
-
-            • now           | текущие дата и время
-            • created_at    | дата и время создания аутентификационной записи
-            • life_time     | рассчитанное время жизни аутентификационной записи (по настройам из конфига)
-
-    //---------------------------------*/
-    // Провести "встречу" пользователя //
-    //---------------------------------//
+    //----------------------------------------------------------------------------------------------------------//
+    // Получить время жизни аутентификации в минутах для указанного пользователя с учётом параметров из конфига //
+    //----------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1] Проверить аутентификационный кэш из сессии
+      // 1. Провести валидацию
+      $validator = r4_validate($this->data, [
 
-        // 1.1] Получить аутентификационный кэш из сессии
-        $auth_cache = session('auth_cache');
+        "id_user"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
 
-        // 1.2] Если он не пуст, завершить работу функции
-        if(!empty($auth_cache))
-          return [
-            "status"  => 0,
-            "data"    => ""
-          ];
+      ]); if($validator['status'] == -1) {
 
-      // 2] Получить аутентификационную куку
-      $auth_cookie = Request::cookie('auth');
+        throw new \Exception($validator['data']);
 
-      // 3] Провести валидацию аутентификационной куки
-      $is_auth_cookie_valid = call_user_func(function() USE ($auth_cookie) {
+      }
 
-        // 3.1.1] Удостовериться, что кука содержит валидный json
-        $validator = r4_validate(["auth", $auth_cookie], [
-          "auth"              => ["required", "json"],
-        ]); if($validator['status'] == -1) {
-          return false;
-        }
+      // 2. Попробовать найти пользователя с id_user
+      $user = \M5\Models\MD1_users::find($this->data['id_user']);
+      if(empty($user))
+        throw new \Exception('User with id = '.$this->data['id_user'].' not found.');
 
-        // 3.1.2] Провести валидацию важного для meet содержимого этого json
-        $validator = r4_validate(json_decode($auth_cookie, true), [
-          "user"              => ["required", "array"],
-          "user.id"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-          "auth"              => ["required", "array"],
-          "auth.id"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        ]); if($validator['status'] == -1) {
-          return false;
-        }
+      // 3. Извлечь имена всех групп, в которых состоит пользователь
+      $groups = \M5\Models\MD2_groups::where('users', function($query) USE ($user) {
+        $query->where('id', $user->id);
+      })->pluck('name');
 
-        // 3.1.3] Вернуть true (успешная валидация)
-        return true;
+      // 4. Извлечь из конфига данные для определения времени жизни аутентификации в минутах
+      $auth_cookie_lifetime_global = config("M5.auth_cookie_lifetime_global") ?: 525600;
+      $auth_cookie_lifetime_locals = config("M5.auth_cookie_lifetime_locals") ?: [];
+
+      // 5. Вычислить время жизни аутентификации в минутах для пользователя $user
+      $lifetime = call_user_func(function() USE ($user, $groups, $auth_cookie_lifetime_global, $auth_cookie_lifetime_locals) {
+
+        // 5.1. Если массив $groups пуст, вернуть $auth_cookie_lifetime_global
+        if(count($groups) == 0) return $auth_cookie_lifetime_global;
+
+        // 5.2. Отфильтровать из $auth_cookie_lifetime_locals значения с ключами, которых нет в $groups
+        $auth_cookie_lifetime_locals = collect($auth_cookie_lifetime_locals)->filter(function($value, $key) USE ($groups) {
+          if(!in_array($key, $groups)) return false;
+          return true;
+        });
+
+        
 
       });
 
-      // 4] Если аутентификационная кука не пуста и валидна
-      if(!empty($auth_cookie) && $is_auth_cookie_valid == true) {
-
-        // 4.1] Декодировать json-строку с данными аутентиф.куки в массив
-        $auth_cookie_arr = json_decode($auth_cookie, true);
-
-        // 4.2] Извлечь ID пользователя и ID аутентиф.записи из $auth_cookie_arr
-        $auth_cookie_user_id = $auth_cookie_arr['user']['id'];
-        $auth_cookie_auth_id = $auth_cookie_arr['auth']['id'];
-
-        // 4.3] Попробовать найти валидную аутентиф.запись по данным из куки
-        $auth_note = \M5\Models\MD8_auth::where('id', $auth_cookie_auth_id)->whereHas('users', function($query) USE ($auth_cookie_user_id) {
-          $query->where('id', $auth_cookie_user_id);
-        })->first();
-
-        // 4.4] Проверить, валидна ли $auth_note
-        $is_valid_auth_note = call_user_func(function() USE ($auth_note) {
-
-//          // 1) Получить Carbon-объект с датой и временем создания кода
-//          $created_at = $code->created_at;
-//
-//          // 2) Получить Carbon-объект с текущими серверными датой и временем
-//          $now = \Carbon\Carbon::now();
-//
-//          // 3) Получить разницу в минутах между $now и $created_at
-//          $diff_in_min = $now->diffInMinutes($created_at);
-//
-//          // 4) Если эта разница больше/равна указанному в конфиге времени жизни, удалить $code
-//          if($diff_in_min >= (config('M5.phone_verify_code_lifetime_min') ?: 15)) {
-//            $code->users()->detach();
-//            $code->delete();
-//          }
-
-          // n] Вернуть true, что значит "валидна"
-          return true;
-
-        });
-
-      }
-
-      // 5] Если аутентификационная кука пуста, или её содержимое не валидно
-      else {
-
-
-
-      }
-
-
-
-
-
-
-      // 1] Получаем параметры времени жизни аутентификации из конфига
-      // 2] Ищем аутентификационный кэш в сессии
-      // 3] Ищем аутентификационную куку
-      // 4] Ищем валидную аутентификационную запись в auth
-      // 5] Ищем анонимного пользователя
-
-      // 6] Записываем аутентификационный кэш в сессию
-      // 7] Записываем аутентификационную куку
 
 
 
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C56_meet from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C57_get_auth_limit from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C56_meet']);
+        write2log($errortext, ['M5', 'C57_get_auth_limit']);
         return [
           "status"  => -2,
           "data"    => [

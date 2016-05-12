@@ -139,7 +139,8 @@
           '\M5\Console\T17_email_cleartable',
           '\M5\Console\T18_phone_cleartable',
           '\M5\Console\T19_delnotverifiedemail',
-          '\M5\Console\T20_delnotverifiedphone'
+          '\M5\Console\T20_delnotverifiedphone',
+          '\M5\Console\T21_get_auth_limit'
         ];
 
         // Регистрация команд в методе register
