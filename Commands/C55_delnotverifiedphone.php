@@ -164,7 +164,7 @@ class C55_delnotverifiedphone extends Job { // TODO: добавить "implement
       // 3. Извлекать пользователей по 100 штук, и удалять просроченных
       // - И удалять тех, у кого phone не верифицирован.
       // - И у которых с даты регистрации прошло более $hours часов
-      \M5\Models\MD1_users::where('is_phone_approved', 0)->chunk(100, function($users) USE ($hours) {
+      \M5\Models\MD1_users::where('is_phone_approved', 0)->where('isanonymous', 0)->chunk(100, function($users) USE ($hours) {
         foreach ($users as $user) {
 
           // 1] Получить Carbon-объект с датой и временем создания пользователя
