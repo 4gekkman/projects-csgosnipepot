@@ -173,11 +173,11 @@ class C54_delnotverifiedemail extends Job { // TODO: добавить "implement
           // 2] Получить Carbon-объект с текущими серверными датой и временем
           $now = \Carbon\Carbon::now();
 
-          // 3] Получить разницу в минутах между $now и $created_at
-          $diff_in_min = $now->diffInMinutes($created_at);
+          // 3] Получить разницу в часах между $now и $created_at
+          $diff_in_hours = $now->diffInHours($created_at);
 
           // 4] Если эта разница больше/равна $hours, удалить $user
-          if($diff_in_min >= $hours) {
+          if($diff_in_hours >= $hours) {
             $user->tags()->detach();
             $user->privileges()->detach();
             $user->groups()->detach();
