@@ -183,6 +183,9 @@ class C54_delnotverifiedemail extends Job { // TODO: добавить "implement
             $user->groups()->detach();
             $user->emailvercodes()->detach();
             $user->phonevercodes()->detach();
+            $user->auth()->detach();
+            $user->emailauthcodes()->detach();
+            $user->phoneauthcodes()->detach();
             $user->forceDelete();
           }
 
