@@ -90,7 +90,7 @@ class T21_get_auth_limit extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm5:get_auth_limit';
+    protected $signature = 'm5:get_auth_limit {id_user=1}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
@@ -162,7 +162,7 @@ class T21_get_auth_limit extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M5\Commands\C57_get_auth_limit');
+    $result = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $this->argument('id_user')]);
 
 
     // 2. В случае неудачи, вывести текст ошибки
@@ -173,7 +173,7 @@ class T21_get_auth_limit extends Command
 
 
     // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+    $this->info($result['data']);
 
   }
 

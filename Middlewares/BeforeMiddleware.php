@@ -63,8 +63,7 @@ class BeforeMiddleware {
   public function handle($request, Closure $next)
   {
 
-    // 1. Выполнить команду C56_meet
-    runcommand('\M5\Commands\C56_meet');
+    // ... код
 
     // n. Передать ответ дальше
     return $next($request);

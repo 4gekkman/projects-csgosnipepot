@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Meet users in before middleware of M5, and write auth data to session cache and to cookie
+ *    - Meet users in after middleware of M5, and write auth data to session cache and to cookie
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -135,8 +135,11 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Проверить аутентификационный кэш из сессии
+     *  2. Получить аутентификационную куку
+     *  3. Провести валидацию аутентификационной куки
+     *  4. Если аутентификационная кука не пуста и валидна
+     *  5. Если аутентификационная кука пуста, или её содержимое не валидно
      *
      *  N. Вернуть статус 0
      *
@@ -163,7 +166,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         - В случае успеха, meet создаёт новый аутентиф.кэш для пользователя в сессии.
         - В случае неудачи, meet ищет анонимного пользователя, и если находит, то
           создаёт аутентификационный кэш и куку с его данными, а если не находит, то
-          создаёт аутентификационный кэш и куку с пустыми данными.
+          ничего не делает.
 
       > Задачи аутентификационной записи
         - Во-первых, АЗ позволяют одновременно войти в один аккаунт из разных
@@ -188,110 +191,195 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
     //---------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1] Проверить аутентификационный кэш из сессии
+      // 1. Проверить аутентификационный кэш из сессии
 
-        // 1.1] Получить аутентификационный кэш из сессии
+        // 1.1. Получить аутентификационный кэш из сессии
         $auth_cache = session('auth_cache');
 
-        // 1.2] Если он не пуст, завершить работу функции
+        // 1.2. Если он не пуст, завершить работу функции
         if(!empty($auth_cache))
           return [
             "status"  => 0,
             "data"    => ""
           ];
 
-      // 2] Получить аутентификационную куку
+      // 2. Получить аутентификационную куку
       $auth_cookie = Request::cookie('auth');
 
-      // 3] Провести валидацию аутентификационной куки
+      // 3. Провести валидацию аутентификационной куки
+      // - Если она не пуста
       $is_auth_cookie_valid = call_user_func(function() USE ($auth_cookie) {
 
-        // 3.1.1] Удостовериться, что кука содержит валидный json
+        // 3.1. Если кука пуста, значит она не валидна
+        if(empty($auth_cookie)) return false;
+
+        // 3.2. Удостовериться, что кука содержит валидный json
         $validator = r4_validate(["auth", $auth_cookie], [
           "auth"              => ["required", "json"],
         ]); if($validator['status'] == -1) {
           return false;
         }
 
-        // 3.1.2] Провести валидацию важного для meet содержимого этого json
+        // 3.3. Провести валидацию важного для meet содержимого этого json
         $validator = r4_validate(json_decode($auth_cookie, true), [
           "user"              => ["required", "array"],
           "user.id"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
           "auth"              => ["required", "array"],
           "auth.id"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "is_anon"           => ["required", "regex:/^[01]{1}$/ui"],
         ]); if($validator['status'] == -1) {
           return false;
         }
 
-        // 3.1.3] Вернуть true (успешная валидация)
+        // 3.4. Вернуть true (успешная валидация)
         return true;
 
       });
 
-      // 4] Если аутентификационная кука не пуста и валидна
-      if(!empty($auth_cookie) && $is_auth_cookie_valid == true) {
+      // 4. Если аутентификационная кука не пуста и валидна
+      if($is_auth_cookie_valid == true) {
 
-        // 4.1] Декодировать json-строку с данными аутентиф.куки в массив
+        // 4.1. Декодировать json-строку с данными аутентиф.куки в массив
         $auth_cookie_arr = json_decode($auth_cookie, true);
 
-        // 4.2] Извлечь ID пользователя и ID аутентиф.записи из $auth_cookie_arr
+        // 4.2. Извлечь ID пользователя и ID аутентиф.записи из $auth_cookie_arr
         $auth_cookie_user_id = $auth_cookie_arr['user']['id'];
         $auth_cookie_auth_id = $auth_cookie_arr['auth']['id'];
 
-        // 4.3] Попробовать найти валидную аутентиф.запись по данным из куки
+        // 4.3. Попробовать найти валидную аутентиф.запись по данным из куки
         $auth_note = \M5\Models\MD8_auth::where('id', $auth_cookie_auth_id)->whereHas('users', function($query) USE ($auth_cookie_user_id) {
           $query->where('id', $auth_cookie_user_id);
         })->first();
 
-        // 4.4] Проверить, валидна ли $auth_note
-        $is_valid_auth_note = call_user_func(function() USE ($auth_note) {
+        // 4.4. Проверить, валидна ли $auth_note
+        $is_valid_auth_note = call_user_func(function() USE ($auth_cookie, $auth_note, $auth_cookie_user_id) {
 
-//          // 1) Получить Carbon-объект с датой и временем создания кода
-//          $created_at = $code->created_at;
-//
-//          // 2) Получить Carbon-объект с текущими серверными датой и временем
-//          $now = \Carbon\Carbon::now();
-//
-//          // 3) Получить разницу в минутах между $now и $created_at
-//          $diff_in_min = $now->diffInMinutes($created_at);
-//
-//          // 4) Если эта разница больше/равна указанному в конфиге времени жизни, удалить $code
-//          if($diff_in_min >= (config('M5.phone_verify_code_lifetime_min') ?: 15)) {
-//            $code->users()->detach();
-//            $code->delete();
-//          }
+          // 1] Если $auth_cookie['is_anon'] == 1, вернуть 525600
+          if($auth_cookie['is_anon'] == 1) return 525600;
 
-          // n] Вернуть true, что значит "валидна"
-          return true;
+          // 2] Если $auth_note пуста, вернуть false
+          if(empty($auth_note)) return false;
+
+          // 3] Получить время жизни аутентификации для пользователя $auth_cookie_user_id
+          $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $auth_cookie_user_id]);
+          if($lifetime['status'] != 0)
+            throw new \Exception($lifetime['data']);
+          $lifetime = $lifetime['data'];
+
+          // 4] Получить Carbon-объект с датой и временем создания $auth_note
+          $created_at = $auth_note->created_at;
+
+          // 5] Получить Carbon-объект с текущими серверными датой и временем
+          $now = \Carbon\Carbon::now();
+
+          // 6] Получить разницу в минутах между $now и $created_at
+          $diff_in_min = $now->diffInMinutes($created_at);
+
+          // 7] Если эта разница больше/равна $lifetime, вернуть false
+          if($diff_in_min >= $lifetime)
+            return false;
+
+          // 8] Вернуть оставшееся время жизни $auth_note
+          return +$lifetime - +$diff_in_min;
 
         });
 
+        // 4.5. Если $auth_note валидна
+        if($is_valid_auth_note !== false) {
+
+          // 1] Если мы имеем дело с анонимным пользователем
+          if($auth_cookie['is_anon'] == 1) {
+
+            // 1.1] Попробовать найти анонимного пользователя
+            $anon = \M5\Models\MD1_users::where('isanonymous', 1)->first();
+            if(empty($anon))
+              return [
+                "status"  => 0,
+                "data"    => ""
+              ];
+
+            // 1.2] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
+            $json = [
+              'auth'    => ["id" => 1],
+              'user'    => $anon,
+              'is_anon' => 1
+            ];
+            $json = json_encode($json, JSON_UNESCAPED_UNICODE);
+            $json_encrypted = Crypt::encrypt($json);
+
+            // 1.3] Записать пользователю новый аутентиф.кэш в сессию
+            // - В сессию пишем не зашифрованный json
+            session(['auth_cache' => $json]);
+
+            // 1.4] Записать пользователю новую куку
+            // - С временем жизни 525600 минут.
+            // - В куку пишем зашифрованный json
+            Cookie::queue('auth', $json_encrypted, 525600);
+
+          }
+
+          // 2] Если мы имеем дело не с анонимным пользователем
+          if($auth_cookie['is_anon'] == 0) {
+
+            // 2.1] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
+            $json = [
+              'auth'    => $auth_note,
+              'user'    => \M5\Models\MD1_users::find($auth_cookie_user_id),
+              'is_anon' => 0
+            ];
+            $json = json_encode($json, JSON_UNESCAPED_UNICODE);
+            $json_encrypted = Crypt::encrypt($json);
+
+            // 2.2] Записать пользователю новый аутентиф.кэш в сессию
+            // - В сессию пишем не зашифрованный json
+            session(['auth_cache' => $json]);
+
+            // 2.3] Записать пользователю новую куку
+            // - С временем жизни $is_valid_auth_note минут.
+            // - В куку пишем зашифрованный json
+            Cookie::queue('auth', $json_encrypted, $is_valid_auth_note);
+
+          }
+
+        }
+
+        // 4.6] Если $auth_note не валидна, ничего не делать
+        else {
+
+        }
+
       }
 
-      // 5] Если аутентификационная кука пуста, или её содержимое не валидно
+      // 5. Если аутентификационная кука пуста, или её содержимое не валидно
       else {
 
+        // 5.1. Попробовать найти анонимного пользователя
+        $anon = \M5\Models\MD1_users::where('isanonymous', 1)->first();
+        if(empty($anon))
+          return [
+            "status"  => 0,
+            "data"    => ""
+          ];
 
+        // 5.2. Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
+        $json = [
+          'auth'    => ["id" => 1],
+          'user'    => $anon,
+          'is_anon' => 1
+        ];
+        $json = json_encode($json, JSON_UNESCAPED_UNICODE);
+        $json_encrypted = Crypt::encrypt($json);
+
+        // 5.3. Записать пользователю новый аутентиф.кэш в сессию
+        // - В сессию пишем не зашифрованный json
+        session(['auth_cache' => $json]);
+
+        // 5.4. Записать пользователю новую куку
+        // - С временем жизни 525600 минут.
+        // - В куку пишем зашифрованный json
+        Cookie::queue('auth', $json_encrypted, 525600);
 
       }
-
-
-
-
-
-
-      // 1] Получаем параметры времени жизни аутентификации из конфига
-      // 2] Ищем аутентификационный кэш в сессии
-      // 3] Ищем аутентификационную куку
-      // 4] Ищем валидную аутентификационную запись в auth
-      // 5] Ищем анонимного пользователя
-
-      // 6] Записываем аутентификационный кэш в сессию
-      // 7] Записываем аутентификационную куку
-
-
-
-
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C56_meet from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

@@ -139,6 +139,8 @@ class C57_get_auth_limit extends Job { // TODO: добавить "implements Sho
      *  2. Попробовать найти пользователя с id_user
      *  3. Извлечь имена всех групп, в которых состоит пользователь
      *  4. Извлечь из конфига данные для определения времени жизни аутентификации в минутах
+     *  5. Вычислить время жизни аутентификации в минутах для пользователя $user
+     *  6. Вернуть найденный результат
      *
      *  N. Вернуть статус 0
      *
@@ -147,7 +149,7 @@ class C57_get_auth_limit extends Job { // TODO: добавить "implements Sho
     //----------------------------------------------------------------------------------------------------------//
     // Получить время жизни аутентификации в минутах для указанного пользователя с учётом параметров из конфига //
     //----------------------------------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Провести валидацию
       $validator = r4_validate($this->data, [
@@ -166,7 +168,7 @@ class C57_get_auth_limit extends Job { // TODO: добавить "implements Sho
         throw new \Exception('User with id = '.$this->data['id_user'].' not found.');
 
       // 3. Извлечь имена всех групп, в которых состоит пользователь
-      $groups = \M5\Models\MD2_groups::where('users', function($query) USE ($user) {
+      $groups = \M5\Models\MD2_groups::whereHas('users', function($query) USE ($user) {
         $query->where('id', $user->id);
       })->pluck('name');
 
@@ -182,20 +184,31 @@ class C57_get_auth_limit extends Job { // TODO: добавить "implements Sho
 
         // 5.2. Отфильтровать из $auth_cookie_lifetime_locals значения с ключами, которых нет в $groups
         $auth_cookie_lifetime_locals = collect($auth_cookie_lifetime_locals)->filter(function($value, $key) USE ($groups) {
-          if(!in_array($key, $groups)) return false;
+          if(!in_array($key, $groups->toArray())) return false;
           return true;
         });
 
-        
+        // 5.3. Если массив $auth_cookie_lifetime_locals пуст, вернуть $auth_cookie_lifetime_global
+        if(count($auth_cookie_lifetime_locals) == 0) return $auth_cookie_lifetime_global;
+
+        // 5.4. Получить минимальное из $auth_cookie_lifetime_locals значение
+        $min = $auth_cookie_lifetime_locals->min();
+
+        // 5.4. Если $min <= $auth_cookie_lifetime_global, вернуть $min
+        if(gmp_cmp(''.$min, ''.$auth_cookie_lifetime_global) <= 0) return $min;
+
+        // 5.5. Иначе вернуть $auth_cookie_lifetime_global
+        return $auth_cookie_lifetime_global;
 
       });
 
+      // 6. Вернуть найденный результат
+      return [
+        "status"  => 0,
+        "data"    => $lifetime
+      ];
 
-
-
-
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C57_get_auth_limit from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
