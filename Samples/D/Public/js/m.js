@@ -243,7 +243,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			// 4.3] Распаковать данные, и проверить
 			var auth = JSON.parse(server.data.auth);
-			if(!auth.is_anon || !auth.user || !auth.auth) return;
+			if((!auth.is_anon && auth.is_anon != 0) || !auth.user || !auth.auth) return;
 
 			// 4.3] Наполнить m.s0.auth.is_anon
 			self.m.s0.auth.is_anon(auth.is_anon);
