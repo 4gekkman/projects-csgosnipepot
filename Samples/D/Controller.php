@@ -102,6 +102,7 @@ class Controller extends BaseController {
     return View::make($this->packid.'::view', ['data' => json_encode([
 
       'document_locale'       => r1_get_doc_locale($this->packid),
+      'auth'                  => session('auth_cache') ?: '',
       'packid'                => $this->packid,
       'layoutid'              => $this->layoutid,
 
