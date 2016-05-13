@@ -75,11 +75,17 @@ var layoutmodel = Object.create(LayoutModelProto).constructor(LayoutModelFunctio
 // 4. Активизировать модель для нужных DOM-элементов  //
 //----------------------------------------------------//
 
-	// 4.1. Активизировать модель для DOM-элемента 'taskpanel'  //
-	//----------------------------------------------------------//
-	//ko.applyBindings(layoutmodel, document.getElementById('taskpanel'));
+	// 4.1. Подготовить кастомный биндинг для отмены биндинга на дочерние элементы //
+	//-----------------------------------------------------------------------------//
+	// - Чтобы потом к этим дочерним эл-там можно было applyBindings другую модель.
+	// - Обычно применяется к контейнеру с контентом документа (чтобы потом применить к контенту модель D-пакета).
+	ko.bindingHandlers.stopBindings = {
+			init: function() {
+					return { 'controlsDescendantBindings': true };
+			}
+	};
 
-	// 4.2. Активизировать модель для DOM-элемента 'mainmenu'  //
-	//---------------------------------------------------------//
-	//ko.applyBindings(layoutmodel, document.getElementById('mainmenu'));
+	// 4.2. Активизировать модель для DOM-элемента 'layoutmodel' //
+	//-----------------------------------------------------------//
+	// ko.applyBindings(layoutmodel, document.getElementById('layoutmodel'));
 
