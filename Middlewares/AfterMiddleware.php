@@ -67,10 +67,6 @@ class AfterMiddleware {
     $response = $next($request);
 
 
-    // 2. Выполнить команду C56_meet
-    runcommand('\M5\Commands\C56_meet');
-
-
     // n. Передать ответ дальше
     return $response;
 

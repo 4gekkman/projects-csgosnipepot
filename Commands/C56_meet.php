@@ -189,7 +189,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
     //---------------------------------*/
     // Провести "встречу" пользователя //
     //---------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Проверить аутентификационный кэш из сессии
 
@@ -291,12 +291,19 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           if($auth_cookie['is_anon'] == 1) {
 
             // 1.1] Попробовать найти анонимного пользователя
-            $anon = \M5\Models\MD1_users::where('isanonymous', 1)->first();
-            if(empty($anon))
+            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone']);
+            if(count($anon) == 0) {
+
+              // Обнулить аутентификационный кэш в сессии
+              Session::forget('auth_cache');
+
+              // Завершить
               return [
                 "status"  => 0,
                 "data"    => ""
               ];
+
+            }
 
             // 1.2] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
             $json = [
@@ -322,9 +329,10 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           if($auth_cookie['is_anon'] == 0) {
 
             // 2.1] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
+            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->only(['id','name','surname','patronymic','avatar','email','phone']);
             $json = [
               'auth'    => $auth_note,
-              'user'    => \M5\Models\MD1_users::find($auth_cookie_user_id),
+              'user'    => $auth_cookie_user,
               'is_anon' => 0
             ];
             $json = json_encode($json, JSON_UNESCAPED_UNICODE);
@@ -354,12 +362,19 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
       else {
 
         // 5.1. Попробовать найти анонимного пользователя
-        $anon = \M5\Models\MD1_users::where('isanonymous', 1)->first();
-        if(empty($anon))
+        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone']);
+        if(count($anon) == 0) {
+
+          // Обнулить аутентификационный кэш в сессии
+          Session::forget('auth_cache');
+
+          // Завершить
           return [
             "status"  => 0,
             "data"    => ""
           ];
+
+        }
 
         // 5.2. Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
         $json = [
@@ -381,7 +396,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
 
       }
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C56_meet from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
