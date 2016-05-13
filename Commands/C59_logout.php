@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Auth by email and password
+ *    - Command for log out spec.user
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        email
- *        password
+ *
  *      ]
  *    ]
  *
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C58_auth_email_password extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C59_logout extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,81 +135,65 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с таким email и паролем
-     *  3. Извлечь для $user время жизни аутентификации
-     *  4. Создать для пользователя новую запись в таблице аутентификаций, связать
-     *  5. Сфоромировать json с новыми аутентификационными данными
-     *  6. Записать пользователю новый аутентиф.кэш в сессию
-     *  7. Записать пользователю новую куку с временем жизни $lifetime
+     *  1. Получить ID аутентификационной записи
+     *  2. Удалить аутентификационную запись с $id_auth
+     *  3. Забыть аутентификационный кэш в сессии
+     *  4. Забыть аутентификационную куку
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------//
-    // Аутентифицироваться через email и пароль //
-    //------------------------------------------//
+    //--------------------------------------------------------//
+    // Осуществить выход из системы для текущего пользователя //
+    //--------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Провести валидацию входящих параметров
-      $validator = r4_validate($this->data, [
+      // 1. Получить ID аутентификационной записи
+      $id_auth = call_user_func(function(){
 
-        "email"           => ["required", "email"],
-        "password"        => ["r4_defined"],
+        // 1.1. Получить аутентификационный кэш, если пуст, вернуть 0
+        $auth_cache = session('auth_cache');
+        if(empty($auth_cache)) return 0;
 
-      ]); if($validator['status'] == -1) {
+        // 1.2. Расшифровать json из $auth_cache, если пуст, вернуть 0
+        $json = json_decode($auth_cache, true);
+        if(empty($json)) return 0;
 
-        throw new \Exception($validator['data']);
+        // 1.3. Если is_anon == 1, вернуть 0
+        if(!array_key_exists('is_anon', $json) || (empty($json['is_anon']) && $json['is_anon'] != 0) || $json['is_anon'] == 1) return 0;
 
-      }
+        // 1.4. Если ключа auth, и ключа auth.id нет, вернуть 0
+        if(!array_key_exists('auth', $json) || !array_key_exists('id', $json['auth'])) return 0;
 
-      // 2. Попробовать найти пользователя с таким email и паролем
-      $user = \M5\Models\MD1_users::where('email', $this->data['email'])->get()
-      ->filter(function($value, $key){
-        return Hash::check($this->data['password'], $value->password_hash);
-      })
-      ->first();
-      if(empty($user))
-        throw new \Exception('User with email = "'.$this->data['email'].'" and password = "'.$this->data['password'].'" not found.');
+        // 1.5. Если $json['auth']['id'] не является валидным id, вернуть 0
+        $validator = r4_validate($json['auth'], [
+          "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        ]); if($validator['status'] == -1) {
+          return 0;
+        }
 
-      // 3. Извлечь для $user время жизни аутентификации
-      $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user->id]);
-      if($lifetime['status'] != 0)
-        throw new \Exception($lifetime['data']);
-      $lifetime = $lifetime['data'];
+        // 1.6. Вернуть id аутентификационной записи
+        return $json['auth']['id'];
 
-      // 4. Получить дату и время, когда эта аутентификация истекает
-      $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
+      });
 
-      // 5. Создать для пользователя новую запись в таблице аутентификаций, связать
-      $auth = new \M5\Models\MD8_auth();
-      $auth->expired_at = $expired_at;
-      $auth->save();
-      $auth->users()->attach($user->id);
-      $auth->save();
+      // 2. Удалить аутентификационную запись с $id_auth
+      $auth = \M5\Models\MD8_auth::find($id_auth);
+      $auth->users()->detach();
+      if(!empty($auth)) $auth->delete();
 
-      // 6. Сфоромировать json с новыми аутентификационными данными
-      $json = [
-        'auth'    => $auth,
-        'user'    => $user,
-        'is_anon' => 0
-      ];
-      $json = json_encode($json, JSON_UNESCAPED_UNICODE);
-      $json_encrypted = Crypt::encrypt($json);
+      // 3. Забыть аутентификационный кэш в сессии
+      Session::forget('auth_cache');
 
-      // 7. Записать пользователю новый аутентиф.кэш в сессию
-      session(['auth_cache' => $json]);
-
-      // 8. Записать пользователю новую куку с временем жизни $lifetime
-      Cookie::queue('auth', $json_encrypted, $lifetime);
-
+      // 4. Забыть аутентификационную куку
+      Cookie::queue( Cookie::forget('auth') );
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C58_auth_email_password from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C59_logout from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C58_auth_email_password']);
+        write2log($errortext, ['M5', 'C59_logout']);
         return [
           "status"  => -2,
           "data"    => [

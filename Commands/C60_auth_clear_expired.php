@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Auth by email and password
+ *    - This command every 24 hours delete expired auth notes from auth table
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        email
- *        password
+ *
  *      ]
  *    ]
  *
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C58_auth_email_password extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C60_auth_clear_expired extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,81 +135,35 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с таким email и паролем
-     *  3. Извлечь для $user время жизни аутентификации
-     *  4. Создать для пользователя новую запись в таблице аутентификаций, связать
-     *  5. Сфоромировать json с новыми аутентификационными данными
-     *  6. Записать пользователю новый аутентиф.кэш в сессию
-     *  7. Записать пользователю новую куку с временем жизни $lifetime
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------//
-    // Аутентифицироваться через email и пароль //
-    //------------------------------------------//
+    //----------------------------------------------------------------------------------------------------------//
+    // Планировщик запускает эту команду каждые 24 часа, чтобы она удаляла устаревшие аутентификации из m8_auth //
+    //----------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Провести валидацию входящих параметров
-      $validator = r4_validate($this->data, [
+      // 1. Получить текущие дату и время
+      $now = \Carbon\Carbon::now();
 
-        "email"           => ["required", "email"],
-        "password"        => ["r4_defined"],
-
-      ]); if($validator['status'] == -1) {
-
-        throw new \Exception($validator['data']);
-
-      }
-
-      // 2. Попробовать найти пользователя с таким email и паролем
-      $user = \M5\Models\MD1_users::where('email', $this->data['email'])->get()
-      ->filter(function($value, $key){
-        return Hash::check($this->data['password'], $value->password_hash);
-      })
-      ->first();
-      if(empty($user))
-        throw new \Exception('User with email = "'.$this->data['email'].'" and password = "'.$this->data['password'].'" not found.');
-
-      // 3. Извлечь для $user время жизни аутентификации
-      $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user->id]);
-      if($lifetime['status'] != 0)
-        throw new \Exception($lifetime['data']);
-      $lifetime = $lifetime['data'];
-
-      // 4. Получить дату и время, когда эта аутентификация истекает
-      $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
-
-      // 5. Создать для пользователя новую запись в таблице аутентификаций, связать
-      $auth = new \M5\Models\MD8_auth();
-      $auth->expired_at = $expired_at;
-      $auth->save();
-      $auth->users()->attach($user->id);
-      $auth->save();
-
-      // 6. Сфоромировать json с новыми аутентификационными данными
-      $json = [
-        'auth'    => $auth,
-        'user'    => $user,
-        'is_anon' => 0
-      ];
-      $json = json_encode($json, JSON_UNESCAPED_UNICODE);
-      $json_encrypted = Crypt::encrypt($json);
-
-      // 7. Записать пользователю новый аутентиф.кэш в сессию
-      session(['auth_cache' => $json]);
-
-      // 8. Записать пользователю новую куку с временем жизни $lifetime
-      Cookie::queue('auth', $json_encrypted, $lifetime);
-
+      // 2. Удалить все аутентификации, для которых $now > expired_at которых
+      \M5\Models\MD8_auth::whereDate('expired_at', '<', $now)->chunk(100, function($auths) {
+        foreach ($auths as $auth)
+        {
+          $auth->users()->detach();
+          $auth->delete();
+        }
+      });
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C58_auth_email_password from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C60_auth_clear_expired from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C58_auth_email_password']);
+        write2log($errortext, ['M5', 'C60_auth_clear_expired']);
         return [
           "status"  => -2,
           "data"    => [
