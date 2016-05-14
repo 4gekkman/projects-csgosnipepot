@@ -137,12 +137,13 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с таким email и паролем
+     *  2. Попробовать найти не заблокированного пользователя с таким email и паролем
      *  3. Извлечь для $user время жизни аутентификации
-     *  4. Создать для пользователя новую запись в таблице аутентификаций, связать
-     *  5. Сфоромировать json с новыми аутентификационными данными
-     *  6. Записать пользователю новый аутентиф.кэш в сессию
-     *  7. Записать пользователю новую куку с временем жизни $lifetime
+     *  4. Получить дату и время, когда эта аутентификация истекает
+     *  5. Создать для пользователя новую запись в таблице аутентификаций, связать
+     *  6. Сфоромировать json с новыми аутентификационными данными
+     *  7. Записать пользователю новый аутентиф.кэш в сессию
+     *  8. Записать пользователю новую куку с временем жизни $lifetime
      *
      *  N. Вернуть статус 0
      *
@@ -165,12 +166,14 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
 
       }
 
-      // 2. Попробовать найти пользователя с таким email и паролем
-      $user = \M5\Models\MD1_users::where('email', $this->data['email'])->get()
-      ->filter(function($value, $key){
-        return Hash::check($this->data['password'], $value->password_hash);
-      })
-      ->first();
+      // 2. Попробовать найти не заблокированного пользователя с таким email и паролем
+      $user = \M5\Models\MD1_users::where('email', $this->data['email'])
+          ->where('is_blocked', 0)
+          ->get()
+          ->filter(function($value, $key){
+            return Hash::check($this->data['password'], $value->password_hash);
+          })
+          ->first();
       if(empty($user))
         throw new \Exception('User with email = "'.$this->data['email'].'" and password = "'.$this->data['password'].'" not found.');
 

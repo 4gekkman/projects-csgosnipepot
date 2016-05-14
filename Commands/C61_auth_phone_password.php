@@ -7,14 +7,15 @@
 /**
  *  Что делает
  *  ----------
- *    - Change a group
+ *    - Auth by phone and password
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        phone
+ *        password
  *      ]
  *    ]
  *
@@ -101,7 +102,7 @@
 //---------//
 // Команда //
 //---------//
-class C18_changegroup extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C61_auth_phone_password extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,47 +136,29 @@ class C18_changegroup extends Job { // TODO: добавить "implements Should
     /**
      * Оглавление
      *
-     *  1. Принять входящие параметры
-     *  2. Провести валидацию входящих параметров
-     *  3. Попробовать найти группу с таким именем
-     *  4. Если $params['isadmin'] == 'yes' проверить, нет ли уже в системе группы администраторов
-     *  5. Внести изменения в $group
-     *  6. Сделать commit
-     *  7. Вернуть результаты
+     *  1. Провести валидацию входящих параметров
+     *  2. Попробовать найти пользователя с таким phone и паролем
+     *  3. Извлечь для $user время жизни аутентификации
+     *  4. Получить дату и время, когда эта аутентификация истекает
+     *  5. Создать для пользователя новую запись в таблице аутентификаций, связать
+     *  6. Сфоромировать json с новыми аутентификационными данными
+     *  7. Записать пользователю новый аутентиф.кэш в сессию
+     *  8. Записать пользователю новую куку с временем жизни $lifetime
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------//
-    // Изменить группу //
-    //-----------------//
+    //------------------------------------------//
+    // Аутентифицироваться через phone и пароль //
+    //------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять входящие параметры
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-        // 1.1. Принять
-        $params = $this->data;
-
-//        // 1.2. Обработать
-//        foreach($params as $key => $value) {
-//          if($value == "0" || $value == "undef") $params[$key] = "";
-//          if($value === "NULL") $params[$key] = "NULL";
-//        }
-//
-//        // 1.3. Отфильтровать из $params пустые значения
-//        $params = array_filter($params, function($item){
-//          if($item === "") return false;
-//          return true;
-//        });
-
-      // 2. Провести валидацию входящих параметров
-      $validator = r4_validate($params, [
-
-        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "name"            => ["sometimes", "regex:/^[a-zа-яё]{1}[a-zа-яё0-9]*$/ui"],
-        "description"     => ["sometimes", "regex:/^(.+|)$/ui"],
-        "isadmin"         => ["sometimes", "in:yes,no"]
+        "phone"           => ["required", "regex:/^[0-9]+$/ui"],
+        "password"        => ["r4_defined"],
 
       ]); if($validator['status'] == -1) {
 
@@ -183,66 +166,52 @@ class C18_changegroup extends Job { // TODO: добавить "implements Should
 
       }
 
-      // 3. Попробовать найти группу с именем $params['name']
-      // - Если такая уже есть, и её ID не совпадает с $params['id'], завершить
-      if(array_key_exists('name', $params)) {
-        $group = \M5\Models\MD2_groups::withTrashed()->where('name', $params['name'])->first();
-        if(!empty($group) && $group->id != $params['id'])
-          throw new \Exception("Группа с name '$group->name' уже есть в системе, её ID = ".$group->id);
-      }
+      // 2. Попробовать найти не заблокированного пользователя с таким phone и паролем
+      $user = \M5\Models\MD1_users::where('phone', $this->data['phone'])->get()
+          ->where('is_blocked', 0)
+          ->filter(function($value, $key){
+            return Hash::check($this->data['password'], $value->password_hash);
+          })
+          ->first();
+      if(empty($user))
+        throw new \Exception('User with phone = "'.$this->data['phone'].'" and password = "'.$this->data['password'].'" not found.');
 
-      // 4. Если $params['isadmin'] == 'yes' проверить, нет ли уже в системе группы администраторов
-      if(array_key_exists('isadmin', $params) && $params['isadmin'] == 'yes') {
-        $isadmin = \M5\Models\MD2_groups::withTrashed()->where('isadmin', 1)->first();
-        if(!empty($isadmin)) throw new \Exception('В системе можеть быть лишь 1 группа администраторов, и таковая уже имеется с именем '.$isadmin->name.' и с ID = '.$isadmin->id);
-      }
+      // 3. Извлечь для $user время жизни аутентификации
+      $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user->id]);
+      if($lifetime['status'] != 0)
+        throw new \Exception($lifetime['data']);
+      $lifetime = $lifetime['data'];
 
-      // 5. Внести изменения в $group
+      // 4. Получить дату и время, когда эта аутентификация истекает
+      $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
 
-        // 5.1. Найти группу $group по ID
-        $group = \M5\Models\MD2_groups::find($params['id']);
-        if(empty($group))
-          throw new \Exception("Группа с id '".$params['id']."' не найдена.");
+      // 5. Создать для пользователя новую запись в таблице аутентификаций, связать
+      $auth = new \M5\Models\MD8_auth();
+      $auth->expired_at = $expired_at;
+      $auth->save();
+      $auth->users()->attach($user->id);
+      $auth->save();
 
-        // 5.2. Внести изменения
-        foreach($params as $key => $value) {
-
-          // Если $key == 'id', продолжить
-          if($key == 'id') continue;
-
-          // Если $key == 'isadmin'
-          if($key == 'isadmin') {
-            $group[$key] = $value == 'yes' ? 1 : 0;
-            continue;
-          }
-
-          // Если $key == 'timestamp', продолжить
-          if($key == 'timestamp') continue;
-
-          // В общем случае
-          $group[$key] = $value === "NULL" ? NULL : $value;
-
-        }
-
-        // 5.3. Созранить изменения
-        $group->save();
-
-      // 6. Сделать commit
-      DB::commit();
-
-      // 7. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "name"      => $group->name,
-        ]
+      // 6. Сфоромировать json с новыми аутентификационными данными
+      $json = [
+        'auth'    => $auth,
+        'user'    => $user,
+        'is_anon' => 0
       ];
+      $json = json_encode($json, JSON_UNESCAPED_UNICODE);
+      $json_encrypted = Crypt::encrypt($json);
+
+      // 7. Записать пользователю новый аутентиф.кэш в сессию
+      session(['auth_cache' => $json]);
+
+      // 8. Записать пользователю новую куку с временем жизни $lifetime
+      Cookie::queue('auth', $json_encrypted, $lifetime);
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C18_changegroup from M-package M5 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C61_auth_phone_password from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C18_changegroup']);
+        write2log($errortext, ['M5', 'C61_auth_phone_password']);
         return [
           "status"  => -2,
           "data"    => [

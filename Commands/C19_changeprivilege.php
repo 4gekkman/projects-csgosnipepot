@@ -157,17 +157,17 @@ class C19_changeprivilege extends Job { // TODO: добавить "implements Sh
         // 1.1. Принять
         $params = $this->data;
 
-        // 1.2. Обработать
-        foreach($params as $key => $value) {
-          if($value == "0" || $value == "undef") $params[$key] = "";
-          if($value === "NULL") $params[$key] = "NULL";
-        }
-
-        // 1.3. Отфильтровать из $params пустые значения
-        $params = array_filter($params, function($item){
-          if($item === "") return false;
-          return true;
-        });
+//        // 1.2. Обработать
+//        foreach($params as $key => $value) {
+//          if($value == "0" || $value == "undef") $params[$key] = "";
+//          if($value === "NULL") $params[$key] = "NULL";
+//        }
+//
+//        // 1.3. Отфильтровать из $params пустые значения
+//        $params = array_filter($params, function($item){
+//          if($item === "") return false;
+//          return true;
+//        });
 
       // 2. Провести валидацию входящих параметров
       $validator = r4_validate($params, [

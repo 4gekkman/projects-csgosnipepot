@@ -159,15 +159,15 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
         // 1.1. Принять
         $params = $this->data;
 
-        // 1.2. Обработать
-        foreach($params as $key => $value)
-          if($value == "0" || $value == "0") $params[$key] = null;
-
-        // 1.3. Отфильтровать из $params пустые значения
-        $params = array_filter($params, function($item){
-          if(empty($item)) return false;
-          return true;
-        });
+//        // 1.2. Обработать
+//        foreach($params as $key => $value)
+//          if($value == "0" || $value == "0") $params[$key] = null;
+//
+//        // 1.3. Отфильтровать из $params пустые значения
+//        $params = array_filter($params, function($item){
+//          if(empty($item)) return false;
+//          return true;
+//        });
 
       // 2. Провести валидацию входящих параметров
       $validator = r4_validate($params, [
@@ -223,7 +223,7 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
       // 4. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
       if(array_key_exists('isanonymous', $params) && $params['isanonymous'] == 'yes') {
         $isanonymous = \M5\Models\MD1_users::withTrashed()->where('isanonymous', 1)->first();
-        if(!empty($isanonymous)) throw new \Exception('В системе можеть быть лишь 1 анонимный пользователь, и таковой уже имеется с ID = '.$isanonymous->id);
+        if(!empty($isanonymous) && $isanonymous->id != $params['id']) throw new \Exception('В системе можеть быть лишь 1 анонимный пользователь, и таковой уже имеется с ID = '.$isanonymous->id);
       }
 
       // 5. Если требуется изменить пол, получить ID для нового пола
