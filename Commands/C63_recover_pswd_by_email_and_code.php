@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change password of the user with passed id. Admin version (without old pass).
+ *    - Recover password by email and auth code
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -94,15 +94,14 @@
       Illuminate\Support\Facades\URL,
       Illuminate\Support\Facades\Validator,
       Illuminate\Support\Facades\View;
-use Mockery\CountValidator\Exception;
 
-// Доп.классы, которые использует эта команда
+  // Доп.классы, которые использует эта команда
 
 
 //---------//
 // Команда //
 //---------//
-class C45_change_password_admin extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C63_recover_pswd_by_email_and_code extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -137,26 +136,29 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с user_id
+     *  2. Попробовать найти пользователя с email
      *  3. Проверить, совпадают ли 2 пароля
      *  4. Проверить соответствие кол-ва символов в пароле настройкам
-     *  5. Изменить пароль пользователя
+     *  5. Попробовать найти $code в таблице аутентиф.кодов
+     *  6. Изменить пароль пользователя
+     *  7. Удалить $authcode
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------------------------------------------------//
-    // Изменить пароль пользователя с переданным ID. Административная версия (не надо передавать старый пароль) //
-    //----------------------------------------------------------------------------------------------------------//
+    //--------------------------------------------------//
+    // Восстановить пароль пользователя по email и коду //
+    //--------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
 
-        "user_id"             => ["regex:/^([1-9]+[0-9]*|)$/ui"],
-        "new_password"        => ["r4_defined", "string"],
-        "new_password_again"  => ["r4_defined", "string"]
+        "email"         => ["required", "email"],
+        "code"          => ["required", "regex:/^[0-9]+$/ui"],
+        "new_password1" => ["required", "string"],
+        "new_password2" => ["required", "string"]
 
       ]); if($validator['status'] == -1) {
 
@@ -164,29 +166,38 @@ class C45_change_password_admin extends Job { // TODO: добавить "impleme
 
       }
 
-      // 2. Попробовать найти пользователя с user_id
-      $user = \M5\Models\MD1_users::find($this->data['user_id']);
+      // 2. Попробовать найти пользователя с email
+      $user = \M5\Models\MD1_users::where('email', $this->data['email'])->first();
       if(empty($user))
-        throw new \Exception('User with id = '.$this->data['user_id'].' not found.');
+        throw new \Exception('User with email = '.$this->data['email'].' not found.');
 
       // 3. Проверить, совпадают ли 2 пароля
-      if($this->data['new_password'] != $this->data['new_password_again'])
+      if($this->data['new_password1'] != $this->data['new_password2'])
         throw new \Exception('Passed passwords are not equal.');
 
       // 4. Проверить соответствие кол-ва символов в пароле настройкам
-      if(gmp_cmp(count(str_split($this->data['new_password'])), config("M5.min_chars_in_pass")) < 0)
+      if(gmp_cmp(count(str_split($this->data['new_password1'])), config("M5.min_chars_in_pass")) < 0)
         throw new \Exception('New password is too short. It must be at least '.config("M5.min_chars_in_pass").' chars.');
 
-      // 5. Изменить пароль пользователя
-      $user->password_hash = Hash::make($this->data['new_password']);
+      // 5. Попробовать найти $code в таблице аутентиф.кодов
+      $authcode = \M5\Models\MD9_emailauthcodes::where('code', $this->data['code'])->first();
+      if(empty($authcode))
+        throw new \Exception('Wrong code.');
+
+      // 6. Изменить пароль пользователя
+      $user->password_hash = Hash::make($this->data['new_password1']);
       $user->save();
+
+      // 7. Удалить $authcode
+      $authcode->users()->detach();
+      $authcode->delete();
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C45_change_password_admin from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C63_recover_pswd_by_email_and_code from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C45_change_password_admin']);
+        write2log($errortext, ['M5', 'C63_recover_pswd_by_email_and_code']);
         return [
           "status"  => -2,
           "data"    => [

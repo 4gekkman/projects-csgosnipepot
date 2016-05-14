@@ -107,11 +107,13 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m1:email_cleartable")->withoutOverlapping()->hourly();',
-          '$schedule->command("m1:phone_cleartable")->withoutOverlapping()->hourly();',
-          '$schedule->command("m1:delnotverifiedemail")->withoutOverlapping()->hourly();',
-          '$schedule->command("m1:delnotverifiedphone")->withoutOverlapping()->hourly();',
-          '$schedule->command("m1:auth_clear_expired")->withoutOverlapping()->daily();',
+          '$schedule->command("m5:email_cleartable")->withoutOverlapping()->everyFiveMinutes();',
+          '$schedule->command("m5:phone_cleartable")->withoutOverlapping()->everyFiveMinutes();',
+          '$schedule->command("m5:delnotverifiedemail")->withoutOverlapping()->hourly();',
+          '$schedule->command("m5:delnotverifiedphone")->withoutOverlapping()->hourly();',
+          '$schedule->command("m5:auth_clear_expired")->withoutOverlapping()->daily();',
+          '$schedule->command("m5:email_authcodes_clear")->withoutOverlapping()->everyFiveMinutes();',
+          '$schedule->command("m5:phone_authcodes_clear")->withoutOverlapping()->everyFiveMinutes();',
         ];
 
       //----------------------------------------------------//
@@ -143,7 +145,9 @@
           '\M5\Console\T20_delnotverifiedphone',
           '\M5\Console\T21_get_auth_limit',
           '\M5\Console\T22_logout',
-          '\M5\Console\T23_auth_clear_expired'
+          '\M5\Console\T23_auth_clear_expired',
+          '\M5\Console\T24_email_authcodes_clear',
+          '\M5\Console\T25_phone_authcodes_clear'
         ];
 
         // Регистрация команд в методе register
