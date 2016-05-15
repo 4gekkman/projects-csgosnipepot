@@ -202,7 +202,7 @@ class C44_detach2tags extends Job { // TODO: добавить "implements Should
           foreach($this->data['selected']['tags'] as $tag) {
             $tag2detach = \M5\Models\MD4_tags::find($tag);
             if(!empty($tag2detach)) {
-              foreach($this->data['selected']['privs'] as $item) {
+              foreach($this->data['selected']['privileges'] as $item) {
                 if($tag2detach->privileges->contains($item))
                   $tag2detach->privileges()->detach($item);
               }

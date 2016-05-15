@@ -189,7 +189,7 @@ class C37_attach2users extends Job { // TODO: добавить "implements Shoul
           foreach($this->data['selected']['users'] as $user) {
             $user2attach = \M5\Models\MD1_users::find($user);
             if(!empty($user2attach)) {
-              foreach($this->data['selected']['privs'] as $item) {
+              foreach($this->data['selected']['privileges'] as $item) {
                 if(!$user2attach->privileges->contains($item))
                   $user2attach->privileges()->attach($item);
               }

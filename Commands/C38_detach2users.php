@@ -189,7 +189,7 @@ class C38_detach2users extends Job { // TODO: добавить "implements Shoul
           foreach($this->data['selected']['users'] as $user) {
             $user2detach = \M5\Models\MD1_users::find($user);
             if(!empty($user2detach)) {
-              foreach($this->data['selected']['privs'] as $item) {
+              foreach($this->data['selected']['privileges'] as $item) {
                 if($user2detach->privileges->contains($item))
                   $user2detach->privileges()->detach($item);
               }

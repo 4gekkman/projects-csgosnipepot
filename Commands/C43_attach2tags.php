@@ -202,7 +202,7 @@ class C43_attach2tags extends Job { // TODO: добавить "implements Should
           foreach($this->data['selected']['tags'] as $tag) {
             $tag2attach = \M5\Models\MD4_tags::find($tag);
             if(!empty($tag2attach)) {
-              foreach($this->data['selected']['privs'] as $item) {
+              foreach($this->data['selected']['privileges'] as $item) {
                 if(!$tag2attach->privileges->contains($item))
                   $tag2attach->privileges()->attach($item);
               }
