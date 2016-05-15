@@ -66,6 +66,13 @@ class BeforeMiddleware {
     // 1. Выполнить команду C56_meet
     runcommand('\M5\Commands\C56_meet');
 
+    write2log($request->url(), []);
+    write2log($request->root(), []);
+    write2log($request->path(), []);
+    write2log($request->segments(), []);
+    write2log($request->secure(), []);
+    write2log($request->method(), []);
+
     // n. Передать ответ дальше
     return $next($request);
 
