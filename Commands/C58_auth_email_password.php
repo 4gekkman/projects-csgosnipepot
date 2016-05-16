@@ -154,7 +154,13 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
     //------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Провести валидацию входящих параметров
+      // 1. Применить защиту от брутфорса, если она включена
+      $result = runcommand('\M5\Commands\C67_bruteforce_protection');
+      if($result['status'] != 0) {
+        throw new \Exception($result['data']);
+      }
+
+      // 2. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
 
         "email"           => ["required", "email"],
@@ -166,7 +172,7 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
 
       }
 
-      // 2. Попробовать найти не заблокированного пользователя с таким email и паролем
+      // 3. Попробовать найти не заблокированного пользователя с таким email и паролем
       $user = \M5\Models\MD1_users::where('email', $this->data['email'])
           ->where('is_blocked', 0)
           ->get()
@@ -177,23 +183,23 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
       if(empty($user))
         throw new \Exception('User with email = "'.$this->data['email'].'" and password = "'.$this->data['password'].'" not found.');
 
-      // 3. Извлечь для $user время жизни аутентификации
+      // 4. Извлечь для $user время жизни аутентификации
       $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user->id]);
       if($lifetime['status'] != 0)
         throw new \Exception($lifetime['data']);
       $lifetime = $lifetime['data'];
 
-      // 4. Получить дату и время, когда эта аутентификация истекает
+      // 5. Получить дату и время, когда эта аутентификация истекает
       $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
 
-      // 5. Создать для пользователя новую запись в таблице аутентификаций, связать
+      // 6. Создать для пользователя новую запись в таблице аутентификаций, связать
       $auth = new \M5\Models\MD8_auth();
       $auth->expired_at = $expired_at;
       $auth->save();
       $auth->users()->attach($user->id);
       $auth->save();
 
-      // 6. Сфоромировать json с новыми аутентификационными данными
+      // 7. Сфоромировать json с новыми аутентификационными данными
       $json = [
         'auth'    => $auth,
         'user'    => $user,
@@ -202,10 +208,10 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
       $json = json_encode($json, JSON_UNESCAPED_UNICODE);
       $json_encrypted = Crypt::encrypt($json);
 
-      // 7. Записать пользователю новый аутентиф.кэш в сессию
+      // 8. Записать пользователю новый аутентиф.кэш в сессию
       session(['auth_cache' => $json]);
 
-      // 8. Записать пользователю новую куку с временем жизни $lifetime
+      // 9. Записать пользователю новую куку с временем жизни $lifetime
       Cookie::queue('auth', $json_encrypted, $lifetime);
 
 
