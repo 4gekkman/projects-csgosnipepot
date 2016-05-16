@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Auth by email and password
+ *    - Add 1 to bruteforce counter
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        email
- *        password
+ *        userid
  *      ]
  *    ]
  *
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C58_auth_email_password extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C68_bruteforce_add extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,98 +135,46 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти пользователя с таким email
-     *  3. Применить защиту от брутфорса, если она включена
-     *  4. Попробовать найти не заблокированного пользователя с таким email и паролем
-     *  5. Извлечь для $user время жизни аутентификации
-     *  6. Получить дату и время, когда эта аутентификация истекает
-     *  7. Создать для пользователя новую запись в таблице аутентификаций, связать
-     *  8. Сфоромировать json с новыми аутентификационными данными
-     *  9. Записать пользователю новый аутентиф.кэш в сессию
-     *  10. Записать пользователю новую куку с временем жизни $lifetime
+     *  1. Провести валидацию
+     *  2. Извлечь из конфига параметры защиты от брутфорса
+     *  3. Извлечь из кэша значение счётчика
+     *  4. Прибавить единицу к $counter
+     *  5. Записать $counter в кэш с временем жизни $counter_lifetime
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------//
-    // Аутентифицироваться через email и пароль //
-    //------------------------------------------//
+    //-------------------------------------------------------------------------//
+    // Прибавить +1 к счётчику защиты от брутфорса для указанного пользователя //
+    //-------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Провести валидацию входящих параметров
+      // 1. Провести валидацию
       $validator = r4_validate($this->data, [
-
-        "email"           => ["required", "email"],
-        "password"        => ["r4_defined"],
-
+        "userid"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
-
         throw new \Exception($validator['data']);
-
       }
 
-      // 2. Попробовать найти пользователя с таким email
-      $user2auth = \M5\Models\MD1_users::where('email', $this->data['email'])->first();
-      if(empty($user2auth))
-        throw new \Exception('User with email = "'.$this->data['email'].'" not found.');
+      // 2. Извлечь из конфига параметры защиты от брутфорса
+      $treshold = config("M5.bruteforce_protection_threshold") ?: 5;
+      $counter_lifetime = config("M5.bruteforce_protection_counter_lifetime") ?: 60;
 
-      // 3. Применить защиту от брутфорса, если она включена
-      $result = runcommand('\M5\Commands\C67_bruteforce_check', ['userid' => $user2auth->id]);
-      if($result['status'] != 0) {
-        throw new \Exception($result['data']);
-      }
+      // 3. Извлечь из кэша значение счётчика
+      $counter = Cache::has('bruteforce_attempts.'.$this->data['userid']) ? Cache::get('bruteforce_attempts.'.$this->data['userid']) : 0;
 
-      // 4. Попробовать найти не заблокированного пользователя с таким email и паролем
-      $user = \M5\Models\MD1_users::where('email', $this->data['email'])
-          ->where('is_blocked', 0)
-          ->get()
-          ->filter(function($value, $key){
-            return Hash::check($this->data['password'], $value->password_hash);
-          })
-          ->first();
-      if(empty($user))
-        throw new \Exception('User with email = "'.$this->data['email'].'" and password = "'.$this->data['password'].'" not found.');
+      // 4. Прибавить единицу к $counter
+      $counter = +$counter + 1;
 
-      // 5. Извлечь для $user время жизни аутентификации
-      $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user->id]);
-      if($lifetime['status'] != 0)
-        throw new \Exception($lifetime['data']);
-      $lifetime = $lifetime['data'];
-
-      // 6. Получить дату и время, когда эта аутентификация истекает
-      $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
-
-      // 7. Создать для пользователя новую запись в таблице аутентификаций, связать
-      $auth = new \M5\Models\MD8_auth();
-      $auth->expired_at = $expired_at;
-      $auth->save();
-      $auth->users()->attach($user->id);
-      $auth->save();
-
-      // 8. Сфоромировать json с новыми аутентификационными данными
-      $json = [
-        'auth'    => $auth,
-        'user'    => $user,
-        'is_anon' => 0
-      ];
-      $json = json_encode($json, JSON_UNESCAPED_UNICODE);
-      $json_encrypted = Crypt::encrypt($json);
-
-      // 9. Записать пользователю новый аутентиф.кэш в сессию
-      session(['auth_cache' => $json]);
-
-      // 10. Записать пользователю новую куку с временем жизни $lifetime
-      Cookie::queue('auth', $json_encrypted, $lifetime);
-
+      // 5. Записать $counter в кэш с временем жизни $counter_lifetime
+      Cache::put('bruteforce_attempts.'.$this->data['userid'], $counter, $counter_lifetime);
 
     DB::commit(); } catch(\Exception $e) {
-        if(!empty($user2auth)) runcommand('\M5\Commands\C68_bruteforce_add', ['userid' => $user2auth->id]);
-        $errortext = 'Invoking of command C58_auth_email_password from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C68_bruteforce_add from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C58_auth_email_password']);
+        write2log($errortext, ['M5', 'C68_bruteforce_add']);
         return [
           "status"  => -2,
           "data"    => [
