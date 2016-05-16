@@ -93,20 +93,37 @@ class Controller extends BaseController {
   //--------------------------------------//
   public function getIndex() {
 
-    // 1. Выполнить задачу
+    //----------------------------------------------------------------------------------//
+    // Провести авторизацию прав доступа запрашивающего пользователя к этому интерфейсу //
+    //----------------------------------------------------------------------------------//
+    // - Если команда для проведения авторизации доступна, и если авторизация включена.
+    if(class_exists('\M5\Commands\C66_authorize_access') && config("M5.authorize_access_ison") == true) {
+
+      // Провести авторизацию
+      $authorize_results = runcommand('\M5\Commands\C66_authorize_access', ['packid' => $this->packid, 'userid' => lib_current_user_id()]);
+
+      // Если доступ запрещён, вернуть документ с кодом 403
+      if($authorize_results['status'] == -1)
+        return Response::make("Unfortunately, access to this document is forbidden for you.", 403);
+
+    }
+
+    //-----------------------//
+    // Обработать GET-запрос //
+    //-----------------------//
+
+      // 1. ...
 
 
+      // N. Вернуть клиенту представление и данные $data
+      return View::make($this->packid.'::view', ['data' => json_encode([
 
+        'document_locale'       => r1_get_doc_locale($this->packid),
+        'auth'                  => session('auth_cache') ?: '',
+        'packid'                => $this->packid,
+        'layoutid'              => $this->layoutid,
 
-    // N. Вернуть клиенту представление и данные $data
-    return View::make($this->packid.'::view', ['data' => json_encode([
-
-      'document_locale'       => r1_get_doc_locale($this->packid),
-      'auth'                  => session('auth_cache') ?: '',
-      'packid'                => $this->packid,
-      'layoutid'              => $this->layoutid,
-
-    ]), 'layoutid' => $this->layoutid.'::layout']);
+      ]), 'layoutid' => $this->layoutid.'::layout']);
 
 
 
@@ -118,67 +135,86 @@ class Controller extends BaseController {
   //----------------------------------------//
   public function postIndex() {
 
-    //------------------------------------------//
-    // 1] Получить значение опций key и command //
-    //------------------------------------------//
-    // - $key       - ключ операции (напр.: PARAMpackfullnamePARAM:1)
-    // - $command   - полный путь команды, которую требуется выполнить
-    $key        = Input::get('key');
-    $command    = Input::get('command');
+    //----------------------------------------------------------------------------------//
+    // Провести авторизацию прав доступа запрашивающего пользователя к этому интерфейсу //
+    //----------------------------------------------------------------------------------//
+    // - Если команда для проведения авторизации доступна, и если авторизация включена.
+    if(class_exists('\M5\Commands\C66_authorize_access') && config("M5.authorize_access_ison") == true) {
 
+      // Провести авторизацию
+      $authorize_results = runcommand('\M5\Commands\C66_authorize_access', ['packid' => $this->packid, 'userid' => lib_current_user_id()]);
 
-    //----------------------------------------//
-    // 2] Обработка стандартных POST-запросов //
-    //----------------------------------------//
-    // - Это около 99% всех POST-запросов.
-    if(empty($key) && !empty($command)) {
-
-      // 1. Получить присланные данные
-
-        // Получить данные data
-        $data = Input::get('data');   // массив
-
-
-      // 2. Выполнить команду и получить результаты
-      $response = runcommand(
-
-          $command,                   // Какую команду выполнить
-          $data,                      // Какие данные передать команде
-          lib_current_user_id()       // ID пользователя, от чьего имени выполнить команду
-
-      );
-
-
-      // 3. Добавить к $results значение timestamp поступления запроса
-      $response['timestamp'] = $data['timestamp'];
-
-
-      // 4. Сформировать ответ и вернуть клиенту
-      return Response::make(json_encode($response, JSON_UNESCAPED_UNICODE));
+      // Если доступ запрещён, вернуть документ с кодом 403
+      if($authorize_results['status'] == -1)
+        return Response::make("Unfortunately, access to this document is forbidden for you.", 403);
 
     }
 
+    //------------------------//
+    // Обработать POST-запрос //
+    //------------------------//
 
-    //------------------------------------------//
-    // 3] Обработка нестандартных POST-запросов //
-    //------------------------------------------//
-    // - Очень редко алгоритм из 2] не подходит.
-    // - Например, если надо принять файл.
-    // - Тогда $command надо оставить пустой.
-    // - А в $key прислать ключ-код номер операции.
-    if(!empty($key) && empty($command)) {
-
-      //-----------------------------//
-      // Нестандартная операция PARAMpackfullnamePARAM:1 //
-      //-----------------------------//
-      if($key == 'PARAMpackfullnamePARAM:1') {
+      //------------------------------------------//
+      // 1] Получить значение опций key и command //
+      //------------------------------------------//
+      // - $key       - ключ операции (напр.: PARAMpackfullnamePARAM:1)
+      // - $command   - полный путь команды, которую требуется выполнить
+      $key        = Input::get('key');
+      $command    = Input::get('command');
 
 
+      //----------------------------------------//
+      // 2] Обработка стандартных POST-запросов //
+      //----------------------------------------//
+      // - Это около 99% всех POST-запросов.
+      if(empty($key) && !empty($command)) {
+
+        // 1. Получить присланные данные
+
+          // Получить данные data
+          $data = Input::get('data');   // массив
+
+
+        // 2. Выполнить команду и получить результаты
+        $response = runcommand(
+
+            $command,                   // Какую команду выполнить
+            $data,                      // Какие данные передать команде
+            lib_current_user_id()       // ID пользователя, от чьего имени выполнить команду
+
+        );
+
+
+        // 3. Добавить к $results значение timestamp поступления запроса
+        $response['timestamp'] = $data['timestamp'];
+
+
+        // 4. Сформировать ответ и вернуть клиенту
+        return Response::make(json_encode($response, JSON_UNESCAPED_UNICODE));
 
       }
 
 
-    }
+      //------------------------------------------//
+      // 3] Обработка нестандартных POST-запросов //
+      //------------------------------------------//
+      // - Очень редко алгоритм из 2] не подходит.
+      // - Например, если надо принять файл.
+      // - Тогда $command надо оставить пустой.
+      // - А в $key прислать ключ-код номер операции.
+      if(!empty($key) && empty($command)) {
+
+        //-----------------------------//
+        // Нестандартная операция PARAMpackfullnamePARAM:1 //
+        //-----------------------------//
+        if($key == 'PARAMpackfullnamePARAM:1') {
+
+
+
+        }
+
+
+      }
 
   } // конец postIndex()
 

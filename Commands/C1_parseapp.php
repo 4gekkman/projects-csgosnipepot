@@ -621,6 +621,9 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         // 2] Удалить
         \M1\Models\MD3_models::query()->delete();
 
+        // 3] Сбросить счётчик автоинкремента
+        DB::statement('ALTER TABLE m1.md3_models AUTO_INCREMENT = 1;');
+
       // 5.3. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
@@ -709,6 +712,9 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         // 2] Удалить
         DB::table('m1.md1003')->delete();
         \M1\Models\MD5_commands::query()->delete();
+
+        // 3] Сбросить счётчик автоинкремента
+        DB::statement('ALTER TABLE m1.md5_commands AUTO_INCREMENT = 1;');
 
       // 6.2. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
@@ -814,6 +820,9 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         DB::table('m1.md1004')->delete();
         \M1\Models\MD6_console::query()->delete();
 
+        // 3] Сбросить счётчик автоинкремента
+        DB::statement('ALTER TABLE m1.md6_console AUTO_INCREMENT = 1;');
+
       // 7.2. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->where('name','=','M');
@@ -917,6 +926,9 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         // 2] Удалить
         DB::table('m1.md1005')->delete();
         \M1\Models\MD7_handlers::query()->delete();
+
+        // 3] Сбросить счётчик автоинкремента
+        DB::statement('ALTER TABLE m1.md7_handlers AUTO_INCREMENT = 1;');
 
       // 8.2. Получить все M-пакеты
       $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
