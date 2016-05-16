@@ -214,6 +214,9 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
 
         }
 
+        // 3.3. Сбросить счётчик автоинкремента
+        DB::statement('ALTER TABLE m4.md1_routes AUTO_INCREMENT = 1;');
+
       // 4. Создать новые автоматические роуты для D,L,W-пакетов
 
         // 4.1. Получить все D,L,W-пакеты
