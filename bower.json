@@ -1,0 +1,22 @@
+{
+  "name": "L10000",
+  "dependencies": {
+		"4gekkman-bower-jslib1": "latest",
+		"font-awesome": "FortAwesome/Font-Awesome",
+		"ionicons": "latest",
+		"jquery": "latest",
+		"moment": "latest",
+		"AdminLTE": "almasaeed2010/AdminLTE#master",
+		"knockoutjs": "latest",
+		"history.js": "latest",
+		"loaders.css": "latest"
+	},
+  "mains": {
+    "css": [
+			"public/L10000/css/c.css"
+		],
+    "js": [
+			"public/L10000/js/j.js"
+		]
+  }
+}
