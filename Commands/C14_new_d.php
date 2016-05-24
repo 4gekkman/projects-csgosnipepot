@@ -161,7 +161,7 @@ class C14_new_d extends Job { // TODO: добавить "implements ShouldQueue"
         // 1.1. Провести валидацию
         $validator = r4_validate($this->data, [
 
-          "layoutid"        => ["required", "regex:/(^0$|^L[1-9]+$)/ui"],
+          "layoutid"        => ["required", "regex:/(^0$|^L[1-9]+[0-9]*$)/ui"],
           "name"            => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "description"     => ["required", "regex:/(^0$|^[-0-9a-zа-яё\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$)/ui"],
           "packid"          => ["required", "regex:/(^0$|^[0-9]+$)/ui"],

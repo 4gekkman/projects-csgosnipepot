@@ -433,7 +433,7 @@ class T7_new extends Command
         $params = [];
 
         // 2] Спросить у пользователя id шаблона для нового D-пакета
-        $params['layoutid'] = $this->ask("[REQUIRED] Type id for the new D-package", "L1");
+        $params['layoutid'] = $this->ask("[NOT REQUIRED] Type id of layout for the new D-package", "L10001");
 
         // 3] Спросить у пользователя, какое имя задать новому D-пакету
         $params['name'] = $this->ask("[NOT REQUIRED] Type name for the new D-package in english", 0);
