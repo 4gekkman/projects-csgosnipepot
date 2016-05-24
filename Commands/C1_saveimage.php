@@ -137,7 +137,7 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Провести валидацию
      *
      *
      *  N. Вернуть статус 0
@@ -149,8 +149,30 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
     //----------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "file"                                    => ["required", "image"],
+        "group"                                   => ["sometimes", "string"],
+        "params"                                  => ["sometimes", "array"],
+        "params.folderpath_relative_to_public"    => ["sometimes", "string"],
+        "params.should_save_original"             => ["sometimes", "boolean"],
+        "params.should_save_not_filtered_images"  => ["sometimes", "boolean"],
+        "params.sizes"                            => ["sometimes", "array"],
+        "params.sizes.*"                          => ["sometimes", "array"],
+        "params.types"                            => ["sometimes", "array"],
+        "params.types.*"                          => ["sometimes", "array"],
+        "params.quality"                          => ["sometimes", "numeric"],
+        "params.filters"                          => ["sometimes", "array"],
+        "params.filters.*"                        => ["sometimes", "string"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. 
 
 
     DB::commit(); } catch(\Exception $e) {
