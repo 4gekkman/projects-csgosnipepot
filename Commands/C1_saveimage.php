@@ -233,9 +233,9 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       }
 
       // 6. Создать экземпляр II из оригинала изображения
-      $image = \Intervention\Image\ImageManagerStatic::make($this->data['file']);
+      $image = \Intervention\Image\ImageManagerStatic::make('');
 
-
+      
 
 
 
