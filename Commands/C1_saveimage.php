@@ -160,8 +160,9 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
         "params.should_save_not_filtered_images"  => ["sometimes", "boolean"],
         "params.sizes"                            => ["sometimes", "array"],
         "params.sizes.*"                          => ["sometimes", "array"],
+        "params.sizes.*.*"                        => ["sometimes", "numeric"],
         "params.types"                            => ["sometimes", "array"],
-        "params.types.*"                          => ["sometimes", "array"],
+        "params.types.*"                          => ["sometimes", "in:image/jpeg,image/png,image/gif"],
         "params.quality"                          => ["sometimes", "numeric"],
         "params.filters"                          => ["sometimes", "array"],
         "params.filters.*"                        => ["sometimes", "string"],
@@ -172,7 +173,76 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
 
       }
 
-      // 2. 
+      // 2. Получить параметры по умолчанию и группы параметров из конфига
+      $default_parameters = config("M7.default_parameters");
+      $parameter_groups = config("M7.parameter_groups");
+
+      // 3. Если $default_parameters пуста, завершить с ошибкой
+      if(empty($default_parameters))
+        throw new \Exception("Can't find parameter default_parameters in M7 config.");
+
+      // 4. Определить итоговый набор параметров
+      $params_final = call_user_func(function() USE ($default_parameters, $parameter_groups) {
+
+        // 1] Подготовить массив для результата, с параметрами по умолчанию
+        $result = $default_parameters;
+
+        // 2] Если $this->data['group'] не пуста и есть в $parameter_groups
+        // - Заменить в $result присутствующие в $parameter_groups[$this->data['group']] параметры
+        if(!empty($this->data['group']) && array_key_exists($this->data['group'], $parameter_groups)) {
+
+          foreach($parameter_groups[$this->data['group']] as $key => $value) {
+            $result[$key] = $value;
+          }
+
+        }
+
+        // 3] Заменить в $result присутствующие в $this->data['params'] параметры
+        if(!empty($this->data['params'])) {
+
+          foreach($this->data['params'] as $key => $value) {
+            $result[$key] = $value;
+          }
+
+        }
+
+        // n] Вернуть результат
+        return $result;
+
+      });
+
+      // 5. Провести валидацию итогового набора параметров
+      $validator = r4_validate($params_final, [
+
+        "folderpath_relative_to_public"    => ["sometimes", "string"],
+        "should_save_original"             => ["sometimes", "boolean"],
+        "should_save_not_filtered_images"  => ["sometimes", "boolean"],
+        "sizes"                            => ["sometimes", "array"],
+        "sizes.*"                          => ["sometimes", "array"],
+        "sizes.*.*"                        => ["sometimes", "numeric"],
+        "types"                            => ["sometimes", "array"],
+        "types.*"                          => ["sometimes", "in:image/jpeg,image/png,image/gif"],
+        "quality"                          => ["sometimes", "numeric"],
+        "filters"                          => ["sometimes", "array"],
+        "filters.*"                        => ["sometimes", "string"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 6. Создать экземпляр II из оригинала изображения
+      $image = \Intervention\Image\ImageManagerStatic::make($this->data['file']);
+
+
+
+
+
+
+      //$image->save(public_path().'/image');
+
+
 
 
     DB::commit(); } catch(\Exception $e) {

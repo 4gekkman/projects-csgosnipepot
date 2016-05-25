@@ -12,7 +12,9 @@
 						"homepage": "https://github.com/4gekkman/m7"
         }
     ],
-    "require": {},
+    "require": {
+			"intervention/image": "~2.0"
+		},
     "autoload": {
         "psr-4": {"M7\\": ""}
     }
