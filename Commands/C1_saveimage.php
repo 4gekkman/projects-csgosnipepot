@@ -239,11 +239,52 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       if(!in_array($image->mime(), ['image/jpeg', 'image/png', 'image/gif']))
         throw new \Exception('Не поддерживаемый mime-тип');
 
-      // 8. По
+      // 8. Написать функцию для вычисления ID для нового изображения
+      // - Где $folder это путь относительно корня проекта.
+      $new_id = function($folder){
+
+        // 1] Подготовить переменную для результата
+        $result = 1;
+
+        // 2] Создать экземпляр ФС в $folder
+        $fs = r1_fs($folder);
+
+        // 3] Попробовать извлечь файл lastid
+        $index = $fs->exists("lastid") ? $fs->get('lastid') : "";
+
+        // 4] Если $index пуст:
+        if(empty($index)) {
+
+          // 4.1] Извлечь имена всех каталогов
+          $dirs = $fs->directories();
+
+          // 4.2] Отфильтровать из массива $dirs все не числовые имена
+          // - Получив коллекцию.
+          $dirs = collect($dirs)->filter(function($item){
+            return is_numeric($item);
+          });
+
+          // 4.3] Получить максимальное число из коллекции $dirs
+          $max = $dirs->max();
+
+          // 4.4]
+
+
+        }
+
+
+
+        // n] Вернуть результат
+        return $result;
+
+      };
 
 
 
 
+
+      $fs = r1_fs('public');
+      write2log($fs->get('index1.php'), []);
 
 
 
