@@ -87,6 +87,8 @@
           /1
             original.jpg
             original_filtered.jpg
+            original.png
+            original_filtered.png
             500x500.jpg
             500x500_filtered.jpg
             500x500.png

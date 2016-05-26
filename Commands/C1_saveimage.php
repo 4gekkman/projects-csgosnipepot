@@ -138,7 +138,19 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
      * Оглавление
      *
      *  1. Провести валидацию
-     *
+     *  2. Получить параметры по умолчанию и группы параметров из конфига
+     *  3. Если $default_parameters пуста, завершить с ошибкой
+     *  4. Определить итоговый набор параметров
+     *  5. Провести валидацию итогового набора параметров
+     *  6. Создать оригинальный экземпляр II из оригинала изображения
+     *  7. Проверить mime-тип изображения
+     *  8. Подготовить md5-хэш, который будет служить именем каталога изображения
+     *  9. Создать каталог изображения, используя имя $name
+     *  10. Получить информацию обо всех доступных фильтрах
+     *  11. Получить массив фильтров, которые надо применять к изображению
+     *  12. Написать функцию для вычисления расширения по mime-типу
+     *  13. Сформировать массив параметров для сохранения изображений
+     *  14. Создать и сохранить изображения из $final_array
      *
      *  N. Вернуть статус 0
      *
@@ -358,116 +370,172 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       // 12. Написать функцию для вычисления расширения по mime-типу
       $get_res_by_mime = function($mime){
 
-        if($mime == 'image/jpeg') return ".jpg";
-        if($mime == 'image/png') return ".png";
-        if($mime == 'image/gif') return ".gif";
+        if($mime == 'image/jpeg') return "jpg";
+        if($mime == 'image/png') return "png";
+        if($mime == 'image/gif') return "gif";
         return "";
 
       };
 
-      // 12. Сохранить изображения
+      // 13. Сформировать массив параметров для сохранения изображений
+      // - Его формат таков (пример):
+      //
+      //    [
+      //      {
+      //        "width": "1024",
+      //        "height": "768",
+      //        "type": "image/jpeg",
+      //      },
+      //      {
+      //        "width": "640",
+      //        "height": "480",
+      //        "type": "image/jpeg",
+      //      },
+      //      {
+      //        "width": "1024",
+      //        "height": "768",
+      //        "type": "image/png",
+      //      },
+      //      {
+      //        "width": "640",
+      //        "height": "480",
+      //        "type": "image/png",
+      //      },
+      //    ]
+      //
+      //
+      $final_array = call_user_func(function() USE ($params_final, $image, $get_res_by_mime) {
 
-        // 12.1. Оригинал
-        $image->save($path . '/original' . $get_res_by_mime($image->mime()), 0);
+        // 1] Подготовить переменную для результата
+        $result = [];
 
-        // 12.2. Оригинал фильтрованный
-        call_user_func(function() USE ($image, $filters2apply_paths, $path, $get_res_by_mime, $params_final) {
+        // 2] Если сохранять оригиналы изображений требуется
+        if($params_final['should_save_original'] == true) {
 
-          // 1] Получить клон изображения
+          // 2.1] Добавить полностью оригинальное изображение
+          array_push($result, [
+            "width"   => $image->width(),
+            "height"  => $image->height(),
+            "type"     => $image->mime()
+          ]);
+
+          // 2.2] Добавить изображения разных типов с ориг.разрешением
+          foreach($params_final['types'] as $type) {
+            array_push($result, [
+              "width"   => $image->width(),
+              "height"  => $image->height(),
+              "type"     => $type
+            ]);
+          }
+
+          // 2.3] Добавить изображения разных разреш., но с ориг.типом
+          foreach($params_final['sizes'] as $sizes) {
+            array_push($result, [
+              "width"   => $sizes[0],
+              "height"  => $sizes[1],
+              "type"     => $image->mime()
+            ]);
+          }
+
+        }
+
+        // 3] Добавить не связанные с оригиналами варианты
+
+          // 3.1] Добавить варианты разных размеров
+          foreach($params_final['sizes'] as $sizes) {
+            foreach($params_final['types'] as $type) {
+
+              array_push($result, [
+                "width"   => $sizes[0],
+                "height"  => $sizes[1],
+                "type"     => $type
+              ]);
+
+            }
+          }
+
+        // 4] Исключить абсолютно одинаковые повторы
+        $result = array_map("unserialize", array_unique(array_map("serialize", $result)));
+
+        // 5] Сбросить все ключи $result
+        $result = array_values($result);
+
+        // n] Вернуть результат
+        return $result;
+
+      });
+
+      // 14. Создать и сохранить изображения из $final_array
+      foreach($final_array as &$img) {
+
+        // 14.1. Сохранить не фильтрованное изображение
+        // - Если это не запрещено в конфиге
+        if($params_final['should_save_not_filtered_images'] != false) {
+          call_user_func(function() USE ($img, $get_res_by_mime, $image, $path, $params_final) {
+
+            // 1] Сформировать имя и добавить в $img имя и путь
+            $imgname = $img['width'] . 'x' . $img['height'] . '.' . $get_res_by_mime($img['type']);
+            $img['name'] = $imgname;
+            $img['folder'] = $path;
+            $img['path'] = $path . '/' . $imgname;
+
+            // 2] Создать клон оригинального изображения
+            $clone = clone $image;
+
+            // 3] Изменить размер изображения
+            $clone->resize($img['width'],  $img['height'], function($constraint){
+              $constraint->aspectRatio();  // Сохранить соотношение сторон
+            });
+
+            // 4] Закодировать изображение в указанный тип
+            $clone->encode($get_res_by_mime($img['type']));
+
+            // 5] Сохранить изображение, изменив указав тип, и в заданном качестве
+            $clone->save($path . '/' . $imgname, $params_final['quality']);
+
+          });
+        }
+
+        // 14.2. Сохранить фильтрованное изображение
+        call_user_func(function() USE (&$img, $get_res_by_mime, $image, $path, $params_final, $filters2apply_paths) {
+
+          // 1] Сформировать имя
+          $imgname_filtered = $img['width'] . 'x' . $img['height'] . '_filtered' . '.' . $get_res_by_mime($img['type']);
+          $img['name'] = $imgname_filtered;
+          $img['folder'] = $path;
+          $img['path'] = $path . '/' . $imgname_filtered;
+
+          // 2] Создать клон оригинального изображения
           $clone = clone $image;
 
-          // 2] Применить к клону все фильтры из $filters2apply
+          // 3] Изменить размер изображения
+          $clone->resize($img['width'],  $img['height'], function($constraint){
+            $constraint->aspectRatio();  // Сохранить соотношение сторон
+          });
+
+          // 4] Закодировать изображение в указанный тип
+          $clone->encode($get_res_by_mime($img['type']));
+
+          // 5] Применить к клону все фильтры из $filters2apply
           foreach($filters2apply_paths as $filter) {
             $clone->filter(new $filter());
           }
 
-          // 3] Сохранить
-          $clone->save($path . '/original_filtered' . $get_res_by_mime($image->mime()), $params_final['quality']);
+          // 6] Сохранить изображение, изменив указав тип, и в заданном качестве
+          $clone->save($path . '/' . $imgname_filtered, $params_final['quality']);
 
         });
 
-        // 12.3. Разные размеры, типы, фильтрованные/нефильтрованные
+      }
 
+      // 15. Вернуть результаты
+      DB::commit();
+      return [
+        "status"  => 0,
+        "data"    => $final_array     // Вернуть информацию о созданных изображениях
+      ];
 
-
-        //$params_final['sizes']
-        //$params_final['types']
-        //$params_final['quality']
-
-
-
-
-
-
-
-//      // 8. Написать функцию для вычисления ID для нового изображения
-//      // - Где $folder это путь относительно корня проекта.
-//      $new_id = function($folder){
-//
-//        // 1] Подготовить переменную для результата
-//        $result = 1;
-//
-//        // 2] Создать экземпляр ФС в $folder
-//        $fs = r1_fs($folder);
-//
-//        // 3] Попробовать извлечь файл lastid
-//        $index = $fs->exists("lastid") ? $fs->get('lastid') : "";
-//
-//        // 4] Если $index пуст:
-//        if(empty($index)) {
-//
-//          // 4.1] Извлечь имена всех каталогов
-//          $dirs = $fs->directories();
-//
-//          // 4.2] Отфильтровать из массива $dirs все не числовые имена
-//          // - Получив коллекцию.
-//          $dirs = collect($dirs)->filter(function($item){
-//            return is_numeric($item);
-//          });
-//
-//          // 4.3] Получить максимальное число из коллекции $dirs
-//          $max = $dirs->max();
-//
-//          // 4.4]
-//
-//
-//        }
-//
-//
-//        // n] Вернуть результат
-//        return $result;
-//
-//      };
-
-
-
-
-
-//      $fs = r1_fs('public');
-//      write2log($fs->get('index1.php'), []);
-
-
-
-//      $image_clone = clone $image;
-//      $image_clone->greyscale();
-//
-//      $image->save(public_path('image1'));
-//      $image_clone->save(public_path('image2'));
-
-
-
-
-
-
-      //$image->save(public_path().'/image');
-
-
-
-
-    DB::commit(); } catch(\Exception $e) {
-
-      write2log($params_final, []);
-      write2log($name, []);
+    } catch(\Exception $e) {
 
         // Если ошибка, удалить созданную папку изображения
         if(!empty($params_final) && !empty($name)) {
