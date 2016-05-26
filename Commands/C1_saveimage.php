@@ -214,17 +214,17 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       // 5. Провести валидацию итогового набора параметров
       $validator = r4_validate($params_final, [
 
-        "folderpath_relative_to_public"    => ["sometimes", "string"],
-        "should_save_original"             => ["sometimes", "boolean"],
-        "should_save_not_filtered_images"  => ["sometimes", "boolean"],
-        "sizes"                            => ["sometimes", "array"],
-        "sizes.*"                          => ["sometimes", "array"],
-        "sizes.*.*"                        => ["sometimes", "numeric"],
-        "types"                            => ["sometimes", "array"],
-        "types.*"                          => ["sometimes", "in:image/jpeg,image/png,image/gif"],
-        "quality"                          => ["sometimes", "numeric"],
-        "filters"                          => ["sometimes", "array"],
-        "filters.*"                        => ["sometimes", "string"],
+        "folderpath_relative_to_public"    => ["required", "string"],
+        "should_save_original"             => ["required", "boolean"],
+        "should_save_not_filtered_images"  => ["required", "boolean"],
+        "sizes"                            => ["required", "array"],
+        "sizes.*"                          => ["required", "array"],
+        "sizes.*.*"                        => ["required", "numeric"],
+        "types"                            => ["required", "array"],
+        "types.*"                          => ["required", "in:image/jpeg,image/png,image/gif"],
+        "quality"                          => ["required", "numeric"],
+        "filters"                          => ["required", "array"],
+        "filters.*"                        => ["required", "string"],
 
       ]); if($validator['status'] == -1) {
 
@@ -232,10 +232,28 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
 
       }
 
-      // 6. Создать экземпляр II из оригинала изображения
-      $image = \Intervention\Image\ImageManagerStatic::make('');
+      // 6. Создать оригинальный экземпляр II из оригинала изображения
+      $image = \Intervention\Image\ImageManagerStatic::make($this->data['file']);
 
-      
+      // 7. Проверить mime-тип изображения
+      if(!in_array($image->mime(), ['image/jpeg', 'image/png', 'image/gif']))
+        throw new \Exception('Не поддерживаемый mime-тип');
+
+      // 8. По
+
+
+
+
+
+
+
+//      $image_clone = clone $image;
+//      $image_clone->greyscale();
+//
+//      $image->save(public_path('image1'));
+//      $image_clone->save(public_path('image2'));
+
+
 
 
 
