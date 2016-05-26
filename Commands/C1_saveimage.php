@@ -155,7 +155,7 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
         "file"                                    => ["required", "image"],
         "group"                                   => ["sometimes", "string"],
         "params"                                  => ["sometimes", "array"],
-        "params.folderpath_relative_to_public"    => ["sometimes", "string"],
+        "params.folderpath_relative_to_basepath"  => ["sometimes", "string"],
         "params.should_save_original"             => ["sometimes", "boolean"],
         "params.should_save_not_filtered_images"  => ["sometimes", "boolean"],
         "params.sizes"                            => ["sometimes", "array"],
@@ -214,7 +214,7 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       // 5. Провести валидацию итогового набора параметров
       $validator = r4_validate($params_final, [
 
-        "folderpath_relative_to_public"    => ["required", "string"],
+        "folderpath_relative_to_basepath"  => ["required", "string"],
         "should_save_original"             => ["required", "boolean"],
         "should_save_not_filtered_images"  => ["required", "boolean"],
         "sizes"                            => ["required", "array"],
@@ -239,52 +239,212 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       if(!in_array($image->mime(), ['image/jpeg', 'image/png', 'image/gif']))
         throw new \Exception('Не поддерживаемый mime-тип');
 
-      // 8. Написать функцию для вычисления ID для нового изображения
-      // - Где $folder это путь относительно корня проекта.
-      $new_id = function($folder){
+      // 8. Подготовить md5-хэш, который будет служить именем каталога изображения
+      // - Берётся md5-хэш, который формируется из суммы следующих строк:
+      //
+      //   1] Закодированной в формате "data-url" строки изображения.
+      //   2] Ширины изображения.
+      //   3] Высоты изображения.
+      //   4] MIME-типа изображения.
+      //   5] Размера изображения в байтах.
+      //   6] Случайно сгенерированного
+      //
 
-        // 1] Подготовить переменную для результата
-        $result = 1;
+        // 8.1. Написать функцию для получения имени
+        $make_name = function($modifier = "") USE ($image) {
 
-        // 2] Создать экземпляр ФС в $folder
-        $fs = r1_fs($folder);
+          // 1] Сформировать имя
+          $name = md5(
+              (string) $image->encode('data-url') .
+              $image->width() .
+              $image->height() .
+              $image->mime() .
+              $image->filesize() .
+              mt_rand(0, 999999999999999)
+          );
 
-        // 3] Попробовать извлечь файл lastid
-        $index = $fs->exists("lastid") ? $fs->get('lastid') : "";
+          // 2] Вырезать из него запрещённые в Linux и Windows символы
+          $name = preg_replace("#[/\\\\:*?\"<>]+#ui", "", $name);
 
-        // 4] Если $index пуст:
-        if(empty($index)) {
+          // 3] Вернуть результат
+          return $name;
 
-          // 4.1] Извлечь имена всех каталогов
-          $dirs = $fs->directories();
+        };
 
-          // 4.2] Отфильтровать из массива $dirs все не числовые имена
-          // - Получив коллекцию.
-          $dirs = collect($dirs)->filter(function($item){
-            return is_numeric($item);
-          });
+        // 8.2. Получить имя и путь каталога изображения
+        $name = $make_name();
+        $path = base_path($params_final['folderpath_relative_to_basepath'] . '/' . $name);
+        while(file_exists($path)) {
+          $name = $make_name(mt_rand(0, 999999999999999) . "");
+          $path = base_path($params_final['folderpath_relative_to_basepath'] . '/' . $name);
+        }
 
-          // 4.3] Получить максимальное число из коллекции $dirs
-          $max = $dirs->max();
+      // 9. Создать каталог изображения, используя имя $name
+      $fs = r1_fs($params_final['folderpath_relative_to_basepath']);
+      $fs->makeDirectory($name);
 
-          // 4.4]
+      // 10. Получить информацию обо всех доступных фильтрах
+      // - Которые находятся в папке "Filters" в M7
+      $filters = call_user_func(function(){
 
+        // 1] Подготовить массив для свежих данных о фильтрах //
+        $newfilters = [];
+
+        // 2] Выяснить имя каталога-домена
+        $domain = basename(dirname(dirname(dirname(dirname(__DIR__)))));
+
+        // 3] Получить путь к каталогу Filters модуля M6 относительно корня приложения
+        $path = "vendor/4gekkman/M7/Filters";
+
+        // 4] Получить массив путей ко всем каталогам-фильтрам
+        $fs = r1_fs("");
+        $filters_paths = $fs->directories($path);
+
+        // 5] Пробежатсья по каждому фильтру
+        foreach($filters_paths as $filterpath) {
+
+          // 5.1] Если файл config.json отсутствует, перейти к след.итерации
+          if(!$fs->exists($filterpath.'/config.json')) continue;
+
+          // 5.2] Если файл Filter.php отсутствует, перейти к след.итерации
+          if(!$fs->exists($filterpath.'/Filter.php')) continue;
+
+          // 5.3] Получить имя каталога с фильтром
+          $filtercat_name = basename($filterpath);
+
+          // 5.4] Если $filtercat_name начнается с символа _ , перейти к след.итерации
+          if(mb_substr($filtercat_name, 0, 1, 'utf-8') == '_') continue;
+
+          // 5.5] Извлечь config.json, преобразовать его из json в массив
+          $config = json_decode($fs->get($filterpath.'/config.json'), true);
+
+          // 5.6] Провести проверку на ошибки
+
+            // 1) Имя фильтра
+            if(empty($config['name']) || !preg_match("/^[-0-9а-яёa-z\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$/ui", $config['name']))
+              return "Для фильтра ".$filterpath.", в config.json, не указано значение для 'name', или оно содержит недопустимы символы. Допустимые: а-яёa-z0-9.-";
+
+            // 2) Описание фильтра
+            if(empty($config['description']) || !preg_match("/^[-0-9а-яёa-z\/\\\\_!№@#$&:()\[\]{}*%?\"'`.,\r\n ]*$/ui", $config['description']))
+              return "Для фильтра ".$filterpath.", в config.json, не указано значение для 'description', или оно содержит недопустимы символы. Допустимые: а-яёa-z0-9., :;()!?@_-/\\\\";
+
+          // 5.7] Добавить информацию об этом фильтре в $newfilters
+          $newfilters[$filtercat_name] = [
+            "name"          => $config['name'],
+            "name_folder"   => $filtercat_name,
+            "description"   => $config['description']
+          ];
 
         }
 
+        // 6] Вернуть результаты
+        return $newfilters;
 
+      });
 
-        // n] Вернуть результат
-        return $result;
+      // 11. Получить массив фильтров, которые надо применять к изображению
+
+        // 11.1. Получить
+        $filters2apply = collect($filters)->keys()->intersect($params_final['filters']); //->values()->toArray();
+
+        // 11.2. Сформировать из массива имён массив путей
+        // - В стиле: "\\M7\\Filters\\<имя фильтра>".
+        $filters2apply_paths = collect($filters2apply)->map(function($value, $key){
+
+          return "\\M7\\Filters\\" . $value . "\\Filter";
+
+        });
+
+      // 12. Написать функцию для вычисления расширения по mime-типу
+      $get_res_by_mime = function($mime){
+
+        if($mime == 'image/jpeg') return ".jpg";
+        if($mime == 'image/png') return ".png";
+        if($mime == 'image/gif') return ".gif";
+        return "";
 
       };
 
+      // 12. Сохранить изображения
+
+        // 12.1. Оригинал
+        $image->save($path . '/original' . $get_res_by_mime($image->mime()), 0);
+
+        // 12.2. Оригинал фильтрованный
+        call_user_func(function() USE ($image, $filters2apply_paths, $path, $get_res_by_mime, $params_final) {
+
+          // 1] Получить клон изображения
+          $clone = clone $image;
+
+          // 2] Применить к клону все фильтры из $filters2apply
+          foreach($filters2apply_paths as $filter) {
+            $clone->filter(new $filter());
+          }
+
+          // 3] Сохранить
+          $clone->save($path . '/original_filtered' . $get_res_by_mime($image->mime()), $params_final['quality']);
+
+        });
+
+        // 12.3. Разные размеры, типы, фильтрованные/нефильтрованные
+
+
+
+        //$params_final['sizes']
+        //$params_final['types']
+        //$params_final['quality']
 
 
 
 
-      $fs = r1_fs('public');
-      write2log($fs->get('index1.php'), []);
+
+
+
+//      // 8. Написать функцию для вычисления ID для нового изображения
+//      // - Где $folder это путь относительно корня проекта.
+//      $new_id = function($folder){
+//
+//        // 1] Подготовить переменную для результата
+//        $result = 1;
+//
+//        // 2] Создать экземпляр ФС в $folder
+//        $fs = r1_fs($folder);
+//
+//        // 3] Попробовать извлечь файл lastid
+//        $index = $fs->exists("lastid") ? $fs->get('lastid') : "";
+//
+//        // 4] Если $index пуст:
+//        if(empty($index)) {
+//
+//          // 4.1] Извлечь имена всех каталогов
+//          $dirs = $fs->directories();
+//
+//          // 4.2] Отфильтровать из массива $dirs все не числовые имена
+//          // - Получив коллекцию.
+//          $dirs = collect($dirs)->filter(function($item){
+//            return is_numeric($item);
+//          });
+//
+//          // 4.3] Получить максимальное число из коллекции $dirs
+//          $max = $dirs->max();
+//
+//          // 4.4]
+//
+//
+//        }
+//
+//
+//        // n] Вернуть результат
+//        return $result;
+//
+//      };
+
+
+
+
+
+//      $fs = r1_fs('public');
+//      write2log($fs->get('index1.php'), []);
 
 
 
@@ -305,6 +465,16 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
 
 
     DB::commit(); } catch(\Exception $e) {
+
+      write2log($params_final, []);
+      write2log($name, []);
+
+        // Если ошибка, удалить созданную папку изображения
+        if(!empty($params_final) && !empty($name)) {
+          $fs = r1_fs($params_final['folderpath_relative_to_basepath']);
+          $fs->deleteDirectory($name);
+        }
+
         $errortext = 'Invoking of command C1_saveimage from M-package M7 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
