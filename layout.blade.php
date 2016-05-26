@@ -183,12 +183,11 @@ desired effect
             <!-- # Demonstration -->
             <li class=""><a href="{!! asset('dashboard/demonstration') !!}"><i class="fa fa-dashboard"></i> <span>Demonstration</span></a></li>
 
-          <!-- 1.2] Группа "USERS & GROUPS & PRIVS" -->
-          <!------------------------------------------>
-          <li class="header">USERS & GROUPS & PRIVS</li>
-
-            <!-- # Demonstration -->
+            <!-- # Users control system -->
             <li class=""><a href="{!! asset('dashboard/users') !!}"><i class="fa fa-users"></i> <span>Users control system</span></a></li>
+
+            <!-- # Images upload system -->
+            <li class=""><a href="{!! asset('dashboard/images') !!}"><i class="fa fa-image"></i> <span>Images upload system</span></a></li>
 
 
           <!-- 1.3] Группа "USER PROFILE -->
