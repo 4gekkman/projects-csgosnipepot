@@ -177,7 +177,7 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
             $result = $result . '  ';
 
             // 2] Добавить путь
-            $result = $result . '<link rel="stylesheet" type="text/css" href="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()); !!}' . '/' . $path . '">';
+            $result = $result . '<link rel="stylesheet" type="text/css" href="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}' . '/' . $path . '">';
 
             // 3] Добавить перенос строки
             $result = $result . PHP_EOL;
@@ -205,7 +205,7 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
             $result = $result . '  ';
 
             // 2] Добавить путь
-            $result = $result . '<script src="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()); !!}' . '/' . $path . '"></script>';
+            $result = $result . '<script src="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}' . '/' . $path . '"></script>';
 
             // 3] Добавить перенос строки
             $result = $result . PHP_EOL;
