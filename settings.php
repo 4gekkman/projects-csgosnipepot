@@ -148,7 +148,32 @@ return [
       //---------------------------------------------------------------------------------------------------------//
       'bruteforce_protection_counter_lifetime' => 60,
 
+    //----------------------//
+    // 6] Конфиг HybridAuth //
+    //    HybridAuth config //
+    //----------------------//
+    'hybridauth_config' => [
 
+			"base_url" => "/authwith/hybrid-auth-endpoint",
+			"providers" => [
+
+				"Steam" => [
+					"enabled" => true
+				],
+
+			],
+
+			// If you want to enable logging, set 'debug_mode' to true.
+			// You can also set it to
+			// - "error" To log only error messages. Useful in production
+			// - "info" To log info and error messages (ignore debug messages)
+			"debug_mode" => false,
+
+			// Path to file writable by the web server. Required if 'debug_mode' is not false
+			"debug_file" => "",
+
+    ],
+    'steam_api_key' => "",
 
 
 
