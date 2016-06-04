@@ -335,7 +335,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			// 6] Если result снова пуст, использовать [nameless]
 			if(!result) result = '[nameless]';
 
-			// 5] Записать результат в m.s1.fio
+			// 7] Записать результат в m.s1.fio
 			self.m.s1.fio(result);
 
 		})();
