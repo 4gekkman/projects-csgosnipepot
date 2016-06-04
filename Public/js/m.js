@@ -329,6 +329,12 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				else result = result + $patronymic;
 			}
 
+			// 5] Если result пуст, использовать nickname
+			if(!result) result = self.m.s0.auth.user().nickname();
+
+			// 6] Если result снова пуст, использовать [nameless]
+			if(!result) result = '[nameless]';
+
 			// 5] Записать результат в m.s1.fio
 			self.m.s1.fio(result);
 
