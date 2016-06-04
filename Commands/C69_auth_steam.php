@@ -250,26 +250,62 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         if($result['status'] != 0) {
           throw new \Exception($result['data']['errormsg']);
         }
+        else {
+          $user2auth = \M5\Models\MD1_users::find($result['data']['id']);
+        }
 
       }
 
       // 9. Аутентифицировать пользователя $user2auth
+      // - Если он найден и не заблокирован.
 
+        // 9.1. Если пользователь не найден, завершить
+        if(empty($user2auth))
+          throw new \Exception("The user is not found (auth error)");
 
+        // 9.2. Если пользователь заблокирован, завершить
+        if($user2auth->is_blocked !== 0)
+          throw new \Exception("The user is blocked.");
+
+        // 9.3. Извлечь для $user2auth время жизни аутентификации
+        $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user2auth->id]);
+        if($lifetime['status'] != 0)
+          throw new \Exception($lifetime['data']);
+        $lifetime = $lifetime['data'];
+
+        // 9.4. Получить дату и время, когда эта аутентификация истекает
+        $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
+
+        // 9.5. Создать для пользователя новую запись в таблице аутентификаций, связать
+        $auth = new \M5\Models\MD8_auth();
+        $auth->expired_at = $expired_at;
+        $auth->save();
+        $auth->users()->attach($user2auth->id);
+        $auth->save();
+
+        // 9.6. Сфоромировать json с новыми аутентификационными данными
+        $json = [
+          'auth'    => $auth,
+          'user'    => $user2auth,
+          'is_anon' => 0
+        ];
+        $json = json_encode($json, JSON_UNESCAPED_UNICODE);
+        $json_encrypted = Crypt::encrypt($json);
+
+        // 9.7. Записать пользователю новый аутентиф.кэш в сессию
+        session(['auth_cache' => $json]);
+
+        // 9.8. Записать пользователю новую куку с временем жизни $lifetime
+        Cookie::queue('auth', $json_encrypted, $lifetime);
 
       // 10. Через websocket послать аутентиф.информацию по каналу websockets_channel
-
-
-
-
-
-      if(empty($user2auth))
-        throw new \Exception('User with ha_provider_name = "'.$full_profile_data['provider'].'" not found.');
-
-
-
-
-
+      Event::fire(new \R2\Broadcast([
+        'channels'  => [$this->data['websockets_channel']],
+        'data'      => [
+          'status'  => 0,
+          'user'    => json_encode($user2auth->toArray(), JSON_UNESCAPED_UNICODE)
+        ]
+      ]));
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C69_auth_steam from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

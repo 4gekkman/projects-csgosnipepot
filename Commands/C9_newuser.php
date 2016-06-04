@@ -185,7 +185,7 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
         "surname"           => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
         "patronymic"        => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
 
-        "nickname"          => ["sometimes", "regex:/^\S+$/ui"],
+        "nickname"          => ["sometimes"],
 
         "email"             => ["required_without_all:phone,ha_provider_name,ha_provider_uid", "email"],
         "phone"             => ["required_without_all:email,ha_provider_name,ha_provider_uid", "regex:/^[0-9]+$/ui"],
