@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Change a user
+ *    - Auth with Steam
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C17_changeuser extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,208 +135,147 @@ class C17_changeuser extends Job { // TODO: добавить "implements ShouldQ
     /**
      * Оглавление
      *
-     *  1. Принять входящие параметры
-     *  2. Провести валидацию входящих параметров
-     *  3. Попробовать найти пользователя с таким email / phone / ha_provider_name && ha_provider_uid
-     *  4. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
-     *  5. Если требуется изменить пол, получить ID для нового пола
-     *  6. Попробовать найти пользователя с указанным ID
-     *  7. Внести изменения в $user
-     *  8. Сделать commit
-     *  9. Вернуть результаты
+     *  1. Получить имя канала для Websockets
+     *  2. Провести валидацию
+     *  3. Получить данные о пользователе через HybridAuth
+     *  4. Получить полную информацию о пользователе
+     *  5. Провести валидацию $full_profile_data
+     *  6. Сформировать json-строку из $full_profile_data
+     *  7. Попробовать найти пользователя с такими ha_provider_name и ha_provider_uid
+     *  8. Если пользователь не найден, создать нового пользователя
+     *  9. Аутентифицировать пользователя $user2auth
+     *  10. Через websocket послать аутентиф.информацию по каналу websockets_channel
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------------//
-    // Изменить пользователя //
-    //-----------------------//
+    //---------------------------------------//
+    // Произвести аутентификацию через Steam //
+    //---------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять входящие параметры
+      // 1. Получить имя канала для Websockets
+      $websockets_channel = $this->data['websockets_channel'];
 
-        // 1.1. Принять
-        $params = $this->data;
-
-//        // 1.2. Обработать
-//        foreach($params as $key => $value)
-//          if($value == "0" || $value == "0") $params[$key] = null;
-//
-//        // 1.3. Отфильтровать из $params пустые значения
-//        $params = array_filter($params, function($item){
-//          if(empty($item)) return false;
-//          return true;
-//        });
-
-      // 2. Провести валидацию входящих параметров
-      $validator = r4_validate($params, [
-
-        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-
-        "name"            => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
-        "surname"         => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
-        "patronymic"      => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
-
-        "nickname"        => ["sometimes", "regex:/^\S+$/ui"],
-
-        "email"           => ["required_without_all:phone,ha_provider_name,ha_provider_uid", "email"],
-        "phone"           => ["required_without_all:email,ha_provider_name,ha_provider_uid", "regex:/^[0-9]+$/ui"],
-
-        "gender"          => ["required", "in:m,f,u"],
-        "birthday"        => ["sometimes", "date"],
-
-        "isanonymous"     => ["required", "in:yes,no"],
-        "is_blocked"      => ["required", "in:yes,no"],
-        "adminnote"       => ["sometimes", "string"],
-
-        "ha_provider_name"  => ["required_without_all:phone,email"],
-        "ha_provider_uid"   => ["required_without_all:phone,email", "regex:/^[0-9]+$/ui"],
+      // 2. Провести валидацию
+      $validator = r4_validate($this->data, [
+        "websockets_channel"    => ["required"],
+        "provider"              => ["required"],
+        "hybridauth_config"     => ["required", "array"],
 
       ]); if($validator['status'] == -1) {
-
         throw new \Exception($validator['data']);
+      }
+
+      // 3. Получить первичные данные о пользователе через HybridAuth
+
+        // 3.1. Проверить, если класс Hybrid_Auth недоступен, вернуть ошибку
+        if(!class_exists("Hybrid_Auth")) throw new \Exception("Hybrid_Auth class is not available");
+
+        // 3.2. Получить API-ключ от Steam из конфига M5
+        $apikey = config("M5.steam_api_key");
+        if(!$apikey || !is_string($apikey)) throw new \Exception("Steam api key is absent.");
+
+        // 3.3. Создать объект класса Hybrid_Auth
+        $hybridauth = new \Hybrid_Auth($this->data['hybridauth_config']);
+
+        // 3.4. Попробовать аутентифицироваться через выбранного провайдера
+        // - При заходе на контроллер через сайт это переадресует на сайт провайдера.
+        // - При возврате запроса с сайта провайдера через HA Endpoint, это даст экземпляр провайдера.
+        $adapter = $hybridauth->authenticate($this->data['provider']);
+
+      // 4. Получить полную информацию о пользователе
+
+        // 4.1. Получить из сессии некоторую информацию о профиле пользователя
+        $not_full_profile = $hybridauth->storage()->get("hauth_session.steam.user")->profile;
+
+        // 4.2. С помощью API-ключа и ID пользователя, получить через API Steam полную инфу о профиле
+        $full_profile = call_user_func(function() USE ($apikey, $not_full_profile) {
+
+          $apiUrl = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key='
+              . $apikey . '&steamids=' . $not_full_profile->identifier;
+          $data = @file_get_contents($apiUrl);
+          $data = json_decode($data);
+          return $data;
+
+        });
+
+        // 4.3. Получить из $full_profile наиболее важные сведения
+        $full_profile_data = [
+          "provider"      => "steam",
+          "steamid"       => $full_profile->response->players[0]->steamid,
+          "personaname"   => $full_profile->response->players[0]->personaname ?: "",
+          "profileurl"    => $full_profile->response->players[0]->profileurl ?: "",
+          "avatar"        => $full_profile->response->players[0]->avatar ?: "",
+          "avatarmedium"  => $full_profile->response->players[0]->avatarmedium ?: "",
+          "avatarfull"    => $full_profile->response->players[0]->avatarfull ?: "",
+        ];
+
+      // 5. Провести валидацию $full_profile_data
+      $validator = r4_validate($full_profile_data, [
+        "provider"      => ["required"],
+        "steamid"       => ["required", "regex:/^[0-9]+$/ui"],
+        "personaname"   => ["required"],
+        "profileurl"    => ["required"],
+        "avatar"        => ["required"],
+        "avatarmedium"  => ["required"],
+        "avatarfull"    => ["required"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
+
+      // 6. Сформировать json-строку из $full_profile_data
+      $full_profile_data_json = json_encode($full_profile_data, true);
+
+      // 7. Попробовать найти пользователя с такими ha_provider_name и ha_provider_uid
+      $user2auth = \M5\Models\MD1_users::where('ha_provider_name', $full_profile_data['provider'])
+          ->where('ha_provider_uid', $full_profile_data['steamid'])
+          ->first();
+
+      // 8. Если пользователь не найден, создать нового пользователя
+      // - И получить его экземпляр в переменную $user2auth
+      if(empty($user2auth)) {
+
+        $result = runcommand('\M5\Commands\C9_newuser', [
+          "nickname"          => $full_profile_data['personaname'],
+          "gender"            => "u",
+          "isanonymous"       => "no",
+          "password"          => "",
+          "adminnote"         => "Вошёл через аккаунт Steam",
+          "ha_provider_name"  => $full_profile_data['provider'],
+          "ha_provider_uid"   => $full_profile_data['steamid'],
+          "ha_provider_data"  => $full_profile_data_json
+        ]);
+        if($result['status'] != 0) {
+          throw new \Exception($result['data']['errormsg']);
+        }
 
       }
 
-      // 3. Попробовать найти пользователя с таким email / phone / ha_provider_name && ha_provider_uid
+      // 9. Аутентифицировать пользователя $user2auth
 
-        // email
-        if(!empty($params['email'])) {
 
-          // 1] Искать
-          $user2edit = \M5\Models\MD1_users::where('email', $params['email'])->first();
 
-          // 2] Если найден другой пользователь, завершить
-          if(!empty($user2edit) && $user2edit->id != $params['id'])
-            throw new \Exception("Пользователь с email '$user2edit->email' уже есть в системе, его ID = ".$user2edit->id);
+      // 10. Через websocket послать аутентиф.информацию по каналу websockets_channel
 
-        }
 
-        // phone
-        if(!empty($params['phone'])) {
 
-          // 1] Искать
-          $user2edit = \M5\Models\MD1_users::where('phone', $params['phone'])->first();
 
-          // 2] Если найден другой пользователь, завершить
-          if(!empty($user2edit) && $user2edit->id != $params['id'])
-            throw new \Exception("Пользователь с phone '$user2edit->phone' уже есть в системе, его ID = ".$user2edit->id);
 
-        }
+      if(empty($user2auth))
+        throw new \Exception('User with ha_provider_name = "'.$full_profile_data['provider'].'" not found.');
 
-        // ha_provider_name && ha_provider_uid
-        if(array_key_exists('ha_provider_name', $params) && array_key_exists('ha_provider_uid', $params) ) {
-          if(!empty($params['ha_provider_name']) && !empty($params['ha_provider_uid'])) {
 
-            // 1] Искать
-            $user2edit = \M5\Models\MD1_users::where('ha_provider_name', $params['ha_provider_name'])
-                ->where('ha_provider_uid', $params['ha_provider_uid'])
-                ->first();
 
-            // 2] Если найден другой пользователь, завершить
-            if(!empty($user2edit))
-              throw new \Exception("Пользователь с ha_provider_name '$user2edit->ha_provider_name' и ha_provider_uid '$user2edit->ha_provider_uid' уже есть в системе, его ID = ".$user2edit->id);
 
-          }
-        }
-
-      // 4. Если $params['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
-      if(array_key_exists('isanonymous', $params) && $params['isanonymous'] == 'yes') {
-        $isanonymous = \M5\Models\MD1_users::withTrashed()->where('isanonymous', 1)->first();
-        if(!empty($isanonymous) && $isanonymous->id != $params['id']) throw new \Exception('В системе можеть быть лишь 1 анонимный пользователь, и таковой уже имеется с ID = '.$isanonymous->id);
-      }
-
-      // 5. Если требуется изменить пол, получить ID для нового пола
-      if(array_key_exists('gender', $params)) {
-        $gender = \M5\Models\MD11_genders::where('name',$params['gender'])->first();
-        if(empty($gender)) throw new \Exception('В таблице полов не удалось найти пол '.$params['gender']);
-      }
-
-      // 6. Попробовать найти пользователя с указанным ID
-      $user = \M5\Models\MD1_users::find($params['id']);
-      if(empty($user))
-        throw new \Exception("Пользователь с id '".$params['id']."' не найден в системе среди активных (не мягко удалённых) аккаунтов");
-
-      // 7. Внести изменения в $user
-
-        // 7.1. Отменить "подтверждённость" email, если он изменился
-        if($user->id == $params['id'] && $user->email != $params['email']) {
-          $user->is_email_approved = 0;
-        }
-
-        // 7.2. Отменить "подтверждённость" phone, если он изменился
-        if($user->id == $params['id'] && $user->phone != $params['phone']) {
-          $user->is_phone_approved = 0;
-        }
-
-        // 7.3. Внести основные изменения
-        foreach($params as $key => $value) {
-
-          // Если $key == 'timestamp', продолжить
-          if($key == 'timestamp') continue;
-
-          // Если $key == 'id', продолжить
-          if($key == 'id') continue;
-
-          // Если $key == 'is_email_approved', продолжить
-          if($key == 'is_email_approved') continue;
-
-          // Если $key == 'is_phone_approved', продолжить
-          if($key == 'is_phone_approved') continue;
-
-          // Если $key == 'password'
-          if($key == 'password') {
-            $user["password_hash"] = Hash::make($value);
-            continue;
-          }
-
-          // Если $key == 'isanonymous'
-          if($key == 'isanonymous') {
-            $user[$key] = $value == 'yes' ? 1 : 0;
-            continue;
-          }
-
-          // Если $key == 'is_blocked'
-          if($key == 'is_blocked') {
-            $user[$key] = $value == 'yes' ? 1 : 0;
-            continue;
-          }
-
-          // Если $key == 'gender'
-          if($key == 'gender') {
-            $user[$key] = $gender->id;
-            continue;
-          }
-
-          // Если $key == ha_provider_name или ha_provider_uid
-          if($key == 'ha_provider_name' || $key == 'ha_provider_uid') continue;
-
-          // В общем случае
-          $user[$key] = $value;
-
-        }
-
-        // 7.n. Сохранить
-        $user->save();
-
-      // 8. Сделать commit
-      DB::commit();
-
-      // 9. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "id"      => $user->id
-        ]
-      ];
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C17_changeuser from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C69_auth_steam from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C17_changeuser']);
+        write2log($errortext, ['M5', 'C69_auth_steam']);
         return [
           "status"  => -2,
           "data"    => [

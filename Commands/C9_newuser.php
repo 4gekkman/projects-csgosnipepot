@@ -149,7 +149,7 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
      *  2. Провести валидацию входящих параметров
      *  3. Получить ID для нового значения пола
      *  4. Если $this->data['isanonymous'] == 'yes' проверить, нет ли уже в системе анонимного пользователя
-     *  5. Попробовать найти пользователя с таким email или phone
+     *  5. Попробовать найти пользователя с таким email / phone / ha_provider_name && ha_provider_uid
      *  6. Создать нового пользователя
      *  7. Сделать commit
      *  8. Вернуть результаты
@@ -181,19 +181,25 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
       // 2. Провести валидацию входящих параметров
       $validator = r4_validate($params, [
 
-        "name"            => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
-        "surname"         => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
-        "patronymic"      => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
+        "name"              => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
+        "surname"           => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
+        "patronymic"        => ["sometimes", "regex:/^[a-zа-яё]+$/ui"],
 
-        "email"           => ["required", "email"],
-        "phone"           => ["sometimes", "regex:/^[0-9]+$/ui"],
-        "password"        => ["sometimes", "min:".config("M5.common_min_chars_in_pass")],
+        "nickname"          => ["sometimes", "regex:/^\S+$/ui"],
 
-        "gender"          => ["required", "in:m,f,u"],
-        "birthday"        => ["sometimes", "date"],
+        "email"             => ["required_without_all:phone,ha_provider_name,ha_provider_uid", "email"],
+        "phone"             => ["required_without_all:email,ha_provider_name,ha_provider_uid", "regex:/^[0-9]+$/ui"],
+        "password"          => ["sometimes", "min:".config("M5.common_min_chars_in_pass")],
 
-        "isanonymous"     => ["required", "in:yes,no"],
-        "adminnote"       => ["sometimes", "string"]
+        "gender"            => ["required", "in:m,f,u"],
+        "birthday"          => ["sometimes", "date"],
+
+        "isanonymous"       => ["required", "in:yes,no"],
+        "adminnote"         => ["sometimes", "string"],
+
+        "ha_provider_name"  => ["required_without_all:phone,email"],
+        "ha_provider_uid"   => ["required_without_all:phone,email", "regex:/^[0-9]+$/ui"],
+        "ha_provider_data"  => ["required_without_all:phone,email", "json"],
 
       ]); if($validator['status'] == -1) {
 
@@ -211,17 +217,30 @@ class C9_newuser extends Job { // TODO: добавить "implements ShouldQueue
         if(!empty($isanonymous)) throw new \Exception('В системе можеть быть лишь 1 анонимный пользователь, и таковой уже имеется с ID = '.$isanonymous->id);
       }
 
-      // 5. Попробовать найти пользователя с таким email или phone
+      // 5. Попробовать найти пользователя с таким email / phone / ha_provider_name && ha_provider_uid
 
         // email
-        $newuser = \M5\Models\MD1_users::where('email', $params['email'])->first();
-        if(!empty($newuser))
-          throw new \Exception("Пользователь с email '$newuser->email' уже есть в системе, его ID = ".$newuser->id);
+        if(array_key_exists('email', $params)) {
+          $newuser = \M5\Models\MD1_users::where('email', $params['email'])->first();
+          if(!empty($newuser))
+            throw new \Exception("Пользователь с email '$newuser->email' уже есть в системе, его ID = ".$newuser->id);
+        }
 
         // phone
-        $newuser = \M5\Models\MD1_users::where('phone', $params['phone'])->first();
-        if(!empty($newuser))
-          throw new \Exception("Пользователь с phone '$newuser->phone' уже есть в системе, его ID = ".$newuser->id);
+        if(array_key_exists('phone', $params)) {
+          $newuser = \M5\Models\MD1_users::where('phone', $params['phone'])->first();
+          if(!empty($newuser))
+            throw new \Exception("Пользователь с phone '$newuser->phone' уже есть в системе, его ID = ".$newuser->id);
+        }
+
+        // ha_provider_name && ha_provider_uid
+        if(array_key_exists('ha_provider_name', $params) && array_key_exists('ha_provider_uid', $params)) {
+          $newuser = \M5\Models\MD1_users::where('ha_provider_name', $params['ha_provider_name'])
+              ->where('ha_provider_uid', $params['ha_provider_uid'])
+              ->first();
+          if(!empty($newuser))
+            throw new \Exception("Пользователь с ha_provider_name '$newuser->ha_provider_name' и ha_provider_uid '$newuser->ha_provider_uid' уже есть в системе, его ID = ".$newuser->id);
+        }
 
       // 6. Создать нового пользователя
 
