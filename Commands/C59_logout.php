@@ -139,6 +139,7 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
      *  2. Удалить аутентификационную запись с $id_auth
      *  3. Забыть аутентификационный кэш в сессии
      *  4. Забыть аутентификационную куку
+     *  5. Забыть куку "PHPSESSID", которую ставит HybridAuth
      *
      *  N. Вернуть статус 0
      *
@@ -190,6 +191,9 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
 
       // 4. Забыть аутентификационную куку
       Cookie::queue( Cookie::forget('auth') );
+
+      // 5. Забыть куку "PHPSESSID", которую ставит HybridAuth
+      Cookie::queue( Cookie::forget('PHPSESSID') );
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C59_logout from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

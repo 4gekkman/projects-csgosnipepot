@@ -143,8 +143,11 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
      *  6. Сформировать json-строку из $full_profile_data
      *  7. Попробовать найти пользователя с такими ha_provider_name и ha_provider_uid
      *  8. Если пользователь не найден, создать нового пользователя
-     *  9. Аутентифицировать пользователя $user2auth
-     *  10. Через websocket послать аутентиф.информацию по каналу websockets_channel
+     *  9. Если пользователь найден, обновить его аккаунт новыми данными
+     *  10. Аутентифицировать пользователя $user2auth
+     *  11. Создать группу "Steam Users", если её ещё нет
+     *  12. Добавить пользователя $user2auth в группу $steamusers
+     *  13. Через websocket послать аутентиф.информацию по каналу websockets_channel
      *
      *  N. Вернуть статус 0
      *
@@ -256,34 +259,43 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
 
       }
 
-      // 9. Аутентифицировать пользователя $user2auth
+      // 9. Если пользователь найден, обновить его аккаунт новыми данными
+      else {
+
+        $user2auth->nickname          = $full_profile_data['personaname'];
+        $user2auth->ha_provider_data  = $full_profile_data_json;
+        $user2auth->save();
+
+      }
+
+      // 10. Аутентифицировать пользователя $user2auth
       // - Если он найден и не заблокирован.
 
-        // 9.1. Если пользователь не найден, завершить
+        // 10.1. Если пользователь не найден, завершить
         if(empty($user2auth))
           throw new \Exception("The user is not found (auth error)");
 
-        // 9.2. Если пользователь заблокирован, завершить
+        // 10.2. Если пользователь заблокирован, завершить
         if($user2auth->is_blocked !== 0)
           throw new \Exception("The user is blocked.");
 
-        // 9.3. Извлечь для $user2auth время жизни аутентификации
+        // 10.3. Извлечь для $user2auth время жизни аутентификации
         $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user2auth->id]);
         if($lifetime['status'] != 0)
           throw new \Exception($lifetime['data']);
         $lifetime = $lifetime['data'];
 
-        // 9.4. Получить дату и время, когда эта аутентификация истекает
+        // 10.4. Получить дату и время, когда эта аутентификация истекает
         $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
 
-        // 9.5. Создать для пользователя новую запись в таблице аутентификаций, связать
+        // 10.5. Создать для пользователя новую запись в таблице аутентификаций, связать
         $auth = new \M5\Models\MD8_auth();
         $auth->expired_at = $expired_at;
         $auth->save();
         $auth->users()->attach($user2auth->id);
         $auth->save();
 
-        // 9.6. Сфоромировать json с новыми аутентификационными данными
+        // 10.6. Сфоромировать json с новыми аутентификационными данными
         $json = [
           'auth'    => $auth,
           'user'    => $user2auth,
@@ -292,13 +304,34 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         $json = json_encode($json, JSON_UNESCAPED_UNICODE);
         $json_encrypted = Crypt::encrypt($json);
 
-        // 9.7. Записать пользователю новый аутентиф.кэш в сессию
+        // 10.7. Записать пользователю новый аутентиф.кэш в сессию
         session(['auth_cache' => $json]);
 
-        // 9.8. Записать пользователю новую куку с временем жизни $lifetime
+        // 10.8. Записать пользователю новую куку с временем жизни $lifetime
         Cookie::queue('auth', $json_encrypted, $lifetime);
 
-      // 10. Через websocket послать аутентиф.информацию по каналу websockets_channel
+      // 11. Создать группу "Steam Users", если её ещё нет
+      $steamusers = \M5\Models\MD2_groups::where('name', 'SteamUsers')->first();
+      if(empty($steamusers)) {
+
+        $result = runcommand('\M5\Commands\C10_newgroup', [
+					"name"        => "SteamUsers",
+					"description" => "Входящие через Steam пользователи",
+					"isadmin"     => "no"
+        ]);
+        if($result['status'] != 0) {
+          throw new \Exception($result['data']['errormsg']);
+        }
+
+      }
+      if(empty($steamusers)) $steamusers = \M5\Models\MD2_groups::where('name', 'SteamUsers')->first();
+
+      // 12. Добавить пользователя $user2auth в группу $steamusers
+      // - Если его ещё там нет
+      if(!$steamusers->users->contains($user2auth->id))
+        $steamusers->users()->attach($user2auth->id);
+
+      // 13. Через websocket послать аутентиф.информацию по каналу websockets_channel
       Event::fire(new \R2\Broadcast([
         'channels'  => [$this->data['websockets_channel']],
         'data'      => [
