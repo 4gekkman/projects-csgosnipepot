@@ -291,7 +291,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           if($auth_cookie['is_anon'] == 1) {
 
             // 1.1] Попробовать найти анонимного пользователя
-            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone']);
+            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone', 'nickname']);
             if(count($anon) == 0) {
 
               // Обнулить аутентификационный кэш в сессии
@@ -329,7 +329,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           if($auth_cookie['is_anon'] == 0) {
 
             // 2.1] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
-            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->only(['id','name','surname','patronymic','avatar','email','phone']);
+            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->only(['id','name','surname','patronymic','avatar','email','phone','nickname']);
             $json = [
               'auth'    => $auth_note,
               'user'    => $auth_cookie_user,
@@ -362,7 +362,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
       else {
 
         // 5.1. Попробовать найти анонимного пользователя
-        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone']);
+        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone', 'nickname']);
         if(count($anon) == 0) {
 
           // Обнулить аутентификационный кэш в сессии
