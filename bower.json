@@ -4,7 +4,7 @@
 		"4gekkman-bower-jslib1": "latest",
 		"font-awesome": "FortAwesome/Font-Awesome",
 		"ionicons": "latest",
-		"jquery": "latest",
+		"jquery": "~2.0",
 		"moment": "latest",
 		"AdminLTE": "almasaeed2010/AdminLTE#master",
 		"knockoutjs": "latest",
