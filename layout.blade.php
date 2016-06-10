@@ -189,6 +189,9 @@ desired effect
             <!-- # Images upload system -->
             <li class=""><a href="{!! asset('dashboard/images') !!}"><i class="fa fa-image"></i> <span>Images upload system</span></a></li>
 
+            <!-- # Bots and automation -->
+            <li class=""><a href="{!! asset('dashboard/bots_and_automation') !!}"><i class="fa fa-child"></i> <span>Bots and automation</span></a></li>
+
 
           <!-- 1.3] Группа "USER PROFILE -->
           <!------------------------------->
