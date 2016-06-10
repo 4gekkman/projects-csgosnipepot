@@ -61,11 +61,11 @@ return [
     'aboutpack' => [
       'RU' => [
         'name'        => 'Bots and automation',
-        'description' => 'ФInterface for the M8 package (bots and automation)',
+        'description' => 'Interface for the M8 package (bots and automation)',
       ],
       'EN' => [
         'name'        => 'Bots and automation',
-        'description' => 'ФInterface for the M8 package (bots and automation)',
+        'description' => 'Interface for the M8 package (bots and automation)',
       ]
     ],
 

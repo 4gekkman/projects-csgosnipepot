@@ -11,7 +11,7 @@
 <!---------------------*/ ?>
 @section('title')
 
-  <title>D10005 - ФInterface for the M8 package (bots and automation)</title>
+  <title>D10005 - Interface for the M8 package (bots and automation)</title>
 
 @stop
 
@@ -52,14 +52,129 @@
 <!--------------------------->
 Оглавление
 
-
+  Панель загрузки
+  Заголовок и хлебные крошки
 
 
 
 -------------------------*/ ?>
 @section('content')
 
-  Контент документа
+<?php /*--------------->
+<!-- Панель загрузки -->
+<!-----------------*/ ?>
+<div class="loader">
+  <div style="display: none" class="loading_state_panel loader-inner square-spin" data-bind="visible: m.s0.is_loadshield_on">
+    <div></div>
+  </div>
+</div>
+
+<?php /*--------------------------->
+<!-- Заголовок и хлебные крошки  -->
+<!-----------------------------*/ ?>
+<section class="content-header content-header-my">
+  <h1>
+    Bots and trade automation
+  </h1>
+  <ol class="breadcrumb breadcrumb-my">
+    <li><a href="#"><i class="fa fa-flash"></i>Bots and trade automation</a></li>
+    <!--<li class="active">Here</li>-->
+  </ol>
+</section>
+
+<?php /*------------------->
+<!-- Главная таб-панель  -->
+<!---------------------*/ ?>
+<div class="row">
+
+  <?php /* Содержание -->
+  <!----------------*/ ?>
+  <div class="col-md-12">
+    <div class="nav-tabs-custom">
+
+      <?php /*--------------------------->
+      <!-- 1. Меню главной таб-панели  -->
+      <!-----------------------------*/ ?>
+      <ul class="nav nav-tabs" data-bind="foreach: m.s1.subdocs">
+        <li data-bind="visible: $root.f.s1.is_tab_visible($data), css: {active: $root.f.s1.is_tab_active($data, $root)}, click: $root.f.s1.choose_subdoc.bind($data, '')"><a href="#" data-toggle="tab" data-bind="text: name"></a></li>
+      </ul>
+
+      <?php /*------------------------------>
+      <!-- 2. Контент главной таб-панели  -->
+      <!--------------------------------*/ ?>
+      <div class="tab-content">
+
+        <?php /*------------------>
+        <!-- 2.1. Пользователи  -->
+        <!--------------------*/ ?>
+        <div class="tab-pane" data-bind="css: {active: m.s1.selected_subdoc().id() == 1}">
+
+          <?php /*-------------------->
+          <!-- 2.1.1. Пользователи  -->
+          <!----------------------*/ ?>
+
+            <?php /*------------------------>
+            <!-- 1] Название поддокумента -->
+            <!---------------------------*/ ?>
+            <h4>
+              <b>Bots</b>
+              <small class="small_notes" style="cursor: default">- <span title="Number of selected items" data-bind="text: '15'"></span> / <span title="Total number of items" data-bind="text: '153'"></span></small>
+            </h4>
+
+            <?php /*-------------->
+            <!-- 2] Содержание  -->
+            <!----------------*/ ?>
+            <div class="row">
+
+              <div class="col-md-12">
+
+                <div class="box box-info">
+
+                  <?php /* Заголовок  -->
+                  <!----------------*/ ?>
+                  <div class="box-header with-border row">
+
+                    <?php /* Чекбокс "Select all" -->
+                    <!--------------------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6">
+                      <label class="selectall_cb checkbox">
+                        <input type="checkbox" data-bind="checked: m.s2.select_all_bots, event: {change: f.s2.select_all_change}"> - Select all
+                      </label>
+                    </div>
+
+                    <?php /* Блок кнопок "Actions" -->
+                    <!---------------------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6">
+
+                      <div class="btn-group">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items">
+                            <i class="fa fa-gear"></i>
+                            <span> Actions with selected</span>
+                          </button>
+                          <ul class="dropdown-menu" role="menu">
+                            <li><a href="#" data-bind="click: function(){}">No actions for now</a></li>
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
 
 @stop
 
@@ -95,7 +210,7 @@
 
   <!-- document js: start -->
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/4gekkman-bower-jslib1/library.js"></script>
-  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/jquery/dist/jquery.min.js"></script>
+  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/jquery/jquery.min.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/moment/moment.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/AdminLTE/bootstrap/js/bootstrap.min.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/AdminLTE/plugins/fastclick/fastclick.min.js"></script>

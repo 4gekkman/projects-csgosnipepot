@@ -13,9 +13,17 @@
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
  *
- *  s1. Общий функционал модели [такой-то]
+ *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
- *		f.s1.someFunc									| s1.1. Делает то-то
+ *  s1. Функционал модели управления поддокументами приложения
+ *
+ *		f.s1.is_tab_visible						| s1.1. Определяет, какой таб в меню главной таб-панели видим, а какой нет
+ *		f.s1.is_tab_active						| s1.2. Определяет, какой таб в меню главной таб-панели активен
+ *    f.s1.choose_subdoc            | s1.3. Выбрать subdoc с указанным id
+ *
+ *  s2. Функционал группы документов, связанных с ботами
+ *
+ *    f.s2.select_all_change 				| s2.1. Изменение значения чекбокса "Выбрать всех ботов"
  *
  *
  */
@@ -102,21 +110,286 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			};
 
 
+		//------------------------------------------------------------------------//
+		// s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера //
+		//------------------------------------------------------------------------//
+		// - Пояснение
+		f.s0.update_all = function(what, from, data, event) {
+			console.log('f.s0.update_all');
+//
+//			// 1] Подготовить объект с функциями-обновлялками моделей документа
+//			var update_funcs = {
+//
+//				// 1.1] Обновлялка групп
+//				groups: function(){
+//					ajaxko(self, {
+//						command: 	    "\\M5\\Commands\\C6_groups",
+//						from: 		    "f.s0.update_all",
+//						data: 		    {
+//							page: 							self.m.s2.pagi.pages_current(),
+//							pages_total: 				"",
+//							items_at_page: 			server.data.groups.data.items_at_page,
+//							filters: 						ko.toJSON(self.m.s2.filters),
+//							selected_group_ids: self.m.s2.indexes.selected_group_ids
+//						},
+//						prejob:       function(config, data, event){},
+//						postjob:      function(data, params){
+//
+//							// Уменьшить счёрчик ajax-запросов на 1
+//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+//
+//						},
+//						ok_0:         function(data, params){
+//
+//							// Обновить модель групп на основе полученных данных
+//							self.f.s0.update_groups(data.data);
+//
+//						}
+//					});
+//				},
+//
+//				// 1.2] Обновлялка прав
+//				privs: function(){
+//
+//					ajaxko(self, {
+//						command: 	    "\\M5\\Commands\\C7_privileges",
+//						from: 		    "f.s0.update_all",
+//						data: 		    {
+//							page: 							self.m.s3.pagi.pages_current(),
+//							pages_total: 				"",
+//							items_at_page: 			server.data.privs.data.items_at_page,
+//							filters: 						ko.toJSON(self.m.s3.filters),
+//							selected_priv_ids: 	self.m.s3.indexes.selected_priv_ids
+//						},
+//						prejob:       function(config, data, event){},
+//						postjob:      function(data, params){
+//
+//							// Уменьшить счёрчик ajax-запросов на 1
+//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+//
+//						},
+//						ok_0:         function(data, params){
+//
+//							// Обновить модель прав на основе полученных данных
+//							self.f.s0.update_privs(data.data);
+//
+//						}
+//					});
+//
+//				},
+//
+//				// 1.3] Обновлялка тегов
+//				tags: function(){
+//					ajaxko(self, {
+//						command: 	    "\\M5\\Commands\\C8_tags",
+//						from: 		    "f.s0.update_all",
+//						data: 		    {
+//							page: 						self.m.s4.pagi.pages_current(),
+//							pages_total: 			"",
+//							items_at_page: 		server.data.tags.data.items_at_page,
+//							filters: 					ko.toJSON(self.m.s4.filters),
+//							selected_tag_ids: self.m.s4.indexes.selected_tag_ids
+//						},
+//						prejob:       function(config, data, event){},
+//						postjob:      function(data, params){
+//
+//							// Уменьшить счёрчик ajax-запросов на 1
+//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+//
+//						},
+//						ok_0:         function(data, params){
+//
+//							// Обновить модель тегов на основе полученных данных
+//							self.f.s0.update_tags(data.data);
+//
+//						}
+//					});
+//				},
+//
+//				// 1.4] Обновлялка пользователей
+//				users: function(){
+//					ajaxko(self, {
+//						command: 	    "\\M5\\Commands\\C5_users",
+//						from: 		    "f.s0.update_all",
+//						data: 		    {
+//							page: 							self.m.s5.pagi.pages_current(),
+//							pages_total: 				"",
+//							items_at_page: 			server.data.users.data.items_at_page,
+//							filters: 						ko.toJSON(self.m.s5.filters),
+//							selected_user_ids: 	self.m.s5.indexes.selected_user_ids
+//						},
+//						prejob:       function(config, data, event){},
+//						postjob:      function(data, params){
+//
+//							// Уменьшить счёрчик ajax-запросов на 1
+//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+//
+//						},
+//						ok_0:         function(data, params){
+//
+//							// Обновить модель пользователей на основе полученных данных
+//							self.f.s0.update_users(data.data);
+//
+//						}
+//					});
+//				}
+//
+//			};
+//
+//			// 2] Подсчитать, сколько обновлялок будет запущено
+//			var updates_counter = (function(){
+//
+//				// 2.1] Подготовить переменную для результата
+//				var result = 0;
+//
+//				// 2.2] Если what пуст, или является пустым массивом
+//				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
+//					for(var key in update_funcs) {
+//						if(!update_funcs.hasOwnProperty(key)) continue;
+//						result = +result + 1;
+//					}
+//				}
+//
+//				// 2.3] В ином случае
+//				else {
+//					for(var i=0; i<what.length; i++) {
+//						if(update_funcs[what[i]]) result = +result + 1;
+//					}
+//				}
+//
+//				// 2.n] Вернуть результат
+//				return result;
+//
+//			})();
+//
+//			// 3] Включить экран обновления
+//			self.m.s0.ajax_counter(+self.m.s0.ajax_counter() + +updates_counter);
+//
+//			// 4] Произвести обновление
+//
+//				// 4.1] Если what пуст, или является пустым массивом, обновить всё
+//				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
+//
+//					for(var key in update_funcs) {
+//
+//						// 1] Если свойство не своё, пропускаем
+//						if(!update_funcs.hasOwnProperty(key)) continue;
+//
+//						// 2] Выполнить обновление для key
+//						update_funcs[key]();
+//
+//					}
+//
+//				}
+//
+//				// 4.2] Если what не пуст, обновить только указанное в нём
+//				else {
+//					for(var i=0; i<what.length; i++) {
+//						update_funcs[what[i]]();
+//					}
+//				}
 
-	//----------------------------------------------------//
-	// 			        		 			                            //
-	// 			 s1. Общий функционал модели [такой-то] 			//
-	// 			         					                            //
-	//----------------------------------------------------//
+		};
+
+
+
+	//------------------------------------------------------------------------//
+	// 			        		 			                                                //
+	// 			 s1. Функционал модели управления поддокументами приложения 			//
+	// 			         					                                                //
+	//------------------------------------------------------------------------//
 	f.s1 = {};
 
-		//----------------------------------------------------------------------------------//
-		// s1.1. Делает то-то  //
-		//----------------------------------------------------------------------------------//
+		//--------------------------------------------------------------------------//
+		// s1.1. Определяет, какой таб в меню главной таб-панели видим, а какой нет //
+		//--------------------------------------------------------------------------//
 		// - Пояснение
-		f.s1.someFunc = function() {
+		f.s1.is_tab_visible = function(data) {
 
-			// ... код ...
+			return ['1','2'].indexOf(data.id()) != -1;
+
+		};
+
+		//---------------------------------------------------------------//
+		// s1.2. Определяет, какой таб в меню главной таб-панели активен //
+		//---------------------------------------------------------------//
+		// - Пояснение
+		f.s1.is_tab_active = function(data, root) {
+
+			// 1] Получить необходимые данные
+			var id_current = data.id();
+			var id_choosen = root.m.s1.selected_subdoc().id();
+
+			// 2] Если id_current относится к поддокументам подгруппы Bots
+			if(['1','2'].indexOf(id_current) != -1) {
+				if(['1','2'].indexOf(id_choosen) != -1) return true;
+			}
+
+			// n] Вернуть false
+			return false;
+
+		};
+
+		//-------------------------------------//
+		// s1.3. Выбрать subdoc с указанным id //
+		//-------------------------------------//
+		// - Пояснение
+		f.s1.choose_subdoc = function(id, data, event) {
+
+			// 1] Получить ID
+			var subdoc_id = (function(){
+
+				if(id) return id;
+				else return data.id();
+
+			})();
+
+			// 2] Получить объект поддокумента с id
+			var subdoc = self.m.s1.indexes.subdocs[subdoc_id];
+
+			// 3] Если этот subdoc уже выбран, завершить
+			if(subdoc.id() == self.m.s1.selected_subdoc().id()) return;
+
+			// 4] Если subdoc не найден, завершить
+			if(!subdoc) {
+				console.log('Поддокумент с id == '+subdoc_id+' не найден.');
+				return;
+			}
+
+			// 5] Записать subdoc в m.s1.selected_subdoc
+			self.m.s1.selected_subdoc(subdoc);
+
+			// 6] Добавить историю новое состояние
+			History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+
+			// 7] Выполнить update_all
+			// - Но только если data != "without reload"
+			if(data != "without reload")
+				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
+
+		};
+
+
+	//--------------------------------------------------------------------//
+	// 			        		 			                                            //
+	// 			 s2. Функционал группы документов, связанных с ботами   			//
+	// 			         					                                            //
+	//--------------------------------------------------------------------//
+	f.s2 = {};
+
+		//--------------------------------------------------------//
+		// s2.1. Изменение значения чекбокса "Выбрать всех ботов" //
+		//--------------------------------------------------------//
+		// - Пояснение
+		f.s2.select_all_change = function(data, event) {
+
+//			// 1] Получить текущее состояние чекбокса
+//			var state = self.m.s2.select_all_bots();
+//
+//			// 2] Изменить состояние всех чб в s2.bots на state
+//			for(var i=0; i<self.m.s2.bots().length; i++) {
+//				self.m.s2.bots()[i]().selected(state);
+//			}
 
 		};
 
