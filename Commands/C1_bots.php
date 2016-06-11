@@ -135,8 +135,9 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
     /**
      * Оглавление
      *
-     *  1. Безопасно получить всех ботов вместе с пользовательской информацией
-     *  2. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
+     *  1. Выполнить синхронизацию ботов с пользователями, и наоборот
+     *  2. Безопасно получить всех ботов вместе с пользовательской информацией
+     *  3. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -148,21 +149,26 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
     //---------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Безопасно получить всех ботов вместе с пользовательской информацией
+      // 1. Выполнить синхронизацию ботов с пользователями, и наоборот
+      $result = runcommand('\M8\Commands\C2_sync');
+      if($result['status'] != 0)
+        throw new \Exception($result['data']);
+
+      // 2. Безопасно получить всех ботов вместе с пользовательской информацией
       $bots = r1_query(function(){
         return \M8\Models\MD1_bots::with(['m5_users'])->get();
       });
       if(empty($bots)) $bots = collect([]);
 
-      // 2. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
+      // 3. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
       foreach($bots as &$bot) {
 
-        // 2.1. Добавить ботам некоторые поля из m5_users
+        // 3.1. Добавить ботам некоторые поля из m5_users
         $bot->id_user = $bot->m5_users[0]->id;
         $bot->steam_name = $bot->m5_users[0]->nickname;
         $bot->id_steam = $bot->m5_users[0]->ha_provider_uid;
 
-        // 2.2. Удалить из $bots поле m5_users
+        // 3.2. Удалить из $bots поле m5_users
         unset($bot->m5_users);
 
       }
