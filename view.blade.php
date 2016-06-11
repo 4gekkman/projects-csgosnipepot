@@ -62,6 +62,8 @@
       2.2. Интерфейс кликнутого бота
         2.2.1. Кнопка "Назад" и название поддокумента
         2.2.2. Содержимое интерфейса бота
+          2.2.2.1. Инвентарь и торговые предложения
+          2.2.2.2. Свойства бота
 
 -------------------------*/ ?>
 @section('content')
@@ -254,9 +256,265 @@
           <?php /*--------------------------------->
           <!-- 2.2.2. Содержимое интерфейса бота -->
           <!------------------------------------*/ ?>
-          <div class="row">
+          <div>
 
-            Интерфейс бота
+            <?php /*----------------------------------------->
+            <!-- 2.2.2.1. Инвентарь и торговые предложения -->
+            <!-------------------------------------------*/ ?>
+            <div class="row">
+
+              <?php /*--------->
+              <!-- Инвентарь -->
+              <!-----------*/ ?>
+              <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="box">
+
+                  <?php /*--------->
+                  <!-- Заголовок -->
+                  <!-----------*/ ?>
+                  <div class="box-header with-border subdoc_title">
+                    Inventory
+                  </div>
+
+                  <?php /*------------------->
+                  <!-- Панель инструментов -->
+                  <!---------------------*/ ?>
+                  <div class="tools_panel row">
+
+                    <?php /*---------->
+                    <!-- Обновление -->
+                    <!------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+
+                      <?php /*----------------->
+                      <!-- Кнопка "обновить" -->
+                      <!-------------------*/ ?>
+                      <div style="display: inline-block; vertical-align: baseline;">
+                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items" style="vertical-align: baseline">
+                          <i class="fa fa-refresh"></i>
+                          <span>Update</span>
+                        </button>
+                      </div>
+
+                      <?php /*------------------------>
+                      <!-- Чекбокс "Авто обновление -->
+                      <!--------------------------*/ ?>
+                      <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;">
+                        <label class="selectall_cb checkbox">
+                          <input type="checkbox" data-bind="checked: m.s2.select_all_bots, event: {change: f.s2.select_all_change}" style="vertical-align: sub; display: inline; position: relative;"> - auto
+                        </label>
+                      </div>
+
+                    </div>
+
+                    <?php /*------------------------------------->
+                    <!-- Развыделение всех элементов инвентаря -->
+                    <!---------------------------------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+
+                      <?php /*------------------------------------->
+                      <!-- Развыделение всех элементов инвентаря -->
+                      <!---------------------------------------*/ ?>
+                      <div style="display: inline-block; vertical-align: baseline; float: right;">
+                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items" style="vertical-align: baseline">
+                          <span>Deselect all</span>
+                        </button>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*------->
+                  <!-- Контент -->
+                  <!---------*/ ?>
+                  <div class="box-body form-horizontal" data-bind="style: {}">
+
+                    Контент
+
+                  </div>
+
+                </div>
+              </div>
+
+              <?php /*-------------------->
+              <!-- Торговые предложения -->
+              <!----------------------*/ ?>
+              <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="box">
+
+                  <?php /*----------------------------->
+                  <!-- Заголовок, фильтры и действия -->
+                  <!-------------------------------*/ ?>
+                  <div class="box-header with-border subdoc_title row">
+
+                    <?php /*------------------------------------->
+                    <!-- Заголовок и количественные показатели -->
+                    <!---------------------------------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6">
+                      Trade offers
+                      <small class="small_notes" style="cursor: default">- <span title="Number of selected trade offers" data-bind="text: '1'"></span> / <span title="Number of passed filters trade offers" data-bind="text: '2'"></span> / <span title="Total number of trade offers" data-bind="text: '4'"></span></small>
+                    </div>
+
+                    <?php /*------------------>
+                    <!-- Фильтры и действия -->
+                    <!--------------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6">
+
+                      <?php /*---------------------------------->
+                      <!-- Действия с торговыми предложениями -->
+                      <!------------------------------------*/ ?>
+                      <div style="display: inline-block;">
+                        <div class="btn-group">
+                          <div class="btn-group">
+                            <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected trade offers">
+                              <i class="fa fa-gear"></i>
+                              <span> Actions</span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                              <li><a href="#" data-bind="click: function(){}">No actions for now</a></li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <?php /*-------------------------->
+                      <!-- Показывать ли исходящие ТП -->
+                      <!----------------------------*/ ?>
+                      <div style="display: inline-block; float: right;">
+                        <label class="selectall_cb checkbox">
+                          <input type="checkbox" data-bind="checked: true, event: {change: function(){}}" style="vertical-align: sub; display: inline; position: relative;">↑
+                        </label>
+                      </div>
+
+                      <?php /*------------------------->
+                      <!-- Показывать ли входящие ТП -->
+                      <!---------------------------*/ ?>
+                      <div style="display: inline-block; float: right;">
+                        <label class="selectall_cb checkbox">
+                          <input type="checkbox" data-bind="checked: true, event: {change: function(){}}" style="vertical-align: sub; display: inline; position: relative;">↓
+                        </label>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*------------------->
+                  <!-- Панель инструментов -->
+                  <!---------------------*/ ?>
+                  <div class="tools_panel row">
+
+                    <?php /*---------->
+                    <!-- Обновление -->
+                    <!------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+
+                      <?php /*----------------->
+                      <!-- Кнопка "обновить" -->
+                      <!-------------------*/ ?>
+                      <div style="display: inline-block; vertical-align: baseline;">
+                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items" style="vertical-align: baseline">
+                          <i class="fa fa-refresh"></i>
+                          <span>Update</span>
+                        </button>
+                      </div>
+
+                      <?php /*------------------------>
+                      <!-- Чекбокс "Авто обновление -->
+                      <!--------------------------*/ ?>
+                      <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;">
+                        <label class="selectall_cb checkbox">
+                          <input type="checkbox" data-bind="checked: m.s2.select_all_bots, event: {change: f.s2.select_all_change}" style="vertical-align: sub; display: inline; position: relative;"> - auto
+                        </label>
+                      </div>
+
+                    </div>
+
+                    <?php /*------------------------------------->
+                    <!-- Развыделение всех элементов инвентаря -->
+                    <!---------------------------------------*/ ?>
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+
+                      <?php /*------------------------------------->
+                      <!-- Развыделение всех элементов инвентаря -->
+                      <!---------------------------------------*/ ?>
+                      <div style="display: inline-block; vertical-align: baseline; float: right;">
+                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items" style="vertical-align: baseline">
+                          <span>Deselect all</span>
+                        </button>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*------------------------------------->
+                  <!-- Панель отправки торгового предложения -->
+                  <!---------------------------------------*/ ?>
+                  <div class="tools_panel row">
+
+                    <?php /*--------------------------------------->
+                    <!-- Поле для ввода торгового URL получателя -->
+                    <!-----------------------------------------*/ ?>
+                    <div class="col-md-8 col-sm-8 col-xs-8">
+                      
+                    </div>
+
+                  </div>
+
+                  <?php /*------->
+                  <!-- Контент -->
+                  <!---------*/ ?>
+                  <div class="box-body form-horizontal" data-bind="style: {}">
+
+                    Контент
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <?php /*---------------------->
+            <!-- 2.2.2.2. Свойства бота -->
+            <!------------------------*/ ?>
+            <div class="row">
+
+              <?php /*------------------------------------>
+              <!-- Свойства автоматизации торговли бота -->
+              <!--------------------------------------*/ ?>
+              <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="box">
+                  <div class="box-header with-border subdoc_title">
+                    Automation properties
+                  </div>
+                  <div class="box-body form-horizontal" data-bind="style: {}">
+
+                    Контент
+
+                  </div>
+                </div>
+              </div>
+
+              <?php /*------------------->
+              <!-- Общие свойства бота -->
+              <!---------------------*/ ?>
+              <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="box">
+                  <div class="box-header with-border subdoc_title">
+                    Common properties
+                  </div>
+                  <div class="box-body form-horizontal" data-bind="style: {}">
+
+                    Контент
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
 
           </div>
 
