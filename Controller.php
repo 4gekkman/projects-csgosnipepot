@@ -112,7 +112,12 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. ...
+      // 1. Извлечь из GET-запроса параметр page
+      if(Request::has('page')) $page = Request::input('page');
+      else $page = '';
+
+      // 2. Получить всех ботов
+      $bots = (array) runcommand('\M8\Commands\C1_bots', []);
 
 
       // N. Вернуть клиенту представление и данные $data
@@ -122,6 +127,8 @@ class Controller extends BaseController {
         'auth'                  => session('auth_cache') ?: '',
         'packid'                => $this->packid,
         'layoutid'              => $this->layoutid,
+        'page'                  => $page,
+        'bots'                  => $bots
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

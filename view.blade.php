@@ -162,6 +162,22 @@
 
                   </div>
 
+                  <?php /* Контент  -->
+                  <!--------------*/ ?>
+                  <div class="box-body no-padding">
+
+                    <?php /* Таблица с данными -->
+                    <!-----------------------*/ ?>
+
+
+                    <?php /* Если боты отсутствуют -->
+                    <!---------------------------*/ ?>
+                    <div data-bind="visible: model.m.s2.users().length === 0">
+                      <p style="font-size: 16px; padding: 10px 0 0 10px">Bots are absent...</p>
+                    </div>
+
+                  </div>
+
                 </div>
 
               </div>
