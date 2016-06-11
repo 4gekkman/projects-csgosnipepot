@@ -457,6 +457,23 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		f.s2.show_bots_interface = function(data, event){
 
 			// 1] Загрузить в форму текущие данные редактируемого права
+			self.m.s2.edit.login(data.login());
+			self.m.s2.edit.password(data.password());
+			self.m.s2.edit.steamid(data.steamid());
+			self.m.s2.edit.shared_secret(data.shared_secret());
+			self.m.s2.edit.serial_number(data.serial_number());
+			self.m.s2.edit.revocation_code(data.revocation_code());
+			self.m.s2.edit.uri(data.uri());
+			self.m.s2.edit.server_time(data.server_time());
+			self.m.s2.edit.account_name(data.account_name());
+			self.m.s2.edit.token_gid(data.token_gid());
+			self.m.s2.edit.identity_secret(data.identity_secret());
+			self.m.s2.edit.secret_1(data.secret_1());
+
+			self.m.s2.edit.ison_incoming(data.ison_incoming());
+			self.m.s2.edit.ison_outcoming(data.ison_outcoming());
+
+			self.m.s2.edit.steam_name(data.steam_name());
 
 			// 2] Открыть поддокумент редактирования пользователя
 			self.f.s1.choose_subdoc(2);

@@ -308,14 +308,14 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			id: ko.observable('2'),
 			name: ko.observable('Bot'),
 			query: ko.observable('?page=bot')
-		}),
+		})
 
 	]);
 
 	//--------------------------------------------------//
 	// s1.3. Ссылка на выбранный поддокумент приложения //
 	//--------------------------------------------------//
-	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[1]());
+	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[0]());
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
@@ -431,6 +431,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.ison_incoming 		= ko.observable("");
 		self.m.s2.edit.ison_outcoming 	= ko.observable("");
 
+		self.m.s2.edit.steam_name       = ko.observable("");
 
 	//--------------------------------------//
 	// s2.n. Индексы и вычисляемые значения //

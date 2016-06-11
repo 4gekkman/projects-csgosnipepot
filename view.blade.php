@@ -247,7 +247,7 @@
             <div class="col-md-10 col-sm-10 col-xs-10">
               <div class="box">
                 <div class="box-body subdoc_title">
-                  Bots &nbsp; → &nbsp; Bot
+                  Bots &nbsp; → &nbsp; Bot [<span data-bind="text: m.s2.edit.steam_name"></span>]
                 </div>
               </div>
             </div>
