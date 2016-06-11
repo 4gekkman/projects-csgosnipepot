@@ -45,4 +45,17 @@ return [
       ]
     ],
 
+    //--------------//
+    // 5] Настройки //
+    //    Settings  //
+    //--------------//
+
+      // 5.1] Название группы для Steam-пользователей | Steam users group name
+      'group_steam_users' => 'SteamUsers',
+
+      // 5.2] Название группы для Steam-ботов | Steam bots group name
+      'group_steam_bots' => 'SteamBots',
+
+
+
 ];
