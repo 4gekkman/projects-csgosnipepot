@@ -182,7 +182,7 @@ class C2_sync extends Job { // TODO: добавить "implements ShouldQueue" -
       }
 
       // 4. Получить список всех ботских записей
-      $bots = \M8\Models\MD1_bots::all();
+      $bots = \M8\Models\MD1_bots::query()->get();
 
       // 5. Удалить все ботские записи, которые не связаны с пользователями
       foreach($bots as $bot) {

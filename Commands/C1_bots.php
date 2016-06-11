@@ -147,7 +147,7 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
     //---------------------//
     // Получить всех ботов //
     //---------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Выполнить синхронизацию ботов с пользователями, и наоборот
       $result = runcommand('\M8\Commands\C2_sync');
@@ -183,7 +183,7 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
       ];
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_bots from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
