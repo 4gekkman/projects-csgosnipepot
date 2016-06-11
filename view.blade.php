@@ -266,7 +266,7 @@
               <?php /*--------->
               <!-- Инвентарь -->
               <!-----------*/ ?>
-              <div class="col-md-6 col-sm-12 col-xs-12">
+              <div class="col-md-6 col-sm-12 col-xs-12" style="max-height: 400px;">
                 <div class="box">
 
                   <?php /*--------->
@@ -274,17 +274,18 @@
                   <!-----------*/ ?>
                   <div class="box-header with-border subdoc_title">
                     Inventory
+                    <small class="small_notes" style="cursor: default">- <span title="Number of selected inventory items" data-bind="text: '1'">1</span> / <span title="Total number of inventory items" data-bind="text: '2'">2</span></small>
                   </div>
 
                   <?php /*------------------->
                   <!-- Панель инструментов -->
                   <!---------------------*/ ?>
-                  <div class="tools_panel row">
+                  <div class="tools_panel box-header">
 
                     <?php /*---------->
                     <!-- Обновление -->
                     <!------------*/ ?>
-                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools" style="padding: 0">
 
                       <?php /*----------------->
                       <!-- Кнопка "обновить" -->
@@ -301,7 +302,7 @@
                       <!--------------------------*/ ?>
                       <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;">
                         <label class="selectall_cb checkbox">
-                          <input type="checkbox" data-bind="checked: m.s2.select_all_bots, event: {change: f.s2.select_all_change}" style="vertical-align: sub; display: inline; position: relative;"> - auto
+                          <input type="checkbox" data-bind="checked: false, event: {change: function(){}}" style="vertical-align: sub; display: inline; position: relative;"> - auto
                         </label>
                       </div>
 
@@ -340,18 +341,18 @@
               <?php /*-------------------->
               <!-- Торговые предложения -->
               <!----------------------*/ ?>
-              <div class="col-md-6 col-sm-12 col-xs-12">
+              <div class="col-md-6 col-sm-12 col-xs-12" style="max-height: 400px;">
                 <div class="box">
 
                   <?php /*----------------------------->
                   <!-- Заголовок, фильтры и действия -->
                   <!-------------------------------*/ ?>
-                  <div class="box-header with-border subdoc_title row">
+                  <div class="box-header with-border subdoc_title">
 
                     <?php /*------------------------------------->
                     <!-- Заголовок и количественные показатели -->
                     <!---------------------------------------*/ ?>
-                    <div class="col-md-6 col-sm-6 col-xs-6">
+                    <div class="col-md-6 col-sm-6 col-xs-6" style="padding: 0">
                       Trade offers
                       <small class="small_notes" style="cursor: default">- <span title="Number of selected trade offers" data-bind="text: '1'"></span> / <span title="Number of passed filters trade offers" data-bind="text: '2'"></span> / <span title="Total number of trade offers" data-bind="text: '4'"></span></small>
                     </div>
@@ -359,7 +360,7 @@
                     <?php /*------------------>
                     <!-- Фильтры и действия -->
                     <!--------------------*/ ?>
-                    <div class="col-md-6 col-sm-6 col-xs-6">
+                    <div class="col-md-6 col-sm-6 col-xs-6" style="padding: 0">
 
                       <?php /*---------------------------------->
                       <!-- Действия с торговыми предложениями -->
@@ -403,12 +404,12 @@
                   <?php /*------------------->
                   <!-- Панель инструментов -->
                   <!---------------------*/ ?>
-                  <div class="tools_panel row">
+                  <div class="tools_panel box-header">
 
                     <?php /*---------->
                     <!-- Обновление -->
                     <!------------*/ ?>
-                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools" style="padding: 0">
 
                       <?php /*----------------->
                       <!-- Кнопка "обновить" -->
@@ -425,7 +426,7 @@
                       <!--------------------------*/ ?>
                       <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;">
                         <label class="selectall_cb checkbox">
-                          <input type="checkbox" data-bind="checked: m.s2.select_all_bots, event: {change: f.s2.select_all_change}" style="vertical-align: sub; display: inline; position: relative;"> - auto
+                          <input type="checkbox" data-bind="checked: false, event: {change: function(){}}" style="vertical-align: sub; display: inline; position: relative;"> - auto
                         </label>
                       </div>
 
@@ -434,7 +435,7 @@
                     <?php /*------------------------------------->
                     <!-- Развыделение всех элементов инвентаря -->
                     <!---------------------------------------*/ ?>
-                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools" style="padding: 0">
 
                       <?php /*------------------------------------->
                       <!-- Развыделение всех элементов инвентаря -->
@@ -452,13 +453,28 @@
                   <?php /*------------------------------------->
                   <!-- Панель отправки торгового предложения -->
                   <!---------------------------------------*/ ?>
-                  <div class="tools_panel row">
+                  <div class="tools_panel box-header">
 
                     <?php /*--------------------------------------->
                     <!-- Поле для ввода торгового URL получателя -->
                     <!-----------------------------------------*/ ?>
-                    <div class="col-md-8 col-sm-8 col-xs-8">
-                      
+                    <div class="col-md-8 col-sm-8 col-xs-8 form-horizontal" style="padding: 0">
+                      <div class="form-group" style="margin: 0">
+                        <div class="col-sm-12" style="padding: 0">
+                          <input class="form-control input-sm" placeholder="Enter trade url..." data-bind="textInput: ''" style="border: 0; border-right: 1px solid #ddd; padding-left: 0;">
+                        </div>
+                      </div>
+                    </div>
+
+                    <?php /*-------------------------------------->
+                    <!-- Кнопка "Отправить торговое предложение -->
+                    <!----------------------------------------*/ ?>
+                    <div class="col-md-4 col-sm-4 col-xs-4 tools" style="padding: 0; text-align: center;">
+                      <div style="display: inline-block; vertical-align: baseline;">
+                        <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" title="Send trade offer" style="vertical-align: baseline">
+                          <span>Send trade offer</span>
+                        </button>
+                      </div>
                     </div>
 
                   </div>
@@ -491,7 +507,113 @@
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
-                    Контент
+                    <?php /* 1] Login -->
+                    <!--------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">Login</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.login">
+                      </div>
+                    </div>
+
+                    <?php /* 2] Password -->
+                    <!-----------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">Password</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.password">
+                      </div>
+                    </div>
+
+                    <?php /* 3] steamid -->
+                    <!----------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">steamid</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.steamid">
+                      </div>
+                    </div>
+
+                    <?php /* 4] shared_secret -->
+                    <!----------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">shared_secret</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.shared_secret">
+                      </div>
+                    </div>
+
+                    <?php /* 5] serial_number -->
+                    <!----------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">serial_number</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.serial_number">
+                      </div>
+                    </div>
+
+                    <?php /* 6] revocation_code -->
+                    <!------------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">revocation_code</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.revocation_code">
+                      </div>
+                    </div>
+
+                    <?php /* 7] uri -->
+                    <!------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">uri</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.uri">
+                      </div>
+                    </div>
+
+                    <?php /* 8] server_time -->
+                    <!--------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">server_time</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.server_time">
+                      </div>
+                    </div>
+
+                    <?php /* 9] account_name -->
+                    <!---------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">account_name</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.account_name">
+                      </div>
+                    </div>
+
+                    <?php /* 10] token_gid -->
+                    <!-------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">token_gid</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.token_gid">
+                      </div>
+                    </div>
+
+                    <?php /* 11] identity_secret -->
+                    <!-------------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">identity_secret</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.identity_secret">
+                      </div>
+                    </div>
+
+                    <?php /* 12] secret_1 -->
+                    <!------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">secret_1</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.secret_1">
+                      </div>
+                    </div>
 
                   </div>
                 </div>
@@ -507,7 +629,23 @@
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
-                    Контент
+                    <?php /* 1] ison_incoming -->
+                    <!----------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">ison_incoming</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.ison_incoming">
+                      </div>
+                    </div>
+
+                    <?php /* 2] ison_outcoming -->
+                    <!-----------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">ison_outcoming</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.ison_outcoming">
+                      </div>
+                    </div>
 
                   </div>
                 </div>

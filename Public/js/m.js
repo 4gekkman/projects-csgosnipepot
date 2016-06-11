@@ -40,6 +40,7 @@
  *    s2.3. Модель чекбокса "Выбрать всех ботов"
  *    s2.4. Ботов всего
  *    s2.5. Кол-во выделенных ботов (зависит ещё от того, стоит ли галочка "Выбрать всех ботов")
+ *    s2.6. Модель редактирования бота
  *    s2.n. Индексы и вычисляемые значения
  *
  *  sN. Данные, которым доступны все прочие данные
@@ -408,6 +409,27 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		return result;
 
 	});
+
+	//----------------------------------//
+	// s2.6. Модель редактирования бота //
+	//----------------------------------//
+	self.m.s2.edit = {};
+
+		self.m.s2.edit.login 						= ko.observable("");
+		self.m.s2.edit.password 				= ko.observable("");
+		self.m.s2.edit.steamid 					= ko.observable("");
+		self.m.s2.edit.shared_secret 		= ko.observable("");
+		self.m.s2.edit.serial_number 		= ko.observable("");
+		self.m.s2.edit.revocation_code 	= ko.observable("");
+		self.m.s2.edit.uri 							= ko.observable("");
+		self.m.s2.edit.server_time 			= ko.observable("");
+		self.m.s2.edit.account_name 		= ko.observable("");
+		self.m.s2.edit.token_gid 				= ko.observable("");
+		self.m.s2.edit.identity_secret 	= ko.observable("");
+		self.m.s2.edit.secret_1 				= ko.observable("");
+
+		self.m.s2.edit.ison_incoming 		= ko.observable("");
+		self.m.s2.edit.ison_outcoming 	= ko.observable("");
 
 
 	//--------------------------------------//
