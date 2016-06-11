@@ -136,7 +136,8 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
      * Оглавление
      *
      *  1. Безопасно получить всех ботов вместе с пользовательской информацией
-     *
+     *  2. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
+     *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -153,25 +154,27 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
       });
       if(empty($bots)) $bots = collect([]);
 
-      // 2. Добавить ботам поля id_user и steam_name
+      // 2. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
       foreach($bots as &$bot) {
 
-        // 2.1. Добавить ботам поля id_user и steam_name
+        // 2.1. Добавить ботам некоторые поля из m5_users
         $bot->id_user = $bot->m5_users[0]->id;
         $bot->steam_name = $bot->m5_users[0]->nickname;
+        $bot->id_steam = $bot->m5_users[0]->ha_provider_uid;
+
+        // 2.2. Удалить из $bots поле m5_users
+        unset($bot->m5_users);
 
       }
 
-      // 3. Удалить из $bots поле m5_users
-      $bots = $bots->filter(function($value, $key){
-        write2log($key, []);
-        if($key == 'm5_users') return false;
-        return true;
-      });
-
-      //write2log($bots, []);
-
-
+      // n. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "bots"          => $bots,
+          "bots_total"    => $bots->count()
+        ]
+      ];
 
 
     DB::commit(); } catch(\Exception $e) {
