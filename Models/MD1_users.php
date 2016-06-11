@@ -77,6 +77,7 @@ class MD1_users extends Model {
     public function emailauthcodes() { return $this->belongsToMany('\M5\Models\MD9_emailauthcodes', 'm5.md1011', 'id_user', 'id_code'); }
     public function phoneauthcodes() { return $this->belongsToMany('\M5\Models\MD10_phoneauthcodes', 'm5.md1012', 'id_user', 'id_code'); }
     public function genders() { return $this->belongsTo('\M5\Models\MD11_genders', 'gender', 'id'); }
+    public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md2000', 'id_user', 'id_bot'); }
     // relationships stop
 
 
