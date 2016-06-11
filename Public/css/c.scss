@@ -21,9 +21,44 @@
   font-weight: normal;
   margin: 0 0 0 15px;
 }
+.small_notes {
+  color: #aaa;
+}
+.back_link {
+  cursor: pointer;
+  text-align: center;
+  color: RGBA(0,0,200,1);
+  background-color: RGBA(0,0,255,.02);
+  padding: 5px 10px;
+  font-size: 16px;
+}
+.back_link:hover {
+  background-color: RGBA(0,0,255,.05);
+}
+.subdoc_title {
+  font-size: 16px;
+  padding: 5px 10px;
+}
 
+//------------------------//
+// 2. Запреты на торговлю //
+//------------------------//
+.tradeban_incoming {
+  background-color: RGBA(0,0,255,.1);
+}
+.tradeban_outcoming {
+  background-color: RGBA(255,255,0,.1);
+}
+.tradeban_all {
+  background-color: RGBA(255,0,0,.1);
+}
 
-
-
+//---------------------//
+// 3. Стили для таблиц //
+//---------------------//
+.all_table_styles {
+  user-select: none;
+  cursor: default;
+}
 
 

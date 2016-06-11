@@ -12,7 +12,7 @@
  *  s0. Функционал, доступный всему остальному функционалу
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
- *
+ *    f.s0.update_bots              | s0.2. Обновить модель ботов на основе переданных данных
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -24,6 +24,7 @@
  *  s2. Функционал группы документов, связанных с ботами
  *
  *    f.s2.select_all_change 				| s2.1. Изменение значения чекбокса "Выбрать всех ботов"
+ *    f.s2.show_bots_interface      | s2.2. Открыть интерфейс кликнутого бота
  *
  *
  */
@@ -108,6 +109,63 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			f.s0.txt_delay_save.unblock = function(){
 				self.m.s0.txt_delay_save.is_unsaved_data(0);
 			};
+
+
+		//---------------------------------------------------------//
+		// s0.2. Обновить модель ботов на основе переданных данных //
+		//---------------------------------------------------------//
+		// - Пояснение
+		f.s0.update_bots = function(data) {
+
+			// 1. Обновить self.m.s2.bots
+
+				// 1.1. Очистить
+				self.m.s2.bots.removeAll();
+
+				// 1.2. Наполнить
+				for(var i=0; i<data.bots.length; i++) {
+
+					// 1.2.1. Сформировать объект для добавления
+					var obj = {};
+					for(var key in data.bots[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!data.bots[i].hasOwnProperty(key)) continue;
+
+						// 2] Добавим в obj свойство key
+						obj[key] = ko.observable(data.bots[i][key]);
+
+					}
+
+					// 1.2.2. Добавить св-во number
+					obj['number'] = ko.observable(i+1);
+
+					// 1.2.3. Добавить св-во selected
+					obj['selected'] = ko.observable(false);
+
+					// 1.2.4. Добавить этот объект в подготовленный массив
+					self.m.s2.bots.push(ko.observable(obj))
+
+				}
+
+			// 2. Обновить m.s2.bots_total
+			self.m.s2.bots_total(data.bots_total);
+
+			// 3. Если чб "Select all" включён, включить все чб в m.s2.bots
+			(function(){
+
+				if(self.m.s2.select_all_bots()) {
+
+					// Изменить состояние всех чб в s2.bots на true
+					for(var i=0; i<self.m.s2.bots().length; i++) {
+						self.m.s2.bots()[i]().selected(true);
+					}
+
+				}
+
+			})();
+
+		};
 
 
 		//------------------------------------------------------------------------//
@@ -306,7 +364,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		// - Пояснение
 		f.s1.is_tab_visible = function(data) {
 
-			return ['1','2'].indexOf(data.id()) != -1;
+			return ['1'].indexOf(data.id()) != -1;
 
 		};
 
@@ -383,16 +441,27 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		// - Пояснение
 		f.s2.select_all_change = function(data, event) {
 
-//			// 1] Получить текущее состояние чекбокса
-//			var state = self.m.s2.select_all_bots();
-//
-//			// 2] Изменить состояние всех чб в s2.bots на state
-//			for(var i=0; i<self.m.s2.bots().length; i++) {
-//				self.m.s2.bots()[i]().selected(state);
-//			}
+			// 1] Получить текущее состояние чекбокса
+			var state = self.m.s2.select_all_bots();
+
+			// 2] Изменить состояние всех чб в s2.bots на state
+			for(var i=0; i<self.m.s2.bots().length; i++) {
+				self.m.s2.bots()[i]().selected(state);
+			}
 
 		};
 
+		//-----------------------------------------//
+		// s2.2. Открыть интерфейс кликнутого бота //
+		//-----------------------------------------//
+		f.s2.show_bots_interface = function(data, event){
+
+			// 1] Загрузить в форму текущие данные редактируемого права
+
+			// 2] Открыть поддокумент редактирования пользователя
+			self.f.s1.choose_subdoc(2);
+
+		};
 
 
 return f; }};

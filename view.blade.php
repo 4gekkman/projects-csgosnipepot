@@ -55,7 +55,13 @@
   Панель загрузки
   Заголовок и хлебные крошки
 
-
+    1. Меню главной таб-панели
+    2. Контент главной таб-панели
+      2.1. Боты
+        2.1.1. Боты
+      2.2. Интерфейс кликнутого бота
+        2.2.1. Кнопка "Назад" и название поддокумента
+        2.2.2. Содержимое интерфейса бота
 
 -------------------------*/ ?>
 @section('content')
@@ -104,21 +110,21 @@
       <!--------------------------------*/ ?>
       <div class="tab-content">
 
-        <?php /*------------------>
-        <!-- 2.1. Пользователи  -->
-        <!--------------------*/ ?>
+        <?php /*---------->
+        <!-- 2.1. Боты  -->
+        <!------------*/ ?>
         <div class="tab-pane" data-bind="css: {active: m.s1.selected_subdoc().id() == 1}">
 
-          <?php /*-------------------->
-          <!-- 2.1.1. Пользователи  -->
-          <!----------------------*/ ?>
+          <?php /*------------>
+          <!-- 2.1.1. Боты  -->
+          <!--------------*/ ?>
 
             <?php /*------------------------>
             <!-- 1] Название поддокумента -->
             <!---------------------------*/ ?>
             <h4>
               <b>Bots</b>
-              <small class="small_notes" style="cursor: default">- <span title="Number of selected items" data-bind="text: '15'"></span> / <span title="Total number of items" data-bind="text: '153'"></span></small>
+              <small class="small_notes" style="cursor: default">- <span title="Number of selected items" data-bind="text: m.s2.num_of_selected_bots"></span> / <span title="Total number of items" data-bind="text: m.s2.bots_total"></span></small>
             </h4>
 
             <?php /*-------------->
@@ -168,11 +174,43 @@
 
                     <?php /* Таблица с данными -->
                     <!-----------------------*/ ?>
+                    <table class="table table-condensed table-hover all_table_styles">
+                      <thead>
+                      <tr role="row">
+                        <th rowspan="1" colspan="1" style="width: 4%;"></th>
+                        <th rowspan="1" colspan="1" style="width: 4%;">№</th>
+                        <th rowspan="1" colspan="1" style="width: 7%;">User_ID</th>
+                        <th rowspan="1" colspan="1" style="width: 7%;">Bot_ID</th>
+                        <th rowspan="1" colspan="1" style="width: 15%;">Steam_ID</th>
+                        <th rowspan="1" colspan="1" style="width: 15%;">Steam name</th>
+                        <th rowspan="1" colspan="1" style="width: 16%;">Games</th>
+                        <th rowspan="1" colspan="1" style="width: 12%;">Inventory</th>
+                        <th rowspan="1" colspan="1" style="width: 10%;">Trade ↓</th>
+                        <th rowspan="1" colspan="1" style="width: 10%;">Trade ↑</th>
+                      </tr>
+                      </thead>
+                      <tbody data-bind="foreach: m.s2.bots">
 
+                        <tr class="odd" data-bind="click: $root.f.s2.show_bots_interface, css: {tradeban_incoming: !ison_incoming(), tradeban_outcoming: !ison_outcoming(), tradeban_all: !ison_incoming() && !ison_outcoming()}">
+                          <td data-bind="click: function(){ return true; }, clickBubble: false"><input type="checkbox" data-bind="checked: selected, click: function(data, event){ if(!event.target.checked) $root.m.s2.select_all_bots(false); return true; }"></td>
+                          <td data-bind="text: number"></td>
+                          <td data-bind="text: id_user"></td>
+                          <td data-bind="text: id"></td>
+                          <td data-bind="text: id_steam"></td>
+                          <td data-bind="text: steam_name"></td>
+                          <td data-bind="text: ''"></td>
+                          <td data-bind="text: ''"></td>
+                          <td data-bind="text: ison_incoming"></td>
+                          <td data-bind="text: ison_outcoming"></td>
+                        </tr>
+
+                      </tbody>
+
+                    </table>
 
                     <?php /* Если боты отсутствуют -->
                     <!---------------------------*/ ?>
-                    <div data-bind="visible: model.m.s2.users().length === 0">
+                    <div data-bind="visible: m.s2.bots().length === 0">
                       <p style="font-size: 16px; padding: 10px 0 0 10px">Bots are absent...</p>
                     </div>
 
@@ -183,6 +221,44 @@
               </div>
 
             </div>
+
+        </div>
+
+        <?php /*------------------------------->
+        <!-- 2.2. Интерфейс кликнутого бота  -->
+        <!---------------------------------*/ ?>
+        <div class="tab-pane" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
+
+          <?php /*--------------------------------------------->
+          <!-- 2.2.1. Кнопка "Назад" и название поддокумента -->
+          <!-----------------------------------------------*/ ?>
+          <div class="row">
+            <div class="col-md-2 col-sm-2 col-xs-2">
+              <div class="box">
+                <div class="box-body back_link" data-bind="click: f.s1.choose_subdoc.bind($data, 1)">
+                  <span>
+                    <i class="fa fa-arrow-left"></i>&nbsp;&nbsp;
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-10 col-sm-10 col-xs-10">
+              <div class="box">
+                <div class="box-body subdoc_title">
+                  Bots &nbsp; → &nbsp; Bot
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <?php /*--------------------------------->
+          <!-- 2.2.2. Содержимое интерфейса бота -->
+          <!------------------------------------*/ ?>
+          <div class="row">
+
+            Интерфейс бота
+
+          </div>
 
         </div>
 
