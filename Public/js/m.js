@@ -41,6 +41,7 @@
  *    s2.4. Ботов всего
  *    s2.5. Кол-во выделенных ботов (зависит ещё от того, стоит ли галочка "Выбрать всех ботов")
  *    s2.6. Модель редактирования бота
+ *    s2.7. Модель опций для эл-в select со значениями true/false
  *    s2.n. Индексы и вычисляемые значения
  *
  *  sN. Данные, которым доступны все прочие данные
@@ -432,6 +433,20 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.ison_outcoming 	= ko.observable("");
 
 		self.m.s2.edit.steam_name       = ko.observable("");
+
+	//-------------------------------------------------------------//
+	// s2.7. Модель опций для эл-в select со значениями true/false //
+	//-------------------------------------------------------------//
+	self.m.s2.options_true_false = ko.observableArray([
+		ko.observable({
+			value: ko.observable('0'),
+			name: ko.observable('off')
+		}),
+		ko.observable({
+			value: ko.observable('1'),
+			name: ko.observable('on')
+		})
+	]);
 
 	//--------------------------------------//
 	// s2.n. Индексы и вычисляемые значения //

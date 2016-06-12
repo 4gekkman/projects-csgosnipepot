@@ -480,6 +480,58 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//------------------------------------//
+		// s2.3. Отредактировать пользователя //
+		//------------------------------------//
+		f.s2.edit = function(data, event){
+
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C3_edit_bot",
+				from: 		    "f.s2.edit",
+			  data: 		    {
+					login: 					  self.m.s2.edit.login(),
+					password: 			  self.m.s2.edit.password(),
+					steamid: 				  self.m.s2.edit.steamid(),
+					shared_secret: 		self.m.s2.edit.shared_secret(),
+					serial_number: 		self.m.s2.edit.serial_number(),
+					revocation_code:	self.m.s2.edit.revocation_code(),
+					uri: 						  self.m.s2.edit.uri(),
+					server_time: 		 	self.m.s2.edit.server_time(),
+					account_name: 	 	self.m.s2.edit.account_name(),
+					token_gid: 			  self.m.s2.edit.token_gid(),
+					identity_secret:	self.m.s2.edit.identity_secret(),
+					secret_1: 			  self.m.s2.edit.secret_1(),
+
+					ison_incoming:    self.m.s2.edit.ison_incoming(),
+					ison_outcoming:   self.m.s2.edit.ison_outcoming
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что пользователь был успешно отредактирован
+					notify({msg: 'The bot has been edited', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  ok_2:         function(data, params){
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
 
 return f; }};
 

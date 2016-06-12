@@ -615,6 +615,12 @@
                       </div>
                     </div>
 
+                    <?php /* n] Кнопка "Редактировать" -->
+                    <!-------------------------------*/ ?>
+                    <div>
+                      <button type="button" class="btn btn-block btn-success" data-bind="click: f.s2.edit">Edit</button>
+                    </div>
+
                   </div>
                 </div>
               </div>
@@ -634,7 +640,7 @@
                     <div class="form-group">
                       <div class="col-sm-4 control-label">ison_incoming</div>
                       <div class="col-sm-8">
-                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.ison_incoming">
+                        <select class="form-control input-sm" data-bind="options: m.s2.options_true_false, optionsText: function(item){ return item().name(); }, optionsValue: function(item){ return item().value(); }, value: m.s2.edit.ison_incoming"></select>
                       </div>
                     </div>
 
@@ -643,8 +649,14 @@
                     <div class="form-group">
                       <div class="col-sm-4 control-label">ison_outcoming</div>
                       <div class="col-sm-8">
-                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.ison_outcoming">
+                        <select class="form-control input-sm" data-bind="options: m.s2.options_true_false, optionsText: function(item){ return item().name(); }, optionsValue: function(item){ return item().value(); }, value: m.s2.edit.ison_outcoming"></select>
                       </div>
+                    </div>
+
+                    <?php /* n] Кнопка "Редактировать" -->
+                    <!-------------------------------*/ ?>
+                    <div>
+                      <button type="button" class="btn btn-block btn-success" data-bind="click: f.s2.edit">Edit</button>
                     </div>
 
                   </div>
