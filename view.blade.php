@@ -311,7 +311,7 @@
                     <?php /*------------------------------------->
                     <!-- Развыделение всех элементов инвентаря -->
                     <!---------------------------------------*/ ?>
-                    <div class="col-md-6 col-sm-6 col-xs-6 tools">
+                    <div class="col-md-6 col-sm-6 col-xs-6 tools" style="padding: 0">
 
                       <?php /*------------------------------------->
                       <!-- Развыделение всех элементов инвентаря -->
@@ -640,7 +640,7 @@
                     <div class="form-group">
                       <div class="col-sm-4 control-label">ID</div>
                       <div class="col-sm-8">
-                        <input class="form-control" data-bind="textInput: m.s2.edit.id" disabled="">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.id" disabled="">
                       </div>
                     </div>
 
