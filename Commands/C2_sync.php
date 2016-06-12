@@ -139,7 +139,8 @@ class C2_sync extends Job { // TODO: добавить "implements ShouldQueue" -
      *  2. Безопасно получить коллекцию всех steam-пользователей из группы steam-ботов
      *  3. Создать для $users без доп.ботской инфы такую инфу в m8.md1_bots, и связать
      *  4. Получить список всех ботских записей
-     *  5. Удалить все ботские записи, которые не связаны с пользователями
+     *  5. Получить массив ID коллекции $users
+     *  6. Удалить все ботские записи, которые не связаны с пользователями-ботами
      *
      *  N. Вернуть статус 0
      *
@@ -156,8 +157,10 @@ class C2_sync extends Job { // TODO: добавить "implements ShouldQueue" -
 
       // 2. Безопасно получить коллекцию всех steam-пользователей из группы steam-ботов
       $users = r1_query(function() USE ($group_steam_users, $group_steam_bots) {
-        return \M5\Models\MD1_users::whereHas('groups', function($query) USE ($group_steam_users, $group_steam_bots) {
-          $query->whereIn('name', [$group_steam_users, $group_steam_bots]);
+        return \M5\Models\MD1_users::whereHas('groups', function($query) USE ($group_steam_users) {
+          $query->where('name', $group_steam_users);
+        })->whereHas('groups', function($query) USE ($group_steam_bots) {
+          $query->where('name', $group_steam_bots);
         })->get();
       });
       if(is_null($users) || empty($users)) $users = collect([]);
@@ -184,17 +187,21 @@ class C2_sync extends Job { // TODO: добавить "implements ShouldQueue" -
       // 4. Получить список всех ботских записей
       $bots = \M8\Models\MD1_bots::query()->get();
 
-      // 5. Удалить все ботские записи, которые не связаны с пользователями
+      // 5. Получить массив ID коллекции $users
+      $user_bot_ids = $users->pluck('id')->toArray();
+
+      // 6. Удалить все ботские записи, которые не связаны с пользователями-ботами
+      // - То есть, состоящими в группах steam-пользователей и steam-ботов.
       foreach($bots as $bot) {
 
-        // 5.1. Если связь m5_users не существует, завершить
+        // 6.1. Если связь m5_users не существует, завершить
         if(!r1_rel_exists("m8", "md1_bots", "m5_users")) break;
 
-        // 5.2. Попробовать найти пользователя, связанного с $bot
+        // 6.2. Попробовать найти пользователя, связанного с $bot
         $user = $bot->m5_users;
 
-        // 5.3. Если $user пуста, удалить $bot
-        if($user->count() == 0) {
+        // 6.3. Если $user пуст, или его id не в $user_bot_ids, удалить $bot
+        if($user->count() == 0 || !in_array($user[0]->id, $user_bot_ids)) {
           $bot->m5_users()->detach();
           $bot->delete();
         }
