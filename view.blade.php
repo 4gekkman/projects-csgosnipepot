@@ -635,7 +635,16 @@
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
-                    <?php /* 1] ison_incoming -->
+                    <?php /* 1] id -->
+                    <!-----------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">ID</div>
+                      <div class="col-sm-8">
+                        <input class="form-control" data-bind="textInput: m.s2.edit.id" disabled="">
+                      </div>
+                    </div>
+
+                    <?php /* 2] ison_incoming -->
                     <!----------------------*/ ?>
                     <div class="form-group">
                       <div class="col-sm-4 control-label">ison_incoming</div>
@@ -644,7 +653,7 @@
                       </div>
                     </div>
 
-                    <?php /* 2] ison_outcoming -->
+                    <?php /* 3] ison_outcoming -->
                     <!-----------------------*/ ?>
                     <div class="form-group">
                       <div class="col-sm-4 control-label">ison_outcoming</div>

@@ -173,179 +173,88 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//------------------------------------------------------------------------//
 		// - Пояснение
 		f.s0.update_all = function(what, from, data, event) {
-			console.log('f.s0.update_all');
-//
-//			// 1] Подготовить объект с функциями-обновлялками моделей документа
-//			var update_funcs = {
-//
-//				// 1.1] Обновлялка групп
-//				groups: function(){
-//					ajaxko(self, {
-//						command: 	    "\\M5\\Commands\\C6_groups",
-//						from: 		    "f.s0.update_all",
-//						data: 		    {
-//							page: 							self.m.s2.pagi.pages_current(),
-//							pages_total: 				"",
-//							items_at_page: 			server.data.groups.data.items_at_page,
-//							filters: 						ko.toJSON(self.m.s2.filters),
-//							selected_group_ids: self.m.s2.indexes.selected_group_ids
-//						},
-//						prejob:       function(config, data, event){},
-//						postjob:      function(data, params){
-//
-//							// Уменьшить счёрчик ajax-запросов на 1
-//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
-//
-//						},
-//						ok_0:         function(data, params){
-//
-//							// Обновить модель групп на основе полученных данных
-//							self.f.s0.update_groups(data.data);
-//
-//						}
-//					});
-//				},
-//
-//				// 1.2] Обновлялка прав
-//				privs: function(){
-//
-//					ajaxko(self, {
-//						command: 	    "\\M5\\Commands\\C7_privileges",
-//						from: 		    "f.s0.update_all",
-//						data: 		    {
-//							page: 							self.m.s3.pagi.pages_current(),
-//							pages_total: 				"",
-//							items_at_page: 			server.data.privs.data.items_at_page,
-//							filters: 						ko.toJSON(self.m.s3.filters),
-//							selected_priv_ids: 	self.m.s3.indexes.selected_priv_ids
-//						},
-//						prejob:       function(config, data, event){},
-//						postjob:      function(data, params){
-//
-//							// Уменьшить счёрчик ajax-запросов на 1
-//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
-//
-//						},
-//						ok_0:         function(data, params){
-//
-//							// Обновить модель прав на основе полученных данных
-//							self.f.s0.update_privs(data.data);
-//
-//						}
-//					});
-//
-//				},
-//
-//				// 1.3] Обновлялка тегов
-//				tags: function(){
-//					ajaxko(self, {
-//						command: 	    "\\M5\\Commands\\C8_tags",
-//						from: 		    "f.s0.update_all",
-//						data: 		    {
-//							page: 						self.m.s4.pagi.pages_current(),
-//							pages_total: 			"",
-//							items_at_page: 		server.data.tags.data.items_at_page,
-//							filters: 					ko.toJSON(self.m.s4.filters),
-//							selected_tag_ids: self.m.s4.indexes.selected_tag_ids
-//						},
-//						prejob:       function(config, data, event){},
-//						postjob:      function(data, params){
-//
-//							// Уменьшить счёрчик ajax-запросов на 1
-//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
-//
-//						},
-//						ok_0:         function(data, params){
-//
-//							// Обновить модель тегов на основе полученных данных
-//							self.f.s0.update_tags(data.data);
-//
-//						}
-//					});
-//				},
-//
-//				// 1.4] Обновлялка пользователей
-//				users: function(){
-//					ajaxko(self, {
-//						command: 	    "\\M5\\Commands\\C5_users",
-//						from: 		    "f.s0.update_all",
-//						data: 		    {
-//							page: 							self.m.s5.pagi.pages_current(),
-//							pages_total: 				"",
-//							items_at_page: 			server.data.users.data.items_at_page,
-//							filters: 						ko.toJSON(self.m.s5.filters),
-//							selected_user_ids: 	self.m.s5.indexes.selected_user_ids
-//						},
-//						prejob:       function(config, data, event){},
-//						postjob:      function(data, params){
-//
-//							// Уменьшить счёрчик ajax-запросов на 1
-//							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
-//
-//						},
-//						ok_0:         function(data, params){
-//
-//							// Обновить модель пользователей на основе полученных данных
-//							self.f.s0.update_users(data.data);
-//
-//						}
-//					});
-//				}
-//
-//			};
-//
-//			// 2] Подсчитать, сколько обновлялок будет запущено
-//			var updates_counter = (function(){
-//
-//				// 2.1] Подготовить переменную для результата
-//				var result = 0;
-//
-//				// 2.2] Если what пуст, или является пустым массивом
-//				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
-//					for(var key in update_funcs) {
-//						if(!update_funcs.hasOwnProperty(key)) continue;
-//						result = +result + 1;
-//					}
-//				}
-//
-//				// 2.3] В ином случае
-//				else {
-//					for(var i=0; i<what.length; i++) {
-//						if(update_funcs[what[i]]) result = +result + 1;
-//					}
-//				}
-//
-//				// 2.n] Вернуть результат
-//				return result;
-//
-//			})();
-//
-//			// 3] Включить экран обновления
-//			self.m.s0.ajax_counter(+self.m.s0.ajax_counter() + +updates_counter);
-//
-//			// 4] Произвести обновление
-//
-//				// 4.1] Если what пуст, или является пустым массивом, обновить всё
-//				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
-//
-//					for(var key in update_funcs) {
-//
-//						// 1] Если свойство не своё, пропускаем
-//						if(!update_funcs.hasOwnProperty(key)) continue;
-//
-//						// 2] Выполнить обновление для key
-//						update_funcs[key]();
-//
-//					}
-//
-//				}
-//
-//				// 4.2] Если what не пуст, обновить только указанное в нём
-//				else {
-//					for(var i=0; i<what.length; i++) {
-//						update_funcs[what[i]]();
-//					}
-//				}
+
+			// 1] Подготовить объект с функциями-обновлялками моделей документа
+			var update_funcs = {
+
+				// 1.1] Обновлялка ботов
+				bots: function(){
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C1_bots",
+						from: 		    "f.s0.update_all",
+						data: 		    {
+
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){
+
+							// Уменьшить счёрчик ajax-запросов на 1
+							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+
+						},
+						ok_0:         function(data, params){
+
+							// Обновить модель групп на основе полученных данных
+							self.f.s0.update_bots(data.data);
+
+						}
+					});
+				},
+
+			};
+
+			// 2] Подсчитать, сколько обновлялок будет запущено
+			var updates_counter = (function(){
+
+				// 2.1] Подготовить переменную для результата
+				var result = 0;
+
+				// 2.2] Если what пуст, или является пустым массивом
+				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
+					for(var key in update_funcs) {
+						if(!update_funcs.hasOwnProperty(key)) continue;
+						result = +result + 1;
+					}
+				}
+
+				// 2.3] В ином случае
+				else {
+					for(var i=0; i<what.length; i++) {
+						if(update_funcs[what[i]]) result = +result + 1;
+					}
+				}
+
+				// 2.n] Вернуть результат
+				return result;
+
+			})();
+
+			// 3] Включить экран обновления
+			self.m.s0.ajax_counter(+self.m.s0.ajax_counter() + +updates_counter);
+
+			// 4] Произвести обновление
+
+				// 4.1] Если what пуст, или является пустым массивом, обновить всё
+				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
+
+					for(var key in update_funcs) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!update_funcs.hasOwnProperty(key)) continue;
+
+						// 2] Выполнить обновление для key
+						update_funcs[key]();
+
+					}
+
+				}
+
+				// 4.2] Если what не пуст, обновить только указанное в нём
+				else {
+					for(var i=0; i<what.length; i++) {
+						update_funcs[what[i]]();
+					}
+				}
 
 		};
 
@@ -470,6 +379,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.identity_secret(data.identity_secret());
 			self.m.s2.edit.secret_1(data.secret_1());
 
+			self.m.s2.edit.id(data.id());
 			self.m.s2.edit.ison_incoming(data.ison_incoming());
 			self.m.s2.edit.ison_outcoming(data.ison_outcoming());
 
@@ -502,8 +412,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					identity_secret:	self.m.s2.edit.identity_secret(),
 					secret_1: 			  self.m.s2.edit.secret_1(),
 
+					id:               self.m.s2.edit.id(),
 					ison_incoming:    self.m.s2.edit.ison_incoming(),
-					ison_outcoming:   self.m.s2.edit.ison_outcoming
+					ison_outcoming:   self.m.s2.edit.ison_outcoming()
 				},
 			  prejob:       function(config, data, event){},
 			  postjob:      function(data, params){},
