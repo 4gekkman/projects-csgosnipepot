@@ -13,6 +13,7 @@
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
  *    f.s0.update_bots              | s0.2. Обновить модель ботов на основе переданных данных
+ *    f.s0.update_inventory         | s0.3. Обновить инвентарь выбранного бота
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -25,7 +26,11 @@
  *
  *    f.s2.select_all_change 				| s2.1. Изменение значения чекбокса "Выбрать всех ботов"
  *    f.s2.show_bots_interface      | s2.2. Открыть интерфейс кликнутого бота
+ *    f.s2.edit                     | s2.3. Отредактировать пользователя
  *
+ *  s3. Функционал модели инвентаря выбранного бота
+ *
+ *    f.s3.update 									|
  *
  */
 
@@ -168,6 +173,46 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+		//------------------------------------------//
+		// s0.3. Обновить инвентарь выбранного бота //
+		//------------------------------------------//
+		// - Пояснение
+		f.s0.update_inventory = function(data) {
+
+			// 1. Обновить m.s3.inventory
+
+				// 1.1. Очистить
+				self.m.s3.inventory.removeAll();
+
+				// 1.2. Наполнить
+				for(var i=0; i<data.data.rgDescriptions.length; i++) {
+
+					// 1.2.1. Сформировать объект для добавления
+					var obj = {};
+					for(var key in data.data.rgDescriptions[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!data.data.rgDescriptions[i].hasOwnProperty(key)) continue;
+
+						// 2] Добавим в obj свойство key
+						obj[key] = ko.observable(data.data.rgDescriptions[i][key]);
+
+					}
+
+					// 1.2.2. Добавить св-во number
+					obj['number'] = ko.observable(i+1);
+
+					// 1.2.3. Добавить св-во selected
+					obj['selected'] = ko.observable(false);
+
+					// 1.2.4. Добавить этот объект в подготовленный массив
+					self.m.s3.inventory.push(ko.observable(obj))
+
+				}
+
+  		};
+
+
 		//------------------------------------------------------------------------//
 		// s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера //
 		//------------------------------------------------------------------------//
@@ -197,9 +242,39 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							// Обновить модель групп на основе полученных данных
 							self.f.s0.update_bots(data.data);
 
+						},
+						callback:			function(){
+
+							// 1.2.1] Если steamid пуста или выбран не документ бота, завершить
+							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() !== 2) return;
+
+							// 1.2.2] Обновить инвентарь выбранного бота
+							ajaxko(self, {
+								command: 	    "\\M8\\Commands\\C4_getinventory",
+								from: 		    "f.s0.update_all",
+								data: 		    {
+									steamid: 				  self.m.s2.edit.steamid()
+								},
+								prejob:       function(config, data, event){},
+								postjob:      function(data, params){
+
+									// Уменьшить счёрчик ajax-запросов на 1
+									self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+
+								},
+								ok_0:         function(data, params){
+
+									// Обновить модель групп на основе полученных данных
+									self.f.s0.update_inventory(data);
+
+								}
+							});
+
 						}
 					});
-				},
+				}
+
+				// 1.2] Обновлялка инвентаря выбранного бота
 
 			};
 
@@ -329,7 +404,22 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			// 6] Добавить историю новое состояние
 			History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
 
-			// 7] Выполнить update_all
+			// 7] Если выбран не документ бота, очистить m.s2.edit
+			if(self.m.s1.selected_subdoc().id() != 2) {
+
+				for(var key in self.m.s2.edit) {
+
+					// Если свойство не своё, пропускаем
+					if(!self.m.s2.edit.hasOwnProperty(key)) continue;
+
+					// Добавим в obj свойство key
+					self.m.s2.edit[key]("");
+
+				}
+
+			}
+
+			// n] Выполнить update_all
 			// - Но только если data != "without reload"
 			if(data != "without reload")
 				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
@@ -442,6 +532,75 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			});
 
 		};
+
+
+	//--------------------------------------------------------------//
+	// 			        		 			                                      //
+	// 			 s3. Функционал модели инвентаря выбранного бота   			//
+	// 			         					                                      //
+	//--------------------------------------------------------------//
+	f.s3 = {};
+
+		//------------------------------------------//
+		// s3.1. Обновить инвентарь выбранного бота //
+		//------------------------------------------//
+		f.s3.update = function(data, event) {
+
+			// 1] Если steamid выбранного бота пуст, сообщить и завершить
+			if(!self.m.s2.edit.steamid()) {
+				notify({msg: 'Enter steamid of the bot below', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C4_getinventory",
+				from: 		    "f.s3.update",
+			  data: 		    {
+					steamid: 				  self.m.s2.edit.steamid()
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Обновить инвентарь выбранного бота
+					self.f.s0.update_inventory(data);
+
+					// 2] Сообщить, что пользователь был успешно отредактирован
+					notify({msg: "The bots inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  ok_2:         function(data, params){
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 return f; }};

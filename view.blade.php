@@ -266,7 +266,7 @@
               <?php /*--------->
               <!-- Инвентарь -->
               <!-----------*/ ?>
-              <div class="col-md-6 col-sm-12 col-xs-12" style="max-height: 400px;">
+              <div class="col-md-6 col-sm-12 col-xs-12">
                 <div class="box">
 
                   <?php /*--------->
@@ -291,7 +291,7 @@
                       <!-- Кнопка "обновить" -->
                       <!-------------------*/ ?>
                       <div style="display: inline-block; vertical-align: baseline;">
-                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items" style="vertical-align: baseline">
+                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Update bots inventory" style="vertical-align: baseline" data-bind="click: f.s3.update">
                           <i class="fa fa-refresh"></i>
                           <span>Update</span>
                         </button>
@@ -329,9 +329,14 @@
                   <?php /*------->
                   <!-- Контент -->
                   <!---------*/ ?>
-                  <div class="box-body form-horizontal" data-bind="style: {}">
+                  <div class="box-body form-horizontal" style="max-height: 400px; min-height: 400px;">
 
-                    Контент
+                    <?php /*-------------------------------------->
+                    <!-- Надпись на случай, если инвентарь пуст -->
+                    <!----------------------------------------*/ ?>
+                    <div data-bind="visible: m.s3.inventory().length">
+                      <span>Inventory is empty...</span>
+                    </div>
 
                   </div>
 
@@ -341,7 +346,7 @@
               <?php /*-------------------->
               <!-- Торговые предложения -->
               <!----------------------*/ ?>
-              <div class="col-md-6 col-sm-12 col-xs-12" style="max-height: 400px;">
+              <div class="col-md-6 col-sm-12 col-xs-12">
                 <div class="box">
 
                   <?php /*----------------------------->
@@ -482,7 +487,7 @@
                   <?php /*------->
                   <!-- Контент -->
                   <!---------*/ ?>
-                  <div class="box-body form-horizontal" data-bind="style: {}">
+                  <div class="box-body form-horizontal" style="max-height: 358px; min-height: 358px;">
 
                     Контент
 
