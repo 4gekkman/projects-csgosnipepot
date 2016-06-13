@@ -274,7 +274,7 @@
                   <!-----------*/ ?>
                   <div class="box-header with-border subdoc_title">
                     Inventory
-                    <small class="small_notes" style="cursor: default">- <span title="Number of selected inventory items" data-bind="text: '1'">1</span> / <span title="Total number of inventory items" data-bind="text: '2'">2</span></small>
+                    <small class="small_notes" style="cursor: default">- <span title="Number of selected inventory items" data-bind="text: m.s3.inventory_selected"></span> / <span title="Total number of inventory items" data-bind="text: m.s3.inventory_total"></span></small>
                   </div>
 
                   <?php /*------------------->
@@ -300,7 +300,7 @@
                       <?php /*------------------------>
                       <!-- Чекбокс "Авто обновление -->
                       <!--------------------------*/ ?>
-                      <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;">
+                      <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;" data-bind="visible: false">
                         <label class="selectall_cb checkbox">
                           <input type="checkbox" data-bind="checked: false, event: {change: function(){}}" style="vertical-align: sub; display: inline; position: relative;"> - auto
                         </label>
@@ -317,7 +317,7 @@
                       <!-- Развыделение всех элементов инвентаря -->
                       <!---------------------------------------*/ ?>
                       <div style="display: inline-block; vertical-align: baseline; float: right;">
-                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items" style="vertical-align: baseline">
+                        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Deselect all elements in inventory" style="vertical-align: baseline" data-bind="click: f.s3.deselect_all">
                           <span>Deselect all</span>
                         </button>
                       </div>
@@ -329,13 +329,27 @@
                   <?php /*------->
                   <!-- Контент -->
                   <!---------*/ ?>
-                  <div class="box-body form-horizontal" style="max-height: 400px; min-height: 400px;">
+                  <div class="box-body form-horizontal" style="max-height: 200px; min-height: 200px;">
 
                     <?php /*-------------------------------------->
                     <!-- Надпись на случай, если инвентарь пуст -->
                     <!----------------------------------------*/ ?>
-                    <div data-bind="visible: m.s3.inventory().length">
+                    <div data-bind="visible: !m.s3.inventory().length">
                       <span>Inventory is empty...</span>
+                    </div>
+
+                    <?php /*-------------------->
+                    <!-- Содержимое инвентаря -->
+                    <!----------------------*/ ?>
+                    <div class="inventory" data-bind="foreach: m.s3.inventory">
+
+                      <?php /*------------------->
+                      <!-- Предмет в инвентаре -->
+                      <!---------------------*/ ?>
+                      <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }">
+
+                      </div>
+
                     </div>
 
                   </div>
@@ -429,7 +443,7 @@
                       <?php /*------------------------>
                       <!-- Чекбокс "Авто обновление -->
                       <!--------------------------*/ ?>
-                      <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;">
+                      <div style="display: inline-block; vertical-align: baseline; padding-left: 15px;" data-bind="visible: false">
                         <label class="selectall_cb checkbox">
                           <input type="checkbox" data-bind="checked: false, event: {change: function(){}}" style="vertical-align: sub; display: inline; position: relative;"> - auto
                         </label>
@@ -487,7 +501,7 @@
                   <?php /*------->
                   <!-- Контент -->
                   <!---------*/ ?>
-                  <div class="box-body form-horizontal" style="max-height: 358px; min-height: 358px;">
+                  <div class="box-body form-horizontal tradeoffers-container" style="max-height: 358px; min-height: 358px;">
 
                     Контент
 
@@ -760,6 +774,7 @@
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/knockoutjs/dist/knockout.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/history.js/scripts/bundled/html4+html5/native.history.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/socket.io-client/socket.io.js"></script>
+  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/slim-scroll/slimscroll.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/L10000/js/j.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/D10005/js/j.js"></script>
   <!-- document js: stop -->

@@ -96,3 +96,45 @@
   align-self: center;
 }
 
+//--------------//
+// 4. Инвентарь //
+//--------------//
+
+  // Контейнер для предметов в инвентаре
+  .inventory {
+    padding: 0;
+    user-select: none;
+  }
+
+  // Предмет в инвентаре
+  .inventory .item {
+    display: inline-block;
+    width: 82px;
+    max-width: 82px;
+    height: 82px;
+    max-height: 82px;
+    margin-top: 5px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+  }
+
+  // выбран ли предмет в инвентаре
+  .inventory .selected {
+    box-shadow: 0x 0 6px RGBA(255,0,0,.5);
+  }
+
+  // Стили полосы прокрутки
+  .inventory-scrollbar {
+    background-color: RGBA(0,0,0,.1);
+    border-radius: 2px;
+  }
+
+
+
+
+
+

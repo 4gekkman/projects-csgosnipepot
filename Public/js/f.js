@@ -30,7 +30,10 @@
  *
  *  s3. Функционал модели инвентаря выбранного бота
  *
- *    f.s3.update 									|
+ *    f.s3.update 									| s3.1. Обновить инвентарь выбранного бота
+ *    f.s3.get_item_title           | s3.2. Формирует title для вещей в инвентаре
+ *    f.s3.deselect_all             | s3.3. Развыделить все элементы в инвентаре
+ *
  *
  */
 
@@ -210,7 +213,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
-  		};
+  	};
 
 
 		//------------------------------------------------------------------------//
@@ -246,7 +249,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						callback:			function(){
 
 							// 1.2.1] Если steamid пуста или выбран не документ бота, завершить
-							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() !== 2) return;
+							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() != 2) return;
 
 							// 1.2.2] Обновить инвентарь выбранного бота
 							ajaxko(self, {
@@ -257,9 +260,6 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 								},
 								prejob:       function(config, data, event){},
 								postjob:      function(data, params){
-
-									// Уменьшить счёрчик ajax-запросов на 1
-									self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
 
 								},
 								ok_0:         function(data, params){
@@ -404,9 +404,13 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			// 6] Добавить историю новое состояние
 			History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
 
-			// 7] Если выбран не документ бота, очистить m.s2.edit
+			// 7] Если выбран не документ бота, очистить m.s2.edit и m.s3.inventory
 			if(self.m.s1.selected_subdoc().id() != 2) {
 
+				// 7.1] Очистить m.s3.inventory
+				self.m.s3.inventory.removeAll();
+
+				// 7.2] Очистить m.s2.edit
 				for(var key in self.m.s2.edit) {
 
 					// Если свойство не своё, пропускаем
@@ -573,7 +577,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  ok_2:         function(data, params){
 					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
 					console.log(data.data.errortext);
-				}
+				},
 			  //ajax_params:  {},
 			  //key: 			    "D1:1",
 				//from_ex: 	    [],
@@ -589,12 +593,48 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//---------------------------------------------//
+		// s3.2. Формирует title для вещей в инвентаре //
+		//---------------------------------------------//
+		f.s3.get_item_title = function(data) {
+
+			// 1] Подготовить строку для результата
+			var result = "";
+
+			// 2] Name
+			result = result + "--- Name --- " + (data.name ? data.name() : "''");
+
+			// 3] Type
+			result = result + "\n--- Type --- " + (data.type ? data.type() : "''");
+
+			// 4] Weapon
+			result = result + "\n--- Weapon --- " + (data.weapon ? data.weapon() : "''");
+
+			// 5] Category
+			result = result + "\n--- Category --- " + (data.category ? data.category() : "''");
+
+			// 6] Quality
+			result = result + "\n--- Quality --- " + (data.quality ? data.quality() : "''");
+
+			// 7] Exterior
+			result = result + "\n--- Exterior --- " + (data.exterior ? data.exterior() : "''");
+
+			// n] Вернуть результат
+			return result;
+
+		};
 
 
+		//--------------------------------------------//
+		// s3.3. Развыделить все элементы в инвентаре //
+		//--------------------------------------------//
+		f.s3.deselect_all = function(data) {
 
+			for(var i=0; i<self.m.s3.inventory().length; i++) {
+				self.m.s3.inventory()[i]().selected(false);
+			}
 
-
-
+		};
 
 
 
