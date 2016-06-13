@@ -12,7 +12,11 @@
 						"homepage": "https://github.com/4gekkman/m8"
         }
     ],
-    "require": {},
+    "require": {
+			"4gekkman/M1": "~1.0",
+			"4gekkman/M5": "~1.0",
+			"guzzlehttp/guzzle": "~6.0"
+		},
     "autoload": {
         "psr-4": {"M8\\": ""}
     }

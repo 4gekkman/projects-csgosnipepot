@@ -117,7 +117,8 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-          '\M8\Console\T1_sync'
+          '\M8\Console\T1_sync',
+          '\M8\Console\T2_getinventory'
         ];
 
         // Регистрация команд в методе register
