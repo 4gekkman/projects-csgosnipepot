@@ -13,6 +13,7 @@
         }
     ],
     "require": {
+			"4gekkman/M1": "~1.0",
 			"intervention/image": "~2.0"
 		},
     "autoload": {
