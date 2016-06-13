@@ -10,7 +10,8 @@
 		"knockoutjs": "latest",
 		"history.js": "latest",
 		"loaders.css": "latest",
-		"socket.io-client": "latest"
+		"socket.io-client": "latest",
+		"slim-scroll": "latest"
 	},
   "mains": {
     "css": [
