@@ -56,6 +56,7 @@ return [
       // 5.2] Название группы для Steam-ботов | Steam bots group name
       'group_steam_bots' => 'SteamBots',
 
-
+      // 5.3] Сервер изображений Steam | Steam image server
+      'steam_image_server' => 'https://steamcommunity-a.akamaihd.net/economy/image/',
 
 ];

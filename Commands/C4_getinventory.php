@@ -196,7 +196,11 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         // 4.1. Извлечь
         $json_decoded = json_decode($inventory['body'], true);
 
-        // 4.2. Провести валидацию
+        // 4.2. Убедиться, что success == true
+        if(!array_key_exists('success', $json_decoded) || !is_bool($json_decoded['success']) || $json_decoded['success'] !== true)
+          throw new \Exception('Value of the success parameter is not true.');
+
+        // 4.3. Провести валидацию
         $validator = r4_validate($json_decoded, [
           "success"         => ["required", "boolean"],
           "rgInventory"     => ["required", "array"],
@@ -207,18 +211,113 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           throw new \Exception($validator['data']);
         }
 
-        // 4.3. Убедиться, что success == true
-        if($json_decoded['success'] !== true)
-          throw new \Exception('Value of the success parameter is not true.');
+      // 5. Провести обработку объектов в rgDescriptions
+      foreach($json_decoded['rgDescriptions'] as $key => &$description) {
 
-      // 5. В каждый из объектов в rgDescriptions добавить доп.свойства
-      // - Взять их из rgInventory.
-      // - Искать соотв.объекты в оном по classid и instanceid.
-      // - Интересуют следующие доп.св-ва: assetid, amount
-      for
+        // 5.1. В каждый из объектов в rgDescriptions добавить доп.свойства
+        // - Взять их из rgInventory.
+        // - Искать соотв.объекты в оном по classid и instanceid.
+        // - Интересуют следующие доп.св-ва: assetid, amount
+        call_user_func(function() USE (&$description, $json_decoded) {
 
-      write2log($json_decoded['rgDescriptions'], []);
+          // 1] Извлечь classid и instanceid для $description
+          $classid    = $description['classid'];
+          $instanceid = $description['instanceid'];
 
+          // 2] Получить assetid и amount из соотв.объекта в rgInventory
+          foreach($json_decoded['rgInventory'] as $key => &$inv) {
+
+            if($inv['classid'] == $classid && $inv['instanceid'] == $instanceid) {
+              $assetid = $inv['id'];
+              $amount = $inv['amount'];
+            }
+            break;
+
+          }
+
+          // 3] Добавить $assetid и $amount в $description
+          $description['assetid'] = isset($assetid) ? $assetid : "";
+          $description['amount'] = isset($amount) ? $amount : "";
+
+        });
+
+        // 5.2. Вынести важную информацию из тегов на 1-й уровень массива
+        foreach($description['tags'] as $tag) {
+
+          // 1] Type
+          if($tag['category_name'] == "Type") {
+            $description['type'] = $tag['name'];
+          }
+
+          // 2] Weapon
+          if($tag['category_name'] == "Weapon") {
+            $description['weapon'] = $tag['name'];
+          }
+
+          // 3] Collection
+          if($tag['category_name'] == "Collection") {
+            $description['collection'] = $tag['name'];
+          }
+
+          // 4] Category
+          if($tag['category_name'] == "Category") {
+            $description['category'] = $tag['name'];
+          }
+
+          // 5] Quality
+          if($tag['category_name'] == "Quality") {
+            $description['quality'] = $tag['name'];
+            $description['quality_color'] = $tag['color'];
+          }
+
+          // 6] Exterior
+          if($tag['category_name'] == "Exterior") {
+            $description['exterior'] = $tag['name'];
+          }
+
+        }
+
+        // 5.3. Сформировать полные URL для картинок
+
+          // 1] Получить сервер изображений steam
+          $steam_image_server = config('M8.steam_image_server') ?: 'https://steamcommunity-a.akamaihd.net/economy/image/';
+
+          // 2] Сформировать полный URL для icon_url
+          $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "";
+
+          // 3] Сформировать полный URL для icon_url_large
+          $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "";
+
+          // 4] Сформировать полный URL для icon_drag_url
+          $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "";
+
+      }
+
+      // 6. Преобразовать rgDescriptions в массив массивов
+      $rgDescriptions = call_user_func(function() USE ($json_decoded) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Наполнить $results
+        foreach($json_decoded['rgDescriptions'] as $description) {
+
+          array_push($results, $description);
+
+        }
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 7. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "rgDescriptions" => $rgDescriptions
+        ]
+      ];
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C4_getinventory from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
