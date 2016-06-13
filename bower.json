@@ -11,7 +11,7 @@
 		"history.js": "latest",
 		"loaders.css": "latest",
 		"socket.io-client": "latest",
-		"slim-scroll": "latest"
+		"perfect-scrollbar": "latest"
 	},
   "mains": {
     "css": [
