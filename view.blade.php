@@ -40,6 +40,7 @@
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/AdminLTE/plugins/ckeditor/skins/moono/editor.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/AdminLTE/plugins/datatables/dataTables.bootstrap.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/loaders.css/loaders.css">
+  <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/css/perfect-scrollbar.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/L10000/css/c.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/D10005/css/c.css">
   <!-- document css: stop -->
@@ -329,29 +330,31 @@
                   <?php /*------->
                   <!-- Контент -->
                   <!---------*/ ?>
-                  <div class="box-body form-horizontal" style="max-height: 200px; min-height: 200px;">
+                  <div class="box-body form-horizontal" style="max-height: 400px; min-height: 400px; overflow: hidden;">
+                    <div class="inventory-container" style="height: 400px; position: relative; overflow: hidden;">
 
-                    <?php /*-------------------------------------->
-                    <!-- Надпись на случай, если инвентарь пуст -->
-                    <!----------------------------------------*/ ?>
-                    <div data-bind="visible: !m.s3.inventory().length">
-                      <span>Inventory is empty...</span>
-                    </div>
+                      <?php /*-------------------------------------->
+                      <!-- Надпись на случай, если инвентарь пуст -->
+                      <!----------------------------------------*/ ?>
+                      <div data-bind="visible: !m.s3.inventory().length">
+                        <span>Inventory is empty...</span>
+                      </div>
 
-                    <?php /*-------------------->
-                    <!-- Содержимое инвентаря -->
-                    <!----------------------*/ ?>
-                    <div class="inventory" data-bind="foreach: m.s3.inventory">
+                      <?php /*-------------------->
+                      <!-- Содержимое инвентаря -->
+                      <!----------------------*/ ?>
+                      <div class="inventory" data-bind="foreach: m.s3.inventory">
 
-                      <?php /*------------------->
-                      <!-- Предмет в инвентаре -->
-                      <!---------------------*/ ?>
-                      <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }">
+                        <?php /*------------------->
+                        <!-- Предмет в инвентаре -->
+                        <!---------------------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }">
+
+                        </div>
 
                       </div>
 
                     </div>
-
                   </div>
 
                 </div>
@@ -774,7 +777,8 @@
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/knockoutjs/dist/knockout.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/history.js/scripts/bundled/html4+html5/native.history.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/socket.io-client/socket.io.js"></script>
-  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/slim-scroll/slimscroll.js"></script>
+  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
+  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/js/perfect-scrollbar.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/L10000/js/j.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/D10005/js/j.js"></script>
   <!-- document js: stop -->

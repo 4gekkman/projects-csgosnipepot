@@ -213,6 +213,28 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
+			// 2. Применить к боксу с инвентарём perfect-scroll
+			(function(){
+
+				// 2.1. Получить ссылку на DOM-элемент
+				var dom = document.getElementsByClassName('inventory-container')[0];
+				if(!dom) return;
+
+				// 2.2. Если у dom нет класса ps-container
+				// - Тогда инициилизировать perfect-scroll на этом элементе
+				if(!checkClass('', 'ps-container', dom)) {
+					Ps.initialize(document.getElementsByClassName('inventory-container')[0], {
+						'wheelSpeed': .2
+					});
+				}
+
+				// 2.3. Иначе обновить
+				else {
+					Ps.update(dom);
+				}
+
+			})();
+
   	};
 
 
