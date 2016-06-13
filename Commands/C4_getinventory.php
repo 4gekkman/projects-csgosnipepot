@@ -198,15 +198,15 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
         // 4.2. Убедиться, что success == true
         if(!array_key_exists('success', $json_decoded) || !is_bool($json_decoded['success']) || $json_decoded['success'] !== true)
-          throw new \Exception('Value of the success parameter is not true.');
+          throw new \Exception('The inventory is empty, or error (details in log).');
 
         // 4.3. Провести валидацию
         $validator = r4_validate($json_decoded, [
-          "success"         => ["required", "boolean"],
-          "rgInventory"     => ["required", "array"],
-          "rgDescriptions"  => ["required", "array"],
-          "more"            => ["required", "boolean"],
-          "more_start"      => ["required", "boolean"],
+          "success"         => ["r4_defined", "boolean"],
+          "rgInventory"     => ["r4_defined", "array"],
+          "rgDescriptions"  => ["r4_defined", "array"],
+          "more"            => ["r4_defined", "boolean"],
+          "more_start"      => ["r4_defined", "boolean"],
         ]); if($validator['status'] == -1) {
           throw new \Exception($validator['data']);
         }
