@@ -437,6 +437,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.token_gid 				= ko.observable("");
 		self.m.s2.edit.identity_secret 	= ko.observable("");
 		self.m.s2.edit.secret_1 				= ko.observable("");
+		self.m.s2.edit.apikey 					= ko.observable("");
 
 		self.m.s2.edit.id   						= ko.observable("");
 		self.m.s2.edit.ison_incoming 		= ko.observable("");

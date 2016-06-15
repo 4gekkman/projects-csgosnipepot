@@ -529,19 +529,19 @@
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
-                    <?php /* 1] Login -->
+                    <?php /* 1] login -->
                     <!--------------*/ ?>
                     <div class="form-group">
-                      <div class="col-sm-4 control-label">Login</div>
+                      <div class="col-sm-4 control-label">login</div>
                       <div class="col-sm-8">
                         <input class="form-control input-sm" data-bind="textInput: m.s2.edit.login">
                       </div>
                     </div>
 
-                    <?php /* 2] Password -->
+                    <?php /* 2] password -->
                     <!-----------------*/ ?>
                     <div class="form-group">
-                      <div class="col-sm-4 control-label">Password</div>
+                      <div class="col-sm-4 control-label">password</div>
                       <div class="col-sm-8">
                         <input class="form-control input-sm" data-bind="textInput: m.s2.edit.password">
                       </div>
@@ -634,6 +634,15 @@
                       <div class="col-sm-4 control-label">secret_1</div>
                       <div class="col-sm-8">
                         <input class="form-control input-sm" data-bind="textInput: m.s2.edit.secret_1">
+                      </div>
+                    </div>
+
+                    <?php /* 13] apikey -->
+                    <!----------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">apikey</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey">
                       </div>
                     </div>
 

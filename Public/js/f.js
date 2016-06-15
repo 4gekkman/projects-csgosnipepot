@@ -494,6 +494,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.token_gid(data.token_gid());
 			self.m.s2.edit.identity_secret(data.identity_secret());
 			self.m.s2.edit.secret_1(data.secret_1());
+			self.m.s2.edit.apikey(data.apikey());
 
 			self.m.s2.edit.id(data.id());
 			self.m.s2.edit.ison_incoming(data.ison_incoming());
@@ -527,6 +528,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					token_gid: 			  self.m.s2.edit.token_gid(),
 					identity_secret:	self.m.s2.edit.identity_secret(),
 					secret_1: 			  self.m.s2.edit.secret_1(),
+					apikey:   				self.m.s2.edit.apikey(),
 
 					id:               self.m.s2.edit.id(),
 					ison_incoming:    self.m.s2.edit.ison_incoming(),
@@ -599,7 +601,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  ok_2:         function(data, params){
 					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
 					console.log(data.data.errortext);
-				},
+				}
 			  //ajax_params:  {},
 			  //key: 			    "D1:1",
 				//from_ex: 	    [],
