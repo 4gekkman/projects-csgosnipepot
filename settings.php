@@ -59,17 +59,7 @@ return [
       // 5.3] Сервер изображений Steam | Steam image server
       'steam_image_server' => 'https://steamcommunity-a.akamaihd.net/economy/image/',
 
-      // 5.4] Доп.ключи аккаунтов-не-ботов | Additional keys of no-bots-accounts
-      // - Пример:
-      //
-      //   [
-      //     [
-      //       'domain' => 'csgoprof.it',
-      //       'apikey' => 'fdg7gy8sdfyg8sdfg'
-      //     ],
-      //     [...]
-      //   ]
-      //
-      'common_apikeys' => []
+      // 5.4] Путь к каталогу с файлами
+
 
 ];
