@@ -70,5 +70,12 @@
   //          return ['name' => 'Иван', 'age' => 18];
   //      }
 
+        // Г3. В какую очередь поместить событие
+        //--------------------------------------
+        public function onQueue()
+        {
+          return array_key_exists('queue', $this->data) ? $this->data['queue'] : 'default';
+        }
+
 
   }
