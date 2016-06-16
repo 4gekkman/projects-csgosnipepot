@@ -139,7 +139,7 @@
           '\M1\Console\T23_suf_bower_automain',
           '\M1\Console\T24_suf_blade_integrate',
           '\M1\Console\T25_suf_watch_setting',
-          '\M1\Console\T26_queue_show',
+          '\M1\Console\T26_queue',
           '\M1\Console\T27_queue_clear',
           '\M1\Console\T28_run',
           '\M1\Console\T29_run_light',

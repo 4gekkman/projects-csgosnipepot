@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T26_queue_show extends Command
+class T26_queue extends Command
 {
 
   //---------------------------//
@@ -90,7 +90,7 @@ class T26_queue_show extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:queue_show';
+    protected $signature = 'm1:queue {queue=default}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
@@ -153,10 +153,10 @@ class T26_queue_show extends Command
   {
 
     // 1. Получить текущее содержимое очереди
-    $queue = Queue::getRedis()->command('LRANGE',['queues:default', '0', '-1']);
+    $queue = Queue::getRedis()->command('LRANGE',['queues:'.$this->argument('queue'), '0', '-1']);
 
     // 2. Вывести очередь
-    write2log(PHP_EOL . PHP_EOL . '----------------------------------------' . PHP_EOL .           '---------- Содержимое очереди ----------' . PHP_EOL .           '----------------------------------------');
+    write2log(PHP_EOL . PHP_EOL . '----------------------------------------' . PHP_EOL .           '---------- Содержимое '.$this->argument('queue') . PHP_EOL .           '----------------------------------------');
     foreach($queue as $task) {
       write2log(mb_substr(json_encode(json_decode($task, true)['data'],JSON_UNESCAPED_UNICODE), 0, 25), []);
     }
@@ -168,3 +168,4 @@ class T26_queue_show extends Command
   }
 
 }
+
