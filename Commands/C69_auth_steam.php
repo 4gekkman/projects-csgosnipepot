@@ -334,6 +334,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
       // 13. Через websocket послать аутентиф.информацию по каналу websockets_channel
       Event::fire(new \R2\Broadcast([
         'channels'  => [$this->data['websockets_channel']],
+        'queue'     => 'auth',
         'data'      => [
           'status'  => 0,
           'user'    => json_encode($user2auth->toArray(), JSON_UNESCAPED_UNICODE)
