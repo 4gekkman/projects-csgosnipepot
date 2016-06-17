@@ -118,7 +118,8 @@
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
           '\M8\Console\T1_sync',
-          '\M8\Console\T2_getinventory'
+          '\M8\Console\T2_getinventory',
+          '\M8\Console\T3_bot_get_mobile_code'
         ];
 
         // Регистрация команд в методе register
