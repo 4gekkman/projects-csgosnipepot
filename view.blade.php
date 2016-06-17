@@ -715,6 +715,9 @@
                   </div>
                   <div class="box-body auth_code_styles">
                     <span data-bind="text: 'H8YGB'"></span>
+                    <div class="auth_code_styles_expire">
+
+                    </div>
                   </div>
                 </div>
 
