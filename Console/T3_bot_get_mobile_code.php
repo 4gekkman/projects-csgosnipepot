@@ -162,7 +162,7 @@ class T3_bot_get_mobile_code extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C5_bot_get_mobile_code', ['id_bot' => $this->argument('id_bot'), 'time' => $this->argument('time') != "0" ? $this->argument('time') : \Carbon\Carbon::now()->timestamp]);
+    $result = runcommand('\M8\Commands\C5_bot_get_mobile_code', ['id_bot' => $this->argument('id_bot'), 'time' => $this->argument('time') != "0" ? $this->argument('time') : time()]);
 
 
     // 2. В случае неудачи, вывести текст ошибки
@@ -173,7 +173,8 @@ class T3_bot_get_mobile_code extends Command
 
 
     // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+    $this->info("Code: ".$result['data']['code']);
+    $this->info("Expires in [secs]: ".$result['data']['expires_in_secs']);
 
   }
 

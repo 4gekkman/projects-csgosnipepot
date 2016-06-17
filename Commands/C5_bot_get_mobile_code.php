@@ -42,6 +42,16 @@
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
  *
+ *  Как определить время действия сгенерированного кода?
+ *  ----------------------------------------------------
+ *    - Время действия любого кода 30 секунд.
+ *    - Ориентация идёт по точному серверному времени.
+ *    - Новые коды генерятся 2 раза в минуту, в начале соотв.промежутка времени.
+ *    - Вот эти промежутки в секундах:
+ *
+ *        0   -  29
+ *        30  -  59
+ *
  */
 
 //---------------------------//
@@ -138,6 +148,12 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
      *
      *  1. Провести валидацию входящих параметров
      *  2. Попробовать найти указанного бота
+     *  3. Провести валидацию необходимых для генерации кода свойств бота
+     *  4. Подготовить всё необходимое для генерации кода
+     *  5. Узнать разницу между временем локального сервера и сервера steam
+     *  6. Сгенерировать код для $bot и $time (с учётом $difference)
+     *  7. Рассчитать, через сколько секунд данный код устареет
+     *  8. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -146,7 +162,7 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
     //----------------------------------------------------------------------//
     // Получить код мобильного аутентификатора для указанных бота и времени //
     //----------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
@@ -161,35 +177,97 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
       if(empty($bot))
         throw new \Exception("Can't find bot with id == ".$this->data['id_bot']);
 
-      write2log((array)$bot, []);
+      // 3. Провести валидацию необходимых для генерации кода свойств бота
+      $validator = r4_validate($bot->toArray(), [
+        "shared_secret"   => ["required"]
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-//      // 3. Провести валидацию необходимых для генерации кода свойств бота
-//      $validator = r4_validate($this->data, [
-//
-//        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-//        "name"            => ["required", "regex:/^[a-zа-яё]+$/ui"],
-//        "email"           => ["required", "email"],
-//        "password"        => ["required", "min:".config("M5.common_min_chars_in_pass")],
-//        "isanonymous"     => ["required", "in:yes,no"],
-//        "surname"         => ["regex:/^([a-zа-яё]+|)$/ui"],
-//        "patronymic"      => ["regex:/^([a-zа-яё]+|)$/ui"],
-//        "gender"          => ["required", "in:m,f,u"],
-//        "birthday"        => ["regex:/^([0-9]{4}-([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[0-9]{2}|)$/ui"],
-//        "phone"           => ["regex:/^([0-9]+|)$/ui"],
-//        "skype"           => ["regex:/^(.+|)$/ui"],
-//        "other_contacts"  => ["regex:/^(.+|)$/ui"]
-//
-//      ]); if($validator['status'] == -1) {
-//
-//        throw new \Exception($validator['data']);
-//
-//      }
+      // 4. Подготовить всё необходимое для генерации кода
+      $time                   = $this->data['time'];
+      $sharedSecret           = $bot->shared_secret;
+      $codeTranslations       = [50, 51, 52, 53, 54, 55, 56, 57, 66, 67, 68, 70, 71, 72, 74, 75, 77, 78, 80, 81, 82, 84, 86, 87, 88, 89];
+      $codeTranslationsLength = 26;
+
+      // 5. Узнать разницу между временем локального сервера и сервера steam
+      $difference = call_user_func(function(){
+
+        // 1] Подготовить новый экземпляр Guzzle
+        $guzzle = new \GuzzleHttp\Client();
+
+        // 2] Выполнить POST-запрос к Steam
+        $response = $guzzle->post('http://api.steampowered.com/ITwoFactorService/QueryTime/v0001');
+
+        // 3] Если статус ответа не 200, возбудить исключение
+        if($response->getStatusCode() != 200)
+          throw new \Exception("Can't get time info from Steam server. Response code != 200.");
+
+        // 4] Извлечь тело ответа
+        $body = json_decode($response->getBody(), true);
+
+        // 5] Вычислить и вернуть разницу в секундах
+        return +$body['response']['server_time'] - +time();
+
+      });
+
+      // 6. Сгенерировать код для $bot и $time (с учётом $difference)
+      $code = call_user_func(function() USE ($time, $difference, $sharedSecret, $codeTranslations, $codeTranslationsLength) {
+
+        $intToByte = function($int){
+            return $int & (0xff);
+        };
+        $time = $time + $difference;
+        $sharedSecret = base64_decode($sharedSecret);
+        $timeHash = pack('N*', 0) . pack('N*', floor($time / 30));
+        $hmac = unpack('C*', pack('H*', hash_hmac('sha1', $timeHash, $sharedSecret, false)));
+        $hashedData = [];
+        $modeIndex = 0;
+        foreach ($hmac as $value) {
+            $hashedData[$modeIndex] = $intToByte($value);
+            $modeIndex++;
+        }
+        $b = $intToByte(($hashedData[19] & 0xF));
+        $codePoint = ($hashedData[$b] & 0x7F) << 24 | ($hashedData[$b+1] & 0xFF) << 16 | ($hashedData[$b+2] & 0xFF) << 8 | ($hashedData[$b+3] & 0xFF);
+        $code = '';
+        for ($i = 0; $i < 5; ++$i) {
+            $code .= chr($codeTranslations[$codePoint % $codeTranslationsLength]);
+            $codePoint /= $codeTranslationsLength;
+        }
+        return $code;
+
+      });
+
+      // 7. Рассчитать, через сколько секунд данный код устареет
+      $expires = call_user_func(function(){
+
+        // 1] Получить секундную составляющую текущего времени
+        $seconds = \Carbon\Carbon::now()->second;
+
+        // 2] Если $seconds от 0 до 29
+        if($seconds >= 0 && $seconds <= 29) {
+          return 29 - $seconds;
+        }
+
+        // 3] Если $seconds от 30 до 59
+        else {
+          return 59 - $seconds;
+        }
+
+      });
+
+      // 8. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "code"              => $code,      // сгенерированный код
+          "expires_in_secs"   => $expires,   // через сколько секунд данный код устареет
+        ]
+      ];
 
 
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C5_bot_get_mobile_code from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M8', 'C5_bot_get_mobile_code']);
         return [
