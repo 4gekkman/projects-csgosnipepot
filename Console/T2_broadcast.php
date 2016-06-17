@@ -155,6 +155,7 @@ class T2_broadcast extends Command
     // 2. Возбудить вещательнео событие
     return Event::fire(new \R2\Broadcast([
       'channels'  => ['m3:now'],
+      'queue'     => 'time',
 
       'utcoffset' => $results['utcoffset'],
       'year'      => $results['year'],
