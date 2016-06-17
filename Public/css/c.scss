@@ -109,6 +109,7 @@
   // Предмет в инвентаре
   .inventory .item {
     display: inline-block;
+    transition: all 0.2s ease-in-out;
     width: 82px;
     max-width: 82px;
     height: 82px;
@@ -124,7 +125,8 @@
 
   // выбран ли предмет в инвентаре
   .inventory .selected {
-    box-shadow: 0x 0 6px RGBA(255,0,0,.5);
+    border: 1px solid RGBA(0,100,0,.6);
+    box-shadow: 0 0 6px RGBA(0,255,0,.5);
   }
 
   // Стили полосы прокрутки
@@ -146,6 +148,7 @@
 }
 .auth_code_styles_expire {
   position: absolute;
+  transition: width 0.3s ease-in-out;
   top: 0;
   left: 0;
   width: 100%;

@@ -714,10 +714,17 @@
                     Current mobile auth code
                   </div>
                   <div class="box-body auth_code_styles">
-                    <span data-bind="text: 'H8YGB'"></span>
-                    <div class="auth_code_styles_expire">
 
-                    </div>
+                    <?php /*--->
+                    <!-- Код -->
+                    <!-----*/ ?>
+                    <span data-bind="text: m.s4.code"></span>
+
+                    <?php /*----------------------------->
+                    <!-- Индикатор срока действия кода -->
+                    <!-------------------------------*/ ?>
+                    <div class="auth_code_styles_expire" data-bind=""></div>
+
                   </div>
                 </div>
 

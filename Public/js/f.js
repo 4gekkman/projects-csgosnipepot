@@ -34,6 +34,10 @@
  *    f.s3.get_item_title           | s3.2. Формирует title для вещей в инвентаре
  *    f.s3.deselect_all             | s3.3. Развыделить все элементы в инвентаре
  *
+ *  s4. Функционал модели генератора мобильных аутентификационных кодов
+ *
+ *    f.s4.update 									| s4.1. Обновить код мобильного аутентификатора для выбранного бота
+ *
  *
  */
 
@@ -481,7 +485,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//-----------------------------------------//
 		f.s2.show_bots_interface = function(data, event){
 
-			// 1] Загрузить в форму текущие данные редактируемого права
+			// 1] Загрузить в форму текущие данные редактируемого бота
 			self.m.s2.edit.login(data.login());
 			self.m.s2.edit.password(data.password());
 			self.m.s2.edit.steamid(data.steamid());
@@ -661,10 +665,64 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+	//----------------------------------------------------------------------------------//
+	// 			        		 			                                                          //
+	// 			 s4. Функционал модели генератора мобильных аутентификационных кодов   			//
+	// 			         					                                                          //
+	//----------------------------------------------------------------------------------//
+	f.s4 = {};
+
+		//-------------------------------------------------------------------//
+		// s4.1. Обновить код мобильного аутентификатора для выбранного бота //
+		//-------------------------------------------------------------------//
+		f.s4.update = function(){
+
+			// 1] Если id выбранного бота пуст, завершить
+			if(!self.m.s2.edit.id())
+				return;
+
+			// 2]
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C5_bot_get_mobile_code",
+				from: 		    "f.s4.update",
+			  data: 		    {
+					id:               self.m.s2.edit.id()
+				},
+			  prejob:       function(config, data, event){
+
+					// Уменьшить счёрчик ajax-запросов на 1
+					self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Записать новый код
+					//self.m.s4.code();
+
+					console.log(data);
+
+				},
+			  ok_2:         function(data, params){
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
 
 
 
-
+		};
 
 
 return f; }};
