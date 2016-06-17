@@ -507,7 +507,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         ];
     }}); if(!empty($res)) return $res;
 
-write2log(123, []);
+
     //---------------------------------------------//
     // 4. Парсинг связей между пакетами для md1000 //
     //---------------------------------------------//
@@ -525,6 +525,8 @@ write2log(123, []);
 
         // 1] Получить массив зависимостей пакета $packages
         $d = json_decode($this->storage->get($package['id_inner'].'/composer.json'), true)['require'];
+        if(!is_array($d))
+          throw new \Exception('В composer.json пакета '.$package['id_inner'].' допущена ошибка (см.поле require).');
 
         // 2] Заменить в нём значения на индексы от 0 и выше
         $i = 0;
