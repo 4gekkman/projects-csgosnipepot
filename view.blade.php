@@ -656,10 +656,14 @@
                 </div>
               </div>
 
-              <?php /*------------------->
-              <!-- Общие свойства бота -->
-              <!---------------------*/ ?>
+              <?php /*-------------------------------------------------------------->
+              <!-- Общие свойства бота + его текущий код мобильной аутентификации -->
+              <!----------------------------------------------------------------*/ ?>
               <div class="col-md-6 col-sm-12 col-xs-12">
+
+                <?php /*------------------->
+                <!-- Общие свойства бота -->
+                <!---------------------*/ ?>
                 <div class="box">
                   <div class="box-header with-border subdoc_title">
                     Common properties
@@ -701,6 +705,20 @@
 
                   </div>
                 </div>
+
+                <?php /*------------------->
+                <!-- Общие свойства бота -->
+                <!---------------------*/ ?>
+                <div class="box">
+                  <div class="box-header with-border subdoc_title">
+                    Current mobile auth code
+                  </div>
+                  <div class="box-body auth_code_styles">
+                    <span data-bind="text: 'H8YGB'"></span>
+                  </div>
+                </div>
+
+
               </div>
 
             </div>
@@ -788,6 +806,7 @@
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/socket.io-client/socket.io.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/js/perfect-scrollbar.js"></script>
+  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/d3/d3.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/L10000/js/j.js"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/D10005/js/j.js"></script>
   <!-- document js: stop -->

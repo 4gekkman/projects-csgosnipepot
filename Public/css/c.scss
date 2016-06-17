@@ -133,7 +133,16 @@
     border-radius: 2px;
   }
 
-
+//--------------------------------------------//
+// 5. Стили текущего аутентификационного кода //
+//--------------------------------------------//
+.auth_code_styles {
+  min-height: 100px;
+  max-height: 100px;
+  line-height: 75px;
+  font-size: 60px;
+  text-align: center;
+}
 
 
 
