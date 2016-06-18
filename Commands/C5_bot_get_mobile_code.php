@@ -167,7 +167,7 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "time"                => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "time"                => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -185,7 +185,7 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
       }
 
       // 4. Подготовить всё необходимое для генерации кода
-      $time                   = $this->data['time'];
+      $time                   = !empty($this->data['time']) ? $this->data['time'] : time();
       $sharedSecret           = $bot->shared_secret;
       $codeTranslations       = [50, 51, 52, 53, 54, 55, 56, 57, 66, 67, 68, 70, 71, 72, 74, 75, 77, 78, 80, 81, 82, 84, 86, 87, 88, 89];
       $codeTranslationsLength = 26;
