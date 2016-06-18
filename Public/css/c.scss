@@ -155,7 +155,30 @@
   height: 100%;
   background-color: RGBA(0,255,0,.1);
 }
+.auth_code_not_valid_bg {
+  background-color: RGBA(255,0,0,.1);
+}
+.auth_code_not_valid_text {
+  text-decoration: line-through;
+}
+.auth_code_loading_state_panel {
+  position: absolute;
+  z-index: 100000000000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: RGBA(255,255,255,.7);
 
+  display: flex;
+  justify-content: center;
+}
+.auth_code_loading_state_panel > div {
+  background-color: #fff;
+  border: 1px solid #555;
+
+  align-self: center;
+}
 
 
 

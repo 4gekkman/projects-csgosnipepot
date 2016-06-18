@@ -37,6 +37,7 @@
  *  s4. Функционал модели генератора мобильных аутентификационных кодов
  *
  *    f.s4.update 									| s4.1. Обновить код мобильного аутентификатора для выбранного бота
+ *    f.s4.copy   									| s4.2. Скопировать текущий код в буфер обмена
  *
  *
  */
@@ -686,27 +687,47 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  command: 	    "\\M8\\Commands\\C5_bot_get_mobile_code",
 				from: 		    "f.s4.update",
 			  data: 		    {
-					id:               self.m.s2.edit.id()
+					id_bot:       self.m.s2.edit.id()
 				},
 			  prejob:       function(config, data, event){
 
-					// Уменьшить счёрчик ajax-запросов на 1
-					self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+					// Отметить, что идёт ajax-запрос
+					self.m.s4.is_ajax_invoking(true);
 
 				},
 			  postjob:      function(data, params){},
 			  ok_0:         function(data, params){
 
 					// 1] Записать новый код
-					//self.m.s4.code();
+					self.m.s4.code(data.data.code);
 
-					console.log(data);
+					// 2] Записать, сколько секунд осталось до истечения текущего кода
+					self.m.s4.expires_in_secs(data.data.expires_in_secs);
+
+					// 3] Записать временную метку клиентского времени последнего получения кода
+					self.m.s4.last_code_update_timestamp(Date.now());
+
+					// 4] Отметить, что ajax-запрос закончился
+					self.m.s4.is_ajax_invoking(false);
+
+				},
+			  ok_1:         function(data, params){
+
+					// 1] Отметить, что ajax-запрос закончился
+					self.m.s4.is_ajax_invoking(false);
 
 				},
 			  ok_2:         function(data, params){
+
+					// 1] Сообщить об ошибке
 					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
 					console.log(data.data.errortext);
-				}
+
+					// 2] Отметить, что ajax-запрос закончился
+					self.m.s4.is_ajax_invoking(false);
+
+				},
+				dont_touch_ajax_counter: true
 			  //ajax_params:  {},
 			  //key: 			    "D1:1",
 				//from_ex: 	    [],
@@ -723,6 +744,79 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 
 		};
+
+		//----------------------------------------------//
+		// s4.2. Скопировать текущий код в буфер обмена //
+		//----------------------------------------------//
+		f.s4.copy = function(){
+
+			var textArea = document.createElement("textarea");
+
+			//
+			// *** This styling is an extra step which is likely not required. ***
+			//
+			// Why is it here? To ensure:
+			// 1. the element is able to have focus and selection.
+			// 2. if element was to flash render it has minimal visual impact.
+			// 3. less flakyness with selection and copying which **might** occur if
+			//    the textarea element is not visible.
+			//
+			// The likelihood is the element won't even render, not even a flash,
+			// so some of these are just precautions. However in IE the element
+			// is visible whilst the popup box asking the user for permission for
+			// the web page to copy to the clipboard.
+			//
+
+			// Place in top-left corner of screen regardless of scroll position.
+			textArea.style.position = 'fixed';
+			textArea.style.top = 0;
+			textArea.style.left = 0;
+
+			// Ensure it has a small width and height. Setting to 1px / 1em
+			// doesn't work as this gives a negative w/h on some browsers.
+			textArea.style.width = '2em';
+			textArea.style.height = '2em';
+
+			// We don't need padding, reducing the size if it does flash render.
+			textArea.style.padding = 0;
+
+			// Clean up any borders.
+			textArea.style.border = 'none';
+			textArea.style.outline = 'none';
+			textArea.style.boxShadow = 'none';
+
+			// Avoid flash of white box if rendered for any reason.
+			textArea.style.background = 'transparent';
+
+
+			textArea.value = self.m.s4.code();
+
+			document.body.appendChild(textArea);
+
+			textArea.select();
+
+			try {
+				var successful = document.execCommand('copy');
+				var msg = successful ? 'successful' : 'unsuccessful';
+				notify({msg: "The code has copied to the clipboard!", time: 5, fontcolor: 'RGB(50,120,50)'});
+			} catch (err) {
+				notify({msg: "Can't copy the code to the clipboard...", time: 5, fontcolor: 'RGB(200,50,50)'});
+			}
+
+			document.body.removeChild(textArea);
+
+		};
+
+
+
+
+
+
+
+
+
+
+
 
 
 return f; }};

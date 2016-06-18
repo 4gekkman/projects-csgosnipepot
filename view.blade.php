@@ -711,19 +711,36 @@
                 <!---------------------*/ ?>
                 <div class="box">
                   <div class="box-header with-border subdoc_title">
-                    Current mobile auth code
+
+                    <div class="col-md-8 col-sm-8 col-xs-8">Current mobile auth code</div>
+                    <div class="col-md-4 col-sm-4 col-xs-4">
+                      <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Copy current code" data-bind="click: f.s4.copy">
+                        <i class="fa fa-clone"></i>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+
                   </div>
                   <div class="box-body auth_code_styles">
 
                     <?php /*--->
                     <!-- Код -->
                     <!-----*/ ?>
-                    <span data-bind="text: m.s4.code"></span>
+                    <span data-bind="text: m.s4.code, visible: m.s4.is_current_code_valid"></span>
 
                     <?php /*----------------------------->
                     <!-- Индикатор срока действия кода -->
                     <!-------------------------------*/ ?>
-                    <div class="auth_code_styles_expire" data-bind=""></div>
+                    <div class="auth_code_styles_expire" data-bind="visible: m.s4.is_current_code_valid, style: {width: m.s4.expire_percents}"></div>
+
+                    <?php /*--------------->
+                    <!-- Панель загрузки -->
+                    <!-----------------*/ ?>
+                    <div class="loader">
+                      <div style="display: none" class="auth_code_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: !m.s4.is_current_code_valid()">
+                        <div></div>
+                      </div>
+                    </div>
 
                   </div>
                 </div>
