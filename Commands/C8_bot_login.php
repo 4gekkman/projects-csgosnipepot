@@ -172,6 +172,9 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         throw new \Exception("Can't find bot with ID = ".$this->data['id_bot']);
       if(empty($bot->login))
         throw new \Exception("Login of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
+      if(empty($bot->steamid))
+        throw new \Exception("Steam ID of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
+
 
       // 3. Проверить, вошёл ли уже $bot в Steam, или нет
       $is_bot_authorized = call_user_func(function() USE ($bot) {
@@ -210,7 +213,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
             "id_bot"        => $this->data['id_bot'],
             "url"           => "https://steamcommunity.com/login/getrsakey?username=".$bot->login,
-            "mobile"        => $this->data['mobile'] == 1 ? true : false,
+            "mobile"        => $this->data['mobile'] == "1" ? true : false,
             "postdata"      => [],
             "ref"           => ""
           ]);
@@ -278,12 +281,16 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           'username'        => $bot->login,
           'password'        => urlencode($password_encrypted),
           'twofactorcode'   => $code,
+          'captchagid'      => '-1',
+          'captcha_text'    => '',
+          'emailsteamid'    => $bot->steamid.'',
+          'emailauth'       => '',
           'rsatimestamp'    => $rsa['timestamp'],
           'remember_login'  => 'false'
         ];
 
         // 8.2. Если бот входит с мобильного устройства, добавить параметров
-        if($this->data['mobile'] == 1) {
+        if($this->data['mobile'] == "1") {
           $params['oauth_client_id'] = 'DE45CD61';
           $params['oauth_scope'] = 'read_profile write_profile read_client write_client';
           $params['loginfriendlyname'] = '#login_emailauth_friendlyname_mobile';
@@ -296,7 +303,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
             "id_bot"        => $this->data['id_bot'],
             "url"           => "https://steamcommunity.com/login/dologin/",
-            "mobile"        => true,
+            "mobile"        => $this->data['mobile'] == "1" ? true : false,
             "postdata"      => $params,
             "ref"           => ""
           ]);
@@ -359,7 +366,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
       // 10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
       // - В зависимости от того, через мобильное ли устройство входит $bot, или нет
-      if($this->data['mobile'] == 1) {
+      if($this->data['mobile'] == "1") {
         $bot->oauth_mobile = json_encode($authorization['authorization']['transfer_parameters'], JSON_UNESCAPED_UNICODE);
         $bot->save();
       }

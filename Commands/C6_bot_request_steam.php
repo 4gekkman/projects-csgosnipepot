@@ -225,39 +225,21 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
             // 2.4] Пусть cURL не проверяет имя хоста по сертификату
             $result[CURLOPT_SSL_VERIFYHOST] = 0;
 
-            // 2.5] Пусть cURL не следует заголовкам "Location: ", которые посылает сервер
-            $result[CURLOPT_FOLLOWLOCATION] = false;
+            // 2.5] Пусть cURL сохраняет файлы-куки для этого бота по указанному адресу
 
-            // 2.6] Установить timeout ожидания соединения, в секундах
-            $result[CURLOPT_CONNECTTIMEOUT] = 5;
+              // Имя файла, содержащего cookies. Данный файл должен быть в формате Netscape или просто заголовками HTTP, записанными в файл. Если в качестве имени файла передана пустая строка, то cookies сохраняться не будут, но их обработка все еще будет включена
+              $result[CURLOPT_COOKIEFILE] = $cookie_file_path;
 
-            // 2.7] Если передан ref url, задать его
-            if(array_key_exists('ref', $this->data))
-              $result[CURLOPT_REFERER] = $this->data['ref'];
+              // Имя файла, в котором будут сохранены все внутренние cookies текущей передачи после закрытия дескриптора, например, после вызова curl_close
+              $result[CURLOPT_COOKIEJAR] = $cookie_file_path;
 
-            // 2.8] Если передана postdata, задать соотв.поля
-            if(array_key_exists('postdata', $this->data)) {
+            // 2.6] Пусть cURL не следует заголовкам "Location: ", которые посылает сервер
+            $result[CURLOPT_FOLLOWLOCATION] = 1;
 
-              // Указать, что методом запроса будет POST
-              $result[CURLOPT_POST] = true;
+            // 2.7] Установить timeout ожидания соединения, в секундах
+            $result[CURLOPT_CONNECTTIMEOUT] = 50;
 
-              // Сформировать строку с post-данными
-              $poststring = call_user_func(function(){
-                $result = "";
-                foreach($this->data['postdata'] as $key => $value) {
-                  if($result)
-                      $result .= "&";
-                  $result .= $key . "=" . $value;
-                }
-                return $result;
-              });
-
-              // Добавить $poststring в параметры cURL-запроса
-              $result[CURLOPT_POSTFIELDS] = $poststring;
-
-            }
-
-            // 2.9] Задать, от мобильного или нет устройства происходит запрос
+            // 2.8] Задать, от мобильного или нет устройства происходит запрос
 
               // Если передана mobile, и она true, значит от мобильного
               // - Задать соотв.поля
@@ -293,18 +275,40 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
               // - Задать соотв.поля
               else {
 
+                $result[CURLOPT_HTTPHEADER] = [
+                  "X-Requested-With: com.valvesoftware.android.steam.community"
+                ];
+
                 // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
                 $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
 
               }
 
-            // 2.10] Пусть cURL сохраняет файлы-куки для этого бота по указанному адресу
+            // 2.9] Если передан ref url, задать его
+            if(array_key_exists('ref', $this->data))
+              $result[CURLOPT_REFERER] = $this->data['ref'];
 
-              // Имя файла, содержащего cookies. Данный файл должен быть в формате Netscape или просто заголовками HTTP, записанными в файл. Если в качестве имени файла передана пустая строка, то cookies сохраняться не будут, но их обработка все еще будет включена
-              $result[CURLOPT_COOKIEFILE] = $cookie_file_path;
+            // 2.10] Если передана postdata, задать соотв.поля
+            if(array_key_exists('postdata', $this->data)) {
 
-              // Имя файла, в котором будут сохранены все внутренние cookies текущей передачи после закрытия дескриптора, например, после вызова curl_close
-              $result[CURLOPT_COOKIEJAR] = $cookie_file_path;
+              // Указать, что методом запроса будет POST
+              $result[CURLOPT_POST] = true;
+
+              // Сформировать строку с post-данными
+              $poststring = call_user_func(function(){
+                $result = "";
+                foreach($this->data['postdata'] as $key => $value) {
+                  if($result)
+                    $result .= "&";
+                  $result .= $key . "=" . $value;
+                }
+                return $result;
+              });
+
+              // Добавить $poststring в параметры cURL-запроса
+              $result[CURLOPT_POSTFIELDS] = $poststring;
+
+            }
 
           // n] Вернуть результат
           return $result;
