@@ -119,7 +119,8 @@
         $commands = [
           '\M8\Console\T1_sync',
           '\M8\Console\T2_getinventory',
-          '\M8\Console\T3_bot_get_mobile_code'
+          '\M8\Console\T3_bot_get_mobile_code',
+          '\M8\Console\T4_bot_request_steam'
         ];
 
         // Регистрация команд в методе register
