@@ -119,7 +119,8 @@
           '\M8\Console\T1_sync',
           '\M8\Console\T2_getinventory',
           '\M8\Console\T3_bot_get_mobile_code',
-          '\M8\Console\T4_bot_get_sessid_steamid'
+          '\M8\Console\T4_bot_get_sessid_steamid',
+          '\M8\Console\T5_bot_login'
         ];
 
         // Регистрация команд в методе register

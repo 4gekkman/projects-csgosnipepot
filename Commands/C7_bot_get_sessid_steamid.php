@@ -136,7 +136,11 @@ class C7_bot_get_sessid_steamid extends Job { // TODO: добавить "impleme
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2.
+     *  2. Осуществить GET-запрос к steam и получить HTML-документ в ответ
+     *  3. Если код ответа не 200, сообщить и завершить
+     *  4. Получить из $response строку с HTML из ответа
+     *  5. Попробовать извлечь steamid из $html
+     *  6. Попробовать извлечь sessionid из $html
      *
      *  N. Вернуть статус 0
      *
@@ -150,6 +154,7 @@ class C7_bot_get_sessid_steamid extends Job { // TODO: добавить "impleme
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "mobile"              => ["required", "regex:/^[01]{1}$/ui"]
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -161,7 +166,7 @@ class C7_bot_get_sessid_steamid extends Job { // TODO: добавить "impleme
         $result = runcommand('\M8\Commands\C6_bot_request_steam', [
           "id_bot"        => $this->data['id_bot'],
           "url"           => "http://steamcommunity.com",
-          "mobile"        => false,
+          "mobile"        => $this->data['mobile'] == 1 ? true : false,
           "postdata"      => [],
           "ref"           => ""
         ]);
@@ -173,10 +178,40 @@ class C7_bot_get_sessid_steamid extends Job { // TODO: добавить "impleme
 
       });
 
+      // 3. Если код ответа не 200, сообщить и завершить
+      if($response->getStatusCode() != 200)
+        throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode());
 
-      write2log((string)$response->getBody(), []);
+      // 4. Получить из $response строку с HTML из ответа
+      $html = (string) $response->getBody();
 
+      // 5. Попробовать извлечь steamid из $html
+      $pattern = '/g_steamID = (.*);/';
+      preg_match($pattern, $html, $matches);
+      if(!isset($matches[1]))
+        throw new \Exception('Unexpected response from Steam.');
+      $steamid = str_replace('"', '', $matches[1]);
+      if($steamid == 'false') {
+        $steamid = 0;
+      }
 
+      // 6. Попробовать извлечь sessionid из $html
+      $pattern = '/g_sessionID = (.*);/';
+      preg_match($pattern, $html, $matches);
+      if(!isset($matches[1]))
+        throw new \Exception('Unexpected response from Steam.');
+      $sessionid = str_replace('"', '', $matches[1]);
+
+      // n. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          'id_bot'                => $this->data['id_bot'],
+          'is_bot_authenticated'  => $steamid == 0 ? false : true,
+          'steamid'               => $steamid,
+          'sessionid'             => $sessionid
+        ]
+      ];
 
 
     } catch(\Exception $e) {

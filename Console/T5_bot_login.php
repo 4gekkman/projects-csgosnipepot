@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get sessionid and steamid for specified bot
+ *    - Invoke OAuth bot login in Steam for specified bot.
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T4_bot_get_sessid_steamid extends Command
+class T5_bot_login extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T4_bot_get_sessid_steamid extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:bot_get_sessid_steamid {id_bot} {mobile}';
+    protected $signature = 'm8:bot_login {id_bot} {mobile=0} {relogin=0}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Get sessionid and steamid for specified bot';
+    protected $description = 'Invoke OAuth bot login in Steam for specified bot.';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T4_bot_get_sessid_steamid extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', $this->argument());
+    $result = runcommand('\M8\Commands\C8_bot_login', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
@@ -173,10 +173,7 @@ class T4_bot_get_sessid_steamid extends Command
 
 
     // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Bots ID in the local system: ".$result['data']['id_bot']);
-    $this->info("Is the bot authenticated in Steam: ".($result['data']['is_bot_authenticated'] == true ? 'yes' : 'no'));
-    $this->info("Steam ID of the bot: ".$result['data']['steamid']);
-    $this->info("Session ID of the bot: ".$result['data']['sessionid']);
+    $this->info("Success");
 
   }
 

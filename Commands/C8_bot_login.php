@@ -7,18 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Send request to Steam by url from bots face, simulating a browser
+ *    - Invoke OAuth bot login in Steam for specified bot.
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        id_bot      // ID бота, от имени которого осуществлять запрос
- *        url         // URL, куда посылать запрос
- *        mobile      // Имитировать ли запрос с мобильного устройства
- *        postdata    // Данные для передачи в POST-запросе
- *        ref         // URL реферала
+ *        id_bot        // ID бота в локальной системе, от имени которого надо авторизоваться в Steam
+ *        mobile        // 0/1, имитировать ли мобильное устройство при обращении к Steam, или нет
+ *        relogin       // 0/1, Нужно ли осуществить переавторизацию бота, даже если он авторизован?
  *      ]
  *    ]
  *
@@ -105,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C6_bot_request_steam extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C8_bot_login extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -140,26 +138,25 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *
-     *
-     *  n. Вернуть результаты
+     *  2. Попробовать найти бота с id_bot
+     *  3. Проверить, вошёл ли уже $bot в Steam, или нет
+     *  4. Если $bot уже вошёл в Steam, завершить
+     *  5. Запросить публичный RSA-ключ для бота
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------//
-    // Отправить запрос по указанному URL, имитируя браузер //
-    //------------------------------------------------------//
-    $res = call_user_func(function() { try {
+    //-------------------------------------------------------//
+    // Осуществить OAuth авторизацию указанного бота в Steam //
+    //-------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "url"             => ["required", "url"],
-        "mobile"          => ["required", "boolean"],
-        "postdata"        => ["sometimes", "array"],
-        "ref"             => ["sometimes", "url"],
+        "mobile"          => ["required", "regex:/^[01]{1}$/ui"],
+        "relogin"         => ["required", "regex:/^[01]{1}$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -171,167 +168,78 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
       if(empty($bot->login))
         throw new \Exception("Login of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
 
-      // 3. Определить, куда сохранять файл с куками для этого бота
-      // - Заодно проверить существования соотв.каталога и файла. Если их нет, создать.
-      $cookie_file_path = call_user_func(function() USE ($bot) {
+      // 3. Проверить, вошёл ли уже $bot в Steam, или нет
+      $is_bot_authorized = call_user_func(function() USE ($bot) {
 
-        // 1] Получить путь к каталогу, куда надо сохранять куки ботов, относительно корня laravel
-        $root4cookies = config('M8.root4cookies') ?: 'storage/m8_bots_cookies';
+        // 3.1. Выполнить запрос
+        $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', ['id_bot' => $this->data['id_bot'], 'mobile' => $this->data['mobile']]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
 
-        // 2] Получить имя файла с куками для бота $bot
-        $name = $this->data['mobile'] == false ? $bot->login : $bot->login . "_auth";
-
-        // 3] Сформировать результат
-        $file = $root4cookies . '/' . $name;
-
-        // 4] Получить новый экземпляр $fs
-        $fs = r1_fs('');
-
-        // 5] Если $root4cookies не существует, создать такой каталог
-        if(!$fs->exists($root4cookies))
-          $fs->makeDirectory($root4cookies);
-
-        // 6] Если $file не существует, создать такой файл
-        if(!$fs->exists($file))
-          $fs->put($file, '');
-
-        // 7] Вернуть результат
-        return base_path($file);
+        // 3.2. Вернуть результат
+        return $result['data']['is_bot_authenticated'];
 
       });
 
-      // 4. Отправить запрос от имени бота с id_bot
+      // 4. Если $bot уже вошёл в Steam, завершить
+      if($is_bot_authorized) {
 
-        // 4.1. Подготовить экземпляр клиента Guzzle
-        $guzzle = new \GuzzleHttp\Client();
+        return [
+          "status"  => 0,
+          "data"    => [
+            'was_bot_authorized'  => $is_bot_authorized,
+            'id_bot'              => $this->data['id_bot'],
+            'mobile'              => $this->data['mobile'],
+            'relogin'             => $this->data['relogin'],
+          ]
+        ];
 
-        // 4.2. Подготовить массив с опциями для curl
-        $curl_options = call_user_func(function() USE ($cookie_file_path) {
+      }
 
-          // 1] Подготовить массив для результата
-          $result = [];
+      // 5. Запросить публичный RSA-ключ для бота
 
-          // 2] Наполнить $result
+        // 5.1. Запросить
+        $rsa_response = call_user_func(function() USE ($bot) {
 
-            // 2.1] URL для запроса
-            $result[CURLOPT_URL] = $this->data['url'];
+          // 1] Осуществить запрос
+          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+            "id_bot"        => $this->data['id_bot'],
+            "url"           => "https://steamcommunity.com/login/getrsakey?username=".$bot->login,
+            "mobile"        => $this->data['mobile'] == 1 ? true : false,
+            "postdata"      => [],
+            "ref"           => ""
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
 
-            // 2.2] Пусть cURL вернёт данные в виде строки, а не выведет их в браузер
-            $result[CURLOPT_RETURNTRANSFER] = true;
-
-            // 2.3] Пусть cURL не проверяет сертификат узла сети
-            $result[CURLOPT_SSL_VERIFYPEER] = false;
-
-            // 2.4] Пусть cURL не проверяет имя хоста по сертификату
-            $result[CURLOPT_SSL_VERIFYHOST] = 0;
-
-            // 2.5] Пусть cURL не следует заголовкам "Location: ", которые посылает сервер
-            $result[CURLOPT_FOLLOWLOCATION] = false;
-
-            // 2.6] Установить timeout ожидания соединения, в секундах
-            $result[CURLOPT_CONNECTTIMEOUT] = 5;
-
-            // 2.7] Если передан ref url, задать его
-            if(array_key_exists('ref', $this->data))
-              $result[CURLOPT_REFERER] = $this->data['ref'];
-
-            // 2.8] Если передана postdata, задать соотв.поля
-            if(array_key_exists('postdata', $this->data)) {
-
-              // Указать, что методом запроса будет POST
-              $result[CURLOPT_POST] = true;
-
-              // Сформировать строку с post-данными
-              $poststring = call_user_func(function(){
-                $result = "";
-                foreach($this->data['postdata'] as $key => $value) {
-                  if($result)
-                      $result .= "&";
-                  $result .= $key . "=" . $value;
-                }
-                return $result;
-              });
-
-              // Добавить $poststring в параметры cURL-запроса
-              $result[CURLOPT_POSTFIELDS] = $poststring;
-
-            }
-
-            // 2.9] Задать, от мобильного или нет устройства происходит запрос
-
-              // Если передана mobile, и она true, значит от мобильного
-              // - Задать соотв.поля
-              if(array_key_exists('mobile', $this->data) && $this->data['mobile'] == true) {
-
-                // Массив устанавливаемых HTTP-заголовков, в формате array('Content-type: text/plain', 'Content-length: 100')
-                $result[CURLOPT_HTTPHEADER] = ["X-Requested-With: com.valvesoftware.android.steam.community"];
-
-                // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
-                $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-
-                // Содержимое заголовка "Cookie: ", используемого в HTTP-запросе. Обратите внимание, что несколько cookies разделяются точкой с запятой с последующим пробелом (например, "fruit=apple; colour=red")
-                $result[CURLOPT_COOKIE] = call_user_func(function(){
-
-                  // Мобильные куки по умолчанию
-                  $cookie = ['mobileClientVersion' => '0 (2.1.3)', 'mobileClient' => 'android', 'Steam_Language' => 'english', 'dob' => ''];
-
-                  // Сформировать результат
-                  $out = "";
-                  foreach ($cookie as $k => $c) {
-                      $out .= "{$k}={$c}; ";
-                  }
-
-                  // Вернуть результат
-                  return $out;
-
-                });
-              }
-
-              // В противном случае не от мобильного
-              // - Задать соотв.поля
-              else {
-
-                // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
-                $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
-
-              }
-
-            // 2.10] Пусть cURL сохраняет файлы-куки для этого бота по указанному адресу
-
-              // Имя файла, содержащего cookies. Данный файл должен быть в формате Netscape или просто заголовками HTTP, записанными в файл. Если в качестве имени файла передана пустая строка, то cookies сохраняться не будут, но их обработка все еще будет включена
-              $result[CURLOPT_COOKIEFILE] = $cookie_file_path;
-
-              // Имя файла, в котором будут сохранены все внутренние cookies текущей передачи после закрытия дескриптора, например, после вызова curl_close
-              $result[CURLOPT_COOKIEJAR] = $cookie_file_path;
-
-          // n] Вернуть результат
-          return $result;
+          // 2] Вернуть результаты (guzzle response)
+          return $result['data']['response'];
 
         });
+        $rsa = json_decode($rsa_response->getBody(), true);
 
-        // 4.3. Определить метод запроса (GET / POST)
-        $method = call_user_func(function(){
-          if(array_key_exists('postdata', $this->data)) return "POST";
-          return "GET";
-        });
+        // 5.2. Если неудача, завершить
+        if(!$rsa['success'])
+          throw new \Exception("Can't get public RSA from Steam for bot with ID = ".$this->data['id_bot']);
 
-        // 4.4. Отправить запрос, указав его параметры
-        $response = $guzzle->request($method, '/', [
-          'curl' => $curl_options
-        ]);
+      // 6. Зашифровать пароль $bot'а с помощью $rsa по определённому алгоритму
+      $password = call_user_func(function() USE ($bot, $rsa) {
 
-      // n. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "response" => $response
-        ]
-      ];
+        
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C6_bot_request_steam from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+      });
+
+
+
+
+
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C8_bot_login from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C6_bot_request_steam']);
+        write2log($errortext, ['M8', 'C8_bot_login']);
         return [
           "status"  => -2,
           "data"    => [
