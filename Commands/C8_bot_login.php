@@ -142,6 +142,11 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
      *  3. Проверить, вошёл ли уже $bot в Steam, или нет
      *  4. Если $bot уже вошёл в Steam, завершить
      *  5. Запросить публичный RSA-ключ для бота
+     *  6. Зашифровать пароль $bot'а с помощью $rsa по определённому алгоритму
+     *  7. Получить для $bot код мобильной аутентификации
+     *  8. Запросить в steam OAuth-авторизацию для $bot
+     *  9. Обработать ошибки авторизации для $authorization
+     *  10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
      *
      *  N. Вернуть статус 0
      *
@@ -223,16 +228,145 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           throw new \Exception("Can't get public RSA from Steam for bot with ID = ".$this->data['id_bot']);
 
       // 6. Зашифровать пароль $bot'а с помощью $rsa по определённому алгоритму
-      $password = call_user_func(function() USE ($bot, $rsa) {
+      $password_encrypted = call_user_func(function() USE ($bot, $rsa) {
 
-        
+        // 6.1. Создать новый экземпляр RSA
+        $rsa_instance = new \phpseclib\Crypt\RSA();
+
+        // 6.2. Установить режим шифрования
+        $rsa_instance->setEncryptionMode(\phpseclib\Crypt\RSA::ENCRYPTION_PKCS1);
+
+        // 6.3. Подготовить ключ
+        $key = [
+            'modulus' => new \phpseclib\Math\BigInteger($rsa['publickey_mod'], 16),
+            'publicExponent' => new \phpseclib\Math\BigInteger($rsa['publickey_exp'], 16)
+        ];
+
+        // 6.4. Добавить $key
+        $rsa_instance->loadKey($key, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_RAW);
+
+        // 6.5. Получить зашифрованный пароль
+        $password = base64_encode($rsa_instance->encrypt($bot->password));
+
+        // 6.6. Вернуть результат
+        return $password;
 
       });
 
+      // 7. Получить для $bot код мобильной аутентификации
+      $code = call_user_func(function() USE ($bot) {
 
+        // 7.1. Получить текущий код аутентификации
+        $result = runcommand('\M8\Commands\C5_bot_get_mobile_code', [
+          'id_bot'  => $this->data['id_bot'],
+          'time'    => time()
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
 
+        // 2] Вернуть результаты (guzzle response)
+        return $result['data']['code'];
 
+      });
 
+      // 8. Запросить в steam OAuth-авторизацию для $bot
+      $authorization = call_user_func(function() USE ($bot, $password_encrypted, $rsa, $code) {
+
+        // 8.1. Подготовить массив для параметров запроса
+        // - И добавить туда общие параметры
+        $params = [
+          'username'        => $bot->login,
+          'password'        => urlencode($password_encrypted),
+          'twofactorcode'   => $code,
+          'rsatimestamp'    => $rsa['timestamp'],
+          'remember_login'  => 'false'
+        ];
+
+        // 8.2. Если бот входит с мобильного устройства, добавить параметров
+        if($this->data['mobile'] == 1) {
+          $params['oauth_client_id'] = 'DE45CD61';
+          $params['oauth_scope'] = 'read_profile write_profile read_client write_client';
+          $params['loginfriendlyname'] = '#login_emailauth_friendlyname_mobile';
+        }
+
+        // 8.3. Осуществить POST-запрос к steam и получить OAuth-авторизацию для бота
+        $response = call_user_func(function() USE($params) {
+
+          // 1] Осуществить запрос
+          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+            "id_bot"        => $this->data['id_bot'],
+            "url"           => "https://steamcommunity.com/login/dologin/",
+            "mobile"        => true,
+            "postdata"      => $params,
+            "ref"           => ""
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результаты (guzzle response)
+          return $result['data']['response'];
+
+        });
+
+        // 8.4. Расшифровать json-строку с ответом
+        $json = json_decode($response->getBody(), true);
+
+        // 8.5. Получить код ошибки
+        $error_code = call_user_func(function() USE ($json) {
+
+          // 1] Если $json пуста
+          if(empty($json))
+            return 1;
+
+          // 2] Если success == false
+          if(!array_key_exists('success', $json) || $json['success'] == false)
+            return 2;
+
+          // 3] Если код мобильной аутентификации не подходит
+          if(isset($json['requires_twofactor']) && $json['requires_twofactor'] && !$json['success'])
+            return 3;
+
+          // 4] Если неправильные логин/пароль
+          if(isset($json['login_complete']) && !$json['login_complete'])
+            return 4;
+
+          // 5] Если отсутствуют OAuth-данные
+          if(!array_key_exists('transfer_parameters', $json) || !is_array($json['transfer_parameters']) || empty($json['transfer_parameters']))
+            return 5;
+
+          // n] Ошибок нет, вернуть 0
+          return 0;
+
+        });
+
+        // 8.6. Вернуть результат
+        return [
+          'error_code'    => $error_code,
+          'authorization' => $json
+        ];
+
+      });
+
+      // 9. Обработать ошибки авторизации для $authorization
+      switch($authorization['error_code']) {
+        case 0: break;
+        case 1: throw new \Exception("OAuth authorization failed: recieved from Steam json is empty."); break;
+        case 2: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
+        case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
+        case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
+        case 5: throw new \Exception("OAuth authorization failed: Steam don't pass oauth data (transfer_parameters field)."); break;
+      }
+
+      // 10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
+      // - В зависимости от того, через мобильное ли устройство входит $bot, или нет
+      if($this->data['mobile'] == 1) {
+        $bot->oauth_mobile = json_encode($authorization['authorization']['transfer_parameters'], JSON_UNESCAPED_UNICODE);
+        $bot->save();
+      }
+      else {
+        $bot->oauth = json_encode($authorization['authorization']['transfer_parameters'], JSON_UNESCAPED_UNICODE);
+        $bot->save();
+      }
 
 
     DB::commit(); } catch(\Exception $e) {

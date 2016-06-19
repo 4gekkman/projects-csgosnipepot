@@ -182,7 +182,7 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
         $name = $this->data['mobile'] == false ? $bot->login : $bot->login . "_auth";
 
         // 3] Сформировать результат
-        $file = $root4cookies . '/' . $name;
+        $file = $root4cookies . '/' . $name . '.cookiefile';
 
         // 4] Получить новый экземпляр $fs
         $fs = r1_fs('');
@@ -264,7 +264,9 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
               if(array_key_exists('mobile', $this->data) && $this->data['mobile'] == true) {
 
                 // Массив устанавливаемых HTTP-заголовков, в формате array('Content-type: text/plain', 'Content-length: 100')
-                $result[CURLOPT_HTTPHEADER] = ["X-Requested-With: com.valvesoftware.android.steam.community"];
+                $result[CURLOPT_HTTPHEADER] = [
+                  "X-Requested-With: com.valvesoftware.android.steam.community"
+                ];
 
                 // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
                 $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
