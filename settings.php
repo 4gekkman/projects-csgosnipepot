@@ -59,7 +59,7 @@ return [
       // 5.3] Сервер изображений Steam | Steam image server
       'steam_image_server' => 'https://steamcommunity-a.akamaihd.net/economy/image/',
 
-      // 5.4] Путь к каталогу с файлами
-
+      // 5.4] Путь к каталогу относительно корня laravel, куда сохранять файлы с куками ботов | Path to catalogue relative to the laravel root, where should we save files with bots cookies
+      'root4cookies' => 'storage/m8_bots_cookies',
 
 ];

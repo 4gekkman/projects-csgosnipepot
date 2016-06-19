@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - "Send request to Steam by url from bots face, simulating a browser
+ *    - Get sessionid and steamid for specified bot
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T4_bot_request_steam extends Command
+class T4_bot_get_sessid_steamid extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T4_bot_request_steam extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:bot_request_steam {url} {mobile=0} {ref=0}';
+    protected $signature = 'm8:bot_get_sessid_steamid {id_bot}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = '"Send request to Steam by url from bots face, simulating a browser';
+    protected $description = 'Get sessionid and steamid for specified bot';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T4_bot_request_steam extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C6_bot_request_steam', ["url" => $this->argument("url"), "mobile" => $this->argument("mobile"), "ref" => $this->argument("ref")]);
+    $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
