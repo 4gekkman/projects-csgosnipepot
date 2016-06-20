@@ -140,8 +140,9 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *
-     *
+     *  2. Попробовать найти бота с id_bot
+     *  3. Определить, куда сохранять файл с куками для этого бота
+     *  4. Отправить запрос от имени бота с id_bot
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -203,6 +204,7 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
       // 4. Отправить запрос от имени бота с id_bot
 
         // 4.1. Подготовить экземпляр клиента Guzzle
+        $cookieJar = new \GuzzleHttp\Cookie\FileCookieJar($cookie_file_path, true);
         $guzzle = new \GuzzleHttp\Client();
 
         // 4.2. Подготовить массив с опциями для curl
@@ -225,7 +227,7 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
             // 2.4] Пусть cURL не проверяет имя хоста по сертификату
             $result[CURLOPT_SSL_VERIFYHOST] = 0;
 
-            // 2.5] Пусть cURL сохраняет файлы-куки для этого бота по указанному адресу
+            // 2.5] Пусть cURL сохраняет и читает файлы-куки для этого бота, используя указанный файл
 
               // Имя файла, содержащего cookies. Данный файл должен быть в формате Netscape или просто заголовками HTTP, записанными в файл. Если в качестве имени файла передана пустая строка, то cookies сохраняться не будут, но их обработка все еще будет включена
               $result[CURLOPT_COOKIEFILE] = $cookie_file_path;
@@ -237,7 +239,7 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
             $result[CURLOPT_FOLLOWLOCATION] = 1;
 
             // 2.7] Установить timeout ожидания соединения, в секундах
-            $result[CURLOPT_CONNECTTIMEOUT] = 50;
+            //$result[CURLOPT_CONNECTTIMEOUT] = 50;
 
             // 2.8] Задать, от мобильного или нет устройства происходит запрос
 
@@ -269,15 +271,12 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
                   return $out;
 
                 });
+
               }
 
               // В противном случае не от мобильного
               // - Задать соотв.поля
               else {
-
-                $result[CURLOPT_HTTPHEADER] = [
-                  "X-Requested-With: com.valvesoftware.android.steam.community"
-                ];
 
                 // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
                 $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
@@ -323,8 +322,11 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
 
         // 4.4. Отправить запрос, указав его параметры
         $response = $guzzle->request($method, '/', [
-          'curl' => $curl_options
+          'curl'    => $curl_options,
+          'cookie'  => $cookieJar
         ]);
+
+      $cookieJar->save($cookie_file_path);
 
       // n. Вернуть результаты
       return [

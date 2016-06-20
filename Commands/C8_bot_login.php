@@ -337,10 +337,6 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           if(isset($json['login_complete']) && !$json['login_complete'])
             return 4;
 
-          // 5] Если отсутствуют OAuth-данные
-          if(!array_key_exists('transfer_parameters', $json) || !is_array($json['transfer_parameters']) || empty($json['transfer_parameters']))
-            return 5;
-
           // n] Ошибок нет, вернуть 0
           return 0;
 
@@ -361,17 +357,16 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         case 2: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
         case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
         case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
-        case 5: throw new \Exception("OAuth authorization failed: Steam don't pass oauth data (transfer_parameters field)."); break;
       }
 
       // 10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
       // - В зависимости от того, через мобильное ли устройство входит $bot, или нет
       if($this->data['mobile'] == "1") {
-        $bot->oauth_mobile = json_encode($authorization['authorization']['transfer_parameters'], JSON_UNESCAPED_UNICODE);
+        $bot->oauth_mobile = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
         $bot->save();
       }
       else {
-        $bot->oauth = json_encode($authorization['authorization']['transfer_parameters'], JSON_UNESCAPED_UNICODE);
+        $bot->oauth = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
         $bot->save();
       }
 
