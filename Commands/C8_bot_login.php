@@ -283,7 +283,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         // - И добавить туда общие параметры
         $params = [
           'username'          => $bot->login,
-          'password'          => urlencode($password_encrypted),
+          'password'          => $password_encrypted,
           'twofactorcode'     => $code,
           'captchagid'        => $this->data['captchagid'],
           'captcha_text'      => $this->data['captcha_text'],
@@ -302,7 +302,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
             "id_bot"          => $this->data['id_bot'],
-            "url"             => "https://steamcommunity.com/login/dologin/",
+            "url"             => "https://steamcommunity.com/login/dologin",
             "method"          => "POST",
             "cookies_domain"  => $this->data['cookies_domain'],
             "data"            => $params,
