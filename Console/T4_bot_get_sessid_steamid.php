@@ -90,7 +90,7 @@ class T4_bot_get_sessid_steamid extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:bot_get_sessid_steamid {id_bot} {mobile=0}';
+    protected $signature = 'm8:bot_get_sessid_steamid {id_bot} {method=GET} {cookies_domain=steamcommunity.com}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //

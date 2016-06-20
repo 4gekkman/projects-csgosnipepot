@@ -90,7 +90,7 @@ class T5_bot_login extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:bot_login {id_bot} {mobile=1} {relogin=0}';
+    protected $signature = 'm8:bot_login {id_bot} {relogin=0} {captchagid=0} {captcha_text=0} {method=GET} {cookies_domain=steamcommunity.com}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //

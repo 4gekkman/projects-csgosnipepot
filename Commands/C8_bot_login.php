@@ -160,8 +160,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "mobile"          => ["required", "regex:/^[01]{1}$/ui"],
-        "relogin"         => ["required", "regex:/^[01]{1}$/ui"],
+        "relogin"         => ["required", "regex:/^[01]{1}$/ui"]
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -175,12 +174,15 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
       if(empty($bot->steamid))
         throw new \Exception("Steam ID of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
 
-
       // 3. Проверить, вошёл ли уже $bot в Steam, или нет
       $is_bot_authorized = call_user_func(function() USE ($bot) {
 
         // 3.1. Выполнить запрос
-        $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', ['id_bot' => $this->data['id_bot'], 'mobile' => $this->data['mobile']]);
+        $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', [
+          'id_bot'          => $this->data['id_bot'],
+          'method'          => 'GET',
+          'cookies_domain'  => 'steamcommunity.com'
+        ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
@@ -189,15 +191,14 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
       });
 
-      // 4. Если $bot уже вошёл в Steam, завершить
-      if($is_bot_authorized) {
+      // 4. Если $bot уже вошёл в Steam, и relogin = false, завершить
+      if($is_bot_authorized && $this->data['relogin'] === '0') {
 
         return [
           "status"  => 0,
           "data"    => [
             'was_bot_authorized'  => $is_bot_authorized,
             'id_bot'              => $this->data['id_bot'],
-            'mobile'              => $this->data['mobile'],
             'relogin'             => $this->data['relogin'],
           ]
         ];
@@ -211,11 +212,14 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-            "id_bot"        => $this->data['id_bot'],
-            "url"           => "https://steamcommunity.com/login/getrsakey?username=".$bot->login,
-            "mobile"        => $this->data['mobile'] == "1" ? true : false,
-            "postdata"      => [],
-            "ref"           => ""
+            "id_bot"          => $this->data['id_bot'],
+            "method"          => "GET",
+            "url"             => "https://steamcommunity.com/login/getrsakey",
+            "cookies_domain"  => $this->data['cookies_domain'],
+            "data"            => [
+              'username'      => $bot->login
+            ],
+            "ref"             => ""
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
@@ -278,34 +282,31 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         // 8.1. Подготовить массив для параметров запроса
         // - И добавить туда общие параметры
         $params = [
-          'username'        => $bot->login,
-          'password'        => urlencode($password_encrypted),
-          'twofactorcode'   => $code,
-          'captchagid'      => '-1',
-          'captcha_text'    => '',
-          'emailsteamid'    => $bot->steamid.'',
-          'emailauth'       => '',
-          'rsatimestamp'    => $rsa['timestamp'],
-          'remember_login'  => 'false'
+          'username'          => $bot->login,
+          'password'          => urlencode($password_encrypted),
+          'twofactorcode'     => $code,
+          'captchagid'        => $this->data['captchagid'],
+          'captcha_text'      => $this->data['captcha_text'],
+          'emailsteamid'      => $bot->steamid.'',
+          'emailauth'         => '',
+          'rsatimestamp'      => $rsa['timestamp'],
+          'remember_login'    => 'false',
+          'oauth_client_id'   => 'DE45CD61',
+          'oauth_scope'       => 'read_profile write_profile read_client write_client',
+          'loginfriendlyname' => '#login_emailauth_friendlyname_mobile'
         ];
 
-        // 8.2. Если бот входит с мобильного устройства, добавить параметров
-        if($this->data['mobile'] == "1") {
-          $params['oauth_client_id'] = 'DE45CD61';
-          $params['oauth_scope'] = 'read_profile write_profile read_client write_client';
-          $params['loginfriendlyname'] = '#login_emailauth_friendlyname_mobile';
-        }
-
-        // 8.3. Осуществить POST-запрос к steam и получить OAuth-авторизацию для бота
+        // 8.2. Осуществить POST-запрос к steam и получить OAuth-авторизацию для бота
         $response = call_user_func(function() USE($params) {
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-            "id_bot"        => $this->data['id_bot'],
-            "url"           => "https://steamcommunity.com/login/dologin/",
-            "mobile"        => $this->data['mobile'] == "1" ? true : false,
-            "postdata"      => $params,
-            "ref"           => ""
+            "id_bot"          => $this->data['id_bot'],
+            "url"             => "https://steamcommunity.com/login/dologin/",
+            "method"          => "POST",
+            "cookies_domain"  => $this->data['cookies_domain'],
+            "data"            => $params,
+            "ref"             => ""
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
@@ -317,58 +318,58 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
         // 8.4. Расшифровать json-строку с ответом
         $json = json_decode($response->getBody(), true);
-
-        // 8.5. Получить код ошибки
-        $error_code = call_user_func(function() USE ($json) {
-
-          // 1] Если $json пуста
-          if(empty($json))
-            return 1;
-
-          // 2] Если success == false
-          if(!array_key_exists('success', $json) || $json['success'] == false)
-            return 2;
-
-          // 3] Если код мобильной аутентификации не подходит
-          if(isset($json['requires_twofactor']) && $json['requires_twofactor'] && !$json['success'])
-            return 3;
-
-          // 4] Если неправильные логин/пароль
-          if(isset($json['login_complete']) && !$json['login_complete'])
-            return 4;
-
-          // n] Ошибок нет, вернуть 0
-          return 0;
-
-        });
-
-        // 8.6. Вернуть результат
-        return [
-          'error_code'    => $error_code,
-          'authorization' => $json
-        ];
+write2log($json, []);
+//        // 8.5. Получить код ошибки
+//        $error_code = call_user_func(function() USE ($json) {
+//
+//          // 1] Если $json пуста
+//          if(empty($json))
+//            return 1;
+//
+//          // 2] Если success == false
+//          if(!array_key_exists('success', $json) || $json['success'] == false)
+//            return 2;
+//
+//          // 3] Если код мобильной аутентификации не подходит
+//          if(isset($json['requires_twofactor']) && $json['requires_twofactor'] && !$json['success'])
+//            return 3;
+//
+//          // 4] Если неправильные логин/пароль
+//          if(isset($json['login_complete']) && !$json['login_complete'])
+//            return 4;
+//
+//          // n] Ошибок нет, вернуть 0
+//          return 0;
+//
+//        });
+//
+//        // 8.6. Вернуть результат
+//        return [
+//          'error_code'    => $error_code,
+//          'authorization' => $json
+//        ];
 
       });
 
-      // 9. Обработать ошибки авторизации для $authorization
-      switch($authorization['error_code']) {
-        case 0: break;
-        case 1: throw new \Exception("OAuth authorization failed: recieved from Steam json is empty."); break;
-        case 2: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
-        case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
-        case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
-      }
-
-      // 10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
-      // - В зависимости от того, через мобильное ли устройство входит $bot, или нет
-      if($this->data['mobile'] == "1") {
-        $bot->oauth_mobile = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
-        $bot->save();
-      }
-      else {
-        $bot->oauth = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
-        $bot->save();
-      }
+//      // 9. Обработать ошибки авторизации для $authorization
+//      switch($authorization['error_code']) {
+//        case 0: break;
+//        case 1: throw new \Exception("OAuth authorization failed: recieved from Steam json is empty."); break;
+//        case 2: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
+//        case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
+//        case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
+//      }
+//
+//      // 10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
+//      // - В зависимости от того, через мобильное ли устройство входит $bot, или нет
+//      if($this->data['mobile'] == "1") {
+//        $bot->oauth_mobile = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
+//        $bot->save();
+//      }
+//      else {
+//        $bot->oauth = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
+//        $bot->save();
+//      }
 
 
     DB::commit(); } catch(\Exception $e) {

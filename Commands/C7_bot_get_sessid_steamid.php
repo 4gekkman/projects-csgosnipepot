@@ -154,7 +154,8 @@ class C7_bot_get_sessid_steamid extends Job { // TODO: добавить "impleme
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "mobile"              => ["required", "regex:/^[01]{1}$/ui"]
+        "method"              => ["required", "in:GET,POST"],
+        "cookies_domain"      => ["required", "string"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -164,11 +165,12 @@ class C7_bot_get_sessid_steamid extends Job { // TODO: добавить "impleme
 
         // 1] Осуществить запрос
         $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-          "id_bot"        => $this->data['id_bot'],
-          "url"           => "http://steamcommunity.com",
-          "mobile"        => $this->data['mobile'] == 1 ? true : false,
-          "postdata"      => [],
-          "ref"           => ""
+          "id_bot"          => $this->data['id_bot'],
+          "method"          => $this->data['method'],
+          "url"             => "http://steamcommunity.com",
+          "cookies_domain"  => $this->data['cookies_domain'],
+          "data"            => [],
+          "ref"             => ""
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);

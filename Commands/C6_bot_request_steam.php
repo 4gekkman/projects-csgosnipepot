@@ -15,6 +15,7 @@
  *    [
  *      "data" => [
  *        id_bot      // ID бота, от имени которого осуществлять запрос
+ *        method      // Метод запроса
  *        url         // URL, куда посылать запрос
  *        mobile      // Имитировать ли запрос с мобильного устройства
  *        postdata    // Данные для передачи в POST-запросе
@@ -157,9 +158,10 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "method"          => ["required", "in:GET,POST"],
         "url"             => ["required", "url"],
-        "mobile"          => ["required", "boolean"],
-        "postdata"        => ["sometimes", "array"],
+        "cookies_domain"  => ["required", "string"],
+        "data"            => ["sometimes", "array"],
         "ref"             => ["sometimes", "url"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
@@ -174,16 +176,17 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
 
       // 3. Определить, куда сохранять файл с куками для этого бота
       // - Заодно проверить существования соотв.каталога и файла. Если их нет, создать.
+      // - Если файл с куками не содержит валидный json, очистить файл.
       $cookie_file_path = call_user_func(function() USE ($bot) {
 
         // 1] Получить путь к каталогу, куда надо сохранять куки ботов, относительно корня laravel
         $root4cookies = config('M8.root4cookies') ?: 'storage/m8_bots_cookies';
 
         // 2] Получить имя файла с куками для бота $bot
-        $name = $this->data['mobile'] == false ? $bot->login : $bot->login . "_auth";
+        $name = $bot->login;
 
         // 3] Сформировать результат
-        $file = $root4cookies . '/' . $name . '.cookiefile';
+        $file = $root4cookies . '/' . $name . '.cookies';
 
         // 4] Получить новый экземпляр $fs
         $fs = r1_fs('');
@@ -196,137 +199,112 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
         if(!$fs->exists($file))
           $fs->put($file, '');
 
-        // 7] Вернуть результат
-        return base_path($file);
+        // 7] Если в $file не валидный json, пересоздать его
+        $validator = r4_validate(['data' => $fs->get($file)], [
+          "data"              => ["required", "json"],
+        ]); if($validator['status'] == -1) {
+          $fs->delete($file);
+          $fs->put($file, '');
+        }
+
+        // 8] Вернуть результат
+        return [
+          'fs'          => $fs,
+          'fullpath'    => base_path($file),
+          'relpath'     => $file,
+          'rootfolder'  => $root4cookies
+        ];
 
       });
 
       // 4. Отправить запрос от имени бота с id_bot
 
-        // 4.1. Подготовить экземпляр клиента Guzzle
-        $cookieJar = new \GuzzleHttp\Cookie\FileCookieJar($cookie_file_path, true);
-        $guzzle = new \GuzzleHttp\Client();
+        // 4.1. Подготовить массив с куками для отправки в Steam
+        $cookies2send = call_user_func(function() USE ($cookie_file_path) {
 
-        // 4.2. Подготовить массив с опциями для curl
-        $curl_options = call_user_func(function() USE ($cookie_file_path) {
+          // 1] Извлечь массив с куками бота $bot из его файла с куками
+          $cookies = json_decode($cookie_file_path['fs']->get($cookie_file_path['relpath']), true);
 
-          // 1] Подготовить массив для результата
-          $result = [];
+          // 2] Если $cookies пуста или не массив, инициировать пустым массивом
+          if(empty($cookies) || !is_array($cookies)) $cookies = [];
 
-          // 2] Наполнить $result
+          // 3] Добавить в $cookies стандартные мобильные куки, если их там ещё нет
+          if(!array_key_exists('mobileClientVersion', $cookies))
+            array_push($cookies, [
+              'Name'      => 'mobileClientVersion',
+              'Value'     => '0 (2.1.3)',
+              'Domain'    => $this->data['cookies_domain'],
+              'Path'      => '/',
+              'Max-Age'   => NULL,
+              'Expires'   => NULL,
+              'Secure'    => false,
+              'Discard'   => false,
+              'HttpOnly'  => false,
+            ]);
 
-            // 2.1] URL для запроса
-            $result[CURLOPT_URL] = $this->data['url'];
+          if(!array_key_exists('mobileClient', $cookies))
+            array_push($cookies, [
+              'Name'      => 'mobileClient',
+              'Value'     => 'android',
+              'Domain'    => $this->data['cookies_domain'],
+              'Path'      => '/',
+              'Max-Age'   => NULL,
+              'Expires'   => NULL,
+              'Secure'    => false,
+              'Discard'   => false,
+              'HttpOnly'  => false,
+            ]);
 
-            // 2.2] Пусть cURL вернёт данные в виде строки, а не выведет их в браузер
-            $result[CURLOPT_RETURNTRANSFER] = true;
+          if(!array_key_exists('Steam_Language', $cookies))
+            array_push($cookies, [
+              'Name'      => 'Steam_Language',
+              'Value'     => 'english',
+              'Domain'    => $this->data['cookies_domain'],
+              'Path'      => '/',
+              'Max-Age'   => NULL,
+              'Expires'   => NULL,
+              'Secure'    => false,
+              'Discard'   => false,
+              'HttpOnly'  => false,
+            ]);
 
-            // 2.3] Пусть cURL не проверяет сертификат узла сети
-            $result[CURLOPT_SSL_VERIFYPEER] = false;
-
-            // 2.4] Пусть cURL не проверяет имя хоста по сертификату
-            $result[CURLOPT_SSL_VERIFYHOST] = 0;
-
-            // 2.5] Пусть cURL сохраняет и читает файлы-куки для этого бота, используя указанный файл
-
-              // Имя файла, содержащего cookies. Данный файл должен быть в формате Netscape или просто заголовками HTTP, записанными в файл. Если в качестве имени файла передана пустая строка, то cookies сохраняться не будут, но их обработка все еще будет включена
-              $result[CURLOPT_COOKIEFILE] = $cookie_file_path;
-
-              // Имя файла, в котором будут сохранены все внутренние cookies текущей передачи после закрытия дескриптора, например, после вызова curl_close
-              $result[CURLOPT_COOKIEJAR] = $cookie_file_path;
-
-            // 2.6] Пусть cURL не следует заголовкам "Location: ", которые посылает сервер
-            $result[CURLOPT_FOLLOWLOCATION] = 1;
-
-            // 2.7] Установить timeout ожидания соединения, в секундах
-            //$result[CURLOPT_CONNECTTIMEOUT] = 50;
-
-            // 2.8] Задать, от мобильного или нет устройства происходит запрос
-
-              // Если передана mobile, и она true, значит от мобильного
-              // - Задать соотв.поля
-              if(array_key_exists('mobile', $this->data) && $this->data['mobile'] == true) {
-
-                // Массив устанавливаемых HTTP-заголовков, в формате array('Content-type: text/plain', 'Content-length: 100')
-                $result[CURLOPT_HTTPHEADER] = [
-                  "X-Requested-With: com.valvesoftware.android.steam.community"
-                ];
-
-                // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
-                $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-
-                // Содержимое заголовка "Cookie: ", используемого в HTTP-запросе. Обратите внимание, что несколько cookies разделяются точкой с запятой с последующим пробелом (например, "fruit=apple; colour=red")
-                $result[CURLOPT_COOKIE] = call_user_func(function(){
-
-                  // Мобильные куки по умолчанию
-                  $cookie = ['mobileClientVersion' => '0 (2.1.3)', 'mobileClient' => 'android', 'Steam_Language' => 'english', 'dob' => ''];
-
-                  // Сформировать результат
-                  $out = "";
-                  foreach ($cookie as $k => $c) {
-                      $out .= "{$k}={$c}; ";
-                  }
-
-                  // Вернуть результат
-                  return $out;
-
-                });
-
-              }
-
-              // В противном случае не от мобильного
-              // - Задать соотв.поля
-              else {
-
-                // Содержимое заголовка "User-Agent: ", посылаемого в HTTP-запросе
-                $result[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
-
-              }
-
-            // 2.9] Если передан ref url, задать его
-            if(array_key_exists('ref', $this->data))
-              $result[CURLOPT_REFERER] = $this->data['ref'];
-
-            // 2.10] Если передана postdata, задать соотв.поля
-            if(array_key_exists('postdata', $this->data)) {
-
-              // Указать, что методом запроса будет POST
-              $result[CURLOPT_POST] = true;
-
-              // Сформировать строку с post-данными
-              $poststring = call_user_func(function(){
-                $result = "";
-                foreach($this->data['postdata'] as $key => $value) {
-                  if($result)
-                    $result .= "&";
-                  $result .= $key . "=" . $value;
-                }
-                return $result;
-              });
-
-              // Добавить $poststring в параметры cURL-запроса
-              $result[CURLOPT_POSTFIELDS] = $poststring;
-
-            }
-
-          // n] Вернуть результат
-          return $result;
+          // n] Вернуть результаты
+          return $cookies;
 
         });
 
-        // 4.3. Определить метод запроса (GET / POST)
-        $method = call_user_func(function(){
-          if(array_key_exists('postdata', $this->data)) return "POST";
-          return "GET";
-        });
+        // 4.2. Подготовить экземпляр CookieJar, наполнить его куками из $cookies2send
 
-        // 4.4. Отправить запрос, указав его параметры
-        $response = $guzzle->request($method, '/', [
-          'curl'    => $curl_options,
-          'cookie'  => $cookieJar
+          // 1] Создать, указав путь к файлу с куками бота $bot
+          $cookies = new \GuzzleHttp\Cookie\FileCookieJar($cookie_file_path['fullpath'], true);
+
+          // 2] Наполнить $cookies куками из $cookies2send
+          for($i=0; $i<count($cookies2send); $i++) {
+            $cookies->setCookie(new \GuzzleHttp\Cookie\SetCookie([
+              'Domain'  => $this->data['cookies_domain'],
+              'Name'    => $cookies2send[$i]['Name'],
+              'Value'   => $cookies2send[$i]['Value'],
+              'Discard' => true
+            ]));
+          }
+
+        // 4.3. Подготовить запрос
+        $request = new \GuzzleHttp\Psr7\Request($this->data['method'], $this->data['url']);
+
+        // 4.3. Осуществить запрос
+        $response = (new \GuzzleHttp\Client())->send($request, [
+          'connect_timeout' => 50.00,
+          'headers' => [
+            'Accept'              => '*/*',
+            'Content-Type'        => 'application/x-www-form-urlencoded; charset=UTF-8',
+            'User-Agent'          => 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+            'X-Requested-With'    => 'com.valvesoftware.android.steam.community'
+          ],
+          'cookies'               => $cookies,
+          'query'                 => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "GET") ? $this->data['data'] : [],
+          'form_params'           => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "POST") ? $this->data['data'] : [],
+
         ]);
-
-      $cookieJar->save($cookie_file_path);
 
       // n. Вернуть результаты
       return [
