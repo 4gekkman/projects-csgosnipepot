@@ -315,7 +315,8 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
       return [
         "status"  => 0,
         "data"    => [
-          "rgDescriptions" => $rgDescriptions
+          "rgDescriptions"  => $rgDescriptions,
+          "inventory_count" => count($rgDescriptions)
         ]
       ];
 

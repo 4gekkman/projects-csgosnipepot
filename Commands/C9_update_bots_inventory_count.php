@@ -135,8 +135,9 @@ class C9_update_bots_inventory_count extends Job { // TODO: добавить "im
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить коллекцию всех ботов
+     *  2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
+     *  3. Транслировать клиентам через websocket свежие данные об инвентарях ботов
      *
      *  N. Вернуть статус 0
      *
@@ -147,8 +148,45 @@ class C9_update_bots_inventory_count extends Job { // TODO: добавить "im
     //-----------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить коллекцию всех ботов
+      $bots = \M8\Models\MD1_bots::query()->get();
 
-      write2log("C9_update_bots_inventory_count", []);
+      // 2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
+      foreach($bots as $bot) {
+
+        // 2.1. Проверить, не пуст ли steamid бота
+        // - Если пуст, записать информацию о проблеме, перейти к след.итерации
+        if(empty($bot->steamid)) {
+          $bot->inventory_count_last_bug = "Can't update the bots inventory count, because his steamid is empty.";
+          $bot->save();
+          continue;
+        }
+
+        // 2.2. Попробовать получить инвентарь бота
+        // - Если ошибка, записать информацию о проблеме, перейти к след.итерации
+        $result = runcommand('\M8\Commands\C4_getinventory', ['steamid' => $bot->steamid]);
+        if($result['status'] != 0) {
+          $bot->inventory_count_last_bug = "Can't update the bots inventory count, because: ".$result['data']['errormsg'];
+          $bot->save();
+          continue;
+        }
+
+        // 2.3. Обновить информацию о кол-ве вещей бота
+        $bot->inventory_count_last_bug = "";
+        $bot->inventory_count = $result['data']['inventory_count'];
+        $bot->inventory_count_last_update = (string) \Carbon\Carbon::now();
+        $bot->save();
+
+      }
+
+      // 3. Транслировать клиентам через websocket свежие данные об инвентарях ботов
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m8:update_bots_inventory_count'],
+        'queue'    => 'smallbroadcast',
+        'data'     => [
+          'bots' => \M8\Models\MD1_bots::query()->get()
+        ]
+      ]));
 
 
     DB::commit(); } catch(\Exception $e) {
