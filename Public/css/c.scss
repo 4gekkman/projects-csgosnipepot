@@ -51,6 +51,16 @@
   height: 28px;
   line-height: 28px;
 }
+.yellow_text {
+  color: RGBA(150,150,0,.7);
+  font-weight: bold;
+  font-size: 1.3em;
+}
+.red_text {
+  color: RGBA(255,0,0,.7);
+  font-weight: bold;
+  font-size: 1.5em;
+}
 
 
 //------------------------//
@@ -179,6 +189,7 @@
 
   align-self: center;
 }
+
 
 
 

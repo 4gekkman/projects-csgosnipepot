@@ -202,7 +202,7 @@
                           <td data-bind="text: id_steam"></td>
                           <td data-bind="text: steam_name"></td>
                           <td data-bind="text: ''"></td>
-                          <td data-bind="text: ''"></td>
+                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750}"></td>
                           <td data-bind="text: ison_incoming"></td>
                           <td data-bind="text: ison_outcoming"></td>
                         </tr>
