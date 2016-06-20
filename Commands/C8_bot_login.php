@@ -146,7 +146,6 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
      *  7. Получить для $bot код мобильной аутентификации
      *  8. Запросить в steam OAuth-авторизацию для $bot
      *  9. Обработать ошибки авторизации для $authorization
-     *  10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
      *
      *  N. Вернуть статус 0
      *
@@ -318,58 +317,52 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
         // 8.4. Расшифровать json-строку с ответом
         $json = json_decode($response->getBody(), true);
-write2log($json, []);
-//        // 8.5. Получить код ошибки
-//        $error_code = call_user_func(function() USE ($json) {
-//
-//          // 1] Если $json пуста
-//          if(empty($json))
-//            return 1;
-//
-//          // 2] Если success == false
-//          if(!array_key_exists('success', $json) || $json['success'] == false)
-//            return 2;
-//
-//          // 3] Если код мобильной аутентификации не подходит
-//          if(isset($json['requires_twofactor']) && $json['requires_twofactor'] && !$json['success'])
-//            return 3;
-//
-//          // 4] Если неправильные логин/пароль
-//          if(isset($json['login_complete']) && !$json['login_complete'])
-//            return 4;
-//
-//          // n] Ошибок нет, вернуть 0
-//          return 0;
-//
-//        });
-//
-//        // 8.6. Вернуть результат
-//        return [
-//          'error_code'    => $error_code,
-//          'authorization' => $json
-//        ];
+
+        // 8.5. Получить код ошибки
+        $error_code = call_user_func(function() USE ($json) {
+
+          // 1] Если $json пуста
+          if(empty($json))
+            return 1;
+
+          // 2] Если требуется капча
+          if(isset($json['captcha_needed']) && $json['captcha_needed'])
+            return 5;
+
+          // 3] Если код мобильной аутентификации не подходит
+          if(isset($json['requires_twofactor']) && $json['requires_twofactor'] && !$json['success'])
+            return 3;
+
+          // 4] Если неправильные логин/пароль
+          if(isset($json['login_complete']) && !$json['login_complete'])
+            return 4;
+
+          // 5] Если success == false
+          if(!array_key_exists('success', $json) || $json['success'] == false)
+            return 2;
+
+          // n] Ошибок нет, вернуть 0
+          return 0;
+
+        });
+
+        // 8.6. Вернуть результат
+        return [
+          'error_code'    => $error_code,
+          'authorization' => $json
+        ];
 
       });
 
-//      // 9. Обработать ошибки авторизации для $authorization
-//      switch($authorization['error_code']) {
-//        case 0: break;
-//        case 1: throw new \Exception("OAuth authorization failed: recieved from Steam json is empty."); break;
-//        case 2: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
-//        case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
-//        case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
-//      }
-//
-//      // 10. Сохранить OAuth-данные в соотв.поле у $bot в БД, в виде json-строки
-//      // - В зависимости от того, через мобильное ли устройство входит $bot, или нет
-//      if($this->data['mobile'] == "1") {
-//        $bot->oauth_mobile = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
-//        $bot->save();
-//      }
-//      else {
-//        $bot->oauth = json_encode($authorization['authorization']['oauth'], JSON_UNESCAPED_UNICODE);
-//        $bot->save();
-//      }
+      // 9. Обработать ошибки авторизации для $authorization
+      switch($authorization['error_code']) {
+        case 0: break;
+        case 1: throw new \Exception("OAuth authorization failed: recieved from Steam json is empty."); break;
+        case 2: throw new \Exception("OAuth authorization failed: captcha needed."); break;
+        case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
+        case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
+        case 5: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
+      }
 
 
     DB::commit(); } catch(\Exception $e) {
