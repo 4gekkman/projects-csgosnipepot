@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - This command invokes every 10 minutes by laravel scheduler, and update bots inventory count.
+ *    - Invokes every hour and update authorization statuses of the all bots.
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C9_update_bots_inventory_count extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C10_update_bots_authorization_statuses extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,52 +136,54 @@ class C9_update_bots_inventory_count extends Job { // TODO: добавить "im
      * Оглавление
      *
      *  1. Получить коллекцию всех ботов
-     *  2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
-     *  3. Транслировать клиентам через websocket свежие данные об инвентарях ботов
+     *  2. Обновить статусы авторизации всех ботов
+     *  3. Транслировать клиентам через websocket свежие данные об авторизации ботов
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------------------------------------------------------------------------//
-    // Каждый 10 минут обновлять информацию о кол-ве вещей в CS:GO инвентарях всех ботов //
-    //-----------------------------------------------------------------------------------//
+    //---------------------------------------------------//
+    // Ежечасно обновляет статусы авторизации всех ботов //
+    //---------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить коллекцию всех ботов
       $bots = \M8\Models\MD1_bots::query()->get();
 
-      // 2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
+      // 2. Обновить статусы авторизации всех ботов
       foreach($bots as $bot) {
 
-        // 2.1. Проверить, не пуст ли steamid бота
-        // - Если пуст, записать информацию о проблеме, перейти к след.итерации
-        if(empty($bot->steamid)) {
-          $bot->inventory_count_last_bug = "Can't update the bots inventory count, because his steamid is empty.";
-          $bot->save();
-          continue;
-        }
-
-        // 2.2. Попробовать получить инвентарь бота
-        // - Если ошибка, записать информацию о проблеме, перейти к след.итерации
-        $result = runcommand('\M8\Commands\C4_getinventory', ['steamid' => $bot->steamid]);
+        // 2.1. Узнать, авторизован ли бот
+        $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', [
+          'id_bot'          => $bot->id,
+          'method'          => 'GET',
+          'cookies_domain'  => 'steamcommunity.com'
+        ]);
         if($result['status'] != 0) {
-          $bot->inventory_count_last_bug = "Can't update the bots inventory count, because: ".$result['data']['errormsg'];
+          $bot->authorization_last_bug = "Can't update the bots authorization status, because: ".$result['data']['errormsg'];
           $bot->save();
           continue;
         }
 
-        // 2.3. Обновить информацию о кол-ве вещей бота
-        $bot->inventory_count_last_bug    = "";
-        $bot->inventory_count             = $result['data']['inventory_count'];
-        $bot->inventory_count_last_update = (string) \Carbon\Carbon::now();
-        $bot->save();
+        // 2.2. Обновить информацию об авторизации бота
+
+          // 1] Информация о последнем баге
+          if($result['data']['is_bot_authenticated']) $bot->authorization_last_bug    = "";
+          else                                        $bot->authorization_last_bug    = "There is no problems. You have to authorize this bot manually.";
+
+          // 2] Прочая информация
+          $bot->authorization             = $result['data']['is_bot_authenticated'] == true ? 1 : 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+
+          // 3] Сохранить
+          $bot->save();
 
       }
 
-      // 3. Транслировать клиентам через websocket свежие данные об инвентарях ботов
+      // 3. Транслировать клиентам через websocket свежие данные об авторизации ботов
       Event::fire(new \R2\Broadcast([
-        'channels' => ['m8:update_bots_inventory_count'],
+        'channels' => ['m8:update_bots_authorization_statuses'],
         'queue'    => 'smallbroadcast',
         'data'     => [
           'bots' => \M8\Models\MD1_bots::query()->get()
@@ -190,10 +192,10 @@ class C9_update_bots_inventory_count extends Job { // TODO: добавить "im
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C9_update_bots_inventory_count from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C10_update_bots_authorization_statuses from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C9_update_bots_inventory_count']);
+        write2log($errortext, ['M8', 'C10_update_bots_authorization_statuses']);
         return [
           "status"  => -2,
           "data"    => [

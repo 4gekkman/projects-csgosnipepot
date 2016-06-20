@@ -107,7 +107,8 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->everyTenMinutes();'
+          '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->everyTenMinutes();',
+          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->hourly();'
         ];
 
       //----------------------------------------------------//
@@ -122,7 +123,8 @@
           '\M8\Console\T3_bot_get_mobile_code',
           '\M8\Console\T4_bot_get_sessid_steamid',
           '\M8\Console\T5_bot_login',
-          '\M8\Console\T6_update_bots_inventory_count'
+          '\M8\Console\T6_update_bots_inventory_count',
+          '\M8\Console\T7_update_bots_authorization_statuses'
         ];
 
         // Регистрация команд в методе register
