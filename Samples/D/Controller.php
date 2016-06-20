@@ -122,6 +122,7 @@ class Controller extends BaseController {
         'auth'                  => session('auth_cache') ?: '',
         'packid'                => $this->packid,
         'layoutid'              => $this->layoutid,
+        'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
