@@ -181,18 +181,18 @@
                       <thead>
                       <tr role="row">
                         <th rowspan="1" colspan="1" style="width: 4%;"></th>
-                        <th rowspan="1" colspan="1" style="width: 4%;">№</th>
-                        <th rowspan="1" colspan="1" style="width: 7%;">User_ID</th>
-                        <th rowspan="1" colspan="1" style="width: 7%;">Bot_ID</th>
-                        <th rowspan="1" colspan="1" style="width: 15%;">Steam_ID</th>
-                        <th rowspan="1" colspan="1" style="width: 15%;">Steam name</th>
-                        <th rowspan="1" colspan="1" style="width: 16%;">Games</th>
-                        <th rowspan="1" colspan="1" style="width: 12%;">Inventory</th>
-                        <th rowspan="1" colspan="1" style="width: 10%;">Trade ↓</th>
-                        <th rowspan="1" colspan="1" style="width: 10%;">Trade ↑</th>
+                        <th rowspan="1" colspan="1" style="width: 4%;" title="Number of a bot in the list.">№</th>
+                        <th rowspan="1" colspan="1" style="width: 7%;" title="ID of a user, affilated with a bot.">User_ID</th>
+                        <th rowspan="1" colspan="1" style="width: 7%;" title="ID of a bot.">Bot_ID</th>
+                        <th rowspan="1" colspan="1" style="width: 19%;" title="Steam ID of a bot.">Steam_ID</th>
+                        <th rowspan="1" colspan="1" style="width: 15%;" title="Steam name of a bot (but not Steam login).">Steam name</th>
+                        <th rowspan="1" colspan="1" style="width: 19%;" title="The games where a bot is involved.">Games</th>
+                        <th rowspan="1" colspan="1" style="width: 8%;" title="Inventory count of a bot, updates every 10 minutes.">Inventory</th>
+                        <th rowspan="1" colspan="1" style="width: 5%;" title="Authorization status of a bot, updates every hour.">Auth</th>
+                        <th rowspan="1" colspan="1" style="width: 10%;" title="Trade status of a bot.">Trade_↓↑</th>
                       </tr>
                       </thead>
-                      <tbody data-bind="foreach: m.s2.bots">
+                      <tbody data-bind="foreach: m.s2.bots" >
 
                         <tr class="odd" data-bind="click: $root.f.s2.show_bots_interface, css: {tradeban_incoming: !ison_incoming(), tradeban_outcoming: !ison_outcoming(), tradeban_all: !ison_incoming() && !ison_outcoming()}">
                           <td data-bind="click: function(){ return true; }, clickBubble: false"><input type="checkbox" data-bind="checked: selected, click: function(data, event){ if(!event.target.checked) $root.m.s2.select_all_bots(false); return true; }"></td>
@@ -202,9 +202,13 @@
                           <td data-bind="text: id_steam"></td>
                           <td data-bind="text: steam_name"></td>
                           <td data-bind="text: ''"></td>
-                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750, red_background: inventory_count_last_bug()}, attr: {title: '- Last update: ' + inventory_count_last_update() + '\n- Problems: ' + inventory_count_last_bug()}"></td>
-                          <td data-bind="text: ison_incoming"></td>
-                          <td data-bind="text: ison_outcoming"></td>
+                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750, red_background_soft: inventory_count_last_bug()}, attr: {title: 'Inventory status\n- Last update: ' + inventory_count_last_update() + '\n- Problems: ' + inventory_count_last_bug()}"></td>
+                          <td data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}, attr: {title: 'Authorization status in Steam\n- Last update: ' + authorization_last_update() + '\n- Problems: ' + authorization_last_bug()}"></td>
+                          <td style="font-size: 16px; text-align: center">
+                            <span data-bind="text: ison_incoming() ? '↓' : ''"></span>
+                            <span data-bind="text: ison_outcoming() ? '↑' : ''"></span>
+                            <span data-bind="text: !ison_incoming() && !ison_outcoming() ? 'off' : ''" style="color: #9c0033"></span>
+                          </td>
                         </tr>
 
                       </tbody>
@@ -721,7 +725,7 @@
                 <div class="box">
                   <div class="box-header with-border subdoc_title">
 
-                    <div class="col-md-8 col-sm-8 col-xs-8">Current mobile auth code</div>
+                    <div class="col-md-8 col-sm-8 col-xs-8" style="padding-left: 0">Current mobile auth code</div>
                     <div class="col-md-4 col-sm-4 col-xs-4">
                       <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Copy current code" data-bind="click: f.s4.copy">
                         <i class="fa fa-clone"></i>

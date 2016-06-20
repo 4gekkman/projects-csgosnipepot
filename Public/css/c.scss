@@ -61,9 +61,11 @@
   font-weight: bold;
   font-size: 1.5em;
 }
-.red_background {
-  background-color: red;
-  color: #fff;
+.red_background_soft {
+  background-color: RGBA(255,0,0,.3);
+}
+.green_background_soft {
+  background-color: RGBA(0,255,0,.1);
 }
 
 //------------------------//
@@ -85,6 +87,9 @@
 .all_table_styles {
   user-select: none;
   cursor: default;
+}
+.all_table_styles td {
+  border-right: 1px solid #eee;
 }
 
 //--------------------------//

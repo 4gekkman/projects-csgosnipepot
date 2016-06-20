@@ -273,7 +273,15 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							self.f.s0.update_bots(data.data);
 
 						},
-						callback:	self.f.s3.update
+						callback:			function(){
+
+							// 1.2.1] Если steamid пуста или выбран не документ бота, завершить
+							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() != 2) return;
+
+							// 1.2.2] Обновить инвентарь выбранного бота
+							self.f.s3.update();
+
+						}
 					});
 				}
 

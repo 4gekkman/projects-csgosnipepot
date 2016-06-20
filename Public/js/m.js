@@ -145,7 +145,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//--------------------------------------------------------------//
 
 			// A4.3.1. Обработка сообщений об обновлении информации о кол-ве вещей в инвентарях  //
-			//--------------------------------------------------------------------//
+			//-----------------------------------------------------------------------------------//
 			self.websocket.ws1.on('m8:update_bots_inventory_count', function(message) {
 
 				// Обновить данные ботов, связанные с инвентарём
@@ -159,6 +159,22 @@ var ModelProto = { constructor: function(ModelFunctions) {
 					}
 				}
 
+			});
+
+			// A4.3.2. Обработка сообщений об обновлении информации об авторизации ботов //
+			//---------------------------------------------------------------------------//
+			self.websocket.ws1.on('m8:update_bots_authorization_statuses', function(message) {
+
+				// Обновить данные ботов, связанные с инвентарём
+				for(var i=0; i<self.m.s2.bots().length; i++) {
+					for(var j=0; j<message.data.data.bots.length; j++) {
+						if(self.m.s2.bots()[i]().id() == message.data.data.bots[j].id) {
+							self.m.s2.bots()[i]().authorization(message.data.data.bots[j].authorization);
+							self.m.s2.bots()[i]().authorization_last_update(message.data.data.bots[j].authorization_last_update);
+							self.m.s2.bots()[i]().authorization_last_bug(message.data.data.bots[j].authorization_last_bug);
+						}
+					}
+				}
 
 			});
 
