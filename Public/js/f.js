@@ -273,31 +273,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							self.f.s0.update_bots(data.data);
 
 						},
-						callback:			function(){
-
-							// 1.2.1] Если steamid пуста или выбран не документ бота, завершить
-							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() != 2) return;
-
-							// 1.2.2] Обновить инвентарь выбранного бота
-							ajaxko(self, {
-								command: 	    "\\M8\\Commands\\C4_getinventory",
-								from: 		    "f.s0.update_all",
-								data: 		    {
-									steamid: 				  self.m.s2.edit.steamid()
-								},
-								prejob:       function(config, data, event){},
-								postjob:      function(data, params){
-
-								},
-								ok_0:         function(data, params){
-
-									// Обновить модель групп на основе полученных данных
-									self.f.s0.update_inventory(data);
-
-								}
-							});
-
-						}
+						callback:	self.f.s3.update
 					});
 				}
 
@@ -592,7 +568,15 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  data: 		    {
 					steamid: 				  self.m.s2.edit.steamid()
 				},
-			  prejob:       function(config, data, event){},
+			  prejob:       function(config, data, event){
+
+					// 1] Отметить, что идёт ajax-запрос
+					self.m.s3.is_ajax_invoking(true);
+
+					// 2] Очистить содержимое инвентаря
+					self.m.s3.inventory.removeAll();
+
+				},
 			  postjob:      function(data, params){},
 			  ok_0:         function(data, params){
 
@@ -602,11 +586,27 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 2] Сообщить, что пользователь был успешно отредактирован
 					notify({msg: "The bots inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
 
+					// 3] Отметить, что ajax-запрос закончился
+					self.m.s3.is_ajax_invoking(false);
+
 				},
-			  ok_2:         function(data, params){
+				ok_1: function(data, params){
+
+					// 1] Отметить, что ajax-запрос закончился
+					self.m.s3.is_ajax_invoking(false);
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
 					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
 					console.log(data.data.errortext);
-				}
+
+					// 2] Отметить, что ajax-запрос закончился
+					self.m.s3.is_ajax_invoking(false);
+
+				},
+				dont_touch_ajax_counter: true
 			  //ajax_params:  {},
 			  //key: 			    "D1:1",
 				//from_ex: 	    [],

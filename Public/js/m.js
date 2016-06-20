@@ -51,6 +51,7 @@
  *    s3.3. Общее количество вещей в инвентаре выбранного бота
  *    s3.4. Общее количество выделенных вещей в инвентаре выбранного бота
  *    s3.5. Объект с экземпляром scroll для инвентаря выбранного бота
+ *    s3.6. Идёт ли сейчас ajax-запрос, или нет
  *    s3.n. Индексы и вычисляемые значения
  *
  *  s4. Модель генератора мобильных аутентификационных кодов
@@ -128,36 +129,38 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			// А4.2.1. Подключение ws1 //
 			//-------------------------//
-//			self.websocket.ws1 = io('http://'+server.settings.websocket_server_ip+':6001');
+
+				// 1] Убрать из websocket_server лишние порты
+				// - Они появляются при работе через browser-sync
+				server.data.websocket_server = server.data.websocket_server.replace(/:\d+.*$/i, "");
+				server.data.websocket_server = server.data.websocket_server + ':6001';
+
+				// 2] Подключить ws1
+				self.websocket.ws1 = io(server.data.websocket_server);
+
 
 
 		//--------------------------------------------------------------//
 		// А4.3. Назначение обработчиков сообщений с websocket-серверов //
 		//--------------------------------------------------------------//
 
-			// А4.3.1. Добавление в интерфейс новых записей, поступивших в лог //
-			//-----------------------------------------------------------------//
-			//
-			// 	> Сервер
-			// 	  - ws1
-			//
-			// 	> Канал
-			// 	  - m2:M2\\Documents\\Main\\Events\\E1_broadcast
-			//
-			// 	> Описание
-			// 	  - В лог, в БД модуля M2, могут поступать новые сообщения.
-			// 	  - Задача в том, чтобы они сразу же отображались в открытых интерфейсах лога.
-			// 	  - Для этого слушаем вышеуказанны канал, и принимаем из него сообщения.
-			// 	  - Одно сообщение означает одну новую запись в лог.
-			// 	  - Сообщения содержат текст добавляемого в лог сообщения, и список его тегов.
-			// 	  - В качестве обработчика, назначаем функцию, которая добавляет сообщение в интерфейс.
-			//
-//			self.websocket.ws1.on("m2:M2\\Documents\\Main\\Events\\E1_broadcast", function(message) {
-//
-//				// Вызвать функцию-обработчик входящих через этот канал сообщений
-//				self.f.s2.log_websocket_handler(message);
-//
-//			});
+			// A4.3.1. Обработка сообщений об обновлении информации о кол-ве вещей в инвентарях  //
+			//--------------------------------------------------------------------//
+			self.websocket.ws1.on('m8:update_bots_inventory_count', function(message) {
+
+				// Обновить данные ботов, связанные с инвентарём
+				for(var i=0; i<self.m.s2.bots().length; i++) {
+					for(var j=0; j<message.data.data.bots.length; j++) {
+						if(self.m.s2.bots()[i]().id() == message.data.data.bots[j].id) {
+							self.m.s2.bots()[i]().inventory_count(message.data.data.bots[j].inventory_count);
+							self.m.s2.bots()[i]().inventory_count_last_update(message.data.data.bots[j].inventory_count_last_update);
+							self.m.s2.bots()[i]().inventory_count_last_bug(message.data.data.bots[j].inventory_count_last_bug);
+						}
+					}
+				}
+
+
+			});
 
 
 	});
@@ -515,6 +518,11 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	// s3.5. Объект с экземпляром scroll для инвентаря выбранного бота //
 	//-----------------------------------------------------------------//
 	self.m.s3.scroll = ko.observable("");
+
+	//-------------------------------------------//
+	// s3.6. Идёт ли сейчас ajax-запрос, или нет //
+	//-------------------------------------------//
+	self.m.s3.is_ajax_invoking = ko.observable(false);
 
 	//--------------------------------------//
 	// s3.n. Индексы и вычисляемые значения //

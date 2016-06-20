@@ -202,7 +202,7 @@
                           <td data-bind="text: id_steam"></td>
                           <td data-bind="text: steam_name"></td>
                           <td data-bind="text: ''"></td>
-                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750}"></td>
+                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750, red_background: inventory_count_last_bug()}, attr: {title: '- Last update: ' + inventory_count_last_update() + '\n- Problems: ' + inventory_count_last_bug()}"></td>
                           <td data-bind="text: ison_incoming"></td>
                           <td data-bind="text: ison_outcoming"></td>
                         </tr>
@@ -336,14 +336,14 @@
                       <?php /*-------------------------------------->
                       <!-- Надпись на случай, если инвентарь пуст -->
                       <!----------------------------------------*/ ?>
-                      <div data-bind="visible: !m.s3.inventory().length">
+                      <div data-bind="visible: !m.s3.inventory().length && !m.s3.is_ajax_invoking()">
                         <span>Inventory is empty...</span>
                       </div>
 
                       <?php /*-------------------->
                       <!-- Содержимое инвентаря -->
                       <!----------------------*/ ?>
-                      <div class="inventory" data-bind="foreach: m.s3.inventory">
+                      <div class="inventory" data-bind="foreach: m.s3.inventory, visible: !m.s3.is_ajax_invoking()">
 
                         <?php /*------------------->
                         <!-- Предмет в инвентаре -->
@@ -354,6 +354,15 @@
 
                       </div>
 
+                    </div>
+                  </div>
+
+                  <?php /*--------------->
+                  <!-- Панель загрузки -->
+                  <!-----------------*/ ?>
+                  <div class="loader">
+                    <div style="display: none" class="inventory_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: m.s3.is_ajax_invoking">
+                      <div></div>
                     </div>
                   </div>
 
@@ -706,9 +715,9 @@
                   </div>
                 </div>
 
-                <?php /*------------------->
-                <!-- Общие свойства бота -->
-                <!---------------------*/ ?>
+                <?php /*--------------------------------->
+                <!-- Панель мобильного аутентификатора -->
+                <!-----------------------------------*/ ?>
                 <div class="box">
                   <div class="box-header with-border subdoc_title">
 
