@@ -27,6 +27,7 @@
  *    f.s2.select_all_change 				| s2.1. Изменение значения чекбокса "Выбрать всех ботов"
  *    f.s2.show_bots_interface      | s2.2. Открыть интерфейс кликнутого бота
  *    f.s2.edit                     | s2.3. Отредактировать пользователя
+ *    f.s2.authorize_bot            | s2.4. Авторизовать бота
  *
  *  s3. Функционал модели инвентаря выбранного бота
  *
@@ -496,6 +497,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.authorization_last_bug(data.authorization_last_bug());
 			self.m.s2.edit.authorization_last_bug_code(data.authorization_last_bug_code());
 
+			self.m.s2.edit.captchagid();
+			self.m.s2.edit.captcha_text();
+
 			// 2] Открыть поддокумент редактирования пользователя
 			self.f.s1.choose_subdoc(2);
 
@@ -539,6 +543,68 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  ok_2:         function(data, params){
 					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
 					console.log(data.data.errortext);
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//-------------------------//
+		// s2.4. Авторизовать бота //
+		//-------------------------//
+		f.s2.authorize_bot = function(data, event){
+
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C8_bot_login",
+				from: 		    "f.s2.authorize_bot",
+			  data: 		    {
+					id_bot:           self.m.s2.edit.id(),
+					relogin:          "0",
+					captchagid:       "0",
+					captcha_text:     "0",
+					method:           "GET",
+					cookies_domain:   "steamcommunity.com"
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что пользователь был успешно авторизован
+					notify({msg: 'The bot has been authorized', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 2] Изменить св-ва авторизации бота
+					self.m.s2.edit.authorization("");
+					self.m.s2.edit.authorization_last_bug("");
+					self.m.s2.edit.authorization_last_bug_code("");
+					self.m.s2.edit.captchagid("");
+					self.m.s2.edit.captcha_text("");
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization("");
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization_last_bug("");
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization_last_bug_code("");
+
+				},
+			  ok_2:         function(data, params){
+
+					// 1] Сообщить, что авторизовать пользователя не удалось
+					notify({msg: 'The bots authorization have failed', time: 10, fontcolor: 'RGB(200,50,50)'});
+
+					// 2] Изменить св-ва авторизации бота
+					self.m.s2.edit.captchagid(data.captchagid);
+					self.m.s2.edit.authorization_last_bug_code(data.error_code);
+					self.m.s2.edit.authorization_last_bug(data.data.errortext);
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization_last_bug_code(data.error_code);
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization_last_bug(data.data.errortext);
+
 				}
 			  //ajax_params:  {},
 			  //key: 			    "D1:1",

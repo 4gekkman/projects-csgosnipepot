@@ -557,9 +557,12 @@
               <!-- Свойства автоматизации торговли бота -->
               <!--------------------------------------*/ ?>
               <div class="col-md-6 col-sm-12 col-xs-12">
-                <div class="box">
+                <div class="box collapsed-box">
                   <div class="box-header with-border subdoc_title">
-                    Automation properties
+                    <span>Automation properties</span>
+                    <div class="box-tools pull-right">
+                      <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                    </div>
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
@@ -698,9 +701,12 @@
                 <?php /*------------------->
                 <!-- Общие свойства бота -->
                 <!---------------------*/ ?>
-                <div class="box">
+                <div class="box collapsed-box">
                   <div class="box-header with-border subdoc_title">
-                    Common properties
+                    <span>Common properties</span>
+                    <div class="box-tools pull-right">
+                      <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                    </div>
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
@@ -782,7 +788,7 @@
                 <?php /*------------------------------>
                 <!-- Панель ручной авторизации бота -->
                 <!--------------------------------*/ ?>
-                <div class="box">
+                <div class="box" data-bind="visible: !m.s2.edit.authorization()">
                   <div class="box-header with-border subdoc_title">
 
                     <span>Manual authorization of the bot in Steam</span>
@@ -872,7 +878,7 @@
                           <!-- 1] Кнопка "Показать капчу" -->
                           <!----------------------------*/ ?>
                           <div style="margin-bottom: 15px;">
-                            <button type="button" class="btn btn-xs btn-block btn-default" data-bind="click: function(){}">Show the captcha in separate window</button>
+                            <button type="button" class="btn btn-xs btn-block btn-default" data-bind="click: function(){ window.open('https://steamcommunity.com/login/rendercaptcha/?gid='+m.s2.edit.captchagid()); }">Show the captcha in separate window</button>
                           </div>
 
                           <?php /*----------->
@@ -881,7 +887,7 @@
                           <div class="form-group">
                             <div class="col-sm-4 control-label">Captcha ID</div>
                             <div class="col-sm-8">
-                              <input class="form-control input-sm" data-bind="textInput: '12345'" disabled="">
+                              <input class="form-control input-sm" data-bind="textInput: m.s2.edit.captchagid" disabled="">
                             </div>
                           </div>
 
@@ -891,7 +897,7 @@
                           <div class="form-group">
                             <div class="col-sm-4 control-label">Captcha text</div>
                             <div class="col-sm-8">
-                              <input class="form-control input-sm" data-bind="textInput: 'S4H53'">
+                              <input class="form-control input-sm" data-bind="textInput: m.s2.edit.captcha_text">
                             </div>
                           </div>
 

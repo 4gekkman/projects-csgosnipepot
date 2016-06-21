@@ -358,7 +358,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//--------------------------------------------------//
 	// s1.3. Ссылка на выбранный поддокумент приложения //
 	//--------------------------------------------------//
-	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[1]());
+	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[0]());
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
@@ -483,6 +483,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.authorization_last_bug 				= ko.observable("");
 		self.m.s2.edit.authorization_last_bug_code  	= ko.observable("");
 
+		self.m.s2.edit.captchagid                     = ko.observable("");
+		self.m.s2.edit.captcha_text                   = ko.observable("");
+
 	//-------------------------------------------------------------//
 	// s2.7. Модель опций для эл-в select со значениями true/false //
 	//-------------------------------------------------------------//
@@ -506,6 +509,25 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// s2.n.1. Объект-контейнер для индексов //
 		//---------------------------------------//
 		self.m.s2.indexes = {};
+
+		//----------------------//
+		// s2.n.2. Индекс ботов //
+		//----------------------//
+		// - По ID бота можно получить ссылку на него в m.s2.bots
+		self.m.s2.indexes.bots = (function(){
+
+			// 1. Подготовить массив для результатов
+			var results = [];
+
+			// 2. Заполнить results
+			for(var i=0; i<self.m.s2.bots().length; i++) {
+				results[self.m.s2.bots()[i]().id()] = self.m.s2.bots()[i]();
+			}
+
+			// 3. Вернуть results
+			return results;
+
+		}());
 
 
 	});
