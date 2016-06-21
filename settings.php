@@ -62,4 +62,7 @@ return [
       // 5.4] Путь к каталогу относительно корня laravel, куда сохранять файлы с куками ботов | Path to catalogue relative to the laravel root, where should we save files with bots cookies
       'root4cookies' => 'storage/m8_bots_cookies',
 
+      // 5.5] MAX кол-во попыток авто.авторизации | The MAX number of auto.authorization attempts
+      'max_num_of_auto_authorization_attempts' => 2
+
 ];

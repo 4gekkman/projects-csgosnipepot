@@ -136,7 +136,10 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
      * Оглавление
      *
      *  1. Получить коллекцию всех ботов
-     *  2. Обновить статусы авторизации всех ботов
+     *  2. Обновить статусы авторизации всех ботов, осуществить авто-авторизацию
+     *    2.1. Узнать, авторизован ли бот
+     *    2.2. Если бот авторизован, обновить информацию об авторизации бота
+     *    2.3. Если бот не авторизован, попытаться его автоматически авторизовать
      *  3. Транслировать клиентам через websocket свежие данные об авторизации ботов
      *
      *  N. Вернуть статус 0
@@ -151,10 +154,11 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
       // 1. Получить коллекцию всех ботов
       $bots = \M8\Models\MD1_bots::query()->get();
 
-      // 2. Обновить статусы авторизации всех ботов
+      // 2. Обновить статусы авторизации всех ботов, осуществить авто-авторизацию
       foreach($bots as $bot) {
 
         // 2.1. Узнать, авторизован ли бот
+        // - Если узнать это не удалось, завершить.
         $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', [
           'id_bot'          => $bot->id,
           'method'          => 'GET',
@@ -163,23 +167,71 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
         if($result['status'] != 0) {
           $bot->authorization = 0;
           $bot->authorization_last_update = (string) \Carbon\Carbon::now();
-          $bot->authorization_last_bug = "Can't update the bots authorization status, because: ".$result['data']['errormsg'];
+          $bot->authorization_status_last_bug = "Can't update the bots authorization status, because: ".$result['data']['errormsg'];
           $bot->save();
           continue;
+        } else {
+          $bot->authorization_status_last_bug = "";   // Багов при проверке статуса авторизации нет.
+          $bot->save();
         }
 
-        // 2.2. Обновить информацию об авторизации бота
+        // 2.2. Если бот авторизован, обновить информацию об авторизации бота
+        if($result['data']['is_bot_authenticated']) {
 
-          // 1] Информация о последнем баге
-          if($result['data']['is_bot_authenticated']) $bot->authorization_last_bug    = "";
-          else                                        $bot->authorization_last_bug    = "There is no problems. You have to authorize this bot manually.";
+          // 1] Информация о последнем баге авторизации
+          $bot->authorization_last_bug = "";
 
           // 2] Прочая информация
-          $bot->authorization             = $result['data']['is_bot_authenticated'] == true ? 1 : 0;
-          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization               = $result['data']['is_bot_authenticated'] == true ? 1 : 0;
+          $bot->authorization_last_update   = (string) \Carbon\Carbon::now();
+          $bot->authorization_used_attempts = "0";
 
           // 3] Сохранить
           $bot->save();
+
+        }
+
+        // 2.3. Если бот не авторизован, попытаться его автоматически авторизовать
+        if(!$result['data']['is_bot_authenticated']) {
+
+          // 1] Получить из конфига значение MAX числа попыток авто.авторизации
+          $max_attempts = config('M8.max_num_of_auto_authorization_attempts') ?: 2;
+          if(!is_numeric($max_attempts)) $max_attempts = 2;
+
+          // 2] Если у $bot ещё остались попытки авто.авторизации
+          if(gmp_cmp($bot->authorization_used_attempts, $max_attempts) < 0) {
+
+            // 2.1] Осуществить попытку авторизации
+            $result = runcommand('\M8\Commands\C8_bot_login', [
+              "id_bot"          => $bot->id,
+              "relogin"         => "0",
+              "captchagid"      => "0",
+              "captcha_text"    => "0",
+              "method"          => "GET",
+              "cookies_domain"  => "steamcommunity.com"
+            ]);
+
+            // 2.2] Если авторизация не удалась
+            if($result['status'] != 0) {
+              $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
+              $bot->authorization_last_bug = $result['data']['errormsg'];
+              $bot->save();
+              continue;
+            }
+
+            // 2.3] Если авторизация удалась
+            else {
+              $bot->authorization = 1;
+              $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+              $bot->authorization_last_bug = "";
+              $bot->authorization_used_attempts = "0";
+              $bot->save();
+              continue;
+            }
+
+          }
+
+        }
 
       }
 
