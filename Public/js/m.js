@@ -173,6 +173,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 							self.m.s2.bots()[i]().authorization_last_update(message.data.data.bots[j].authorization_last_update);
 							self.m.s2.bots()[i]().authorization_status_last_bug(message.data.data.bots[j].authorization_status_last_bug);
 							self.m.s2.bots()[i]().authorization_last_bug(message.data.data.bots[j].authorization_last_bug);
+							self.m.s2.bots()[i]().authorization_last_bug_code(message.data.data.bots[j].authorization_last_bug_code);
 						}
 					}
 				}
@@ -357,7 +358,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//--------------------------------------------------//
 	// s1.3. Ссылка на выбранный поддокумент приложения //
 	//--------------------------------------------------//
-	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[0]());
+	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[1]());
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
@@ -480,6 +481,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.authorization    							= ko.observable("");
 		self.m.s2.edit.authorization_status_last_bug 	= ko.observable("");
 		self.m.s2.edit.authorization_last_bug 				= ko.observable("");
+		self.m.s2.edit.authorization_last_bug_code  	= ko.observable("");
 
 	//-------------------------------------------------------------//
 	// s2.7. Модель опций для эл-в select со значениями true/false //

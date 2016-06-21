@@ -6,8 +6,13 @@
 // Оглавление //
 //------------//
 
-  1. ...
-
+  1. Общие стили
+  2. Запреты на торговлю
+  3. Стили для таблиц
+  4. Стили панели загрузки
+  5. Инвентарь
+  6. Стили текущего аутентификационного кода
+  7. Стили панели ручной авторизации
 
 //------------------------------//
 // Стили //
@@ -93,7 +98,7 @@
 }
 
 //--------------------------//
-// 3. Стили панели загрузки //
+// 4. Стили панели загрузки //
 //--------------------------//
 .loading_state_panel {
   position: fixed;
@@ -115,7 +120,7 @@
 }
 
 //--------------//
-// 4. Инвентарь //
+// 5. Инвентарь //
 //--------------//
 
   // Контейнер для предметов в инвентаре
@@ -174,7 +179,7 @@
   }
 
 //--------------------------------------------//
-// 5. Стили текущего аутентификационного кода //
+// 6. Стили текущего аутентификационного кода //
 //--------------------------------------------//
 .auth_code_styles {
   position: relative;
@@ -217,6 +222,54 @@
 
   align-self: center;
 }
+
+//------------------------------------//
+// 7. Стили панели ручной авторизации //
+//------------------------------------//
+
+  // Общие стили
+  .authorization_styles {
+
+  }
+  .authorization_styles .auth_error_descriptions {
+    margin-top: 10px;
+  }
+
+  // Описание ошибки
+  .authorization_styles .auth_error_descriptions .error_description {}
+  .authorization_styles .auth_error_descriptions .error_description .error_header {
+    color: RGBA(200,0,0,.9);
+    font-size: 1.2em;
+  }
+  .authorization_styles .auth_error_descriptions .error_description .error_text {
+    color: #999;
+    font-size: 1em;
+  }
+
+  // Инструкции
+  .authorization_styles .auth_error_descriptions .user_instructions {
+    margin-top: 5px;
+  }
+  .authorization_styles .auth_error_descriptions .user_instructions .instructions_header {
+    color: RGBA(200,0,0,.9);
+    font-size: 1.2em;
+  }
+  .authorization_styles .auth_error_descriptions .user_instructions .instructions {
+    color: #999;
+    font-size: 1em;
+  }
+  .authorization_styles .auth_error_descriptions .user_instructions .instructions ol {
+    padding-left: 20px;
+  }
+
+  // Всё прочее (например, кнопка "Показать капчу", поля для ввода её текста, и т.д.)
+  .authorization_styles .auth_error_descriptions .the_rest_stuff {
+    margin-top: 5px;
+  }
+
+
+
+
 
 
 

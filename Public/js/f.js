@@ -494,6 +494,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.authorization(data.authorization());
 			self.m.s2.edit.authorization_status_last_bug(data.authorization_status_last_bug());
 			self.m.s2.edit.authorization_last_bug(data.authorization_last_bug());
+			self.m.s2.edit.authorization_last_bug_code(data.authorization_last_bug_code());
 
 			// 2] Открыть поддокумент редактирования пользователя
 			self.f.s1.choose_subdoc(2);
