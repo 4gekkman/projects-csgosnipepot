@@ -180,10 +180,11 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
 
           // 1] Информация о последнем баге авторизации
           $bot->authorization_last_bug = "";
+          $bot->authorization_status_last_bug = "";
           $bot->authorization_last_bug_code = "";
 
           // 2] Прочая информация
-          $bot->authorization               = $result['data']['is_bot_authenticated'] == true ? 1 : 0;
+          $bot->authorization               = 1;
           $bot->authorization_last_update   = (string) \Carbon\Carbon::now();
           $bot->authorization_used_attempts = "0";
 
@@ -192,17 +193,23 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
 
         }
 
-        // 2.3. Если бот не авторизован, попытаться его автоматически авторизовать
+        // 2.3. Если бот не авторизован, обновить информацию, и попытаться его автоматически авторизовать
         if(!$result['data']['is_bot_authenticated']) {
 
-          // 1] Получить из конфига значение MAX числа попыток авто.авторизации
+          // 1] Обновить информацию
+          $bot->authorization = 0;
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->save();
+
+          // 2] Получить из конфига значение MAX числа попыток авто.авторизации
           $max_attempts = config('M8.max_num_of_auto_authorization_attempts') ?: 2;
           if(!is_numeric($max_attempts)) $max_attempts = 2;
 
-          // 2] Если у $bot ещё остались попытки авто.авторизации
-          if(gmp_cmp($bot->authorization_used_attempts, $max_attempts) < 0) {
+          // 3] Если у $bot ещё остались попытки авто.авторизации
+          if(gmp_cmp($bot->authorization_used_attempts, $max_attempts) <= 0) {
 
-            // 2.1] Осуществить попытку авторизации
+            // 3.1] Осуществить попытку авторизации
             $result = runcommand('\M8\Commands\C8_bot_login', [
               "id_bot"          => $bot->id,
               "relogin"         => "0",
@@ -212,25 +219,13 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
               "cookies_domain"  => "steamcommunity.com"
             ]);
 
-            // 2.2] Если авторизация не удалась
-            if($result['status'] != 0) {
-              $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
-              $bot->authorization_last_bug = $result['data']['errormsg'];
-              $bot->authorization_last_bug_code = $result['error_code'];
-              $bot->save();
+            // 3.2] Если авторизация не удалась
+            if($result['status'] != 0)
               continue;
-            }
 
-            // 2.3] Если авторизация удалась
-            else {
-              $bot->authorization = 1;
-              $bot->authorization_last_update = (string) \Carbon\Carbon::now();
-              $bot->authorization_last_bug = "";
-              $bot->authorization_last_bug_code = "";
-              $bot->authorization_used_attempts = "0";
-              $bot->save();
+            // 3.3] Если авторизация удалась
+            else
               continue;
-            }
 
           }
 

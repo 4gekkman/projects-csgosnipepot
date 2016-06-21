@@ -192,21 +192,21 @@ class C2_sync extends Job { // TODO: добавить "implements ShouldQueue" -
 
       // 6. Удалить все ботские записи, которые не связаны с пользователями-ботами
       // - То есть, состоящими в группах steam-пользователей и steam-ботов.
-      foreach($bots as $bot) {
-
-        // 6.1. Если связь m5_users не существует, завершить
-        if(!r1_rel_exists("m8", "md1_bots", "m5_users")) break;
-
-        // 6.2. Попробовать найти пользователя, связанного с $bot
-        $user = $bot->m5_users;
-
-        // 6.3. Если $user пуст, или его id не в $user_bot_ids, удалить $bot
-        if($user->count() == 0 || !in_array($user[0]->id, $user_bot_ids)) {
-          $bot->m5_users()->detach();
-          $bot->delete();
-        }
-
-      }
+//      foreach($bots as $bot) {
+//
+//        // 6.1. Если связь m5_users не существует, завершить
+//        if(!r1_rel_exists("m8", "md1_bots", "m5_users")) break;
+//
+//        // 6.2. Попробовать найти пользователя, связанного с $bot
+//        $user = $bot->m5_users;
+//
+//        // 6.3. Если $user пуст, или его id не в $user_bot_ids, удалить $bot
+//        if($user->count() == 0 || !in_array($user[0]->id, $user_bot_ids)) {
+//          $bot->m5_users()->detach();
+//          $bot->delete();
+//        }
+//
+//      }
 
 
     DB::commit(); } catch(\Exception $e) {

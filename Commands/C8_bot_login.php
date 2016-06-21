@@ -193,6 +193,17 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
       // 4. Если $bot уже вошёл в Steam, и relogin = false, завершить
       if($is_bot_authorized && $this->data['relogin'] === '0') {
 
+        // 1] Изменить авторизационные свойства бота
+        $bot->authorization = 1;
+        $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+        $bot->authorization_last_bug = "";
+        $bot->authorization_last_bug_code = "";
+        $bot->authorization_status_last_bug = "";
+        $bot->authorization_used_attempts = "0";
+        $bot->save();
+        DB::commit();
+
+        // 2] Завершить
         return [
           "status"  => 0,
           "data"    => [
@@ -356,12 +367,70 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
       // 9. Обработать ошибки авторизации для $authorization
       switch($authorization['error_code']) {
-        case 0: break;
-        case 1: throw new \Exception("OAuth authorization failed: recieved from Steam json is empty."); break;
-        case 2: throw new \Exception("OAuth authorization failed: captcha needed."); break;
-        case 3: throw new \Exception("OAuth authorization failed: 2FA code not fits."); break;
-        case 4: throw new \Exception("OAuth authorization failed: wrong login or password."); break;
-        case 5: throw new \Exception("OAuth authorization failed: somehow in response success = false."); break;
+        case 0:
+          $bot->authorization = 1;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization_last_bug = "";
+          $bot->authorization_last_bug_code = "";
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_used_attempts = "0";
+          $bot->save();
+          break;
+        case 1:
+          $text = "OAuth authorization failed: recieved from Steam json is empty.";
+          $bot->authorization = 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization_last_bug = $text;
+          $bot->authorization_last_bug_code = 1;
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
+          $bot->save();
+          DB::commit();
+          throw new \Exception($text); break;
+        case 2:
+          $text = "OAuth authorization failed: captcha needed.";
+          $bot->authorization = 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization_last_bug = $text;
+          $bot->authorization_last_bug_code = 2;
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
+          $bot->save();
+          DB::commit();
+          throw new \Exception($text); break;
+        case 3:
+          $text = "OAuth authorization failed: 2FA code not fits.";
+          $bot->authorization = 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization_last_bug = $text;
+          $bot->authorization_last_bug_code = 3;
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
+          $bot->save();
+          DB::commit();
+          throw new \Exception($text); break;
+        case 4:
+          $text = "OAuth authorization failed: wrong login or password.";
+          $bot->authorization = 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization_last_bug = $text;
+          $bot->authorization_last_bug_code = 4;
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
+          $bot->save();
+          DB::commit();
+          throw new \Exception($text); break;
+        case 5:
+          $text = "OAuth authorization failed: somehow in response success = false.";
+          $bot->authorization = 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
+          $bot->authorization_last_bug = $text;
+          $bot->authorization_last_bug_code = 5;
+          $bot->authorization_status_last_bug = "";
+          $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
+          $bot->save();
+          DB::commit();
+          throw new \Exception($text); break;
       }
 
 

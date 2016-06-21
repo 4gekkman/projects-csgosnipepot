@@ -167,7 +167,9 @@ class T5_bot_login extends Command
 
     // 2. В случае неудачи, вывести текст ошибки
     if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
+      $this->error('Error_code: '.$result['error_code']);
+      $this->error('Captchagid: '.$result['captchagid']);
+      $this->error('Errortext: '.$result['data']['Errortext']);
       return;
     }
 
