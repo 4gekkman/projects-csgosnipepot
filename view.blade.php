@@ -203,8 +203,8 @@
                           <td data-bind="text: id_steam"></td>
                           <td data-bind="text: steam_name"></td>
                           <td data-bind="text: ''"></td>
-                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750, red_background_soft: inventory_count_last_bug()}, attr: {title: 'Inventory status\n- Last update: ' + inventory_count_last_update() + '\n- Problems: ' + inventory_count_last_bug()}"></td>
-                          <td data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}, attr: {title: 'Authorization status in Steam\n- Last update: ' + authorization_last_update() + '\n- Problems: ' + authorization_last_bug()}"></td>
+                          <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750, red_background_soft: inventory_count_last_bug()}, attr: {title: 'Inventory status\n- Last update (server time): ' + inventory_count_last_update() + '\n- Problems: ' + inventory_count_last_bug()}"></td>
+                          <td data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}, attr: {title: 'Authorization status in Steam\n- Last update (server time): ' + authorization_last_update() + '\n- Authorization status check problems: ' + authorization_status_last_bug()  + '\n- Authorization problems: ' + authorization_last_bug()}"></td>
                           <td style="font-size: 16px; text-align: center">
                             <span data-bind="text: ison_incoming() ? '↓' : ''"></span>
                             <span data-bind="text: ison_outcoming() ? '↑' : ''"></span>
@@ -272,8 +272,13 @@
               <?php /*-------------------------->
               <!-- Бот не авторизован в Steam -->
               <!----------------------------*/ ?>
-              <div class="callout callout-danger">
-                <p>This bot is not authorized in Steam! You have to authorize it manually, see the panel below.</p>
+              <div class="callout callout-danger" data-bind="visible: !m.s2.edit.authorization()">
+                <h4>This bot is not authorized in Steam!</h4>
+                <p>
+                  You have to authorize it manually, see the panel below. <br>
+                  Authorization status last bug: <span data-bind="text: m.s2.edit.authorization_status_last_bug"></span><br>
+                  Authorization last bug: <span data-bind="text: m.s2.edit.authorization_last_bug"></span>
+                </p>
               </div>
 
             </div>

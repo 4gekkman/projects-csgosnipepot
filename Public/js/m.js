@@ -171,6 +171,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 						if(self.m.s2.bots()[i]().id() == message.data.data.bots[j].id) {
 							self.m.s2.bots()[i]().authorization(message.data.data.bots[j].authorization);
 							self.m.s2.bots()[i]().authorization_last_update(message.data.data.bots[j].authorization_last_update);
+							self.m.s2.bots()[i]().authorization_status_last_bug(message.data.data.bots[j].authorization_status_last_bug);
 							self.m.s2.bots()[i]().authorization_last_bug(message.data.data.bots[j].authorization_last_bug);
 						}
 					}
@@ -456,25 +457,29 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//----------------------------------//
 	self.m.s2.edit = {};
 
-		self.m.s2.edit.login 						= ko.observable("");
-		self.m.s2.edit.password 				= ko.observable("");
-		self.m.s2.edit.steamid 					= ko.observable("");
-		self.m.s2.edit.shared_secret 		= ko.observable("");
-		self.m.s2.edit.serial_number 		= ko.observable("");
-		self.m.s2.edit.revocation_code 	= ko.observable("");
-		self.m.s2.edit.uri 							= ko.observable("");
-		self.m.s2.edit.server_time 			= ko.observable("");
-		self.m.s2.edit.account_name 		= ko.observable("");
-		self.m.s2.edit.token_gid 				= ko.observable("");
-		self.m.s2.edit.identity_secret 	= ko.observable("");
-		self.m.s2.edit.secret_1 				= ko.observable("");
-		self.m.s2.edit.apikey 					= ko.observable("");
+		self.m.s2.edit.login 													= ko.observable("");
+		self.m.s2.edit.password 											= ko.observable("");
+		self.m.s2.edit.steamid 												= ko.observable("");
+		self.m.s2.edit.shared_secret 									= ko.observable("");
+		self.m.s2.edit.serial_number 									= ko.observable("");
+		self.m.s2.edit.revocation_code 								= ko.observable("");
+		self.m.s2.edit.uri 														= ko.observable("");
+		self.m.s2.edit.server_time 										= ko.observable("");
+		self.m.s2.edit.account_name 									= ko.observable("");
+		self.m.s2.edit.token_gid 											= ko.observable("");
+		self.m.s2.edit.identity_secret 								= ko.observable("");
+		self.m.s2.edit.secret_1 											= ko.observable("");
+		self.m.s2.edit.apikey 												= ko.observable("");
 
-		self.m.s2.edit.id   						= ko.observable("");
-		self.m.s2.edit.ison_incoming 		= ko.observable("");
-		self.m.s2.edit.ison_outcoming 	= ko.observable("");
+		self.m.s2.edit.id   													= ko.observable("");
+		self.m.s2.edit.ison_incoming 									= ko.observable("");
+		self.m.s2.edit.ison_outcoming 								= ko.observable("");
 
-		self.m.s2.edit.steam_name       = ko.observable("");
+		self.m.s2.edit.steam_name       							= ko.observable("");
+
+		self.m.s2.edit.authorization    							= ko.observable("");
+		self.m.s2.edit.authorization_status_last_bug 	= ko.observable("");
+		self.m.s2.edit.authorization_last_bug 				= ko.observable("");
 
 	//-------------------------------------------------------------//
 	// s2.7. Модель опций для эл-в select со значениями true/false //
