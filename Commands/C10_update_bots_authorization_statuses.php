@@ -180,6 +180,7 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
 
           // 1] Информация о последнем баге авторизации
           $bot->authorization_last_bug = "";
+          $bot->authorization_last_bug_code = "";
 
           // 2] Прочая информация
           $bot->authorization               = $result['data']['is_bot_authenticated'] == true ? 1 : 0;
@@ -215,6 +216,7 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
             if($result['status'] != 0) {
               $bot->authorization_used_attempts = +$bot->authorization_used_attempts + 1;
               $bot->authorization_last_bug = $result['data']['errormsg'];
+              $bot->authorization_last_bug_code = $result['error_code'];
               $bot->save();
               continue;
             }
@@ -224,6 +226,7 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
               $bot->authorization = 1;
               $bot->authorization_last_update = (string) \Carbon\Carbon::now();
               $bot->authorization_last_bug = "";
+              $bot->authorization_last_bug_code = "";
               $bot->authorization_used_attempts = "0";
               $bot->save();
               continue;

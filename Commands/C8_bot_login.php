@@ -327,7 +327,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
           // 2] Если требуется капча
           if(isset($json['captcha_needed']) && $json['captcha_needed'])
-            return 5;
+            return 2;
 
           // 3] Если код мобильной аутентификации не подходит
           if(isset($json['requires_twofactor']) && $json['requires_twofactor'] && !$json['success'])
@@ -339,7 +339,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
           // 5] Если success == false
           if(!array_key_exists('success', $json) || $json['success'] == false)
-            return 2;
+            return 5;
 
           // n] Ошибок нет, вернуть 0
           return 0;
@@ -370,9 +370,14 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M8', 'C8_bot_login']);
+        if(isset($authorization) && array_key_exists('error_code', $authorization) && $authorization['error_code'] == 2) {
+          $captchagid = $authorization['authorization']['captchagid'];
+        } else $captchagid = "";
         return [
-          "status"  => -2,
-          "data"    => [
+          "status"      => -2,
+          "error_code"  => isset($authorization) && array_key_exists('error_code', $authorization) ? $authorization['error_code'] : '',
+          "captchagid"  => $captchagid,
+          "data"        => [
             "errortext" => $errortext,
             "errormsg" => $e->getMessage()
           ]
