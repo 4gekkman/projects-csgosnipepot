@@ -161,6 +161,8 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
           'cookies_domain'  => 'steamcommunity.com'
         ]);
         if($result['status'] != 0) {
+          $bot->authorization = 0;
+          $bot->authorization_last_update = (string) \Carbon\Carbon::now();
           $bot->authorization_last_bug = "Can't update the bots authorization status, because: ".$result['data']['errormsg'];
           $bot->save();
           continue;
