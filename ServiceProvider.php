@@ -108,7 +108,7 @@
         //
         $add2schedule = [
           '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->everyTenMinutes();',
-          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->hourly();'
+          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->everyTenMinutes();'
         ];
 
       //----------------------------------------------------//
