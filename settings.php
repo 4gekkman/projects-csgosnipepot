@@ -63,6 +63,10 @@ return [
       'root4cookies' => 'storage/m8_bots_cookies',
 
       // 5.5] MAX кол-во попыток авто.авторизации | The MAX number of auto.authorization attempts
-      'max_num_of_auto_authorization_attempts' => 2
+      'max_num_of_auto_authorization_attempts' => 2,
+
+      // 5.6] API-ключ от backpack.tf | Backpack.tf API-key
+      'apikey_backpack' => '576c203786674711306558fc'
+
 
 ];
