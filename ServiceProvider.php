@@ -108,7 +108,8 @@
         //
         $add2schedule = [
           '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->everyTenMinutes();',
-          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->everyTenMinutes();'
+          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->everyTenMinutes();',
+          '$schedule->command("m8:update_bots_apikeys")->withoutOverlapping()->everyTenMinutes();'
         ];
 
       //----------------------------------------------------//
@@ -125,7 +126,8 @@
           '\M8\Console\T5_bot_login',
           '\M8\Console\T6_update_bots_inventory_count',
           '\M8\Console\T7_update_bots_authorization_statuses',
-          '\M8\Console\T8_bot_set_apikey'
+          '\M8\Console\T8_bot_set_apikey',
+          '\M8\Console\T9_update_bots_apikeys'
         ];
 
         // Регистрация команд в методе register

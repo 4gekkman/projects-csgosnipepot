@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Gets and sets apikey for the specified authorized in Steam bot.
+ *    - This command invokes periodically and actualize apikeys of all bots.
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C11_bot_set_apikey extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C12_update_bots_apikeys extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,192 +135,57 @@ class C11_bot_set_apikey extends Job { // TODO: добавить "implements Sho
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти бота с id_bot
-     *  3. Проверить, вошёл ли уже $bot в Steam, или нет
-     *  4. Если domain бота пуст, назначить ему domain из параметров
-     *  5. Если поле apikey у $bot пустое, или если force = 1, обновить API-ключ $bot'а
-     *  6. Вернуть результат
+     *  1. Получить коллекцию всех ботов
+     *  2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------------------------------------------------//
-    // Получить и добавить API-ключ указанному боту, который д.б. авторизован в Steam //
-    //--------------------------------------------------------------------------------//
+    //-------------------------------------------------------------//
+    // Эта команда периодически актуализирует API-ключи всех ботов //
+    //-------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Провести валидацию входящих параметров
-      $validator = r4_validate($this->data, [
-        "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "force"               => ["required", "regex:/^[01]{1}$/ui"],
-        "domain"              => ["required", "string"]
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
+      // 1. Получить коллекцию всех ботов
+      $bots = \M8\Models\MD1_bots::query()->get();
 
-      // 2. Попробовать найти бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception("Can't find bot with ID = ".$this->data['id_bot']);
+      // 2. Актуализировать API-ключи каждого бота
+      foreach($bots as $bot) {
 
-      // 3. Проверить, вошёл ли уже $bot в Steam, или нет
-      $is_bot_authorized = call_user_func(function() USE ($bot) {
-
-        // 3.1. Выполнить запрос
-        $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', [
-          'id_bot'          => $this->data['id_bot'],
-          'method'          => 'GET',
-          'cookies_domain'  => 'steamcommunity.com'
+        // 2.1. Актуализировать API-ключ для $bot
+        $result = runcommand('\M8\Commands\C11_bot_set_apikey', [
+          "id_bot" => $bot->id,
+          "force"  => 1,
+          "domain" => "acme-corp.ru"
         ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        if($result['status'] != 0) {
+          Log::info('Error: '.$result['data']['errormsg']);
+          write2log('Error: '.$result['data']['errormsg']);
+        }
 
-        // 3.2. Вернуть результат
-        return $result['data'];
+        // 2.2. Если доступ запрещён
+        if($result['data']['access_denied'] == 1) {
+          $bot->apikey_last_bug = 'Access Denied';
+          $bot->apikey_last_update = (string) \Carbon\Carbon::now();
+        }
 
-      });
-      if(!$is_bot_authorized['is_bot_authenticated'])
-        throw new \Exception("The bot with ID = ".$this->data['id_bot']." not logged in Steam.");
+        // 2.3. Если доступ разрешён
+        else {
+          $bot->apikey_last_bug = "";
+          $bot->apikey_last_update = (string) \Carbon\Carbon::now();
+        }
 
-      // 4. Если domain бота пуст, назначить ему domain из параметров
-      if(empty($bot->apikey_domain)) {
-        $bot_got_domain = 1;
-        $bot->apikey_domain = $this->data['domain'];
+        // 2.4. Сохранить модель бота
         $bot->save();
-      }
-
-      // 5. Если поле apikey у $bot пустое, или если force = 1, обновить API-ключ $bot'а
-      if(empty($bot->apikey) || $this->data['force'] == 1) {
-
-        // 5.1. Подготовить функцию для извлечения API-ключа пользователя
-        // - Если надо, она также регистрирует пользователю новый ключ.
-        $bot_get_apikey = function($recursionLevel = 1) USE ($bot, $is_bot_authorized, &$bot_get_apikey) {
-
-          // 5.1.1. Запросить от имени бота HTML страницы с API-ключём
-          $apikey_html_response = call_user_func(function() USE ($bot) {
-
-            // 1] Осуществить запрос
-            $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-              "id_bot"          => $bot->id,
-              "method"          => "GET",
-              "url"             => "https://steamcommunity.com/dev/apikey",
-              "cookies_domain"  => 'steamcommunity.com',
-              "data"            => [],
-              "ref"             => ""
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
-
-            // 2] Вернуть результаты (guzzle response)
-            return $result['data']['response'];
-
-          });
-
-          // 5.1.2. Извлечь строку с HTML из запроса, key и domain
-          $apikey_html = (string) $apikey_html_response->getBody();
-          $key = call_user_func(function() USE ($apikey_html) {
-            $result = preg_match('/<p>Key: (.*)<\/p>/', $apikey_html, $matches);
-            if($result) return $matches[1];
-            return '';
-          });
-          $domain = call_user_func(function() USE ($apikey_html) {
-            $result = preg_match('/<p>Domain Name: (.*)<\/p>/', $apikey_html, $matches);
-            if($result) return $matches[1];
-            return '';
-          });
-
-          // 5.1.3. Если по какой-то причине доступ боту ограничен, apikey = ''
-          if(preg_match('/<h2>Access Denied<\/h2>/', $apikey_html)) {
-
-            // 1] Сохранить apikey в модель $bot
-            $bot->apiKey = '';
-            $bot->save();
-
-            // 2] Вернуть результат
-            return [
-              'apikey' => '',
-              'error'  => 1
-            ];
-
-          }
-
-          // 5.1.4. Если доступ есть, API-ключ получен, и домен совпадает с доменом бота
-          else if(!empty($key) && !empty($domain) && $domain == $bot->apikey_domain) {
-
-            // 1] Сохранить apikey в модель $bot
-            $bot->apiKey = $key;
-            $bot->save();
-
-            // 2] Вернуть результат
-            return [
-              'apikey' => $key,
-              'error'  => 0
-            ];
-
-          }
-
-          // 5.1.5. Если доступ есть, но API-ключ не получен, или домен не совпадает с доменом бота
-          else if ($recursionLevel < 3 || empty($key) || empty($domain) || $domain != $bot->apikey_domain) {
-
-            // 1] Зарегистрировать для $bot новый API-ключ
-            $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-              "id_bot"          => $bot->id,
-              "method"          => "POST",
-              "url"             => "https://steamcommunity.com/dev/registerkey",
-              "cookies_domain"  => 'steamcommunity.com',
-              "data"            => [
-                'domain'        => $bot->apikey_domain,
-                'agreeToTerms'  => 'agreed',
-                'sessionid'     => $is_bot_authorized['sessionid'],
-                'Submit'        => 'Register'
-              ],
-              "ref"             => ""
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
-
-            // 2] Прибавить 1 к $recursionLevel
-            $recursionLevel++;
-
-            // 3] Рекурсивно выполнить функцию $bot_get_apikey
-            // - И вернуть результат.
-            return [
-              'apikey' => $bot_get_apikey($recursionLevel)['apikey'],
-              'error'  => 2
-            ];
-
-          }
-
-        };
-
-        // 5.2. Вызвать функцию $bot_get_apikey
-        $bot_get_apikey_result = $bot_get_apikey();
 
       }
 
-      // 6. Вернуть результат
-      DB::commit();
-      return [
-        "status"  => 0,
-        "data"    => [
-          "id_bot"          => $this->data['id_bot'],
-          "bot_got_domain"  => !empty($bot_got_domain) ? 1 : 0,
-          "authorized"      => $is_bot_authorized['is_bot_authenticated'] ? 1 : 0,
-          "domain"          => $bot->apikey_domain,
-          "apikey"          => !empty($bot_get_apikey_result) ? $bot_get_apikey_result['apikey'] : $bot->apikey,
-          "access_denied"   => !empty($bot_get_apikey_result) && $bot_get_apikey_result['error'] == 1 ? 1 : 0,
-          "isnew"           => !empty($bot_get_apikey_result) && $bot_get_apikey_result['error'] == 2 ? 1 : 0,
-        ]
-      ];
-
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C11_bot_set_apikey from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C12_update_bots_apikeys from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C11_bot_set_apikey']);
+        write2log($errortext, ['M8', 'C12_update_bots_apikeys']);
         return [
           "status"  => -2,
           "data"    => [

@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Gets and sets apikey for the specified authorized in Steam bot.
+ *    - This command invokes periodically and actualize apikeys of all bots.
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T8_bot_set_apikey extends Command
+class T9_update_bots_apikeys extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T8_bot_set_apikey extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:bot_set_apikey {id_bot} {force=0} {domain=acme-corp.ru}';
+    protected $signature = 'm8:update_bots_apikeys';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Gets and sets apikey for the specified authorized in Steam bot.';
+    protected $description = 'This command invokes periodically and actualize apikeys of all bots.';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T8_bot_set_apikey extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C11_bot_set_apikey', $this->argument());
+    $result = runcommand('\M8\Commands\C12_update_bots_apikeys', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
@@ -174,13 +174,6 @@ class T8_bot_set_apikey extends Command
 
     // 3. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
-    $this->info("ID of the bot: ".$result['data']['id_bot']);
-    $this->info("The bot has got domain: ".($result['data']['bot_got_domain'] == 1 ? 'yes' : 'no'));
-    $this->info("Is the bot authorized: ".($result['data']['authorized'] == 1 ? 'yes' : 'no'));
-    $this->info("Access denied: ".($result['data']['access_denied'] == 1 ? 'yes' : 'no'));
-    $this->info("Did the bot get new API-key: ".($result['data']['isnew'] == 1 ? 'yes' : 'no'));
-    $this->info("The bot's domain for API-key: ".$result['data']['domain']);
-    $this->info("The bot's current API-key: ".$result['data']['apikey']);
 
   }
 
