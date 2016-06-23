@@ -124,7 +124,8 @@
           '\M8\Console\T4_bot_get_sessid_steamid',
           '\M8\Console\T5_bot_login',
           '\M8\Console\T6_update_bots_inventory_count',
-          '\M8\Console\T7_update_bots_authorization_statuses'
+          '\M8\Console\T7_update_bots_authorization_statuses',
+          '\M8\Console\T8_bot_set_apikey'
         ];
 
         // Регистрация команд в методе register
