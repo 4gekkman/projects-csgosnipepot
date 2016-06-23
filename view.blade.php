@@ -674,15 +674,6 @@
                       </div>
                     </div>
 
-                    <?php /* 13] apikey -->
-                    <!----------------*/ ?>
-                    <div class="form-group">
-                      <div class="col-sm-4 control-label">apikey</div>
-                      <div class="col-sm-8">
-                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey">
-                      </div>
-                    </div>
-
                     <?php /* n] Кнопка "Редактировать" -->
                     <!-------------------------------*/ ?>
                     <div>
@@ -710,6 +701,15 @@
                   </div>
                   <div class="box-body form-horizontal" data-bind="style: {}">
 
+                    <?php /* Ошибки -->
+                    <!------------*/ ?>
+
+                      <?php /* Невозможно извлечь API-ключ -->
+                      <!---------------------------------*/ ?>
+                      <div class="callout callout-danger" data-bind="visible: m.s2.edit.apikey_last_bug">
+                        <p data-bind="text: 'Can not retrieve API-key for this bot: '+m.s2.edit.apikey_last_bug()"></p>
+                      </div>
+
                     <?php /* 1] id -->
                     <!-----------*/ ?>
                     <div class="form-group">
@@ -734,6 +734,24 @@
                       <div class="col-sm-4 control-label">ison_outcoming</div>
                       <div class="col-sm-8">
                         <select class="form-control input-sm" data-bind="options: m.s2.options_true_false, optionsText: function(item){ return item().name(); }, optionsValue: function(item){ return item().value(); }, value: m.s2.edit.ison_outcoming"></select>
+                      </div>
+                    </div>
+
+                    <?php /* 4] apikey -->
+                    <!---------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">apikey</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey" disabled="">
+                      </div>
+                    </div>
+
+                    <?php /* 5] apikey_domain -->
+                    <!----------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">apikey_domain</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey_domain">
                       </div>
                     </div>
 
