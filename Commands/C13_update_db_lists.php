@@ -138,6 +138,7 @@ class C13_update_db_lists extends Job { // TODO: добавить "implements Sh
      *  1. Обновить данные в MD3_exteriors
      *  2. Обновить данные в MD4_knife_types
      *  3. Обновить данные в MD5_weapon_models
+     *  4. Создать строку с ID = 1 в MD6_price_update_bugs
      *
      *  N. Вернуть статус 0
      *
@@ -262,6 +263,20 @@ class C13_update_db_lists extends Job { // TODO: добавить "implements Sh
 
       });
 
+      // 4. Создать строку с ID = 1 в MD6_price_update_bugs
+      call_user_func(function(){
+
+        // 4.1. Попытаться получить модель с ID = 1 из MD6_price_update_bugs
+        $model = \M8\Models\MD6_price_update_bugs::find(1);
+
+        // 4.2. Если $model отсутствует, создать таковую
+        if(empty($model)) {
+          $new = new \M8\Models\MD6_price_update_bugs();
+          $new->id = 1;
+          $new->save();
+        }
+
+      });
 
 
     DB::commit(); } catch(\Exception $e) {
