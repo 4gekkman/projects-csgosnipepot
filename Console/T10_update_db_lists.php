@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get inventory by passed steamid
+ *    - Updates some lists-tables data in DB, using the data from config.
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T2_getinventory extends Command
+class T10_update_db_lists extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T2_getinventory extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:getinventory {steamid}';
+    protected $signature = 'm8:update_db_lists';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Get inventory by passed steamid';
+    protected $description = 'Updates some lists-tables data in DB, using the data from config.';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T2_getinventory extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C4_getinventory', $this->argument());
+    $result = runcommand('\M8\Commands\C13_update_db_lists', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки

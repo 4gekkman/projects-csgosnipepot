@@ -127,7 +127,8 @@
           '\M8\Console\T6_update_bots_inventory_count',
           '\M8\Console\T7_update_bots_authorization_statuses',
           '\M8\Console\T8_bot_set_apikey',
-          '\M8\Console\T9_update_bots_apikeys'
+          '\M8\Console\T9_update_bots_apikeys',
+          '\M8\Console\T10_update_db_lists'
         ];
 
         // Регистрация команд в методе register
