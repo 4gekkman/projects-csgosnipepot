@@ -44,6 +44,9 @@
        *
        *  r4_numpos         | must be a positive integer
        *  r4_numnn          | must be not negative positive integer
+       *  r4_defined        | Must be not undefined
+       *  r4_true           | must be true (not 1 or '1', only true)
+       *  r4_false          | must be false (not 0 or '0', only false)
        *
        *
        */
@@ -76,6 +79,28 @@
           return isset($value);
 
         }, ":attribute must be not undefined");
+
+
+        //=========//
+        // r4_true //
+        //=========//
+        Validator::extend('r4_true', function($attribute, $value, $parameters) {
+
+          if($value === true) return true;
+          return false;
+
+        }, ":attribute must be must be true (not 1 or '1', only true)");
+
+
+        //==========//
+        // r4_false //
+        //==========//
+        Validator::extend('r4_false', function($attribute, $value, $parameters) {
+
+          if($value === false) return true;
+          return false;
+
+        }, ":attribute must be false (not 0 or '0', only false)");
 
 
     }

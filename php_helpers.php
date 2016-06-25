@@ -150,6 +150,8 @@ use Illuminate\Routing\Controller as BaseController,
      *    r4_numpos            | Must be a positive integer
      *    r4_numnn             | Must be not negative positive integer
      *    r4_defined           | Must be not undefined
+     *    r4_true              | must be true (not 1 or '1', only true)
+     *    r4_false             | must be false (not 0 or '0', only false)
      *  </pre>
      *
      * @param  string $values
