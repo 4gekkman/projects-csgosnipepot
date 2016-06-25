@@ -392,9 +392,9 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
 
             // 2) Пробежаться по $all_knife_types и найти нужный
             foreach($all_weapon_models as $weapon_model) {
-              if(!preg_match("/$weapon_model->model/ui", $name, $match))
+              if(!preg_match("/".$weapon_model['model']."/ui", $name, $match))
                 continue;
-              $model = $weapon_model->model;
+              $model = $weapon_model['model'];
               break;
             }
 
