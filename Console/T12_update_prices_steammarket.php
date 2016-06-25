@@ -161,20 +161,20 @@ class T12_update_prices_steammarket extends Command
      *
      */
 
-//    // 1. Выполнить команду
-//    $result = runcommand('\M8\Commands\C1_command', $this->argument());
-//
-//
-//    // 2. В случае неудачи, вывести текст ошибки
-//    if($result['status'] != 0) {
-//      $this->error('Error: '.$result['data']['errormsg']);
-//      return;
-//    }
-//
-//
-//    // 3. В случае успеха, вывести соотв.сообщение
-//    $this->info("Success");
-//
+    // 1. Выполнить команду
+    $result = runcommand('\M8\Commands\C15_update_prices_steammarket', $this->argument());
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']['errormsg']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
+
   }
 
 }

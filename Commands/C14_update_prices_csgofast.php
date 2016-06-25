@@ -135,7 +135,7 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
     /**
      * Оглавление
      *
-     *  1. Обновить данные в некоторых таблица-списках в БД, используя данные из конфига
+     *  1. Обновить данные в некоторых таблицах-списках в БД, используя данные из конфига
      *  2. Выполнить HTTP-запрос и получить данные из API csgofast.com
      *  3. Провести валидацию результатов запроса с $csgofast_data
      *  4. Получить все цены в виде массива
@@ -152,7 +152,7 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
     //-------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Обновить данные в некоторых таблица-списках в БД, используя данные из конфига
+      // 1. Обновить данные в некоторых таблицах-списках в БД, используя данные из конфига
       $result = runcommand('\M8\Commands\C13_update_db_lists');
       if($result['status'] != 0) {
         throw new \Exception($result['data']['errormsg']);
@@ -197,6 +197,7 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
 
         // 2] Возбудить исключение
         throw new \Exception($validator['data']);
+
       }
 
       // 4. Получить все цены в виде массива
