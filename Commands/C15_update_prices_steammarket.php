@@ -143,7 +143,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
      *    4.2. Распарсить полученный $html и получить массив в стиле csgofast
      *    4.3. Убедиться, что во всех подмассивах $steammarket_data одинаковое кол-во эл-в
      *    4.4. Записать данные в $steammarket_data_final
-     *    4.5. Сделать передышку 10 секунд
+     *    4.5. Сделать передышку
      *
      *  N. Вернуть статус 0
      *
@@ -452,13 +452,8 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         if($x%10 == 0) sleep(30);
         else sleep(10);
 
-        sleep(10);
-
-        Log::info($x, []);
-
       }
 
-      write2log($steammarket_data_final, []);
 
 
 
@@ -470,51 +465,12 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
 
 
-        // 5] Проверить, что всё сходится
-
-//        write2log($data['names_nodes']->length, []);
-//        write2log($data['normal_prices_nodes']->length, []);
-//        write2log($data['links_nodes']->length, []);
-//        write2log($data['qty_nodes']->length, []);
-//        write2log($data['images_nodes']->length, []);
-//
-//
-//$x = 0;
-//        foreach($data['names_nodes'] as $node) {
-//          $x++;
-//        }
-//write2log($x, []);
 
 
 
-//        foreach($names_span_nodes as $node) {
-//          write2log($node->nodeValue, []);
-//        }
 
 
-//      $csgofast_data = call_user_func(function() {
-//
-//        // 1] Подготовить массив для результата
-//        $result = [];
-//
-//        // 2] Создать экземпляр guzzle
-//        $guzzle = new \GuzzleHttp\Client();
-//
-//        // 3] Сформировать URL для запроса
-//        $url = "https://api.csgofast.com/price/all";
-//
-//        // 4] Выполнить запрос
-//        $request_result = $guzzle->request('GET', $url, []);
-//
-//        // 5] Наполнить $result
-//        $result['result'] = $request_result;
-//        $result['status'] = $request_result->getStatusCode();
-//        $result['body'] = $request_result->getBody();
-//
-//        // n] Вернуть результат
-//        return $result;
-//
-//      });
+
 
 
 
