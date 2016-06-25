@@ -223,7 +223,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
       // - Например, если total count = 5000, то потребуется сделать 5000/100 + 1 = 51 запрос.
       $steammarket_data_html = call_user_func(function() USE ($total_count) {
 
-        // 1] Подготовить массив для результата
+        // 1] Подготовить массив для результатов
         $result = [];
 
         // 2] Создать экземпляр guzzle
@@ -295,7 +295,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         $xpath = new \DOMXpath($doc);
 
         // 4] Извлечь с помощью $xpath все необходимые данные
-        $data = [
+        $data_xpath = [
 
           // 4.1] Получить все эл-ты span с классом market_listing_item_name
           "names_nodes" => $xpath->query('//span[@class="market_listing_item_name"]'),
@@ -313,6 +313,43 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
           "images_nodes" => $xpath->query('//img/@srcset'),
 
         ];
+
+        // 5] Сформировать из $data_xpath массивы готовых данных
+        $data = call_user_func(function() USE ($data_xpath) {
+
+          // 5.1] Подготовить массив для результатов
+          $results = [
+            'names_nodes'         => [],
+            'normal_prices_nodes' => [],
+            'links_nodes'         => [],
+            'qty_nodes'           => [],
+            'images_nodes'        => []
+          ];
+
+          // 5.2] names_nodes
+          foreach($data_xpath['names_nodes'] as $node) {
+            array_push($results['names_nodes'], $node->nodeValue);
+          }
+
+          // 5.n] Вернуть результаты
+          return $results;
+
+        });
+
+
+        write2log($data, []);
+
+
+      });
+
+
+
+
+
+
+
+
+
 
         // 5] Проверить, что всё сходится
 
@@ -334,12 +371,6 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 //        foreach($names_span_nodes as $node) {
 //          write2log($node->nodeValue, []);
 //        }
-
-
-      });
-
-
-
 
 
 //      $csgofast_data = call_user_func(function() {
