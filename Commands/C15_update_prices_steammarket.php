@@ -137,8 +137,13 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
      *
      *  1. Обновить данные в некоторых таблицах-списках в БД, используя данные из конфига
      *  2. Выполнить HTTP-запрос к Steam Market и получить total_count по CS:GO
-     *  3. Выполнить HTTP-запрос к Steam Market и получить HTML-код со всеми ценами по CS:GO
-     *  4. Распарсить полученный $html и получить массив в стиле csgofast
+     *  3. Вычислить кол-во запросов, которое потребуется сделать
+     *  4. Выполнить $pages_total запросов, получив сводный массив данных
+     *    4.1. Выполнить HTTP-запросы к Steam Market и получить HTML-код со всеми ценами по CS:GO
+     *    4.2. Распарсить полученный $html и получить массив в стиле csgofast
+     *    4.3. Убедиться, что во всех подмассивах $steammarket_data одинаковое кол-во эл-в
+     *    4.4. Записать данные в $steammarket_data_final
+     *    4.5. Сделать передышку 10 секунд
      *
      *  N. Вернуть статус 0
      *
@@ -217,130 +222,244 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
       });
 
-      // 3. Выполнить HTTP-запросы к Steam Market и получить HTML-код со всеми ценами по CS:GO
+      // 3. Вычислить кол-во запросов, которое потребуется сделать
       // - Ответ ограничен лишь 100 элементами, поэтому потребуется делать много запросов.
       // - Причём отсчёт начинается с нуля (start=0), такой запрос вернёт эл-ты от 0 до 99.
       // - Например, если total count = 5000, то потребуется сделать 5000/100 + 1 = 51 запрос.
-      $steammarket_data_html = call_user_func(function() USE ($total_count) {
+      $pages_total = (int) ceil(($total_count + 1) / 100);
 
-        // 1] Подготовить массив для результатов
-        $result = [];
+      // 4. Выполнить $pages_total запросов, получив сводный массив данных
+      // - Формат массива д.б. следующий:
+      //
+      //    [
+      //      [
+      //        'name'          => '',
+      //        'normal_price'  => '',
+      //        'link'          => '',
+      //        'qty'           => '',
+      //        'image'         => '',
+      //      ],
+      //      [
+      //        ...
+      //      ]
+      //    ]
+      //
+      //
+      $steammarket_data_final = [];
+      for($x=0; $x<$pages_total; $x++) {
 
-        // 2] Создать экземпляр guzzle
-        $guzzle = new \GuzzleHttp\Client();
+        // 4.1. Выполнить HTTP-запросы к Steam Market и получить HTML-код со всеми ценами по CS:GO
+        $steammarket_data_html = call_user_func(function() USE ($x, $pages_total, $total_count) {
 
-        // 3] Сформировать URL для запроса
-        $url = "http://steamcommunity.com/market/search/render/?query=appid:730&start=0&count=".$total_count."%20";
+          // 1] Подготовить массив для результатов
+          $result = [];
 
-        // 4] Выполнить запрос
-        $request_result = $guzzle->request('GET', $url, []);
+          // 2] Создать экземпляр guzzle
+          $guzzle = new \GuzzleHttp\Client();
 
-        // 5] Наполнить $result
-        $result['result'] = $request_result;
-        $result['status'] = $request_result->getStatusCode();
-        $result['body'] = $request_result->getBody();
+          // 3] Сформировать URL для запроса
+          $url = "http://steamcommunity.com/market/search/render/?query=appid:730&start=".(+$x*100)."&count=100%20";
 
-        // 6] Провести валидацию body и status
-        $validator = r4_validate($result, [
-          "body"              => ["required", "json"],
-          "status"            => ["required", "in:200"],
-        ]); if($validator['status'] == -1) {
+          // 4] Выполнить запрос
+          $request_result = $guzzle->request('GET', $url, []);
 
-          // 1] Записать сведения об ошибке в MD6_price_update_bugs
-          $model = \M8\Models\MD6_price_update_bugs::find(1);
-          $model->steammarket_last_update = (string) \Carbon\Carbon::now();
-          $model->steammarket_last_bug = $validator['data'];
-          $model->save();
+          // 5] Наполнить $result
+          $result['result'] = $request_result;
+          $result['status'] = $request_result->getStatusCode();
+          $result['body'] = $request_result->getBody();
 
-          // 2] Возбудить исключение
-          throw new \Exception($validator['data']);
+          // 6] Провести валидацию body и status
+          $validator = r4_validate($result, [
+            "body"              => ["required", "json"],
+            "status"            => ["required", "in:200"],
+          ]); if($validator['status'] == -1) {
 
-        }
+            // 1] Записать сведения об ошибке в MD6_price_update_bugs
+            $model = \M8\Models\MD6_price_update_bugs::find(1);
+            $model->steammarket_last_update = (string) \Carbon\Carbon::now();
+            $model->steammarket_last_bug = $validator['data'];
+            $model->save();
 
-        // 7] Преобразовать body из json в массив
-        $result['body_array'] = json_decode($result['body'], true);
+            // 2] Возбудить исключение
+            throw new \Exception($validator['data']);
 
-        // 8] Провести валидацию body_array
-        $validator = r4_validate($result['body_array'], [
-          "success"              => ["required", "r4_true"],
-          "results_html"         => ["required"],
-        ]); if($validator['status'] == -1) {
-
-          // 1] Записать сведения об ошибке в MD6_price_update_bugs
-          $model = \M8\Models\MD6_price_update_bugs::find(1);
-          $model->steammarket_last_update = (string) \Carbon\Carbon::now();
-          $model->steammarket_last_bug = $validator['data'];
-          $model->save();
-
-          // 2] Возбудить исключение
-          throw new \Exception($validator['data']);
-
-        }
-
-        // n] Вернуть результат
-        return $result['body_array']['results_html'];
-
-      });
-
-      // 4. Распарсить полученный $html и получить массив в стиле csgofast
-      $steammarket_data = call_user_func(function() USE ($steammarket_data_html) {
-
-        // 1] Создать новый объект класса DOMDocument
-        $doc = new \DOMDocument();
-
-        // 2] Загрузить в него $steammarket_data_html
-        $doc->loadHTML($steammarket_data_html);
-
-        // 3] Создать новый объект класса DOMXPath
-        $xpath = new \DOMXpath($doc);
-
-        // 4] Извлечь с помощью $xpath все необходимые данные
-        $data_xpath = [
-
-          // 4.1] Получить все эл-ты span с классом market_listing_item_name
-          "names_nodes" => $xpath->query('//span[@class="market_listing_item_name"]'),
-
-          // 4.2] Получить все эл-ты span с классом normal_price
-          "normal_prices_nodes" => $xpath->query('//span[@class="normal_price"]'),
-
-          // 4.3] Получить все эл-ты span с классом market_listing_row_link (ссылки на листинг вещей на Steam)
-          "links_nodes" => $xpath->query('//a[@class="market_listing_row_link"]/@href'),
-
-          // 4.4] Получить все эл-ты span с классом market_listing_num_listings_qty (сколько подобных вещей сейчас продаётся на рынке)
-          "qty_nodes" => $xpath->query('//span[@class="market_listing_num_listings_qty"]'),
-
-          // 4.5] Получить все эл-ты span с классом market_listing_row_link (это ссылки на листинг вещей на Steam)
-          "images_nodes" => $xpath->query('//img/@srcset'),
-
-        ];
-
-        // 5] Сформировать из $data_xpath массивы готовых данных
-        $data = call_user_func(function() USE ($data_xpath) {
-
-          // 5.1] Подготовить массив для результатов
-          $results = [
-            'names_nodes'         => [],
-            'normal_prices_nodes' => [],
-            'links_nodes'         => [],
-            'qty_nodes'           => [],
-            'images_nodes'        => []
-          ];
-
-          // 5.2] names_nodes
-          foreach($data_xpath['names_nodes'] as $node) {
-            array_push($results['names_nodes'], $node->nodeValue);
           }
 
-          // 5.n] Вернуть результаты
-          return $results;
+          // 7] Преобразовать body из json в массив
+          $result['body_array'] = json_decode($result['body'], true);
+
+          // 8] Провести валидацию body_array
+          $validator = r4_validate($result['body_array'], [
+            "success"              => ["required", "r4_true"],
+            "results_html"         => ["required"],
+          ]); if($validator['status'] == -1) {
+
+            // 1] Записать сведения об ошибке в MD6_price_update_bugs
+            $model = \M8\Models\MD6_price_update_bugs::find(1);
+            $model->steammarket_last_update = (string) \Carbon\Carbon::now();
+            $model->steammarket_last_bug = $validator['data'];
+            $model->save();
+
+            // 2] Возбудить исключение
+            throw new \Exception($validator['data']);
+
+          }
+
+          // n] Вернуть результат
+          return $result['body_array']['results_html'];
 
         });
 
+        // 4.2. Распарсить полученный $html и получить массив в стиле csgofast
+        $steammarket_data = call_user_func(function() USE ($steammarket_data_html) {
 
-        write2log($data, []);
+          // 1] Создать новый объект класса DOMDocument
+          $doc = new \DOMDocument();
 
+          // 2] Загрузить в него $steammarket_data_html
+          $doc->loadHTML('<html><head><meta charset="utf-8" /></head>'.$steammarket_data_html.'</body></html>');
 
-      });
+          // 3] Создать новый объект класса DOMXPath
+          $xpath = new \DOMXpath($doc);
+
+          // 4] Извлечь с помощью $xpath все необходимые данные
+          $data_xpath = [
+
+            // 4.1] Получить все эл-ты span с классом market_listing_item_name
+            "names_nodes" => $xpath->query('//span[@class="market_listing_item_name"]'),
+
+            // 4.2] Получить все эл-ты span с классом normal_price
+            "normal_prices_nodes" => $xpath->query('//span[@class="normal_price"]'),
+
+            // 4.3] Получить все эл-ты span с классом market_listing_row_link (ссылки на листинг вещей на Steam)
+            "links_nodes" => $xpath->query('//a[@class="market_listing_row_link"]/@href'),
+
+            // 4.4] Получить все эл-ты span с классом market_listing_num_listings_qty (сколько подобных вещей сейчас продаётся на рынке)
+            "qty_nodes" => $xpath->query('//span[@class="market_listing_num_listings_qty"]'),
+
+            // 4.5] Получить все эл-ты span с классом market_listing_row_link (это ссылки на листинг вещей на Steam)
+            "images_nodes" => $xpath->query('//img/@srcset'),
+
+          ];
+
+          // 5] Сформировать из $data_xpath массивы готовых данных
+          $data = call_user_func(function() USE ($data_xpath) {
+
+            // 5.1] Подготовить массив для результатов
+            $results = [
+              'names_nodes'         => [],
+              'normal_prices_nodes' => [],
+              'links_nodes'         => [],
+              'qty_nodes'           => [],
+              'images_nodes'        => []
+            ];
+
+            // 5.2] names_nodes
+            foreach($data_xpath['names_nodes'] as $node) {
+              array_push($results['names_nodes'], $node->nodeValue);
+            }
+
+            // 5.3] normal_prices_nodes
+            foreach($data_xpath['normal_prices_nodes'] as $node) {
+              $price = $node->nodeValue;
+              $price = preg_replace("/(\\$| |USD)/ui", "", $price);
+              array_push($results['normal_prices_nodes'], $price);
+            }
+
+            // 5.4] links_nodes
+            foreach($data_xpath['links_nodes'] as $node) {
+              array_push($results['links_nodes'], $node->nodeValue);
+            }
+
+            // 5.5] qty_nodes
+            foreach($data_xpath['qty_nodes'] as $node) {
+              $qty = $node->nodeValue;
+              $qty = preg_replace("/,/ui", "", $qty);
+              array_push($results['qty_nodes'], $qty);
+            }
+
+            // 5.6] images_nodes
+            foreach($data_xpath['images_nodes'] as $node) {
+              $imgs = $node->nodeValue;
+              $imgs_arr = explode(',', $imgs);
+              $img_needed = $imgs_arr[+count($imgs_arr) - 1];
+              $img_needed = preg_replace("/^ /ui", "", $img_needed);
+              array_push($results['images_nodes'], $img_needed);
+            }
+
+            // 5.n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 6] Вернуть результат
+          return $data;
+
+        });
+
+        // 4.3. Убедиться, что во всех подмассивах $steammarket_data одинаковое кол-во эл-в
+        $is_equal_length = call_user_func(function() USE ($steammarket_data) {
+
+          // 1] Вычислить кол-во элементов в первом подмассиве
+          $etalon = 0;
+          foreach($steammarket_data as $subarr) {
+            $etalon = count($subarr);
+            break;
+          }
+
+          // 2] Если в любом подмассиве не $etalon эл-в, вернуть false
+          foreach($steammarket_data as $subarr)
+            if($etalon != count($subarr)) return false;
+
+          // 3] Вернуть true
+          return true;
+
+        });
+        if(!$is_equal_length) {
+
+          // 1] Записать сведения об ошибке в MD6_price_update_bugs
+          $model = \M8\Models\MD6_price_update_bugs::find(1);
+          $model->steammarket_last_update = (string) \Carbon\Carbon::now();
+          $model->steammarket_last_bug = 'There is different number of elements in steammarket_data.';
+          $model->save();
+
+          // 2] Возбудить исключение
+          throw new \Exception('There is different number of elements in steammarket_data.');
+
+        }
+
+        // 4.4. Записать данные в $steammarket_data_final
+        call_user_func(function() USE ($steammarket_data, $steammarket_data_final) {
+
+          // 1] Определить число элементом
+          $count = count($steammarket_data['names_nodes']);
+
+          // 2] Записать данные в $steammarket_data_final
+          for($y=0; $y<$count; $y++) {
+            array_push($steammarket_data_final, [
+              'name'         => $steammarket_data['names_nodes'][$y],
+              'normal_price' => $steammarket_data['normal_prices_nodes'][$y],
+              'link'         => $steammarket_data['links_nodes'][$y],
+              'qty'          => $steammarket_data['qty_nodes'][$y],
+              'image'        => $steammarket_data['images_nodes'][$y],
+            ]);
+          }
+
+        });
+
+        // 4.5. Сделать передышку
+        // - Чтобы избежать ошибки 429 (Too Many Requests)
+        if($x%10 == 0) sleep(30);
+        else sleep(10);
+
+        sleep(10);
+
+        Log::info($x, []);
+
+      }
+
+      write2log($steammarket_data_final, []);
+
 
 
 
