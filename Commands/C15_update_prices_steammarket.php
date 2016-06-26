@@ -144,6 +144,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
      *    4.3. Убедиться, что во всех подмассивах $steammarket_data одинаковое кол-во эл-в
      *    4.4. Записать данные в $steammarket_data_final
      *    4.5. Сделать передышку
+     *  5. Извлечь все knife types и weapon models из БД
      *
      *  N. Вернуть статус 0
      *
@@ -453,6 +454,36 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         else sleep(10);
 
       }
+
+      // 5. Извлечь все knife types и weapon models из БД
+
+        // 5.1. Извлечь knife types
+        $all_knife_types = \M8\Models\MD4_knife_types::query()->get();
+        if(empty($all_knife_types))
+          throw new \Exception('Knife types table contents is empty.');
+
+        // 5.2. Извлечь weapon models
+        $all_weapon_models = \M8\Models\MD5_weapon_models::query()->get();
+        if(empty($all_weapon_models))
+          throw new \Exception('Weapon models table contents is empty.');
+
+      // 6. Использовать $prices для наполнения локальной базы данных
+      //  - Поля в $steamdata:
+      //
+      //    'name'          // Имя
+      //    'normal_price'  // Цена
+      //    'link'          // Ссылка
+      //    'qty'           // Количество на маркете
+      //    'image'         // Большая картинка
+      //
+      foreach($steammarket_data_final as $steamdata) {
+
+
+
+
+
+      }
+
 
 
 
