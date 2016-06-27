@@ -139,6 +139,10 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
      *  2. Выполнить HTTP-запрос и получить инвентарь пользователя со steamid
      *  3. Провести валидацию полученных результатов
      *  4. Извлечь json из body в виде массива
+     *  5. Провести обработку объектов в rgDescriptions
+     *  6. Преобразовать rgDescriptions в массив массивов
+     *  7. Добавить в $rgDescriptions цены вещей
+     *  8. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -311,7 +315,49 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
       });
 
-      // 7. Вернуть результаты
+      // 7. Добавить в $rgDescriptions цены вещей
+      call_user_func(function() USE (&$rgDescriptions) {
+
+        // 7.1. Пробежаться по $rgDescriptions и получить массив полей market_hash_name
+        $market_hash_names = call_user_func(function() USE ($rgDescriptions) {
+
+          // 1] Подготовить массив для результатов
+          $results = [];
+
+          // 2] Наполнить $results
+          foreach($rgDescriptions as $item) {
+            array_push($results, $item['market_hash_name']);
+          }
+
+          // 3] Вернуть результаты
+          return $results;
+
+        });
+
+        // 7.2. Для каждого $market_hash_names получить цену
+        $prices = call_user_func(function() USE ($market_hash_names) {
+
+          // 1] Выполнить запрос цен
+          $result = runcommand('\M8\Commands\C17_get_final_items_prices', ['items' => $market_hash_names]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результат
+          return $result['data']['prices'];
+
+        });
+
+        // 7.3. Добавить в $rgDescriptions доп.поля
+        foreach($rgDescriptions as &$item) {
+          $item['price']          = $prices[$item['market_hash_name']]['price'];
+          $item['price_success']  = $prices[$item['market_hash_name']]['success'];
+        }
+
+      });
+
+      Log::info($rgDescriptions);
+
+      // 8. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [

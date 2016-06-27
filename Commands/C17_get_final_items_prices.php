@@ -163,7 +163,7 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
      *
      *  1. Провести валидацию входящих параметров
      *  2. Получить коллекцию вещей с именами items
-     *
+     *  3. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -182,6 +182,16 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
       }
 
       // 2. Определить цену для каждого предмета в $this->data['items']
+      // - Формат результатов:
+      //
+      //   [
+      //     "имя" => [
+      //       "success" => true,   // Удалось ли найти цену (true), или взяли стандартную (false)
+      //       "price" => "цена",
+      //     ]
+      //   ]
+      //
+      //
       $prices = call_user_func(function() {
 
         // 2.1. Подготовить массив для результатов
@@ -197,21 +207,38 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
           // 1] Попробовать найти $item_name в БД
           $item = \M8\Models\MD2_items::where('name', $item_name)->first();
 
-          // 2] Если $item не найдено, попробовать запросить для $item_name median price
-          if(empty($item)) {
+          // 2] Если $item не найдено
+          // - Использовать csgofast_price, если есть.
+          // - А если нет, попробовать запросить для $item_name median price.
+          if(empty($item) || empty($item->steammarket_qty)) {
 
-            // 2.1] Запросить
-            $result = runcommand('\M8\Commands\C16_get_price_steammarket');
+            // 2.1] Установить $item->csgofast_price, если есть
+            if(!empty($item) && !empty($item->csgofast_price)) {
+              $results[$item_name] = [
+                "success" => true,
+                "price"   => $item->csgofast_price
+              ];
+              continue;
+            }
 
-            // 2.2] Если неудачно
+            // 2.2] Запросить из истории Steam Market
+            $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
+
+            // 2.3] Если неудачно
             if($result['status'] != 0 || empty($result['data']['median_price'])) {
-              $results[$item_name] = $price_default4unknown_items;
+              $results[$item_name] = [
+                "success" => false,
+                "price"   => $price_default4unknown_items
+              ];
               continue;
             }
 
             // 2.3] Если найдено
             else {
-              $results[$item_name] = $result['data']['median_price'];
+              $results[$item_name] = [
+                "success" => true,
+                "price"   => $result['data']['median_price']
+              ];
               continue;
             }
 
@@ -225,13 +252,19 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
 
               // 3.1.1] Если есть csgofast_price, брать её.
               if(!empty($item->csgofast_price)) {
-                $results[$item_name] = $item->csgofast_price;
+                $results[$item_name] = [
+                  "success" => true,
+                  "price"   => $item->csgofast_price
+                ];
                 continue;
               }
 
               // 3.1.2] Если нет, но есть steammarket_price, брать её
               else if(!empty($item->steammarket_price)) {
-                $results[$item_name] = $item->steammarket_price;
+                $results[$item_name] = [
+                  "success" => true,
+                  "price"   => $item->steammarket_price
+                ];
                 continue;
               }
 
@@ -239,17 +272,23 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
               else {
 
                 // Запросить
-                $result = runcommand('\M8\Commands\C16_get_price_steammarket');
+                $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
 
                 // Если неудачно
                 if($result['status'] != 0 || empty($result['data']['median_price'])) {
-                  $results[$item_name] = $price_default4unknown_items;
+                  $results[$item_name] = [
+                    "success" => false,
+                    "price"   => $price_default4unknown_items
+                  ];
                   continue;
                 }
 
                 // Если найдено
                 else {
-                  $results[$item_name] = $result['data']['median_price'];
+                  $results[$item_name] = [
+                    "success" => true,
+                    "price"   => $result['data']['median_price']
+                  ];
                   continue;
                 }
 
@@ -263,26 +302,35 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
               // 3.2.1] Запросить lowest_price, и использовать её
 
                 // Запросить
-                $result = runcommand('\M8\Commands\C16_get_price_steammarket');
+                $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
 
                 // Если неудачно
                 if($result['status'] != 0 || empty($result['data']['lowest_price'])) {
 
                   // Если есть csgofast_price, брать её.
                   if(!empty($item->csgofast_price)) {
-                    $results[$item_name] = $item->csgofast_price;
+                    $results[$item_name] = [
+                      "success" => true,
+                      "price"   => $item->csgofast_price
+                    ];
                     continue;
                   }
 
                   // Если нет, но есть steammarket_price, брать её
                   else if(!empty($item->steammarket_price)) {
-                    $results[$item_name] = $item->steammarket_price;
+                    $results[$item_name] = [
+                      "success" => true,
+                      "price"   => $item->steammarket_price
+                    ];
                     continue;
                   }
 
                   // Если никаких цен нет, брать цену price_default4unknown_items + делать пометку
                   else {
-                    $results[$item_name] = $price_default4unknown_items;
+                    $results[$item_name] = [
+                      "success" => false,
+                      "price"   => $price_default4unknown_items
+                    ];
                     continue;
                   }
 
@@ -290,16 +338,16 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
 
                 // Если найдено
                 else {
-                  $results[$item_name] = $result['data']['lowest_price'];
+                  $results[$item_name] = [
+                    "success" => true,
+                    "price"   => $result['data']['lowest_price']
+                  ];
                   continue;
                 }
 
             }
 
           }
-
-
-
 
         }
 
@@ -308,13 +356,13 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
 
       });
 
-
-
-
-
-      write2log($prices, []);
-
-
+      // 3. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "prices" => $prices
+        ]
+      ];
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C17_get_final_items_prices from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

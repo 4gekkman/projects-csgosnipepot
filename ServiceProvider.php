@@ -109,7 +109,8 @@
         $add2schedule = [
           '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->everyTenMinutes();',
           '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->everyTenMinutes();',
-          '$schedule->command("m8:update_bots_apikeys")->withoutOverlapping()->everyTenMinutes();'
+          '$schedule->command("m8:update_bots_apikeys")->withoutOverlapping()->everyTenMinutes();',
+          '$schedule->command("m8:update_prices_all")->withoutOverlapping()->twiceDaily(1, 13);',
         ];
 
       //----------------------------------------------------//
@@ -132,7 +133,8 @@
           '\M8\Console\T11_update_prices_csgofast',
           '\M8\Console\T12_update_prices_steammarket',
           '\M8\Console\T13_get_price_steammarket',
-          '\M8\Console\T14_get_final_items_prices'
+          '\M8\Console\T14_get_final_items_prices',
+          '\M8\Console\T15_update_prices_all'
         ];
 
         // Регистрация команд в методе register

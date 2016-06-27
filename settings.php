@@ -73,7 +73,7 @@ return [
 
       // 5.8] Если кол-во предложений вещи на Steam Market < этого числа, брать lowest_price
       // - If quantity of item in Steam Market is lower, than this number, take lowest_price
-      'anti_manipulating_quantity_limit' => '30',
+      'anti_manipulating_quantity_limit' => '40',
 
     //--------------------------------//
     // 6] Настройка списков в БД      //

@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Gets price of item with specified name using steamcommunity priceoverview
+ *    - Updates prices from every source in DB
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -40,24 +40,6 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
- *
- *  Что возвращает
- *  --------------
- *
- *    В случае неудачи
- *    ----------------
- *      - Возвращает пустые значения.
- *
- *    В случае успеха
- *    ---------------
- *      - Возвращает массив:
- *
- *        [
- *          "lowest_price": "",   // Минимальная цена
- *          "median_price": "",   // Средняя цена
- *          "volume": ""          // Кол-во на рынке
- *        ]
- *
  *
  */
 
@@ -119,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C16_get_price_steammarket extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C18_update_prices_all extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -153,108 +135,26 @@ class C16_get_price_steammarket extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих данных
-     *  2. Подготовить urlencoded-имя marketname вещи в steam
-     *  3. Осуществить запрос и получить ответ
-     *  4. Вернуть результаты
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------------------------------------------------------//
-    // Извлекает цену вещи с указанным именем (market name), используя steammarket overview //
-    //--------------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // 1. Провести валидацию входящих данных
-      $validator = r4_validate($this->data, [
-        "name"            => ["required", "string"]
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
-
-      // 2. Подготовить urlencoded-имя marketname вещи в steam
-      $market_hash_name = rawurlencode($this->data['name']);
-
-      // 3. Осуществить запрос и получить lowest_prise
-      $prices = call_user_func(function() USE ($market_hash_name) {
-
-        // 1] Подготовить массив для результатов
-        $result = [];
-
-        // 2] Создать экземпляр guzzle
-        $guzzle = new \GuzzleHttp\Client();
-
-        // 3] Сформировать URL для запроса
-        $url = "http://steamcommunity.com/market/priceoverview?appid=730&market_hash_name=".$market_hash_name;
-
-        // 4] Выполнить запрос
-        $request_result = $guzzle->request('GET', $url, []);
-
-        // 5] Наполнить $result
-        $result['result'] = $request_result;
-        $result['status'] = $request_result->getStatusCode();
-        $result['body'] = $request_result->getBody();
-
-        // 6] Провести валидацию body и status
-        $validator = r4_validate($result, [
-          "body"              => ["required", "json"],
-          "status"            => ["required", "in:200"],
-        ]); if($validator['status'] == -1) {
-
-          // Вернуть пустые значения
-          return [
-            "lowest_price" => "",
-            "median_price" => "",
-            "volume"       => ""
-          ];
-
-        }
-
-        // 7] Преобразовать body из json в массив
-        $result['body_array'] = json_decode($result['body'], true);
-
-        // 8] Провести валидацию body_array
-        $validator = r4_validate($result['body_array'], [
-          "success"              => ["required", "r4_true"],
-          "lowest_price"         => ["required"],
-          "median_price"         => ["required"],
-        ]); if($validator['status'] == -1) {
-
-          // Вернуть пустые значения
-          return [
-            "lowest_price" => "",
-            "median_price" => "",
-            "volume"       => ""
-          ];
-
-        }
-
-        // 9] Вернуть результаты
-        return [
-          "lowest_price" => str_replace("$", "", $result['body_array']['lowest_price']),
-          "median_price" => str_replace("$", "", $result['body_array']['median_price']),
-          "volume"       => $result['body_array']['volume']
-        ];
-
-      });
-
-      // 4. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "lowest_price" => $prices['lowest_price'],
-          "median_price" => $prices['median_price'],
-          "volume"       => $prices['volume']
-        ]
-      ];
+    //----------------------------------------//
+    // Обновляет цены из всех источников в БД //
+    //----------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C16_get_price_steammarket from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C18_update_prices_all from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C16_get_price_steammarket']);
+        write2log($errortext, ['M8', 'C18_update_prices_all']);
         return [
           "status"  => -2,
           "data"    => [
