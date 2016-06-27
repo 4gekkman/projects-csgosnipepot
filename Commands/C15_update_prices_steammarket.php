@@ -450,8 +450,9 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
         // 4.5. Сделать передышку
         // - Чтобы избежать ошибки 429 (Too Many Requests)
-        if($x%10 == 0) sleep(30);
-        else sleep(10);
+        break;
+//        if($x%10 == 0) sleep(30);
+//        else sleep(10);
 
       }
 
@@ -478,7 +479,18 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
       //
       foreach($steammarket_data_final as $steamdata) {
 
+        // 1] Попробовать найти запись с $name в MD2_items
+        $item = \M8\Models\MD2_items::where('name','=',$steamdata['name'])->first();
 
+        // 2] Если $item не найдена, создать запись с таким $name
+        if(empty($item)) {
+          $item = new \M8\Models\MD2_items();
+          $item->name = $steamdata['name'];
+        }
+
+        // 3] Записать новую цену (steammarket) для $item, и сохранить $item
+        $item->steammarket_price = $steamdata['normal_price'];
+        $item->save();
 
 
 
