@@ -145,6 +145,8 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
      *    4.4. Записать данные в $steammarket_data_final
      *    4.5. Сделать передышку
      *  5. Извлечь все knife types и weapon models из БД
+     *  6. Использовать $prices для наполнения локальной базы данных
+     *  7. Отметить в MD6_price_update_bugs, что ошибок при обновлении не возникло
      *
      *  N. Вернуть статус 0
      *
@@ -430,7 +432,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         }
 
         // 4.4. Записать данные в $steammarket_data_final
-        call_user_func(function() USE ($steammarket_data, $steammarket_data_final) {
+        call_user_func(function() USE ($steammarket_data, &$steammarket_data_final) {
 
           // 1] Определить число элементом
           $count = count($steammarket_data['names_nodes']);
@@ -450,9 +452,8 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
         // 4.5. Сделать передышку
         // - Чтобы избежать ошибки 429 (Too Many Requests)
-        break;
-//        if($x%10 == 0) sleep(30);
-//        else sleep(10);
+        if($x%10 == 0) sleep(30);
+        else sleep(10);
 
       }
 
@@ -492,30 +493,216 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         $item->steammarket_price = $steamdata['normal_price'];
         $item->save();
 
+        // 4] Определить exterior предмета, если он есть
+        call_user_func(function() USE ($item, $steamdata) {
 
+          // 4.1] Узнать, есть ли в $steamdata['name'] информация об exterior
+          // - Если нет, отвязать $item от $exterior, если они связаны, и завершить определение exterior.
+          // - Если есть, сохранить эту информацию в $match.
+          if(!preg_match("/\(.+\)/ui", $steamdata['name'], $match)) {
+
+            // Отвязать $item от $exterior, если
+            $item->exteriors()->detach();
+
+            // Завершить определение exterior
+            return;
+
+          }
+
+          // 4.2] Получить имя exterior вещи $item
+          $exterior_str = substr($match[0], 1, +count($match[0]) - 2);
+
+          // 4.3] Найти такой $exterior_str в MD3_exteriors
+          $exterior = \M8\Models\MD3_exteriors::where('exterior','=',$exterior_str)->first();
+
+          // 4.4] Если найти не удалось, сообщить об этом и завершить определение exterior
+          if(empty($exterior)) {
+            // $errortext = "Can't find exterior = ".$exterior_str." in \\M8\\Models\\MD3_exteriors";
+            // Log::info($errortext);
+            // write2log($errortext, ['M8', 'C14_update_prices_csgofast']);
+            return;
+          }
+
+          // 4.5] Связать $item и $exterior, если они ещё не связаны
+          if(!$item->exteriors->contains($exterior))
+            $item->exteriors()->attach($exterior);
+
+        });
+
+        // 5] Определить, является ли $item кейсом
+        call_user_func(function() USE ($item, $steamdata) {
+
+          // 5.1] Узнать, есть ли в $name соотв.ключевые слова
+          // - Если нет, завершить определение, является ли $item кейсом, указав, что это не кейс
+          if(!preg_match("/(Case$|Weapon Case|Winter Case|Summer Case)/ui", $steamdata['name'], $match)) {
+            $item->is_case = 0;
+          }
+
+          // 5.2] В противном случае указать, что $item является кейсом
+          else $item->is_case = 1;
+
+        });
+
+        call_user_func(function() USE ($item, $steamdata) {
+
+          // 6.1] Узнать, есть ли в $name соотв.ключевые слова
+          // - Если нет, завершить определение, является ли $item ключём, указав, что это не ключ
+          if(!preg_match("/(Case Key|Capsule Key|Capsule .* Key|eSports Key)/ui", $steamdata['name'], $match)) {
+            $item->is_key = 0;
+          }
+
+          // 6.2] В противном случае указать, что $item является ключём
+          else $item->is_key = 1;
+
+        });
+
+        // 7] Определить, является ли $item StarTrak-вещью
+        call_user_func(function() USE ($item, $steamdata) {
+
+          // 7.1] Узнать, есть ли в $name соотв.ключевые слова
+          // - Если нет, завершить определение, является ли $item StarTrak-вещью, указав, что это не она
+          if(!preg_match("/StatTrak/ui", $steamdata['name'], $match)) {
+            $item->is_startrak = 0;
+          }
+
+          // 7.2] В противном случае указать, что $item является StarTrak-вещью
+          else $item->is_startrak = 1;
+
+        });
+
+        // 8] Определить, является ли $item сувенирным набором
+        call_user_func(function() USE ($item, $steamdata) {
+
+          // 8.1] Узнать, есть ли в $name соотв.ключевые слова
+          // - Если нет, завершить определение, является ли $item сувенирным набором, указав, что это не она
+          if(!preg_match("/Souvenir Package/ui", $steamdata['name'], $match)) {
+            $item->is_souvenir_package = 0;
+          }
+
+          // 8.2] В противном случае указать, что $item является сувенирным набором
+          else $item->is_souvenir_package = 1;
+
+        });
+
+        // 9] Определить, является ли $item сувениром
+        call_user_func(function() USE ($item, $steamdata) {
+
+          // 9.1] Узнать, есть ли в $name соотв.ключевые слова
+          // - Если нет, завершить определение, является ли $item сувениром, указав, что это не он
+          if(!preg_match("/^Souvenir/ui", $steamdata['name'], $match)) {
+            $item->is_souvenir = 0;
+          }
+
+          // 9.2] В противном случае указать, что $item является сувениром
+          else $item->is_souvenir = 1;
+
+        });
+
+        // 10] Определить, является ли $item ножом, и каким
+        call_user_func(function() USE ($item, $steamdata, $all_knife_types) {
+
+          // 10.1] Узнать, есть ли в $name соотв.ключевые слова
+          // - Если нет, завершить определение, является ли $item ножом, указав, что это не он
+          if(!preg_match("/^★/ui", $steamdata['name'], $match)) {
+            $item->is_knife = 0;
+          }
+
+          // 10.2] В противном случае
+          else {
+
+            // Указать, что $item является ножом
+            $item->is_knife = 1;
+
+            // Опознать тип этого ножа
+            $knife_type_str = call_user_func(function() USE ($steamdata, $all_knife_types) {
+
+              // 1) Подготовить переменную для результата
+              $type = "";
+
+              // 2) Пробежаться по $all_knife_types и найти нужный
+              foreach($all_knife_types as $knife_type) {
+                if(!preg_match("/$knife_type->type/ui", $steamdata['name'], $match))
+                  continue;
+                $type = $knife_type->type;
+                break;
+              }
+
+              // n) Вернуть результат
+              return $type;
+
+            });
+
+            // Извлечь тип ножа из MD4_knife_types
+            $knife_type = \M8\Models\MD4_knife_types::where('type','=',$knife_type_str)->first();
+
+            // Связать этот нож с типом, если они ещё не связаны, и $knife_type найден
+            if(!empty($knife_type) && !$item->knife_types->contains($knife_type))
+              $item->knife_types()->attach($knife_type);
+
+          }
+
+        });
+
+        // 11] Определить, является ли $item огнестрельным оружием, и каким
+        call_user_func(function() USE ($item, $steamdata, $all_weapon_models) {
+
+          // 11.1] Если это огнестрельное оружие, опознать его тип
+          $weapon_model_str = call_user_func(function() USE ($steamdata, $all_weapon_models) {
+
+            // 1) Подготовить переменную для результата
+            $model = "";
+
+            // 2) Пробежаться по $all_knife_types и найти нужный
+            foreach($all_weapon_models as $weapon_model) {
+              if(!preg_match("/".$weapon_model['model']."/ui", $steamdata['name'], $match))
+                continue;
+              $model = $weapon_model['model'];
+              break;
+            }
+
+            // n) Вернуть результат
+            return $model;
+
+          });
+
+          // 11.2] На основе значения $weapon_model_str указать, является ли $item оружием
+          if(!empty($weapon_model_str))
+            $item->is_weapon = 1;
+          else
+            $item->is_weapon = 0;
+
+          // 11.3] Извлечь модель оружия из MD5_weapon_models
+          $weapon_model = \M8\Models\MD5_weapon_models::where('model','=',$weapon_model_str)->first();
+
+          // Связать $item с моделью, если они ещё не связаны, и $weapon_model найден
+          if(!empty($weapon_model) && !$item->weapon_models->contains($weapon_model))
+            $item->weapon_models()->attach($weapon_model);
+
+        });
+
+        // 12] Сохранить ссылку на $item в листинге
+        $item->steammarket_link = $steamdata['link'];
+
+        // 13] Сохранить кол-во продаваемых $item
+        $item->steammarket_qty = $steamdata['qty'];
+
+        // 14] Сохранить ссылку на изображение $item
+        $item->steammarket_image = $steamdata['image'];
+
+        // n] Сохранить $item в БД
+        $item->save();
 
       }
 
+      // 7. Отметить в MD6_price_update_bugs, что ошибок при обновлении не возникло
+      call_user_func(function(){
 
+        $model = \M8\Models\MD6_price_update_bugs::find(1);
+        $model->steammarket_last_update = (string) \Carbon\Carbon::now();
+        $model->steammarket_last_bug = '';
+        $model->save();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      });
 
 
     DB::commit(); } catch(\Exception $e) {
