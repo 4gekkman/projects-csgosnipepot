@@ -131,7 +131,8 @@
           '\M8\Console\T10_update_db_lists',
           '\M8\Console\T11_update_prices_csgofast',
           '\M8\Console\T12_update_prices_steammarket',
-          '\M8\Console\T13_get_price_steammarket'
+          '\M8\Console\T13_get_price_steammarket',
+          '\M8\Console\T14_get_final_items_prices'
         ];
 
         // Регистрация команд в методе register

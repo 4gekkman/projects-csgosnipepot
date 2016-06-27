@@ -68,6 +68,13 @@ return [
       // 5.6] API-ключ от backpack.tf | Backpack.tf API-key
       'apikey_backpack' => '576c203786674711306558fc',
 
+      // 5.7] Цена по умолчанию для вещей, цена которых неизвестна, $ | Default price for items with unknown price, $
+      'price_default4unknown_items' => '0.01',
+
+      // 5.8] Если кол-во предложений вещи на Steam Market < этого числа, брать lowest_price
+      // - If quantity of item in Steam Market is lower, than this number, take lowest_price
+      'anti_manipulating_quantity_limit' => '30',
+
     //--------------------------------//
     // 6] Настройка списков в БД      //
     //    Settings of the lists in DB //
