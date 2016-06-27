@@ -158,9 +158,9 @@ class C16_get_price_steammarket extends Job { // TODO: добавить "impleme
 
       // 2. Подготовить urlencoded-имя marketname вещи в steam
       $market_hash_name = urlencode($this->data['name']);
-
-      // 3. Осуществить запрос и получить ответ
-      $steammarket_data_html = call_user_func(function() {
+write2log($market_hash_name, []);
+      // 3. Осуществить запрос и получить lowest_prise
+      $lowest_prise = call_user_func(function() USE ($market_hash_name) {
 
         // 1] Подготовить массив для результатов
         $result = [];
@@ -169,7 +169,7 @@ class C16_get_price_steammarket extends Job { // TODO: добавить "impleme
         $guzzle = new \GuzzleHttp\Client();
 
         // 3] Сформировать URL для запроса
-        $url = "http://steamcommunity.com/market/search/render/?query=appid:730&start=".(+$x*100)."&count=100%20";
+        $url = "http://steamcommunity.com/market/priceoverview/?appid=730&market_hash_name=".$market_hash_name;
 
         // 4] Выполнить запрос
         $request_result = $guzzle->request('GET', $url, []);
@@ -185,14 +185,8 @@ class C16_get_price_steammarket extends Job { // TODO: добавить "impleme
           "status"            => ["required", "in:200"],
         ]); if($validator['status'] == -1) {
 
-          // 1] Записать сведения об ошибке в MD6_price_update_bugs
-          $model = \M8\Models\MD6_price_update_bugs::find(1);
-          $model->steammarket_last_update = (string) \Carbon\Carbon::now();
-          $model->steammarket_last_bug = $validator['data'];
-          $model->save();
-
-          // 2] Возбудить исключение
-          throw new \Exception($validator['data']);
+          // Вернуть пустую строку
+          return "";
 
         }
 
@@ -203,23 +197,21 @@ class C16_get_price_steammarket extends Job { // TODO: добавить "impleme
         $validator = r4_validate($result['body_array'], [
           "success"              => ["required", "r4_true"],
           "results_html"         => ["required"],
+          "lowest_price"         => ["required"],
         ]); if($validator['status'] == -1) {
 
-          // 1] Записать сведения об ошибке в MD6_price_update_bugs
-          $model = \M8\Models\MD6_price_update_bugs::find(1);
-          $model->steammarket_last_update = (string) \Carbon\Carbon::now();
-          $model->steammarket_last_bug = $validator['data'];
-          $model->save();
-
-          // 2] Возбудить исключение
-          throw new \Exception($validator['data']);
+          // Вернуть пустую строку
+          return "";
 
         }
 
         // n] Вернуть результат
-        return $result['body_array']['results_html'];
+        return $result['body_array']['lowest_price'];
 
       });
+
+      write2log($lowest_prise, []);
+
 
 
 
