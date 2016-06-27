@@ -375,6 +375,13 @@
                         <!---------------------*/ ?>
                         <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }">
 
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
                         </div>
 
                       </div>

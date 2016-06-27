@@ -131,6 +131,7 @@
 
   // Предмет в инвентаре
   .inventory .item {
+    position: relative;
     display: inline-block;
     transition: all 0.2s ease-in-out;
     width: 82px;
@@ -144,6 +145,19 @@
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
+  }
+
+  // Лэйбл с ценой вещи
+  .inventory .item .price_label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: RGBA(0,0,0,.5);
+    padding: 1px 6px;
+    color: #fff;
+    font-size: .8em;
+    border-radius: 0 0 0 0;
+    text-align: center;
   }
 
   // выбран ли предмет в инвентаре
