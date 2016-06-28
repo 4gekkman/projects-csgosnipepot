@@ -355,6 +355,8 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
       });
 
+      Log::info($rgDescriptions, []);
+
       // 8. Вернуть результаты
       return [
         "status"  => 0,

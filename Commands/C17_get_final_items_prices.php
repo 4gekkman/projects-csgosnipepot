@@ -44,31 +44,10 @@
  *  Алгоритм вычисления итоговой цены вещи
  *  --------------------------------------
  *
- * 
- *
- *
- *
- *    1. Если есть steammarket_qty
- *
- *      1.1. Если steammarket_qty >= anti_manipulating_quantity_limit
- *
- *        1.1.1. Если есть csgofast_price, брать её.
- *
- *        1.1.2. Если нет, но есть steammarket_price, брать её
- *
- *        1.1.3. Если нет, то попробовать запросить median_price
- *
- *        1.1.4. Если никаких цен нет, брать цену price_default4unknown_items + делать пометку
- *
- *      1.2. Если steammarket_qty < anti_manipulating_quantity_limit
- *
- *        1.2.1. Запросить lowest_price, и использовать её.
- *
- *        1.2.2. Если нет, использовать цену csgofast_price
- *
- *        1.2.3. Если нет, но есть steammarket_price, брать её
- *
- *        1.2.4. Если никаких цен нет, брать цену price_default4unknown_items + делать пометку
+ *    1. Если есть цена с csgofast, берём её.
+ *    2. Если нет, то берём цену с маркета.
+ *    3. Если нет, [и если включено в конфиге], запросить цены из истории маркета.
+ *    4. Если нет, взять цену по умолчанию из конфига, и сделать пометку, что цену выяснить не удалось.
  *
  *
  */
@@ -203,7 +182,7 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
 
         // 2.2. Извлечь из конфига необходимые значения
         $price_default4unknown_items = config("M8.price_default4unknown_items"); $price_default4unknown_items = !empty($price_default4unknown_items) ? $price_default4unknown_items : '0.01';
-        $anti_manipulating_quantity_limit = config("M8.anti_manipulating_quantity_limit"); $anti_manipulating_quantity_limit = !empty($anti_manipulating_quantity_limit) ? $anti_manipulating_quantity_limit : '30';
+        $check_lowest_price_on_market = config("M8.check_lowest_price_on_market"); $check_lowest_price_on_market = !empty($check_lowest_price_on_market) ? $check_lowest_price_on_market : true;
 
         // 2.3. Наполнить $results
         foreach($this->data['items'] as $item_name) {
@@ -212,38 +191,48 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
           $item = \M8\Models\MD2_items::where('name', $item_name)->first();
 
           // 2] Если $item не найдено
-          // - Использовать csgofast_price, если есть.
-          // - А если нет, попробовать запросить для $item_name median price.
-          if(empty($item) || empty($item->steammarket_qty)) {
+          if(empty($item)) {
 
-            // 2.1] Установить $item->csgofast_price, если есть
-            if(!empty($item) && !empty($item->csgofast_price)) {
-              $results[$item_name] = [
-                "success" => true,
-                "price"   => $item->csgofast_price
-              ];
-              continue;
+            // 2.1] Если $check_lowest_price_on_market = true
+            // - Попробовать найти цену для этого предмета на маркете.
+            // - Взять lowest price в случе успеха.
+            // - В случае неудачи, использовать $price_default4unknown_items
+            if($check_lowest_price_on_market) {
+
+              // Запросить из истории Steam Market
+              $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
+
+              // Если неудачно
+              if($result['status'] != 0 || empty($result['data']['lowest_price'])) {
+                $results[$item_name] = [
+                  "success" => false,
+                  "price"   => $price_default4unknown_items
+                ];
+                continue;
+              }
+
+              // Если найдено
+              else {
+                $results[$item_name] = [
+                  "success" => true,
+                  "price"   => $result['data']['lowest_price']
+                ];
+                continue;
+              }
+
             }
 
-            // 2.2] Запросить из истории Steam Market
-            $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
+            // 2.2] Если $check_lowest_price_on_market = false
+            // - Использовать $price_default4unknown_items
+            // - Сделать пометку, что найти цену не удалось
+            if(!$check_lowest_price_on_market) {
 
-            // 2.3] Если неудачно
-            if($result['status'] != 0 || empty($result['data']['median_price'])) {
               $results[$item_name] = [
                 "success" => false,
                 "price"   => $price_default4unknown_items
               ];
               continue;
-            }
 
-            // 2.3] Если найдено
-            else {
-              $results[$item_name] = [
-                "success" => true,
-                "price"   => $result['data']['median_price']
-              ];
-              continue;
             }
 
           }
@@ -251,108 +240,54 @@ class C17_get_final_items_prices extends Job { // TODO: добавить "implem
           // 3] Если $item найдено
           else {
 
-            // 3.1] Если steammarket_qty >= anti_manipulating_quantity_limit
-            if(gmp_cmp($item->steammarket_qty, $anti_manipulating_quantity_limit) >= 0) {
+            // 3.1] Если есть цена с csgofast, берём её.
+            if(!empty($item->csgofast_price)) {
 
-              // 3.1.1] Если есть csgofast_price, брать её.
-              if(!empty($item->csgofast_price)) {
+              $results[$item_name] = [
+                "success" => true,
+                "price"   => $item->csgofast_price
+              ];
+              continue;
+
+            }
+
+            // 3.2] Если нет, то берём цену с маркета.
+            else if(!empty($item->steammarket_price)) {
+
+              $results[$item_name] = [
+                "success" => true,
+                "price"   => $item->steammarket_price
+              ];
+              continue;
+
+            }
+
+            // 3.3] Если нет, то если это вкл.в конфиге, запросить lowest_price из истории маркета
+            else if($check_lowest_price_on_market) {
+
+              $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
+              if($result['status'] == 0 && !empty($result['data']['lowest_price'])) {
                 $results[$item_name] = [
                   "success" => true,
-                  "price"   => $item->csgofast_price
+                  "price"   => $result['data']['lowest_price']
                 ];
                 continue;
               }
 
-              // 3.1.2] Если нет, но есть steammarket_price, брать её
-              else if(!empty($item->steammarket_price)) {
-                $results[$item_name] = [
-                  "success" => true,
-                  "price"   => $item->steammarket_price
-                ];
-                continue;
-              }
-
-              // 3.1.3] Если нет, то попробовать запросить median_price
-              else {
-
-                // Запросить
-                $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
-
-                // Если неудачно
-                if($result['status'] != 0 || empty($result['data']['median_price'])) {
-                  $results[$item_name] = [
-                    "success" => false,
-                    "price"   => $price_default4unknown_items
-                  ];
-                  continue;
-                }
-
-                // Если найдено
-                else {
-                  $results[$item_name] = [
-                    "success" => true,
-                    "price"   => $result['data']['median_price']
-                  ];
-                  continue;
-                }
-
-              }
-
             }
 
-            // 3.2] Если steammarket_qty < anti_manipulating_quantity_limit
-            if(gmp_cmp($item->steammarket_qty, $anti_manipulating_quantity_limit) < 0) {
+            // 3.4] Если нет, взять цену по умолчанию из конфига
+            // - Сделать пометку, что цену выяснить не удалось.
+            else {
 
-              // 3.2.1] Запросить lowest_price, и использовать её
-
-                // Запросить
-                $result = runcommand('\M8\Commands\C16_get_price_steammarket', ['name' => $item_name]);
-
-                // Если неудачно
-                if($result['status'] != 0 || empty($result['data']['lowest_price'])) {
-
-                  // Если есть csgofast_price, брать её.
-                  if(!empty($item->csgofast_price)) {
-                    $results[$item_name] = [
-                      "success" => true,
-                      "price"   => $item->csgofast_price
-                    ];
-                    continue;
-                  }
-
-                  // Если нет, но есть steammarket_price, брать её
-                  else if(!empty($item->steammarket_price)) {
-                    $results[$item_name] = [
-                      "success" => true,
-                      "price"   => $item->steammarket_price
-                    ];
-                    continue;
-                  }
-
-                  // Если никаких цен нет, брать цену price_default4unknown_items + делать пометку
-                  else {
-                    $results[$item_name] = [
-                      "success" => false,
-                      "price"   => $price_default4unknown_items
-                    ];
-                    continue;
-                  }
-
-                }
-
-                // Если найдено
-                else {
-                  $results[$item_name] = [
-                    "success" => true,
-                    "price"   => $result['data']['lowest_price']
-                  ];
-                  continue;
-                }
+              $results[$item_name] = [
+                "success" => false,
+                "price"   => $price_default4unknown_items
+              ];
+              continue;
 
             }
-
           }
-
         }
 
         // 2.n. Вернуть результат

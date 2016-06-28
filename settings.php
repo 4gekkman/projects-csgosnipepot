@@ -79,6 +79,10 @@ return [
       // - On which % must the price change for the system mark it as unstable?
       'unstable_price_threshold' => '50',
 
+      // 5.10] Включить ли извлечение lowest price из истории маркета в C17
+      // - Turn on/off extracting of lowest price from Steam Market history
+      'check_lowest_price_on_market' => true,
+
 
     //--------------------------------//
     // 6] Настройка списков в БД      //
