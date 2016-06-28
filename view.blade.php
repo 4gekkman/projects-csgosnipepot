@@ -123,6 +123,29 @@
           <!-- 2.1.1. Боты  -->
           <!--------------*/ ?>
 
+            <?php /*---------------------------->
+            <!-- 0] Различные предупреждения  -->
+            <!------------------------------*/ ?>
+            <div>
+
+              <?php /*----------------------------------------->
+              <!-- 0.1] Ошибка при обновлении цен с csgofast -->
+              <!-------------------------------------------*/ ?>
+              <div class="callout callout-danger" data-bind="visible: m.s2.price_update_errors.csgofast_last_bug">
+                <h4>There is csgofast price update error!</h4>
+                <p data-bind="text: m.s2.price_update_errors.csgofast_last_bug"></p>
+              </div>
+
+              <?php /*--------------------------------------------->
+              <!-- 0.2] Ошибка при обновлении цен с Steam Market -->
+              <!-----------------------------------------------*/ ?>
+              <div class="callout callout-danger" data-bind="visible: m.s2.price_update_errors.steammarket_last_bug">
+                <h4>There is Steam Market price update error!</h4>
+                <p data-bind="text: m.s2.price_update_errors.steammarket_last_bug"></p>
+              </div>
+
+            </div>
+
             <?php /*------------------------>
             <!-- 1] Название поддокумента -->
             <!---------------------------*/ ?>

@@ -119,6 +119,9 @@ class Controller extends BaseController {
       // 2. Получить всех ботов
       $bots = (array) runcommand('\M8\Commands\C1_bots', []);
 
+      // 3. Получить информацию о багах при обновлении цен
+      $price_update_errors = \M8\Models\MD6_price_update_bugs::find(1);
+
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -129,7 +132,8 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'page'                  => $page,
-        'bots'                  => $bots
+        'bots'                  => $bots,
+        'price_update_errors'   => $price_update_errors
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

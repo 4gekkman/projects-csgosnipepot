@@ -14,6 +14,7 @@
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
  *    f.s0.update_bots              | s0.2. Обновить модель ботов на основе переданных данных
  *    f.s0.update_inventory         | s0.3. Обновить инвентарь выбранного бота
+ *    f.s0.upd_price_update_errors  | s0.4. Обновить модель ошибок обновления цен на вещи
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -242,6 +243,21 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			})();
 
   	};
+
+
+		//-----------------------------------------------------//
+		// s0.4. Обновить модель ошибок обновления цен на вещи //
+		//-----------------------------------------------------//
+		// - Пояснение
+		f.s0.upd_price_update_errors = function(data) {
+
+			// 1] Обновить значение csgofast_last_bug
+			if(data.csgofast_last_bug) self.m.s2.price_update_errors.csgofast_last_bug(data.csgofast_last_bug);
+
+			// 2] Обновить значение steammarket_last_bug
+			if(data.steammarket_last_bug) self.m.s2.price_update_errors.steammarket_last_bug(data.steammarket_last_bug);
+
+ 		};
 
 
 		//------------------------------------------------------------------------//
