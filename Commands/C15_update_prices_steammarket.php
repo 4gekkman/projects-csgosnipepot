@@ -499,7 +499,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
           call_user_func(function() USE ($item, $steamdata, $unstable_price_threshold) {
 
             // 3.1] Записать предыдущую цену
-            $item->steammarket_price_prev = $item->steammarket_price;
+            $item->steammarket_price_prev = !empty($item->steammarket_price) ? $item->steammarket_price : "";
 
             // 3.2] Записать текущую цену
             $item->steammarket_price = $steamdata['normal_price'];
@@ -570,6 +570,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
         });
 
+        // 5] Определить, является ли $item ключём
         call_user_func(function() USE ($item, $steamdata) {
 
           // 6.1] Узнать, есть ли в $name соотв.ключевые слова

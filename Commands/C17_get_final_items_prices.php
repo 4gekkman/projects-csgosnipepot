@@ -44,6 +44,10 @@
  *  Алгоритм вычисления итоговой цены вещи
  *  --------------------------------------
  *
+ * 
+ *
+ *
+ *
  *    1. Если есть steammarket_qty
  *
  *      1.1. Если steammarket_qty >= anti_manipulating_quantity_limit

@@ -237,7 +237,7 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
           call_user_func(function() USE ($item, $price, $unstable_price_threshold) {
 
             // 3.1] Записать предыдущую цену
-            $item->csgofast_price_prev = $item->csgofast_price;
+            $item->csgofast_price_prev = !empty($item->csgofast_price) ? $item->csgofast_price : "";
 
             // 3.2] Записать текущую цену
             $item->csgofast_price = $price;
