@@ -75,6 +75,11 @@ return [
       // - If quantity of item in Steam Market is lower, than this number, take lowest_price
       'anti_manipulating_quantity_limit' => '40',
 
+      // 5.9] На сколько % должна измениться цена, чтобы система посчитала её нестабильной?
+      // - On which % must the price change for the system mark it as unstable?
+      'unstable_price_threshold' => '50',
+
+
     //--------------------------------//
     // 6] Настройка списков в БД      //
     //    Settings of the lists in DB //

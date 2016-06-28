@@ -227,9 +227,36 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
           $item->name = $name;
         }
 
-        // 3] Записать новую цену (csgofast) для $item, и сохранить $item
-        $item->csgofast_price = $price;
-        $item->save();
+        // 3] Записать новую/стару цену (csgofast) для $item, проверить на unstable, и сохранить $item
+
+          // Получить значение unstable_price_threshold из конфига
+          $unstable_price_threshold = config("M8.unstable_price_threshold");
+          $unstable_price_threshold = !empty($unstable_price_threshold) ? $unstable_price_threshold : "50";
+
+          // Записать
+          call_user_func(function() USE ($item, $price, $unstable_price_threshold) {
+
+            // 3.1] Записать предыдущую цену
+            $item->csgofast_price_prev = $item->csgofast_price;
+
+            // 3.2] Записать текущую цену
+            $item->csgofast_price = $price;
+
+            // 3.3] Рассчитать, на сколько % изменилась цена
+            if(!empty($item->csgofast_price_prev))
+              $change_percents = round((abs($item->csgofast_price_prev - $item->csgofast_price)/$item->csgofast_price_prev)*100, 2);
+            else
+              $change_percents = 0;
+
+            // 3.4] Если $change_percents > $unstable_price_threshold, пометить цену вещи, как нестабильную
+            // - И если $item->csgofast_price_prev не пустое значение
+            if($change_percents > $unstable_price_threshold && !empty($item->csgofast_price_prev) && $item->csgofast_price_prev != 0)
+              $item->is_price_unstable = 1;
+
+            // 3.5] Сохранить $item
+            $item->save();
+
+          });
 
         // 4] Определить exterior предмета, если он есть
         call_user_func(function() USE ($item, $name) {
