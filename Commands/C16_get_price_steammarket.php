@@ -253,8 +253,6 @@ class C16_get_price_steammarket extends Job { // TODO: добавить "impleme
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_get_price_steammarket from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        Log::info($errortext);
-        write2log($errortext, ['M8', 'C16_get_price_steammarket']);
         return [
           "status"  => -2,
           "data"    => [
