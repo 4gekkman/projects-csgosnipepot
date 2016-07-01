@@ -471,6 +471,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.token_gid 											= ko.observable("");
 		self.m.s2.edit.identity_secret 								= ko.observable("");
 		self.m.s2.edit.secret_1 											= ko.observable("");
+		self.m.s2.edit.device_id 											= ko.observable("");
 		self.m.s2.edit.apikey 												= ko.observable("");
 		self.m.s2.edit.apikey_domain									= ko.observable("");
 		self.m.s2.edit.apikey_last_update	  					= ko.observable("");

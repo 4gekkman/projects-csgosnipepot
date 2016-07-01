@@ -500,6 +500,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.token_gid(data.token_gid());
 			self.m.s2.edit.identity_secret(data.identity_secret());
 			self.m.s2.edit.secret_1(data.secret_1());
+			self.m.s2.edit.device_id(data.device_id());
 			self.m.s2.edit.apikey(data.apikey());
 			self.m.s2.edit.apikey_domain(data.apikey_domain());
 			self.m.s2.edit.apikey_last_update(data.apikey_last_update());
@@ -545,6 +546,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					token_gid: 			  self.m.s2.edit.token_gid(),
 					identity_secret:	self.m.s2.edit.identity_secret(),
 					secret_1: 			  self.m.s2.edit.secret_1(),
+					device_id: 			  self.m.s2.edit.device_id(),
 					apikey_domain:   	self.m.s2.edit.apikey_domain(),
 
 					id:               self.m.s2.edit.id(),

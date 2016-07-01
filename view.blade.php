@@ -704,6 +704,15 @@
                       </div>
                     </div>
 
+                    <?php /* 13] device_id -->
+                    <!-------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">device_id</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.device_id">
+                      </div>
+                    </div>
+
                     <?php /* n] Кнопка "Редактировать" -->
                     <!-------------------------------*/ ?>
                     <div>
