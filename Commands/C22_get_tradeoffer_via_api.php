@@ -7,14 +7,15 @@
 /**
  *  Что делает
  *  ----------
- *    - Get ID of trade offer of confirmation
+ *    - Get one trade offer by its ID
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id_bot
+ *        id_tradeoffer
  *      ]
  *    ]
  *
@@ -101,7 +102,7 @@
 //---------//
 // Команда //
 //---------//
-class C22_get_confirmation_tradeoffer_id extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -137,27 +138,22 @@ class C22_get_confirmation_tradeoffer_id extends Job { // TODO: добавить
      *
      *  1. Провести валидацию входящих параметров
      *  2. Попробовать найти модель бота с id_bot
-     *  3. Проверить наличие у бота непустых device_id, steamid и identity_secret
-     *  4. Получить серверное время Steam
-     *  5. Получить хэш подтверждения для $tag = details и $time
-     *  6. Подготовить параметры для запроса
-     *  7. Запросить у Steam html с подробностями об указанном подтверждении
-     *  8. Извлечь из $json['html'] id торгового предложения этого подтверждения
-     *  9. Вернуть результаты
+     *  3. Проверить наличие у бота API-ключа
+     *  4. Подготовить массив параметров для запроса
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------------------//
-    // Получить ID торгового предложения подтверждения //
-    //-------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //----------------------------------------------//
+    // Получить 1-но торговое предложение по его ID //
+    //----------------------------------------------//
+    $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "id_bot"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_confirmation"   => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_tradeoffer"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -167,65 +163,33 @@ class C22_get_confirmation_tradeoffer_id extends Job { // TODO: добавить
       if(empty($bot))
         throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
 
-      // 3. Проверить наличие у бота непустых device_id, steamid и identity_secret
+      // 3. Проверить наличие у бота API-ключа
+      $apikey = $bot->apikey;
+      if(empty($apikey))
+        throw new \Exception('У бота с ID = '.$this->data['id_bot'].' не указан API-ключ.');
 
-        // 3.1. Проверить device_id
-        if(empty($bot->device_id))
-          throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой device_id');
+      // 4. Подготовить массив параметров для запроса
+      $params = call_user_func(function() USE ($apikey) {
 
-        // 3.2. Проверить steamid
-        if(empty($bot->steamid))
-          throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой steamid');
-
-        // 3.3. Проверить identity_secret
-        if(empty($bot->identity_secret))
-          throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой identity_secret');
-
-      // 4. Получить серверное время Steam
-      $time = runcommand('\M8\Commands\C20_getsteamtime');
-      if($time['status'] != 0 || !array_key_exists('data', $time) || !array_key_exists('steamtime', $time['data']))
-        throw new \Exception('Не удалось получить серверное время Steam для бота с ID = '.$this->data['id_bot']);
-      else $time = $time['data']['steamtime'];
-
-      // 5. Получить хэш подтверждения для $tag = details и $time
-      $conformation_hash_for_time = call_user_func(function() USE ($bot, $time) {
-
-        $tag = 'details';
-        $identitySecret = base64_decode($bot->identity_secret);
-        $array = $tag ? substr($tag, 0, 32) : '';
-        for ($i = 8; $i > 0; $i--) {
-            $array = chr($time & 0xFF) . $array;
-            $time >>= 8;
-        }
-        $code = hash_hmac("sha1", $array, $identitySecret, true);
-        return base64_encode($code);
-
-      });
-
-      // 6. Подготовить параметры для запроса
-      $params = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time) {
-
-        return [
-          "p"       => $bot->device_id,
-          "a"       => $bot->steamid,
-          "k"       => $conformation_hash_for_time,
-          "t"       => $time,
-          "m"       => "android",
-          "tag"     => "details"
+        $results = [
+          "key"           => $apikey,
+          "tradeofferid"  => $this->data['id_tradeoffer'],
+          "language"      => "en_us"
         ];
+        return $results;
 
       });
 
-      // 7. Запросить у Steam html с подробностями об указанном подтверждении
+      // 5. Осуществить запрос торговых предложений
 
-        // 7.1. Запросить
-        $conformation_details = call_user_func(function() USE ($bot, $params){
+        // 5.1. Запросить
+        $tradeoffers = call_user_func(function() USE ($bot, $params){
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
             "id_bot"          => $bot->id,
             "method"          => "GET",
-            "url"             => "https://steamcommunity.com/mobileconf/details/".$this->data['id_confirmation'],
+            "url"             => "https://api.steampowered.com/IEconService/GetTradeOffer/v1",
             "cookies_domain"  => 'steamcommunity.com',
             "data"            => $params,
             "ref"             => ""
@@ -238,43 +202,29 @@ class C22_get_confirmation_tradeoffer_id extends Job { // TODO: добавить
 
         });
 
-        // 7.2. Если код ответа не 200, сообщить и завершить
-        if($conformation_details->getStatusCode() != 200)
-          throw new \Exception('Unexpected response from Steam: code '.$conformation_details->getStatusCode());
+        // 5.2. Если код ответа не 200, сообщить и завершить
+        if($tradeoffers->getStatusCode() != 200)
+          throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
 
-        // 7.3. Получить из $response строку с HTML из ответа
-        $json = json_decode($conformation_details->getBody(), true);;
+        // 5.3. Провести валидацию $tradeoffers->getBody()
+        $validator = r4_validate(['body'=>$tradeoffers->getBody()], [
+          "body"              => ["required", "json"],
+        ]); if($validator['status'] == -1) {
+          throw new \Exception($validator['data']);
+        }
 
-        // 7.4. Если $json['success'] != true, возбудить исключение
-        if(!array_key_exists('success', $json) || $json['success'] == false)
-          throw new \Exception('В ответ на запрос деталей для потдверждения с ID = '.$this->data['id_confirmation'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с success = false.');
+        // 5.4. Получить из $response строку с HTML из ответа
+        $json = json_decode($tradeoffers->getBody(), true);
 
-        // 7.5. Проверить, есть ли поле html в $json
-        if(!array_key_exists('html', $json) || empty($json['html']))
-          throw new \Exception('В ответ на запрос деталей для потдверждения с ID = '.$this->data['id_confirmation'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с отсутствующимили пустым полем html.');
-
-      // 8. Извлечь из $json['html'] id торгового предложения этого подтверждения
-      $id_tradeoffer = call_user_func(function() USE ($json) {
-
-        $html = $json['html'];
-        if (preg_match('/<div class="tradeoffer" id="tradeofferid_(\d+)" >/', $html, $matches)) {
-          return $matches[1];
-        } else return "";
-
-      });
-
-      // 9. Вернуть результаты
-
-
-      write2log($id_tradeoffer, []);
+      write2log($json, []);
 
 
 
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C22_get_confirmation_tradeoffer_id from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C22_get_tradeoffer_via_api from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C22_get_confirmation_tradeoffer_id']);
+        write2log($errortext, ['M8', 'C22_get_tradeoffer_via_api']);
         return [
           "status"  => -2,
           "data"    => [

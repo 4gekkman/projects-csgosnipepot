@@ -184,23 +184,46 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
       });
 
       // 5. Осуществить запрос торговых предложений
-      $tradeoffers = runcommand('\M8\Commands\C6_bot_request_steam', [
-        "id_bot"          => $bot->id,
-        "method"          => "GET",
-        "url"             => "https://api.steampowered.com/IEconService/GetTradeOffers/v1",
-        "cookies_domain"  => 'steamcommunity.com',
-        "data"            => $params,
-        "ref"             => ""
-      ]);
-      if($tradeoffers['status'] != 0)
-        throw new \Exception($tradeoffers['data']['errormsg']);
 
+        // 5.1. Запросить
+        $tradeoffers = call_user_func(function() USE ($bot, $params){
+
+          // 1] Осуществить запрос
+          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+            "id_bot"          => $bot->id,
+            "method"          => "GET",
+            "url"             => "https://api.steampowered.com/IEconService/GetTradeOffers/v1",
+            "cookies_domain"  => 'steamcommunity.com',
+            "data"            => $params,
+            "ref"             => ""
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результаты (guzzle response)
+          return $result['data']['response'];
+
+        });
+
+        // 5.2. Если код ответа не 200, сообщить и завершить
+        if($tradeoffers->getStatusCode() != 200)
+          throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
+
+        // 5.3. Провести валидацию $tradeoffers->getBody()
+        $validator = r4_validate(['body'=>$tradeoffers->getBody()], [
+          "body"              => ["required", "json"],
+        ]); if($validator['status'] == -1) {
+          throw new \Exception($validator['data']);
+        }
+
+        // 5.4. Получить из $response строку с HTML из ответа
+        $json = json_decode($tradeoffers->getBody(), true);
 
       // 6. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
-          "tradeoffers" => $tradeoffers
+          "tradeoffers" => $json
         ]
       ];
 

@@ -110,7 +110,7 @@
           '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->everyTenMinutes();',
           '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->everyTenMinutes();',
           '$schedule->command("m8:update_bots_apikeys")->withoutOverlapping()->everyTenMinutes();',
-          '$schedule->command("m8:update_prices_all")->withoutOverlapping()->twiceDaily(1, 13);',
+          '$schedule->command("m8:update_prices_all")->withoutOverlapping()->twiceDaily(1,13);'
         ];
 
       //----------------------------------------------------//
@@ -138,7 +138,7 @@
           '\M8\Console\T16_gettradeoffersviaapi',
           '\M8\Console\T17_getsteamtime',
           '\M8\Console\T18_fetch_confirmations',
-          '\M8\Console\T19_get_confirmation_tradeoffer_id'
+          '\M8\Console\T19_get_tradeoffer_via_api'
         ];
 
         // Регистрация команд в методе register

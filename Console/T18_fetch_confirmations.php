@@ -90,7 +90,7 @@ class T18_fetch_confirmations extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:fetch_confirmations {id_bot}';
+    protected $signature = 'm8:fetch_confirmations {id_bot} {need_to_ids=0} {just_fetch_info=0}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //

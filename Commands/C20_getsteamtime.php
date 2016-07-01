@@ -176,7 +176,8 @@ class C20_getsteamtime extends Job { // TODO: добавить "implements Shoul
       return [
         "status"  => 0,
         "data"    => [
-          "steamtime" => $steamtime
+          "steamtime"   => $steamtime,
+          "difference"  => $difference
         ]
       ];
 

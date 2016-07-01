@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get ID of trade offer of confirmation
+ *    - Get one trade offer by its ID
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T19_get_confirmation_tradeoffer_id extends Command
+class T19_get_tradeoffer_via_api extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T19_get_confirmation_tradeoffer_id extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:get_confirmation_tradeoffer_id {id_bot} {id_confirmation}';
+    protected $signature = 'm8:get_tradeoffer_via_api {id_bot} {id_tradeoffer}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Get ID of trade offer of confirmation';
+    protected $description = 'Get one trade offer by its ID';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T19_get_confirmation_tradeoffer_id extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C22_get_confirmation_tradeoffer_id', $this->argument());
+    $result = runcommand('\M8\Commands\C22_get_tradeoffer_via_api', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки

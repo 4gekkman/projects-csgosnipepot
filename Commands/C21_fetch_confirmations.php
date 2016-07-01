@@ -7,14 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Fetch all confirmations for specified bot
+ *    - Fetch all confirmations for specified bot, and (if needed) apply them
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id_bot            // ID бота, с которым работаем
+ *        need_to_ids       // 0/1 - нужно ли в каждое $confirmation в $confirmations добавить поле id_tradeoffer с ID торг.предложения, связанного с этим подтверждением
+ *        just_fetch_info   // 0/1 - если 1, то подтверждения не будут приняты, а лишь будет извлечена информация
  *      ]
  *    ]
  *
@@ -45,6 +47,21 @@
  *  ----------
  *    - Может потребоваться запрашивать список подтверждений несколько раз.
  *    - Бывает, что Steam не показывает нужное подтверждение с 1-го раза.
+ *
+ *  Что возвращает в data
+ *  ---------------------
+ *
+ *    data => [
+ *      "confirmations" => [
+ *        [
+ *          "id"              // ID подтверждения
+ *          "key"             // Ключ подтверждения
+ *          "description"     // Описание подтверждения
+ *          "id_tradeoffer"   // ID торгового предложения подтверждения
+ *        ],
+ *        [ ... ]
+ *      ]
+ *    ]
  *
  *
  */
@@ -149,20 +166,30 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
      *  6. Подготовить параметры для запроса
      *  7. Запросить у Steam HTML со всеми подтверждениями
      *  8. Извлечь из $html все подтверждения в массив
-     *  9. Вернуть результаты
+     *  9. Если требуется, дополнить $confirmations ID-ками торговых операций
+     *
+     *    // Только если need_to_ids == 1
+     *    9.1. Получить хэш подтверждения для $tag = details и $time
+     *    9.2. Подготовить параметры для запросов ID торгового предложения
+     *    9.3. Для каждого подтверждения узнать ID торгового предложения
+     *
+     *  10. Принять все подтверждения из $confirmations, если just_fetch_info == 1
+     *  11. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------------//
-    // Извлечь подтверждения для указанного бота //
-    //-------------------------------------------//
+    //------------------------------------------------------------------------//
+    // Извлечь подтверждения для указанного бота, и если надо, подтвердить их //
+    //------------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "id_bot"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        "id_bot"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "need_to_ids"       => ["required", "regex:/^[01]{1}$/ui"],
+        "just_fetch_info"   => ["required", "regex:/^[01]{1}$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -283,91 +310,168 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
 
       });
 
-      // 9. Получить хэш подтверждения для $tag = details и $time
-      $conformation_hash_for_time_details = call_user_func(function() USE ($bot, $time) {
+      // 9. Если требуется, дополнить $confirmations ID-ками торговых операций
+      if($this->data['need_to_ids'] == 1) {
 
-        $tag = 'details';
-        $identitySecret = base64_decode($bot->identity_secret);
-        $array = $tag ? substr($tag, 0, 32) : '';
-        for ($i = 8; $i > 0; $i--) {
-            $array = chr($time & 0xFF) . $array;
-            $time >>= 8;
+        // 9.1. Получить хэш подтверждения для $tag = details и $time
+        $conformation_hash_for_time_details = call_user_func(function() USE ($bot, $time) {
+
+          $tag = 'details';
+          $identitySecret = base64_decode($bot->identity_secret);
+          $array = $tag ? substr($tag, 0, 32) : '';
+          for ($i = 8; $i > 0; $i--) {
+              $array = chr($time & 0xFF) . $array;
+              $time >>= 8;
+          }
+          $code = hash_hmac("sha1", $array, $identitySecret, true);
+          return base64_encode($code);
+
+        });
+
+        // 9.2. Подготовить параметры для запросов ID торгового предложения
+        $params_4to = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time_details) {
+
+          return [
+            "p"       => $bot->device_id,
+            "a"       => $bot->steamid,
+            "k"       => $conformation_hash_for_time_details,
+            "t"       => $time,
+            "m"       => "android",
+            "tag"     => "details"
+          ];
+
+        });
+
+        // 9.3. Для каждого подтверждения узнать ID торгового предложения
+        // - И добавить соотв.поле в $confirmations
+        foreach($confirmations as &$confirmation) {
+
+          // 9.3.1. Запросить
+          $conformation_details = call_user_func(function() USE ($bot, $params_4to, $confirmation){
+
+            // 1] Осуществить запрос
+            $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+              "id_bot"          => $bot->id,
+              "method"          => "GET",
+              "url"             => "https://steamcommunity.com/mobileconf/details/".$confirmation['id'],
+              "cookies_domain"  => 'steamcommunity.com',
+              "data"            => $params_4to,
+              "ref"             => ""
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+            // 2] Вернуть результаты (guzzle response)
+            return $result['data']['response'];
+
+          });
+
+          // 9.3.2. Если код ответа не 200, сообщить и завершить
+          if($conformation_details->getStatusCode() != 200)
+            throw new \Exception('Unexpected response from Steam: code '.$conformation_details->getStatusCode());
+
+          // 9.3.3. Получить из $response строку с HTML из ответа
+          $json = json_decode($conformation_details->getBody(), true);
+
+          // 9.3.4. Если $json['success'] != true, возбудить исключение
+          if(!array_key_exists('success', $json) || $json['success'] == false)
+            throw new \Exception('В ответ на запрос деталей для потдверждения с ID = '.$confirmation['id'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с success = false.');
+
+          // 9.3.5. Проверить, есть ли поле html в $json
+          if(!array_key_exists('html', $json) || empty($json['html']))
+            throw new \Exception('В ответ на запрос деталей для потдверждения с ID = '.$confirmation['id'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с отсутствующимили пустым полем html.');
+
+          // 9.3.6. Извлечь из $json['html'] id торгового предложения этого подтверждения
+          $id_tradeoffer = call_user_func(function() USE ($json) {
+
+            $html = $json['html'];
+            if (preg_match('/<div class="tradeoffer" id="tradeofferid_(\d+)" >/', $html, $matches)) {
+              return $matches[1];
+            } else return "";
+
+          });
+
+          // 9.3.7. Добавить $id_tradeoffer в $confirmation
+          $confirmation['id_tradeoffer'] = $id_tradeoffer;
+
         }
-        $code = hash_hmac("sha1", $array, $identitySecret, true);
-        return base64_encode($code);
-
-      });
-
-      // 10. Подготовить параметры для запросов ID торгового предложения
-      $params_4to = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time_details) {
-
-        return [
-          "p"       => $bot->device_id,
-          "a"       => $bot->steamid,
-          "k"       => $conformation_hash_for_time_details,
-          "t"       => $time,
-          "m"       => "android",
-          "tag"     => "details"
-        ];
-
-      });
-
-      // 11. Для каждого подтверждения узнать ID торгового предложения
-      // - И добавить соотв.поле в $confirmations
-      foreach($confirmations as &$confirmation) {
-
-        // 11.1. Запросить
-        $conformation_details = call_user_func(function() USE ($bot, $params){
-
-          // 1] Осуществить запрос
-          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-            "id_bot"          => $bot->id,
-            "method"          => "GET",
-            "url"             => "https://steamcommunity.com/mobileconf/details/".$this->data['id_confirmation'],
-            "cookies_domain"  => 'steamcommunity.com',
-            "data"            => $params,
-            "ref"             => ""
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 2] Вернуть результаты (guzzle response)
-          return $result['data']['response'];
-
-        });
-
-        // 11.2. Если код ответа не 200, сообщить и завершить
-        if($conformation_details->getStatusCode() != 200)
-          throw new \Exception('Unexpected response from Steam: code '.$conformation_details->getStatusCode());
-
-        // 11.3. Получить из $response строку с HTML из ответа
-        $json = json_decode($conformation_details->getBody(), true);;
-
-        // 11.4. Если $json['success'] != true, возбудить исключение
-        if(!array_key_exists('success', $json) || $json['success'] == false)
-          throw new \Exception('В ответ на запрос деталей для потдверждения с ID = '.$this->data['id_confirmation'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с success = false.');
-
-        // 11.5. Проверить, есть ли поле html в $json
-        if(!array_key_exists('html', $json) || empty($json['html']))
-          throw new \Exception('В ответ на запрос деталей для потдверждения с ID = '.$this->data['id_confirmation'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с отсутствующимили пустым полем html.');
-
-        // 11.6. Извлечь из $json['html'] id торгового предложения этого подтверждения
-        $id_tradeoffer = call_user_func(function() USE ($json) {
-
-          $html = $json['html'];
-          if (preg_match('/<div class="tradeoffer" id="tradeofferid_(\d+)" >/', $html, $matches)) {
-            return $matches[1];
-          } else return "";
-
-        });
-
-        // 11.7. Добавить $id_tradeoffer в $confirmation
-        $confirmation['id_tradeoffer'] = $id_tradeoffer;
 
       }
 
-write2log($confirmations, []);
-      // 12. Вернуть результаты
+      // 10. Принять все подтверждения из $confirmations, если just_fetch_info == 1
+      if($this->data['just_fetch_info'] == 0) {
+        foreach($confirmations as $confirmation) {
+
+          // 10.1. Получить свежее время
+          $time_new = time() + $time['data']['difference'];
+
+          // 10.2. Получить хэш подтверждения для $tag = allow и $time_new
+          $conformation_hash_for_time_allow = call_user_func(function() USE ($bot, $time_new) {
+
+            $tag = 'allow';
+            $identitySecret = base64_decode($bot->identity_secret);
+            $array = $tag ? substr($tag, 0, 32) : '';
+            for ($i = 8; $i > 0; $i--) {
+                $array = chr($time_new & 0xFF) . $array;
+                $time_new >>= 8;
+            }
+            $code = hash_hmac("sha1", $array, $identitySecret, true);
+            return base64_encode($code);
+
+          });
+
+          // 10.3. Подготовить параметры для запросов ID торгового предложения
+          $params_4allow = call_user_func(function() USE ($bot, $time_new, $conformation_hash_for_time_allow, $confirmation) {
+
+            return [
+              "op"      => "allow",
+              "p"       => $bot->device_id,
+              "a"       => $bot->steamid,
+              "k"       => $conformation_hash_for_time_allow,
+              "t"       => $time_new,
+              "m"       => "android",
+              "tag"     => "allow",
+              "cid"     => $confirmation['id'],
+              "ck"      => $confirmation['key']
+            ];
+
+          });
+
+          // 10.4. Отправить запрос для подтверждения $confirmation
+          $conformation_allow = call_user_func(function() USE ($bot, $params_4allow, $confirmation){
+
+            // 1] Осуществить запрос
+            $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+              "id_bot"          => $bot->id,
+              "method"          => "GET",
+              "url"             => "https://steamcommunity.com/mobileconf/ajaxop",
+              "cookies_domain"  => 'steamcommunity.com',
+              "data"            => $params_4allow,
+              "ref"             => ""
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+            // 2] Вернуть результаты (guzzle response)
+            return $result['data']['response'];
+
+          });
+
+          // 10.2.3. Если код ответа не 200, сообщить и завершить
+          if($conformation_allow->getStatusCode() != 200)
+            throw new \Exception('Unexpected response from Steam: code '.$conformation_allow->getStatusCode());
+
+          // 10.2.4. Получить из $response строку с HTML из ответа
+          $json = json_decode($conformation_allow->getBody(), true);
+
+          // 10.2.5. Если $json['success'] != true, возбудить исключение
+          if(!array_key_exists('success', $json) || $json['success'] == false)
+            throw new \Exception('В ответ на запрос одобрения потдверждения с ID = '.$confirmation['id'].', для бота с ID = '.$this->data['id_bot'].', пришёл json с success = false (т.е. не удалось подтверждение принять).');
+
+        }
+      }
+
+      // 11. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
