@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get trade offers via Steam API and API-key
+ *    - Get Steam server type, taking into account offset
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T16_gettradeoffersviaapi extends Command
+class T17_getsteamtime extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T16_gettradeoffersviaapi extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:gettradeoffersviaapi {id_bot} {activeonly=0}';
+    protected $signature = 'm8:getsteamtime';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Get trade offers via Steam API and API-key';
+    protected $description = 'Get Steam server type, taking into account offset';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T16_gettradeoffersviaapi extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', $this->argument());
+    $result = runcommand('\M8\Commands\C20_getsteamtime', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
@@ -174,6 +174,7 @@ class T16_gettradeoffersviaapi extends Command
 
     // 3. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
+    $this->info("Steamtime = ".$result['data']['steamtime']);
 
   }
 

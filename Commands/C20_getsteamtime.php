@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get trade offers via Steam API and API-key
+ *    - Get Steam server type, taking into account offset
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C19_getTradeOffersViaAPI extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C20_getsteamtime extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,27 +135,56 @@ class C19_getTradeOffersViaAPI extends Job { // TODO: добавить "implemen
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Узнать разницу между временем локального сервера и сервера steam
+     *  2.
      *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------//
-    // Получить все торговые предложения через API //
-    //---------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //--------------------------------------------------//
+    // Получить серверное время Steam с учётом смещения //
+    //--------------------------------------------------//
+    $res = call_user_func(function() { try {
+
+      // 1. Узнать разницу между временем локального сервера и сервера steam
+      $difference = call_user_func(function(){
+
+        // 1] Подготовить новый экземпляр Guzzle
+        $guzzle = new \GuzzleHttp\Client();
+
+        // 2] Выполнить POST-запрос к Steam
+        $response = $guzzle->post('http://api.steampowered.com/ITwoFactorService/QueryTime/v0001');
+
+        // 3] Если статус ответа не 200, возбудить исключение
+        if($response->getStatusCode() != 200)
+          throw new \Exception("Can't get time info from Steam server. Response code != 200.");
+
+        // 4] Извлечь тело ответа
+        $body = json_decode($response->getBody(), true);
+
+        // 5] Вычислить и вернуть разницу в секундах
+        return +$body['response']['server_time'] - +time();
+
+      });
+
+      // 2. Определить серверное время Steam
+      $steamtime = time() + $difference;
+
+      // 3. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "steamtime" => $steamtime
+        ]
+      ];
 
 
-      write2log(123, []);
-
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C19_getTradeOffersViaAPI from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C20_getsteamtime from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C19_getTradeOffersViaAPI']);
+        write2log($errortext, ['M8', 'C20_getsteamtime']);
         return [
           "status"  => -2,
           "data"    => [

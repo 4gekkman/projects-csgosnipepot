@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get trade offers via Steam API and API-key
+ *    - Fetch all conformations for specified bot
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T16_gettradeoffersviaapi extends Command
+class T18_fetch_confirmations extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T16_gettradeoffersviaapi extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:gettradeoffersviaapi {id_bot} {activeonly=0}';
+    protected $signature = 'm8:fetch_confirmations';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Get trade offers via Steam API and API-key';
+    protected $description = 'Fetch all conformations for specified bot';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T16_gettradeoffersviaapi extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', $this->argument());
+    $result = runcommand('\M8\Commands\C21_fetch_confirmations', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
