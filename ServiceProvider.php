@@ -137,7 +137,8 @@
           '\M8\Console\T15_update_prices_all',
           '\M8\Console\T16_gettradeoffersviaapi',
           '\M8\Console\T17_getsteamtime',
-          '\M8\Console\T18_fetch_confirmations'
+          '\M8\Console\T18_fetch_confirmations',
+          '\M8\Console\T19_get_confirmation_tradeoffer_id'
         ];
 
         // Регистрация команд в методе register

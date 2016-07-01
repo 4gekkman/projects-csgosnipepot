@@ -192,10 +192,9 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
         "data"            => $params,
         "ref"             => ""
       ]);
-      if($tradeoffers['status'] != 0) {
-        write2log($tradeoffers['data']['errormsg'], []);
+      if($tradeoffers['status'] != 0)
         throw new \Exception($tradeoffers['data']['errormsg']);
-      }
+
 
       // 6. Вернуть результаты
       return [

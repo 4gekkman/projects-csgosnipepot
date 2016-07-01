@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Fetch all conformations for specified bot
+ *    - Get ID of trade offer of confirmation
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T18_fetch_confirmations extends Command
+class T19_get_confirmation_tradeoffer_id extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T18_fetch_confirmations extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:fetch_confirmations {id_bot}';
+    protected $signature = 'm8:get_confirmation_tradeoffer_id {id_bot} {id_confirmation}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Fetch all conformations for specified bot';
+    protected $description = 'Get ID of trade offer of confirmation';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T18_fetch_confirmations extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C21_fetch_confirmations', $this->argument());
+    $result = runcommand('\M8\Commands\C22_get_confirmation_tradeoffer_id', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
