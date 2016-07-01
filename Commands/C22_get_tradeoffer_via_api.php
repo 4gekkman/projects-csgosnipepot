@@ -140,6 +140,8 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
      *  2. Попробовать найти модель бота с id_bot
      *  3. Проверить наличие у бота API-ключа
      *  4. Подготовить массив параметров для запроса
+     *  5. Осуществить запрос торгового предложения
+     *  6. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -180,7 +182,7 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
 
       });
 
-      // 5. Осуществить запрос торговых предложений
+      // 5. Осуществить запрос торгового предложения
 
         // 5.1. Запросить
         $tradeoffers = call_user_func(function() USE ($bot, $params){
@@ -216,9 +218,13 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
         // 5.4. Получить из $response строку с HTML из ответа
         $json = json_decode($tradeoffers->getBody(), true);
 
-      write2log($json, []);
-
-
+      // 6. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "tradeoffer" => $json
+        ]
+      ];
 
 
     } catch(\Exception $e) {
