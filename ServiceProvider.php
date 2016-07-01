@@ -134,7 +134,8 @@
           '\M8\Console\T12_update_prices_steammarket',
           '\M8\Console\T13_get_price_steammarket',
           '\M8\Console\T14_get_final_items_prices',
-          '\M8\Console\T15_update_prices_all'
+          '\M8\Console\T15_update_prices_all',
+          '\M8\Console\T16_gettradeoffersviaapi'
         ];
 
         // Регистрация команд в методе register
