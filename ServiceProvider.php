@@ -138,7 +138,9 @@
           '\M8\Console\T16_gettradeoffersviaapi',
           '\M8\Console\T17_getsteamtime',
           '\M8\Console\T18_fetch_confirmations',
-          '\M8\Console\T19_get_tradeoffer_via_api'
+          '\M8\Console\T19_get_tradeoffer_via_api',
+          '\M8\Console\T20_check_escrow_hold_days',
+          '\M8\Console\T21_get_trade_offers_via_html'
         ];
 
         // Регистрация команд в методе register

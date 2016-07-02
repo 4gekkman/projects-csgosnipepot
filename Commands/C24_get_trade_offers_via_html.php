@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Get one trade offer by its ID
+ *    - Get trade offers via get request to proper steam page and getting html
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        id_bot
- *        id_tradeoffer
+ *
  *      ]
  *    ]
  *
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C24_get_trade_offers_via_html extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,101 +135,27 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти модель бота с id_bot
-     *  3. Проверить наличие у бота API-ключа
-     *  4. Подготовить массив параметров для запроса
-     *  5. Осуществить запрос торгового предложения
-     *  6. Вернуть результаты
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------//
-    // Получить 1-но торговое предложение по его ID //
-    //----------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // 1. Провести валидацию входящих параметров
-      $validator = r4_validate($this->data, [
-        "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_tradeoffer"       => ["required", "regex:/^[0-9]+$/ui"],
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
-
-      // 2. Попробовать найти модель бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
-
-      // 3. Проверить наличие у бота API-ключа
-      $apikey = $bot->apikey;
-      if(empty($apikey))
-        throw new \Exception('У бота с ID = '.$this->data['id_bot'].' не указан API-ключ.');
-
-      // 4. Подготовить массив параметров для запроса
-      $params = call_user_func(function() USE ($apikey) {
-
-        $results = [
-          "key"           => $apikey,
-          "tradeofferid"  => $this->data['id_tradeoffer'],
-          "language"      => "en_us"
-        ];
-        return $results;
-
-      });
-
-      // 5. Осуществить запрос торгового предложения
-
-        // 5.1. Запросить
-        $tradeoffers = call_user_func(function() USE ($bot, $params){
-
-          // 1] Осуществить запрос
-          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-            "id_bot"          => $bot->id,
-            "method"          => "GET",
-            "url"             => "https://api.steampowered.com/IEconService/GetTradeOffer/v1",
-            "cookies_domain"  => 'steamcommunity.com',
-            "data"            => $params,
-            "ref"             => ""
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 2] Вернуть результаты (guzzle response)
-          return $result['data']['response'];
-
-        });
-
-        // 5.2. Если код ответа не 200, сообщить и завершить
-        if($tradeoffers->getStatusCode() != 200)
-          throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
-
-        // 5.3. Провести валидацию $tradeoffers->getBody()
-        $validator = r4_validate(['body'=>$tradeoffers->getBody()], [
-          "body"              => ["required", "json"],
-        ]); if($validator['status'] == -1) {
-          throw new \Exception($validator['data']);
-        }
-
-        // 5.4. Получить из $response строку с HTML из ответа
-        $json = json_decode($tradeoffers->getBody(), true);
-
-      // 6. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "tradeoffer" => $json
-        ]
-      ];
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C22_get_tradeoffer_via_api from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+      write2log(123, []);
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C22_get_tradeoffer_via_api']);
+        write2log($errortext, ['M8', 'C1_get_trade_offers_via_html']);
         return [
           "status"  => -2,
           "data"    => [

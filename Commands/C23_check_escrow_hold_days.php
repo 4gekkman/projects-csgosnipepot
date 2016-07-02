@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Get one trade offer by its ID
+ *    - Check escrow hold in days for specified partner
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        id_bot
- *        id_tradeoffer
+ *
  *      ]
  *    ]
  *
@@ -41,6 +40,13 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
+ *
+ *  Примечания
+ *  ----------
+ *    - Если возвращает статус -2, значит что-то не так с торговым URL.
+ *    - Если возвращает статус 0, но значения не нулевые, то торговать с этим партнёром не следует.
+ *
+ *
  *
  */
 
@@ -102,7 +108,7 @@
 //---------//
 // Команда //
 //---------//
-class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C23_check_escrow_hold_days extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -138,24 +144,25 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
      *
      *  1. Провести валидацию входящих параметров
      *  2. Попробовать найти модель бота с id_bot
-     *  3. Проверить наличие у бота API-ключа
-     *  4. Подготовить массив параметров для запроса
-     *  5. Осуществить запрос торгового предложения
-     *  6. Вернуть результаты
+     *  3. Осуществить GET-запрос к steam от имени $bot, и получить HTML-документ в ответ
+     *  4. Попробовать извлечь g_daysMyEscrow из $html
+     *  5. Попробовать извлечь g_daysTheirEscrow из $html
+     *  6. Провести валидацию результатов
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------//
-    // Получить 1-но торговое предложение по его ID //
-    //----------------------------------------------//
+    //-------------------------------------------------------------------------------------------//
+    // Проверить, на сколько дней будут заморожены вещи при торговле с партнёром с указанным URL //
+    //-------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_tradeoffer"       => ["required", "regex:/^[0-9]+$/ui"],
+        "id_bot"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "partner"         => ["required", "regex:/^[0-9]+$/ui"],
+        "token"           => ["required", "string"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -165,35 +172,21 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
       if(empty($bot))
         throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
 
-      // 3. Проверить наличие у бота API-ключа
-      $apikey = $bot->apikey;
-      if(empty($apikey))
-        throw new \Exception('У бота с ID = '.$this->data['id_bot'].' не указан API-ключ.');
+      // 3. Осуществить GET-запрос к steam от имени $bot, и получить HTML-документ в ответ
 
-      // 4. Подготовить массив параметров для запроса
-      $params = call_user_func(function() USE ($apikey) {
-
-        $results = [
-          "key"           => $apikey,
-          "tradeofferid"  => $this->data['id_tradeoffer'],
-          "language"      => "en_us"
-        ];
-        return $results;
-
-      });
-
-      // 5. Осуществить запрос торгового предложения
-
-        // 5.1. Запросить
-        $tradeoffers = call_user_func(function() USE ($bot, $params){
+        // 3.1. Запросить
+        $response = call_user_func(function() USE ($bot) {
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
             "id_bot"          => $bot->id,
             "method"          => "GET",
-            "url"             => "https://api.steampowered.com/IEconService/GetTradeOffer/v1",
+            "url"             => 'https://steamcommunity.com/tradeoffer/new',
             "cookies_domain"  => 'steamcommunity.com',
-            "data"            => $params,
+            "data"            => [
+              'partner' => $this->data['partner'],
+              'token'   => $this->data['token'],
+            ],
             "ref"             => ""
           ]);
           if($result['status'] != 0)
@@ -204,33 +197,50 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
 
         });
 
-        // 5.2. Если код ответа не 200, сообщить и завершить
-        if($tradeoffers->getStatusCode() != 200)
-          throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
+        // 3.2. Если код ответа не 200, сообщить и завершить
+        if($response->getStatusCode() != 200)
+          throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode());
 
-        // 5.3. Провести валидацию $tradeoffers->getBody()
-        $validator = r4_validate(['body'=>$tradeoffers->getBody()], [
-          "body"              => ["required", "json"],
-        ]); if($validator['status'] == -1) {
-          throw new \Exception($validator['data']);
-        }
+        // 3.3. Получить из $response строку с HTML из ответа
+        $html = (string) $response->getBody();
 
-        // 5.4. Получить из $response строку с HTML из ответа
-        $json = json_decode($tradeoffers->getBody(), true);
+      // 4. Попробовать извлечь g_daysMyEscrow из $html
+      $pattern = '/g_daysMyEscrow = (.*);/';
+      preg_match($pattern, $html, $matches);
+      if(!isset($matches[1]))
+        throw new \Exception('Не удалось найти g_daysMyEscrow в ответном HTML.');
+      $g_daysMyEscrow = str_replace('"', '', $matches[1]);
 
-      // 6. Вернуть результаты
+      // 5. Попробовать извлечь g_daysTheirEscrow из $html
+      $pattern = '/g_daysTheirEscrow = (.*);/';
+      preg_match($pattern, $html, $matches);
+      if(!isset($matches[1]))
+        throw new \Exception('Не удалось найти g_daysTheirEscrow в ответном HTML.');
+      $g_daysTheirEscrow = str_replace('"', '', $matches[1]);
+
+      // 6. Провести валидацию результатов
+      $validator = r4_validate(['g_daysMyEscrow'=>$g_daysMyEscrow, 'g_daysTheirEscrow'=>$g_daysTheirEscrow], [
+        "g_daysMyEscrow"      => ["required", "regex:/^[0-9]+$/ui"],
+        "g_daysTheirEscrow"   => ["required", "regex:/^[0-9]+$/ui"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
+
+      // 7. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
-          "tradeoffer" => $json
+          "could_trade"       => ($g_daysMyEscrow == 0 && $g_daysTheirEscrow == 0) ? 1 : 0,
+          "g_daysMyEscrow"    => $g_daysMyEscrow,
+          "g_daysTheirEscrow" => $g_daysTheirEscrow
         ]
       ];
 
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C22_get_tradeoffer_via_api from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C23_check_escrow_hold_days from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C22_get_tradeoffer_via_api']);
+        write2log($errortext, ['M8', 'C23_check_escrow_hold_days']);
         return [
           "status"  => -2,
           "data"    => [
