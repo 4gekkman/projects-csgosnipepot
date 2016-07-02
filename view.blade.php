@@ -794,6 +794,15 @@
                       </div>
                     </div>
 
+                    <?php /* 6] trade_url -->
+                    <!------------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">trade_url</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.trade_url">
+                      </div>
+                    </div>
+
                     <?php /* n] Кнопка "Редактировать" -->
                     <!-------------------------------*/ ?>
                     <div>
