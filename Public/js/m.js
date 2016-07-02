@@ -825,7 +825,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		setInterval(function(){
 
 			// 1] Если выбран не поддокумент с интерфейсом бота, завершить
-			if(self.m.s1.selected_subdoc().id() != 2) return;
+			// - Или если включен ajax-экран
+			if(self.m.s1.selected_subdoc().id() != 2 || self.m.s0.ajax_counter() != 0) return;
 
 			// 2] Получить все необходимые временные метки
 			var now 						= Date.now();
