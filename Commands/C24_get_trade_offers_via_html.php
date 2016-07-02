@@ -464,7 +464,52 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           $tradeoffer['is_our_offer'] = false;
 
           // 10] items_to_give
+          $itemsToGive = call_user_func(function(){
 
+            // 10.1] Подготовить массив для результатов
+            $results = [];
+
+            // 10.2]
+
+
+            // 10.n] Вернуть результат
+            return $results;
+
+          });
+
+
+
+
+
+
+            $primaryItemsElement = $xpath->query('.//div[contains(@class, "tradeoffer_items primary")]', $tradeOfferElement)->item(0);
+            $itemsToGiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $primaryItemsElement);
+            $itemsToGive = [];
+            /** @var \DOMElement[] $itemsToGiveList */
+            foreach ($itemsToGiveList as $itemToGive) {
+                //classinfo/570/583164181/93973071
+                //         appId/classId/instanceId
+                //570/2/7087209304/76561198045552709
+                //appId/contextId/assetId/steamId
+                $item = new TradeOffer\Item();
+                $itemInfo = explode('/', $itemToGive->getAttribute('data-economy-item'));
+                if ($itemInfo[0] == 'classinfo') {
+                    $item->setAppId($itemInfo[1]);
+                    $item->setClassId($itemInfo[2]);
+                    if (isset($itemInfo[3])) {
+                        $item->setInstanceId($itemInfo[3]);
+                    }
+                } else {
+                    $item->setAppId($itemInfo[0]);
+                    $item->setContextId($itemInfo[1]);
+                    $item->setAssetId($itemInfo[2]);
+                }
+                if (strpos($itemToGive->getAttribute('class'), 'missing') !== false) {
+                    $item->setMissing(true);
+                }
+                $itemsToGive[] = $item;
+            }
+            $tradeOffer->setItemsToGive($itemsToGive);
 
 
           // 11] items_to_receive
