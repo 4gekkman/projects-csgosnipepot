@@ -90,7 +90,7 @@ class T21_get_trade_offers_via_html extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:get_trade_offers_via_html {id_bot}';
+    protected $signature = 'm8:get_trade_offers_via_html {id_bot} {mode=1}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //

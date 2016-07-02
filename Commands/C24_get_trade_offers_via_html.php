@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        id_bot      | id бота, для которого надо извлечь торговые предложения
+ *        mode        | режим работы команды
  *      ]
  *    ]
  *
@@ -40,6 +41,18 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
+ *
+ *  Значения аргумента mode
+ *  -----------------------
+ *
+ *    1 - [по умолчанию] извлечь не закрытые входящие торговые предложения (incoming offers)
+ *    2 - извлечь закрытые входящие торговые предложения (incoming offers history)
+ *    3 - извлечь не закрытые исходящие торговые предложения (sent offers)
+ *    4 - извлечь закрытые исходящие торговые предложения (sent offers history)
+ *
+ *
+ *
+ *
  *
  */
 
@@ -135,25 +148,134 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Попробовать найти модель бота с id_bot
+     *  3. В зависимости от mode запросить соотв.html с торговыми операциями
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //---------------------------------------------------------------------------------------------------------//
+    // В соотв.со значением mode, запросить html с соотв.страницы в Steam, и спарсить оттуда все торг.операции //
+    //---------------------------------------------------------------------------------------------------------//
+    $res = call_user_func(function() { try {
+
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
+        "id_bot"    => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "mode"      => ["required", "in:1,2,3,4"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
+
+      // 2. Попробовать найти модель бота с id_bot
+      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+      if(empty($bot))
+        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+      if(empty($bot->steamid))
+        throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой steamid');
+
+      // 3. В зависимости от mode запросить соотв.html с торговыми операциями
+      $html = call_user_func(function() USE ($bot) {
+
+        // 3.1. В зависимости от mode сформировать URL и query string параметры GET-запроса
+        $settings = call_user_func(function() USE ($bot) {
+
+          // 1] Подготовить массив для результатов
+          $results = [
+            "url"     => "",
+            "params"  => []
+          ];
+
+          // 2] Если mode = 1
+          if($this->data['mode'] == 1) {
+            $results['url'] = "http://steamcommunity.com/profiles/".$bot->steamid."/tradeoffers";
+            $results['params'] = [];
+          }
+
+          // 3] Если mode = 2
+          if($this->data['mode'] == 2) {
+            $results['url'] = "http://steamcommunity.com/profiles/".$bot->steamid."/tradeoffers";
+            $results['params'] = [
+              "history" => 1
+            ];
+          }
+
+          // 4] Если mode = 3
+          if($this->data['mode'] == 3) {
+            $results['url'] = "http://steamcommunity.com/profiles/".$bot->steamid."/tradeoffers/sent";
+            $results['params'] = [];
+          }
+
+          // 5] Если mode = 4
+          if($this->data['mode'] == 4) {
+            $results['url'] = "http://steamcommunity.com/profiles/".$bot->steamid."/tradeoffers/sent";
+            $results['params'] = [
+              "history" => 1
+            ];
+          }
+
+          // n] Вернуть результаты
+          return $results;
+
+        });
+
+        // 3.2. Осуществить GET-запрос к steam и получить HTML-документ в ответ
+        $response = call_user_func(function() USE ($bot, $settings) {
+
+          // 1] Осуществить запрос
+          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+            "id_bot"          => $bot->id,
+            "method"          => "GET",
+            "url"             => $settings['url'],
+            "cookies_domain"  => 'steamcommunity.com',
+            "data"            => $settings['params'],
+            "ref"             => ""
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результаты (guzzle response)
+          return $result['data']['response'];
+
+        });
+
+        // 3.3. Если код ответа не 200, сообщить и завершить
+        if($response->getStatusCode() != 200)
+          throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode());
+
+        // 3.4. Получить из $response строку с HTML из ответа
+        $html = (string) $response->getBody();
+
+        // 3.n. Вернуть результат
+        return $html;
+
+      });
+
+      // 4. Извлечь торговые предложения из $html
+      $tradeoffers = call_user_func(function() USE ($html) {
+
+        // 1] Подготовить массив для результатов
+        $tradeoffers = [];
+
+        // 2] Создать новые объекты DOMDocument и DOMXpath, загрузить в них $html
+        $doc = new \DOMDocument();
+        $doc->loadHTML($html);
+        $xpath = new \DOMXPath($doc);
+
+        // 3]
+        
 
 
-      write2log(123, []);
+
+      });
 
 
-    DB::commit(); } catch(\Exception $e) {
+
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M8', 'C1_get_trade_offers_via_html']);
         return [
