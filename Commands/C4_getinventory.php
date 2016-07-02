@@ -152,7 +152,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
     // Получить инвентарь steam-пользователя по его ID //
     //-------------------------------------------------//
     $res = call_user_func(function() { try {
-
+$t1 = time();
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "steamid"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
