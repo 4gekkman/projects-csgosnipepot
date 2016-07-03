@@ -464,57 +464,57 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           $tradeoffer['is_our_offer'] = false;
 
           // 10] items_to_give
-          $itemsToGive = call_user_func(function(){
+          $itemsToGive = call_user_func(function() USE ($xpath, $tradeOfferElement) {
 
             // 10.1] Подготовить массив для результатов
             $results = [];
 
-            // 10.2]
+            // 10.2] Получить список элементов, которые надо будет отдать
+            $primaryItemsElement = $xpath->query('.//div[contains(@class, "tradeoffer_items primary")]', $tradeOfferElement)->item(0);
+            $itemsToGiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $primaryItemsElement);
 
+            // 10.3] Наполнить $results
+            foreach ($itemsToGiveList as $itemToGive) {
+
+              // 10.3.1] Подготовить массив для $itemToGive
+              $itemToGive_arr = [];
+
+              // 10.3.2] Получить массив с нужной нам информацией
+              // - Возможные варианты значения, которое разбивается:
+              //
+              //   1) classinfo/appId/classId/instanceId     | classinfo/570/583164181/93973071
+              //   2) appId/contextId/assetId/steamId        | 570/2/7087209304/76561198045552709
+              //
+              $itemInfo = explode('/', $itemToGive->getAttribute('data-economy-item'));
+
+              // 10.3.3] Наполнить $itemToGive_arr
+              if($itemInfo[0] == 'classinfo') {
+                $itemToGive_arr["appid"] = $itemInfo[1];
+                $itemToGive_arr["classid"] = $itemInfo[1];
+                if(isset($itemInfo[3])) $itemToGive_arr["instanceid"] = $itemInfo[3];
+              } else {
+                $itemToGive_arr["appid"] = $itemInfo[0];
+                $itemToGive_arr["contextid"] = $itemInfo[1];
+                $itemToGive_arr["assetid"] = $itemInfo[2];
+              }
+
+              // 10.3.4] Добавить значение missing
+              if(strpos($itemToGive->getAttribute('class'), 'missing') !== false)
+                $itemToGive_arr["missing"] = true;
+              else
+                $itemToGive_arr["missing"] = false;
+
+            }
 
             // 10.n] Вернуть результат
             return $results;
 
           });
-
-
-
-
-
-
-            $primaryItemsElement = $xpath->query('.//div[contains(@class, "tradeoffer_items primary")]', $tradeOfferElement)->item(0);
-            $itemsToGiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $primaryItemsElement);
-            $itemsToGive = [];
-            /** @var \DOMElement[] $itemsToGiveList */
-            foreach ($itemsToGiveList as $itemToGive) {
-                //classinfo/570/583164181/93973071
-                //         appId/classId/instanceId
-                //570/2/7087209304/76561198045552709
-                //appId/contextId/assetId/steamId
-                $item = new TradeOffer\Item();
-                $itemInfo = explode('/', $itemToGive->getAttribute('data-economy-item'));
-                if ($itemInfo[0] == 'classinfo') {
-                    $item->setAppId($itemInfo[1]);
-                    $item->setClassId($itemInfo[2]);
-                    if (isset($itemInfo[3])) {
-                        $item->setInstanceId($itemInfo[3]);
-                    }
-                } else {
-                    $item->setAppId($itemInfo[0]);
-                    $item->setContextId($itemInfo[1]);
-                    $item->setAssetId($itemInfo[2]);
-                }
-                if (strpos($itemToGive->getAttribute('class'), 'missing') !== false) {
-                    $item->setMissing(true);
-                }
-                $itemsToGive[] = $item;
-            }
-            $tradeOffer->setItemsToGive($itemsToGive);
-
+          $tradeoffer['items_to_give'] = $itemsToGive;
 
           // 11] items_to_receive
 
-
+write2log($itemsToGive, []);
 
 
 
@@ -531,152 +531,6 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
         // 4.n. Вернуть результаты
         return $tradeoffers;
-
-
-
-
-
-
-        /** @var \DOMElement[] $tradeOfferElements */
-        $tradeOfferElements = $xpath->query('//div[@id[starts-with(.,"tradeofferid_")]]');
-        foreach ($tradeOfferElements as $tradeOfferElement) {
-            $tradeOffer = new TradeOffer();
-            $tradeOffer->setIsOurOffer($isOurOffer);
-            $tradeOfferId = str_replace('tradeofferid_', '', $tradeOfferElement->getAttribute('id'));
-            $tradeOffer->setTradeOfferId($tradeOfferId);
-            $primaryItemsElement = $xpath->query('.//div[contains(@class, "tradeoffer_items primary")]', $tradeOfferElement)->item(0);
-            $itemsToGiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $primaryItemsElement);
-            $itemsToGive = [];
-            /** @var \DOMElement[] $itemsToGiveList */
-            foreach ($itemsToGiveList as $itemToGive) {
-                //classinfo/570/583164181/93973071
-                //         appId/classId/instanceId
-                //570/2/7087209304/76561198045552709
-                //appId/contextId/assetId/steamId
-                $item = new TradeOffer\Item();
-                $itemInfo = explode('/', $itemToGive->getAttribute('data-economy-item'));
-                if ($itemInfo[0] == 'classinfo') {
-                    $item->setAppId($itemInfo[1]);
-                    $item->setClassId($itemInfo[2]);
-                    if (isset($itemInfo[3])) {
-                        $item->setInstanceId($itemInfo[3]);
-                    }
-                } else {
-                    $item->setAppId($itemInfo[0]);
-                    $item->setContextId($itemInfo[1]);
-                    $item->setAssetId($itemInfo[2]);
-                }
-                if (strpos($itemToGive->getAttribute('class'), 'missing') !== false) {
-                    $item->setMissing(true);
-                }
-                $itemsToGive[] = $item;
-            }
-            $tradeOffer->setItemsToGive($itemsToGive);
-            $secondaryItemsElement = $xpath->query('.//div[contains(@class, "tradeoffer_items secondary")]', $tradeOfferElement)->item(0);
-            $otherAccountId = $xpath->query('.//a[@data-miniprofile]/@data-miniprofile', $secondaryItemsElement)->item(0)->nodeValue;
-            $tradeOffer->setOtherAccountId($otherAccountId);
-            $itemsToReceiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $secondaryItemsElement);
-            $itemsToReceive = [];
-            /** @var \DOMElement[] $itemsToReceiveList */
-            foreach ($itemsToReceiveList as $itemToReceive) {
-                $item = new TradeOffer\Item();
-                $itemInfo = explode('/', $itemToReceive->getAttribute('data-economy-item'));
-                if ($itemInfo[0] == 'classinfo') {
-                    $item->setAppId($itemInfo[1]);
-                    $item->setClassId($itemInfo[2]);
-                    if (isset($itemInfo[3])) {
-                        $item->setInstanceId($itemInfo[3]);
-                    }
-                } else {
-                    $item->setAppId($itemInfo[0]);
-                    $item->setContextId($itemInfo[1]);
-                    $item->setAssetId($itemInfo[2]);
-                }
-                if (strpos($itemToReceive->getAttribute('class'), 'missing') !== false) {
-                    $item->setMissing(true);
-                }
-                $itemsToReceive[] = $item;
-            }
-            $tradeOffer->setItemsToReceive($itemsToReceive);
-            // message
-            $messageElement = $xpath->query('.//div[contains(@class, "tradeoffer_message")]/div[contains(@class, "quote")]', $tradeOfferElement)->item(0);
-            if (!is_null($messageElement)) {
-                $tradeOffer->setMessage($messageElement->nodeValue);
-            }
-            // expiration
-            $footerElement = $xpath->query('.//div[contains(@class, "tradeoffer_footer")]', $tradeOfferElement)->item(0);
-            if (!empty($footerElement->nodeValue)) {
-                $expirationTimeString = str_replace('Offer expires on ', '', $footerElement->nodeValue);
-                $tradeOffer->setExpirationTime(strtotime($expirationTimeString));
-            }
-            // state
-            $bannerElement = $xpath->query('.//div[contains(@class, "tradeoffer_items_banner")]', $tradeOfferElement)->item(0);
-            if (is_null($bannerElement)) {
-                $tradeOffer->setTradeOfferState(TradeOffer\State::Active);
-            } else {
-                if (strpos($bannerElement->nodeValue, 'Awaiting Mobile Confirmation') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::NeedsConfirmation);
-                    $tradeOffer->setConfirmationMethod(TradeOffer\ConfirmationMethod::MobileApp);
-                } else if (strpos($bannerElement->nodeValue, 'Awaiting Email Confirmation') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::NeedsConfirmation);
-                    $tradeOffer->setConfirmationMethod(TradeOffer\ConfirmationMethod::Email);
-                } else if (strpos($bannerElement->nodeValue, 'Trade Offer Canceled') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::Canceled);
-                    $canceledDate = strtotime(str_replace('Trade Offer Canceled ', '', $bannerElement->nodeValue));
-                    if ($canceledDate !== false) {
-                        $tradeOffer->setTimeUpdated($canceledDate);
-                    }
-                } else if (strpos($bannerElement->nodeValue, 'Trade Declined') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::Declined);
-                    $declinedDate = strtotime(str_replace('Trade Declined ', '', $bannerElement->nodeValue));
-                    if ($declinedDate !== false) {
-                        $tradeOffer->setTimeUpdated($declinedDate);
-                    }
-                } else if (strpos($bannerElement->nodeValue, 'On hold') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::InEscrow);
-                    $split = explode('.', $bannerElement->nodeValue);
-                    $acceptedString = trim($split[0]);
-                    $acceptedDate = \DateTime::createFromFormat('M j, Y @ g:ia', str_replace('Trade Accepted ', '', $acceptedString));
-                    if ($acceptedDate !== false) {
-                        $tradeOffer->setTimeUpdated($acceptedDate->getTimestamp());
-                    }
-                    $escrowString = trim($split[1]);
-                    $escrowDate = \DateTime::createFromFormat('M j, Y @ g:ia', str_replace('On hold until ', '', $escrowString));
-                    if ($escrowDate !== false) {
-                        $tradeOffer->setEscrowEndDate($escrowDate->getTimestamp());
-                    }
-                } else if (strpos($bannerElement->nodeValue, 'Trade Accepted') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::Accepted);
-                    // 14 Dec, 2015 @ 4:32am
-                    $acceptedDate = \DateTime::createFromFormat('j M, Y @ g:ia', str_replace('Trade Accepted ', '', trim($bannerElement->nodeValue)));
-                    if ($acceptedDate !== false) {
-                        $tradeOffer->setTimeUpdated($acceptedDate->getTimestamp());
-                    }
-                } else if (strpos($bannerElement->nodeValue, 'Items Now Unavailable For Trade') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::InvalidItems);
-                } else if (strpos($bannerElement->nodeValue, 'Counter Offer Made') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::Countered);
-                    $counteredDate = strtotime(str_replace('Counter Offer Made ', '', $bannerElement->nodeValue));
-                    if ($counteredDate !== false) {
-                        $tradeOffer->setTimeUpdated($counteredDate);
-                    }
-                } else if (strpos($bannerElement->nodeValue, 'Trade Offer Expired') !== false) {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::Expired);
-                    $expiredDate = strtotime(str_replace('Trade Offer Expired ', '', $bannerElement->nodeValue));
-                    if ($expiredDate !== false) {
-                        $tradeOffer->setTimeUpdated($expiredDate);
-                    }
-                } else {
-                    $tradeOffer->setTradeOfferState(TradeOffer\State::Invalid);
-                }
-            }
-            $tradeOffers[] = $tradeOffer;
-        }
-        return $tradeOffers;
-
-
-
-
 
       });
 
