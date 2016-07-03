@@ -458,13 +458,13 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           $tradeoffer['is_our_offer'] = ($this->data['mode'] == 1 || $this->data['mode'] == 2) ? true : false;
 
           // 8] time_created
-          $tradeoffer['is_our_offer'] = "";
+          $tradeoffer['time_created'] = "";
 
           // 9] from_real_time_trade
-          $tradeoffer['is_our_offer'] = false;
+          $tradeoffer['from_real_time_trade'] = false;
 
-          // 10] items_to_give
-          $itemsToGive = call_user_func(function() USE ($xpath, $tradeOfferElement) {
+          // 10] Primary: items_to_give / items_to_receive
+          $primary = call_user_func(function() USE ($xpath, $tradeOfferElement) {
 
             // 10.1] Подготовить массив для результатов
             $results = [];
@@ -474,7 +474,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
             $itemsToGiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $primaryItemsElement);
 
             // 10.3] Наполнить $results
-            foreach ($itemsToGiveList as $itemToGive) {
+            foreach($itemsToGiveList as $itemToGive) {
 
               // 10.3.1] Подготовить массив для $itemToGive
               $itemToGive_arr = [];
@@ -504,28 +504,90 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               else
                 $itemToGive_arr["missing"] = false;
 
+              // 10.3.5] Добавить $itemToGive_arr в $results
+              array_push($results, $itemToGive_arr);
+
             }
 
             // 10.n] Вернуть результат
             return $results;
 
           });
-          $tradeoffer['items_to_give'] = $itemsToGive;
 
-          // 11] items_to_receive
+          // 11] Secondary: items_to_give / items_to_receive
+          $secondary = call_user_func(function() USE ($xpath, $tradeOfferElement){
 
-write2log($itemsToGive, []);
+            // 11.1] Подготовить массив для результатов
+            $results = [];
 
+            // 11.2] Получить список элементов, которые надо будет отдать
+            $secondaryItemsElement = $xpath->query('.//div[contains(@class, "tradeoffer_items secondary")]', $tradeOfferElement)->item(0);
+            $itemsToReceiveList = $xpath->query('.//div[contains(@class, "tradeoffer_item_list")]/div[contains(@class, "trade_item")]', $secondaryItemsElement);
 
+            // 11.3] Наполнить $results
+            foreach($itemsToReceiveList as $itemToReceive) {
 
+              // 11.3.1] Подготовить массив для $itemToReceive
+              $itemToReceive_arr = [];
 
+              // 11.3.2] Получить массив с нужной нам информацией
+              // - Возможные варианты значения, которое разбивается:
+              //
+              //   1) classinfo/appId/classId/instanceId     | classinfo/570/583164181/93973071
+              //   2) appId/contextId/assetId/steamId        | 570/2/7087209304/76561198045552709
+              //
+              $itemInfo = explode('/', $itemToReceive->getAttribute('data-economy-item'));
 
+              // 11.3.3] Наполнить $itemToReceive_arr
+              if($itemInfo[0] == 'classinfo') {
+                $itemToReceive_arr["appid"] = $itemInfo[1];
+                $itemToReceive_arr["classid"] = $itemInfo[1];
+                if(isset($itemInfo[3])) $itemToReceive_arr["instanceid"] = $itemInfo[3];
+              } else {
+                $itemToReceive_arr["appid"] = $itemInfo[0];
+                $itemToReceive_arr["contextid"] = $itemInfo[1];
+                $itemToReceive_arr["assetid"] = $itemInfo[2];
+              }
 
+              // 11.3.4] Добавить значение missing
+              if(strpos($itemToReceive->getAttribute('class'), 'missing') !== false)
+                $itemToReceive_arr["missing"] = true;
+              else
+                $itemToReceive_arr["missing"] = false;
 
+              // 11.3.5] Добавить $itemToReceive_arr в $results
+              array_push($results, $itemToReceive_arr);
 
+            }
 
+            // 11.n] Вернуть результат
+            return $results;
 
+          });
 
+          // 12] В зависимости от mode записать их в items_to_give / items_to_recieve
+          // - Если mode = 1/2, то в items_to_recieve
+          // - Если mode = 3/4, то в items_to_give
+
+            // 12.1] Если mode = 1/2
+            if($this->data['mode'] == 1 || $this->data['mode'] == 2) {
+              $tradeoffer['items_to_recieve'] = $primary;
+              $tradeoffer['items_to_give'] = $secondary;
+            }
+
+            // 12.2] Если mode = 3/4
+            if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
+              $tradeoffer['items_to_recieve'] = $secondary;
+              $tradeoffer['items_to_give'] = $primary;
+            }
+
+          // n] 4.5. Добавить $tradeoffer в $tradeoffers
+          // - Если mode = 1/2, то в trade_offers_sent
+          // - Если mode = 3/4, то в trade_offers_received
+          if($this->data['mode'] == 1 || $this->data['mode'] == 2)
+            array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
+          if($this->data['mode'] == 3 || $this->data['mode'] == 4)
+            array_push($tradeoffers['trade_offers_received'], $tradeoffer);
 
         }
 
@@ -533,9 +595,6 @@ write2log($itemsToGive, []);
         return $tradeoffers;
 
       });
-
-
-
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
