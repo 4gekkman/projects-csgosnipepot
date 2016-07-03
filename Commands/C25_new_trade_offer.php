@@ -7,14 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Get trade offers via Steam API and API-key
+ *    - Create and send new trade offer
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id_bot              | ID бота, который будет отправлять торговое предложение
+ *        assets2send         | assetid вещей, которые бот хочет отдать
+ *        assets2recieve      | assetid вещей, которые бот хочет получить
  *      ]
  *    ]
  *
@@ -101,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C25_new_trade_offer extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,102 +137,69 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
     /**
      * Оглавление
      *
-     *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти модель бота с id_bot
-     *  3. Проверить наличие у бота API-ключа
-     *  4. Подготовить массив параметров для запроса
-     *  5. Осуществить запрос торговых предложений
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------//
-    // Получить все торговые предложения через API //
-    //---------------------------------------------//
-    $res = call_user_func(function() { try {
+    //------------------------------------------------//
+    // Создать и отправить новое торговое предложение //
+    //------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "activeonly"          => ["required", "regex:/^[01]{1}$/ui"],
+
+        "id_bot"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "assets2send"       => ["sometimes", "array"],
+        "assets2send.*"     => ["sometimes", "regex:/^[0-9]+$/ui"],
+        "assets2recieve"    => ["sometimes", "array"],
+        "assets2recieve.*"  => ["sometimes", "regex:/^[0-9]+$/ui"],
+
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Попробовать найти модель бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
 
-      // 3. Проверить наличие у бота API-ключа
-      $apikey = $bot->apikey;
-      if(empty($apikey))
-        throw new \Exception('У бота с ID = '.$this->data['id_bot'].' не указан API-ключ.');
 
-      // 4. Подготовить массив параметров для запроса
-      $params = call_user_func(function() USE ($apikey) {
 
-        $results = [
-          "key"                   => $apikey,
-          "get_sent_offers"       => 1,
-          "get_received_offers"   => 1,
-          "activeonly"            => $this->data['activeonly'],
-        ];
-        if($this->data['activeonly'] == 1)
-          $results["time_historical_cutoff"] = time();
-        return $results;
 
-      });
 
-      // 5. Осуществить запрос торговых предложений
 
-        // 5.1. Запросить
-        $tradeoffers = call_user_func(function() USE ($bot, $params){
 
-          // 1] Осуществить запрос
-          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
-            "id_bot"          => $bot->id,
-            "method"          => "GET",
-            "url"             => "https://api.steampowered.com/IEconService/GetTradeOffers/v1",
-            "cookies_domain"  => 'steamcommunity.com',
-            "data"            => $params,
-            "ref"             => ""
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
 
-          // 2] Вернуть результаты (guzzle response)
-          return $result['data']['response'];
 
-        });
+      // TradeAsset
+      // - appid          | = 730
+      // - contextid      | = 2
+      // - assetid
+      // - amount = 1
 
-        // 5.2. Если код ответа не 200, сообщить и завершить
-        if($tradeoffers->getStatusCode() != 200)
-          throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
+      // TradeUser
+      // - assets         | TradeAsset json (из массива)
+      // - currency       | = []
+      // - ready          | = true
 
-        // 5.3. Провести валидацию $tradeoffers->getBody()
-        $validator = r4_validate(['body'=>$tradeoffers->getBody()], [
-          "body"              => ["required", "json"],
-        ]); if($validator['status'] == -1) {
-          throw new \Exception($validator['data']);
-        }
+      // json_tradeoffer
+      // - newversion     | = true
+      // - version        | = 1
+      // - me             | TraseUser json
+      // - them           | TraseUser json
 
-        // 5.4. Получить из $tradeoffers строку с HTML из ответа
-        $json = json_decode($tradeoffers->getBody(), true);
 
-      // 6. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "tradeoffers" => $json['response']
-        ]
-      ];
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C19_getTradeOffersViaAPI from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+
+
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C25_new_trade_offer from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C19_getTradeOffersViaAPI']);
+        write2log($errortext, ['M8', 'C25_new_trade_offer']);
         return [
           "status"  => -2,
           "data"    => [
