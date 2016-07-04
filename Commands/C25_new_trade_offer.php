@@ -15,6 +15,7 @@
  *    [
  *      "data" => [
  *        id_bot                | ID бота, который будет отправлять торговое предложение
+ *        steamid_partner       | Steam ID партнёра, которому будет отправлено торговое предложение
  *        id_partner            | ID партнёра, которому будет отправлено торговое предложение
  *        token_partner         | Токен партнёра, которому будет отправлено торговое предложение
  *        dont_trade_with_gays  | Не торговать с партнёрами, у которых trade hold > 0
@@ -45,6 +46,12 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
+ *
+ *  Подтверждение
+ *  -------------
+ *    - После создания торгового предложения, его ещё надо будет подтвердить.
+ *    - Подтвердить все исходящие ТП для указанного бота можно командой C21_fetch_confirmations.
+ *
  *
  */
 
@@ -158,6 +165,7 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
 
         "id_bot"                => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "steamid_partner"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_partner"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "token_partner"         => ["required", "string"],
         "dont_trade_with_gays"  => ["required", "regex:/^[01]{1}$/ui"],
         "assets2send"           => ["sometimes", "array"],
@@ -225,6 +233,38 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
         throw new \Exception("Can't find token (from trade_url) of the bot with ID = ".$bot->id);
 
       // 6. Подготовить параметры запроса
+      // - Реальный пример параметров запроса при отправке торгового предложения:
+      //
+      //      sessionid:              0ce44214afd13db8fe73e95f
+      //      serverid:               1
+      //      partner:                76561198039205599
+      //      tradeoffermessage:      ""
+      //      json_tradeoffer:        {
+      //        "newversion":true,
+      //        "version":2,
+      //        "me":{
+      //          "assets":[
+      //            {
+      //              "appid":730,
+      //              "contextid":"2",
+      //              "amount":1,
+      //              "assetid":"6766619990"
+      //            }
+      //          ],
+      //          "currency":[],
+      //          "ready":false
+      //        },
+      //        "them":{
+      //          "assets":[],
+      //          "currency":[],
+      //          "ready":false
+      //        }
+      //      }
+      //      captcha:                ""
+      //      trade_offer_create_params:{
+      //
+      //      }
+      //
       $params = call_user_func(function() USE ($bot, $get_partner_hash) {
 
         // 1] Подготовить массив для результата
@@ -232,13 +272,17 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
 
         // 2] Подготовить значение для me
         $me = call_user_func(function(){
-          $results = [];
+          $results = [
+            "assets" => [],
+            "currency" => [],
+            "ready" => false
+          ];
           foreach($this->data['assets2send'] as $asset) {
-            $results[] = [
+            $results['assets'][] = [
               'appid' => (int)730,
-              'contextid' => 2,
+              'contextid' => "2",
+              'amount' => (int)1,
               'assetid' => $asset,
-              'amount' => (int)1
             ];
           }
           return $results;
@@ -246,13 +290,17 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
 
         // 3] Подготовить значение для them
         $them = call_user_func(function(){
-          $results = [];
+          $results = [
+            "assets" => [],
+            "currency" => [],
+            "ready" => false
+          ];
           foreach($this->data['assets2recieve'] as $asset) {
-            $results[] = [
+            $results['assets'][] = [
               'appid' => (int)730,
-              'contextid' => 2,
+              'contextid' => "2",
+              'amount' => (int)1,
               'assetid' => $asset,
-              'amount' => (int)1
             ];
           }
           return $results;
@@ -261,15 +309,18 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
         // 4] Наполнить $results
         $results['sessionid']                   = $bot->sessionid;
         $results['serverid']                    = 1;
-        $results['partner']                     = $get_partner_hash($this->data['id_partner']);
+        $results['partner']                     = (int)$this->data['steamid_partner'];
         $results['tradeoffermessage']           = "";
-        $results['trade_offer_create_params']   = json_encode(['trade_offer_access_token' => $this->data['token_partner']]);
+        $results['trade_offer_create_params']   = json_encode([
+          'trade_offer_access_token' => $this->data['token_partner']
+        ], JSON_UNESCAPED_UNICODE);
         $results['json_tradeoffer']             = json_encode([
           'newversion'  => true,
-          'version'     => 1,
+          'version'     => 2,
           'me'          => $me,
           'them'        => $them
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
+        $results['captcha'] = "";
 
         // n] Вернуть результаты
         return $results;
@@ -288,7 +339,7 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
             "url"             => "https://steamcommunity.com/tradeoffer/new/send",
             "cookies_domain"  => 'steamcommunity.com',
             "data"            => $params,
-            "ref"             => 'https://steamcommunity.com/tradeoffer/new/?partner=' . $bot_partner_and_token['partner'] . '&token=' . $bot_partner_and_token['token']
+            "ref"             => 'https://steamcommunity.com/tradeoffer/new/?partner=' . $this->data['id_partner'] . '&token=' . $this->data['token_partner']
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
@@ -310,39 +361,27 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
         }
 
         // 7.4. Получить из $response строку с HTML из ответа
+        // - Ответ придёт в следующем формате:
+        //
+        //   {
+        //      "tradeofferid": "1371875915",
+        //      "needs_mobile_confirmation": true,
+        //      "needs_email_confirmation": false,
+        //      "email_domain": "yandex.ru"
+        //   }
+        //
         $json = json_decode($response->getBody(), true);
 
-
-        write2log($json, []);
-
-
-
-
-
-
-
-      // TradeAsset
-      // - appid          | = 730
-      // - contextid      | = 2
-      // - assetid
-      // - amount = 1
-
-      // TradeUser
-      // - assets         | TradeAsset json (из массива)
-      // - currency       | = []
-      // - ready          | = true
-
-      // json_tradeoffer
-      // - newversion     | = true
-      // - version        | = 1
-      // - me             | TraseUser json
-      // - them           | TraseUser json
-
-
-
-
-
-
+      // 8. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "tradeofferid"              => $json['tradeofferid'],
+          "needs_mobile_confirmation" => $json['needs_mobile_confirmation'],
+          "needs_email_confirmation"  => $json['needs_email_confirmation'],
+          "email_domain"              => $json['email_domain']
+        ]
+      ];
 
 
     } catch(\Exception $e) {

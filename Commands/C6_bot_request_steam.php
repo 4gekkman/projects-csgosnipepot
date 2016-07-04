@@ -291,19 +291,27 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
         // 4.3. Подготовить запрос
         $request = new \GuzzleHttp\Psr7\Request($this->data['method'], $this->data['url']);
 
-        // 4.3. Осуществить запрос
-        $response = (new \GuzzleHttp\Client())->send($request, [
-          'connect_timeout' => 50.00,
-          'headers' => [
+        // 4.4. Подготовить заголовки запроса
+
+          // 1] Подготовить
+          $request_headers = [
             'Accept'              => '*/*',
             'Content-Type'        => 'application/x-www-form-urlencoded; charset=UTF-8',
             'User-Agent'          => 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
             'X-Requested-With'    => 'com.valvesoftware.android.steam.community'
-          ],
-          'cookies'               => $cookies,
-          'query'                 => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "GET") ? $this->data['data'] : [],
-          'form_params'           => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "POST") ? $this->data['data'] : [],
+          ];
 
+          // 2] Если ref передан, добавить заголовок Referer
+          if(!empty($this->data['ref']))
+            $request_headers['Referer'] = $this->data['ref'];
+
+        // 4.3. Осуществить запрос
+        $response = (new \GuzzleHttp\Client())->send($request, [
+          'connect_timeout' => 50.00,
+          'headers'         => $request_headers,
+          'cookies'         => $cookies,
+          'query'           => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "GET") ? $this->data['data'] : [],
+          'form_params'     => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "POST") ? $this->data['data'] : [],
         ]);
 
       // n. Вернуть результаты

@@ -90,7 +90,7 @@ class T22_new_trade_offer extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:new_trade_offer {id_bot} {id_partner} {token_partner} {dont_trade_with_gays=1} {assets2send=nothing} {assets2recieve=nothing}';
+    protected $signature = 'm8:new_trade_offer {id_bot} {steamid_partner} {id_partner} {token_partner} {dont_trade_with_gays=1} {assets2send=nothing} {assets2recieve=nothing}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
@@ -200,7 +200,7 @@ class T22_new_trade_offer extends Command
 
 
     // 2. Выполнить команду
-    $result = runcommand('\M8\Commands\C25_new_trade_offer', ['id_bot'=>$this->argument('id_bot'), 'steamid_partner'=>$this->argument('id_partner'), 'token_partner'=>$this->argument('token_partner'), 'dont_trade_with_gays'=>$this->argument('dont_trade_with_gays'), 'assets2send'=>$assets2send, 'assets2recieve'=>$assets2recieve]);
+    $result = runcommand('\M8\Commands\C25_new_trade_offer', ['id_bot'=>$this->argument('id_bot'), 'steamid_partner'=>$this->argument('steamid_partner'), 'id_partner'=>$this->argument('id_partner'), 'token_partner'=>$this->argument('token_partner'), 'dont_trade_with_gays'=>$this->argument('dont_trade_with_gays'), 'assets2send'=>$assets2send, 'assets2recieve'=>$assets2recieve]);
 
 
     // 3. В случае неудачи, вывести текст ошибки
@@ -212,6 +212,7 @@ class T22_new_trade_offer extends Command
 
     // 4. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
+    $this->info("New trade offer id: ".$result['data']['errormsg']);
 
   }
 
