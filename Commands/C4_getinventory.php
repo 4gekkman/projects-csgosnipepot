@@ -152,7 +152,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
     // Получить инвентарь steam-пользователя по его ID //
     //-------------------------------------------------//
     $res = call_user_func(function() { try {
-$t1 = time();
+
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "steamid"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
@@ -222,20 +222,20 @@ $t1 = time();
         // - Взять их из rgInventory.
         // - Искать соотв.объекты в оном по classid и instanceid.
         // - Интересуют следующие доп.св-ва: assetid, amount
-        call_user_func(function() USE (&$description, $json_decoded) {
+        call_user_func(function() USE (&$description, $json_decoded, $key) {
 
           // 1] Извлечь classid и instanceid для $description
           $classid    = $description['classid'];
           $instanceid = $description['instanceid'];
 
           // 2] Получить assetid и amount из соотв.объекта в rgInventory
-          foreach($json_decoded['rgInventory'] as $key => &$inv) {
+          foreach($json_decoded['rgInventory'] as &$inv) {
 
             if($inv['classid'] == $classid && $inv['instanceid'] == $instanceid) {
               $assetid = $inv['id'];
               $amount = $inv['amount'];
+              break;
             }
-            break;
 
           }
 
