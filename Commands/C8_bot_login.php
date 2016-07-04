@@ -186,12 +186,12 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           throw new \Exception($result['data']['errormsg']);
 
         // 3.2. Вернуть результат
-        return $result['data']['is_bot_authenticated'];
+        return $result['data'];
 
       });
 
       // 4. Если $bot уже вошёл в Steam, и relogin = false, завершить
-      if($is_bot_authorized && $this->data['relogin'] === '0') {
+      if($is_bot_authorized['is_bot_authenticated'] && $this->data['relogin'] === '0') {
 
         // 1] Изменить авторизационные свойства бота
         $bot->authorization = 1;
@@ -200,6 +200,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         $bot->authorization_last_bug_code = "";
         $bot->authorization_status_last_bug = "";
         $bot->authorization_used_attempts = "0";
+        $bot->sessionid = $is_bot_authorized['data']['sessionid'];
         $bot->save();
         DB::commit();
 
@@ -207,7 +208,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         return [
           "status"  => 0,
           "data"    => [
-            'was_bot_authorized'  => $is_bot_authorized,
+            'was_bot_authorized'  => $is_bot_authorized['is_bot_authenticated'],
             'id_bot'              => $this->data['id_bot'],
             'relogin'             => $this->data['relogin'],
           ]
@@ -374,6 +375,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           $bot->authorization_last_bug_code = "";
           $bot->authorization_status_last_bug = "";
           $bot->authorization_used_attempts = "0";
+          $bot->sessionid = $is_bot_authorized['data']['sessionid'];
           $bot->save();
           break;
         case 1:

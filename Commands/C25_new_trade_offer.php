@@ -14,9 +14,12 @@
  *
  *    [
  *      "data" => [
- *        id_bot              | ID бота, который будет отправлять торговое предложение
- *        assets2send         | assetid вещей, которые бот хочет отдать
- *        assets2recieve      | assetid вещей, которые бот хочет получить
+ *        id_bot                | ID бота, который будет отправлять торговое предложение
+ *        id_partner            | ID партнёра, которому будет отправлено торговое предложение
+ *        token_partner         | Токен партнёра, которому будет отправлено торговое предложение
+ *        dont_trade_with_gays  | Не торговать с партнёрами, у которых trade hold > 0
+ *        assets2send           | assetid вещей, которые бот хочет отдать
+ *        assets2recieve        | assetid вещей, которые бот хочет получить
  *      ]
  *    ]
  *
@@ -137,8 +140,9 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Провести валидацию входящих параметров
+     *  2. Попробовать найти модель бота с id_bot
+     *  3. Подготовить параметры запроса
      *
      *  N. Вернуть статус 0
      *
@@ -147,23 +151,156 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
     //------------------------------------------------//
     // Создать и отправить новое торговое предложение //
     //------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
 
-        "id_bot"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "assets2send"       => ["sometimes", "array"],
-        "assets2send.*"     => ["sometimes", "regex:/^[0-9]+$/ui"],
-        "assets2recieve"    => ["sometimes", "array"],
-        "assets2recieve.*"  => ["sometimes", "regex:/^[0-9]+$/ui"],
+        "id_bot"                => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_partner"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "token_partner"         => ["required", "string"],
+        "dont_trade_with_gays"  => ["required", "regex:/^[01]{1}$/ui"],
+        "assets2send"           => ["sometimes", "array"],
+        "assets2send.*"         => ["sometimes", "regex:/^[0-9]+$/ui"],
+        "assets2recieve"        => ["sometimes", "array"],
+        "assets2recieve.*"      => ["sometimes", "regex:/^[0-9]+$/ui"],
 
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
+      // 2. Попробовать найти модель бота с id_bot
+      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+      if(empty($bot))
+        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+
+      // 3. Написать функцию для преобразования partnerid хэша для
+      $get_partner_hash = function($id) {
+        if (preg_match('/^STEAM_/', $id)) {
+          $parts = explode(':', $id);
+          return bcadd(bcadd(bcmul($parts[2], '2'), '76561197960265728'), $parts[1]);
+        } elseif (is_numeric($id) && strlen($id) < 16) {
+          return bcadd($id, '76561197960265728');
+        } else {
+          return $id; // We have no idea what this is, so just return it.
+        }
+      };
+
+      // 4. Проверить escrow hold свой и торгового партнёра
+      // - Отправлять торговое предложение, только если всё по нулям
+      if($this->data['dont_trade_with_gays'] == 1) {
+
+        // 4.1. Отправить запрос и получить ответ
+        $result = runcommand('\M8\Commands\C23_check_escrow_hold_days', [
+          'id_bot'    => $bot->id,
+          'partner'   => $this->data['id_partner'],
+          'token'     => $this->data['token_partner']
+        ]);
+
+        // 4.2. Если торговать нельзя, завершить
+        if($result['status'] != 0 || $result['data']['could_trade'] == 0) {
+
+          return [
+            "status"  => 0,
+            "data"    => [
+              "could_trade" => 0
+            ]
+          ];
+
+        }
+
+      }
+
+      // 5. Подготовить параметры запроса
+      $params = call_user_func(function() USE ($bot, $get_partner_hash) {
+
+        // 1] Подготовить массив для результата
+        $results = [];
+
+        // 2] Подготовить значение для me
+        $me = call_user_func(function(){
+          $results = [];
+          foreach($this->data['assets2send'] as $asset) {
+            $results[] = [
+              'appid' => (int)730,
+              'contextid' => 2,
+              'assetid' => $asset,
+              'amount' => (int)1
+            ];
+          }
+          return $results;
+        });
+
+        // 3] Подготовить значение для them
+        $them = call_user_func(function(){
+          $results = [];
+          foreach($this->data['assets2recieve'] as $asset) {
+            $results[] = [
+              'appid' => (int)730,
+              'contextid' => 2,
+              'assetid' => $asset,
+              'amount' => (int)1
+            ];
+          }
+          return $results;
+        });
+
+        // 4] Наполнить $results
+        $results['sessionid']                   = $bot->sessionid;
+        $results['serverid']                    = 1;
+        $results['partner']                     = $get_partner_hash($this->data['id_partner']);
+        $results['tradeoffermessage']           = "";
+        $results['trade_offer_create_params']   = json_encode(['trade_offer_access_token' => $this->data['token_partner']]);
+        $results['json_tradeoffer']             = json_encode([
+          'newversion'  => true,
+          'version'     => 1,
+          'me'          => $me,
+          'them'        => $them
+        ]);
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 6. Осуществить запрос к steam и создать новое торговое предложение
+
+        // 5.1. Запросить
+        $response = call_user_func(function() USE ($bot, $params){
+
+          // 1] Осуществить запрос
+          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+            "id_bot"          => $bot->id,
+            "method"          => "POST",
+            "url"             => "https://steamcommunity.com/tradeoffer/new/send",
+            "cookies_domain"  => 'steamcommunity.com',
+            "data"            => $params,
+            "ref"             => 'https://steamcommunity.com/tradeoffer/new/?partner=' . $this->data['id_partner'] . '&token=' . $this->data['token_partner']
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результаты (guzzle response)
+          return $result['data']['response'];
+
+        });
+
+        // 5.2. Если код ответа не 200, сообщить и завершить
+        if($response->getStatusCode() != 200)
+          throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode());
+
+        // 5.3. Провести валидацию $response->getBody()
+        $validator = r4_validate(['body'=>$response->getBody()], [
+          "body"              => ["required", "json"],
+        ]); if($validator['status'] == -1) {
+          throw new \Exception($validator['data']);
+        }
+
+        // 5.4. Получить из $response строку с HTML из ответа
+        $json = json_decode($response->getBody(), true);
 
 
+        write2log($json, []);
 
 
 
@@ -195,9 +332,8 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
 
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C25_new_trade_offer from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M8', 'C25_new_trade_offer']);
         return [

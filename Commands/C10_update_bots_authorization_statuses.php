@@ -187,6 +187,7 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
           $bot->authorization               = 1;
           $bot->authorization_last_update   = (string) \Carbon\Carbon::now();
           $bot->authorization_used_attempts = "0";
+          $bot->sessionid = $result['data']['sessionid'];
 
           // 3] Сохранить
           $bot->save();
