@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Create and send new trade offer
+ *    - Get partner id and token from specified trade url
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T22_new_trade_offer extends Command
+class T23_get_partner_and_token_from_trade_url extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T22_new_trade_offer extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:new_trade_offer {id_bot} {id_partner} {token_partner} {dont_trade_with_gays=1} {assets2send=nothing} {assets2recieve=nothing}';
+    protected $signature = 'm8:get_partner_and_token_from_trade_url {trade_url}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Create and send new trade offer';
+    protected $description = 'Get partner id and token from specified trade url';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -155,63 +155,27 @@ class T22_new_trade_offer extends Command
     /**
      * Оглавление
      *
-     *  1. Обработать аргументы
-     *  2. Выполнить команду
-     *  3. В случае неудачи, вывести текст ошибки
-     *  4. В случае успеха, вывести соотв.сообщение
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
      *
      */
 
-    // 1. Обработать аргументы
-
-      // 1.1. Обработать assets2send
-      $assets2send = call_user_func(function(){
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Наполнить $results
-        if($this->argument('assets2send') != 'nothing') {
-          $assets2send_arr = explode(',', $this->argument('assets2send'));
-          return $assets2send_arr;
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
-
-      // 1.2. Обработать assets2recieve
-      $assets2recieve = call_user_func(function(){
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Наполнить $results
-        if($this->argument('assets2recieve') != 'nothing') {
-          $assets2recieve_arr = explode(',', $this->argument('assets2recieve'));
-          return $assets2recieve_arr;
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
+    // 1. Выполнить команду
+    $result = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', $this->argument());
 
 
-    // 2. Выполнить команду
-    $result = runcommand('\M8\Commands\C25_new_trade_offer', ['id_bot'=>$this->argument('id_bot'), 'steamid_partner'=>$this->argument('id_partner'), 'token_partner'=>$this->argument('token_partner'), 'dont_trade_with_gays'=>$this->argument('dont_trade_with_gays'), 'assets2send'=>$assets2send, 'assets2recieve'=>$assets2recieve]);
-
-
-    // 3. В случае неудачи, вывести текст ошибки
+    // 2. В случае неудачи, вывести текст ошибки
     if($result['status'] != 0) {
       $this->error('Error: '.$result['data']['errormsg']);
       return;
     }
 
 
-    // 4. В случае успеха, вывести соотв.сообщение
+    // 3. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
+    $this->info('partner = '.$result['data']['partner']);
+    $this->info('token = '.$result['data']['token']);
 
   }
 

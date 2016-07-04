@@ -141,7 +141,8 @@
           '\M8\Console\T19_get_tradeoffer_via_api',
           '\M8\Console\T20_check_escrow_hold_days',
           '\M8\Console\T21_get_trade_offers_via_html',
-          '\M8\Console\T22_new_trade_offer'
+          '\M8\Console\T22_new_trade_offer',
+          '\M8\Console\T23_get_partner_and_token_from_trade_url'
         ];
 
         // Регистрация команд в методе register
