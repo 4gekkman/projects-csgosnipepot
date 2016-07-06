@@ -136,7 +136,9 @@ class C27_cancel_trade_offer extends Job { // TODO: добавить "implements
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *
+     *  2. Попробовать найти модель бота с id_bot
+     *  3. Осуществить запрос к steam и отменить указанное торговое предложение
+     *  4. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -154,8 +156,65 @@ class C27_cancel_trade_offer extends Job { // TODO: добавить "implements
       ]); if($validator['status'] == -1)
         throw new \Exception($validator['data']);
 
-      // 2.
+      // 2. Попробовать найти модель бота с id_bot
+      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+      if(empty($bot))
+        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+      if(empty($bot->sessionid))
+        throw new \Exception("Can't find sessionid of the bot with ID = ".$bot->id);
 
+      // 3. Осуществить запрос к steam и отменить указанное торговое предложение
+
+        // 3.1. Запросить
+        $response = call_user_func(function() USE ($bot){
+
+          // 1] Осуществить запрос
+          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+            "id_bot"          => $bot->id,
+            "method"          => "POST",
+            "url"             => "https://steamcommunity.com/tradeoffer/".$this->data['id_tradeoffer']."/cancel",
+            "cookies_domain"  => 'steamcommunity.com',
+            "data"            => [
+              'sessionid' => $bot->sessionid
+            ],
+            "ref"             => 'https://steamcommunity.com/tradeoffer/'.$this->data['id_tradeoffer'].'/'
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результаты (guzzle response)
+          return $result['data']['response'];
+
+        });
+
+        // 3.2. Если код ответа не 200, сообщить и завершить
+        if($response->getStatusCode() != 200)
+          throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode());
+
+        // 3.3. Провести валидацию $response->getBody()
+        $validator = r4_validate(['body'=>$response->getBody()], [
+          "body"              => ["required", "json"],
+        ]); if($validator['status'] == -1) {
+          throw new \Exception($validator['data']);
+        }
+
+        // 3.4. Получить из $response строку с HTML из ответа
+        $json = json_decode($response->getBody(), true);
+
+        // 3.5. Если нет поля tradeofferid, вернуть ошибку
+        $validator = r4_validate($json, [
+          "tradeofferid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        ]); if($validator['status'] == -1)
+          throw new \Exception($validator['data']);
+
+      // 4. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "success"       => true,
+          "tradeofferid"  => $json["tradeofferid"]
+        ]
+      ];
 
 
     } catch(\Exception $e) {

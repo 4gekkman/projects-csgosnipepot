@@ -172,6 +172,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
      *  2. Попробовать найти модель бота с id_bot
      *  3. В зависимости от mode запросить соотв.html с торговыми операциями
      *  4. Извлечь торговые предложения из $html
+     *  5. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -596,6 +597,15 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
         return $tradeoffers;
 
       });
+
+      // 5. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "tradeoffers" => $tradeoffers
+        ]
+      ];
+
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

@@ -143,7 +143,9 @@
           '\M8\Console\T21_get_trade_offers_via_html',
           '\M8\Console\T22_new_trade_offer',
           '\M8\Console\T23_get_partner_and_token_from_trade_url',
-          '\M8\Console\T24_cancel_trade_offer'
+          '\M8\Console\T24_cancel_trade_offer',
+          '\M8\Console\T25_accept_trade_offer',
+          '\M8\Console\T26_decline_trade_offer'
         ];
 
         // Регистрация команд в методе register

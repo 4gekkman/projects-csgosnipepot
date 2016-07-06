@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Cancel trade offer by ID
+ *    - Accept trade offer by ID
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T24_cancel_trade_offer extends Command
+class T25_accept_trade_offer extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T24_cancel_trade_offer extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:cancel_trade_offer {id_bot} {id_tradeoffer}';
+    protected $signature = 'm8:accept_trade_offer {id_bot} {id_tradeoffer} {id_partner}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Cancel trade offer by ID';
+    protected $description = 'Accept trade offer by ID';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -162,7 +162,7 @@ class T24_cancel_trade_offer extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M8\Commands\C27_cancel_trade_offer', $this->argument());
+    $result = runcommand('\M8\Commands\C28_accept_trade_offer', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки
@@ -174,7 +174,7 @@ class T24_cancel_trade_offer extends Command
 
     // 3. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
-    $this->info("Tradeofferid: ".$result['data']['tradeofferid']);
+    $this->info("Tradeid: ".$result['data']['tradeid']);
 
   }
 
