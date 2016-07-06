@@ -25,6 +25,7 @@ return [
      *      ]
      *    ]
      */
+    // routing start
     'routing' => [
       'localhost' => [
         'http' => [
@@ -33,7 +34,8 @@ return [
           ]
         ]
       ]
-    ], // end of routing
+    ],
+    // routing end
 
     //-----------------//
     // 2] Локализация  //
