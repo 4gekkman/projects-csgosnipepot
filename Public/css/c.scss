@@ -342,16 +342,23 @@
       padding: 10px 0;
     }
     .box_leftmenu_style li {
+      transition: color 0.3s ease-in-out;
       list-style-type: none;
-      padding: 5px 10px 5px 10px;
+      padding: 7px 10px 7px 10px;
+      color: RGBA(0,0,0,.5);
     }
     .box_leftmenu_style li:hover {
-      background-color: RGBA(0,0,0,.05);
+      color: RGBA(0,0,0,1);
     }
 
-  //---------------//
-  // Левый столбец //
-  //---------------//
-  .ibot_right_column {
-    padding-left: 120px;
-  }
+  //----------------//
+  // Правый столбец //
+  //----------------//
+
+    // Стили левого столбца
+    .ibot_right_column {
+      padding-left: 120px;
+    }
+
+
+

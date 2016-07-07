@@ -41,6 +41,7 @@
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/AdminLTE/plugins/datatables/dataTables.bootstrap.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/loaders.css/loaders.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/css/perfect-scrollbar.css">
+  <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/4gekkman-bower-cssgrids/c.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/L10000/css/c.css">
   <link rel="stylesheet" type="text/css" href="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/D10005/css/c.css">
   <!-- document css: stop -->
@@ -71,7 +72,7 @@
 @section('content')
 
 <?php /*--------------->
-<!-- Панель загрузки -->
+<!-- 1. Панель загрузки -->
 <!-----------------*/ ?>
 <div class="loader">
   <div style="display: none" class="loading_state_panel loader-inner square-spin" data-bind="visible: m.s0.is_loadshield_on">
@@ -79,10 +80,181 @@
   </div>
 </div>
 
+<?php /*-------->
+<!-- 2. Боты  -->
+<!----------*/ ?>
+<div class="tab-pane" data-bind="css: {active: m.s1.selected_subdoc().id() == 1}">
+
+  <?php /*---------->
+  <!-- 2.1. Боты  -->
+  <!------------*/ ?>
+
+    <?php /*---------------------------->
+    <!-- 0] Различные предупреждения  -->
+    <!------------------------------*/ ?>
+    <div>
+
+      <?php /*----------------------------------------->
+      <!-- 0.1] Ошибка при обновлении цен с csgofast -->
+      <!-------------------------------------------*/ ?>
+      <div style="display: none" class="callout callout-danger" data-bind="visible: m.s2.price_update_errors.csgofast_last_bug">
+        <h4>There is csgofast price update error!</h4>
+        <p data-bind="text: m.s2.price_update_errors.csgofast_last_bug"></p>
+      </div>
+
+      <?php /*--------------------------------------------->
+      <!-- 0.2] Ошибка при обновлении цен с Steam Market -->
+      <!-----------------------------------------------*/ ?>
+      <div style="display: none" class="callout callout-danger" data-bind="visible: m.s2.price_update_errors.steammarket_last_bug">
+        <h4>There is Steam Market price update error!</h4>
+        <p data-bind="text: m.s2.price_update_errors.steammarket_last_bug"></p>
+      </div>
+
+    </div>
+
+    <?php /*------------------------>
+    <!-- 1] Название поддокумента -->
+    <!---------------------------*/ ?>
+    <h4>
+      <b>Bots</b>
+      <small class="small_notes" style="cursor: default">- <span title="Number of selected items" data-bind="text: m.s2.num_of_selected_bots"></span> / <span title="Total number of items" data-bind="text: m.s2.bots_total"></span></small>
+    </h4>
+
+    <?php /*-------------->
+    <!-- 2] Содержание  -->
+    <!----------------*/ ?>
+    <div class="row">
+
+      <div class="col-md-12">
+
+        <div class="box box-info">
+
+          <?php /* Заголовок  -->
+          <!----------------*/ ?>
+          <div class="box-header with-border row">
+
+            <?php /* Чекбокс "Select all" -->
+            <!--------------------------*/ ?>
+            <div class="col-md-6 col-sm-6 col-xs-6">
+              <label class="selectall_cb checkbox">
+                <input type="checkbox" data-bind="checked: m.s2.select_all_bots, event: {change: f.s2.select_all_change}"> - Select all
+              </label>
+            </div>
+
+            <?php /* Блок кнопок "Actions" -->
+            <!---------------------------*/ ?>
+            <div class="col-md-6 col-sm-6 col-xs-6">
+
+              <div class="btn-group">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items">
+                    <i class="fa fa-gear"></i>
+                    <span> Actions with selected</span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#" data-bind="click: function(){}">No actions for now</a></li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /* Контент  -->
+          <!--------------*/ ?>
+          <div class="box-body no-padding">
+
+            <?php /* Таблица с данными -->
+            <!-----------------------*/ ?>
+            <table class="table table-condensed table-hover all_table_styles">
+              <thead>
+              <tr role="row">
+                <th rowspan="1" colspan="1" style="width: 4%;"></th>
+                <th rowspan="1" colspan="1" style="width: 4%;" title="Number of a bot in the list.">№</th>
+                <th rowspan="1" colspan="1" style="width: 7%;" title="ID of a user, affilated with a bot.">User_ID</th>
+                <th rowspan="1" colspan="1" style="width: 7%;" title="ID of a bot.">Bot_ID</th>
+                <th rowspan="1" colspan="1" style="width: 19%;" title="Steam ID of a bot.">Steam_ID</th>
+                <th rowspan="1" colspan="1" style="width: 15%;" title="Steam name of a bot (but not Steam login).">Steam name</th>
+                <th rowspan="1" colspan="1" style="width: 19%;" title="The games where a bot is involved.">Games</th>
+                <th rowspan="1" colspan="1" style="width: 8%;" title="Inventory count of a bot, updates every 10 minutes.">Inventory</th>
+                <th rowspan="1" colspan="1" style="width: 5%;" title="Authorization status of a bot, updates every hour.">Auth</th>
+                <th rowspan="1" colspan="1" style="width: 10%;" title="Trade status of a bot.">Trade_↓↑</th>
+              </tr>
+              </thead>
+              <tbody data-bind="foreach: m.s2.bots" >
+
+                <tr class="odd" data-bind="click: $root.f.s2.show_bots_interface, css: {tradeban_incoming: !ison_incoming(), tradeban_outcoming: !ison_outcoming(), tradeban_all: !ison_incoming() && !ison_outcoming()}">
+                  <td data-bind="click: function(){ return true; }, clickBubble: false"><input type="checkbox" data-bind="checked: selected, click: function(data, event){ if(!event.target.checked) $root.m.s2.select_all_bots(false); return true; }"></td>
+                  <td data-bind="text: number"></td>
+                  <td data-bind="text: id_user"></td>
+                  <td data-bind="text: id"></td>
+                  <td data-bind="text: id_steam"></td>
+                  <td data-bind="text: steam_name"></td>
+                  <td data-bind="text: ''"></td>
+                  <td data-bind="text: inventory_count, css: {yellow_text: inventory_count() >= 500 && inventory_count() < 750, red_text: inventory_count() >= 750, red_background_soft: inventory_count_last_bug()}, attr: {title: 'Inventory status\n- Last update (server time): ' + inventory_count_last_update() + '\n- Problems: ' + inventory_count_last_bug()}"></td>
+                  <td data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}, attr: {title: 'Authorization status in Steam\n- Last update (server time): ' + authorization_last_update() + '\n- Authorization status check problems: ' + authorization_status_last_bug() + '\n- Authorization problems: ' + authorization_last_bug() + '\n- Authorization error code: ' + authorization_last_bug_code()}"></td>
+                  <td style="font-size: 16px; text-align: center">
+                    <span data-bind="text: ison_incoming() ? '↓' : ''"></span>
+                    <span data-bind="text: ison_outcoming() ? '↑' : ''"></span>
+                    <span data-bind="text: !ison_incoming() && !ison_outcoming() ? 'off' : ''" style="color: #9c0033"></span>
+                  </td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+            <?php /* Если боты отсутствуют -->
+            <!---------------------------*/ ?>
+            <div data-bind="visible: m.s2.bots().length === 0">
+              <p style="font-size: 16px; padding: 10px 0 0 10px">Bots are absent...</p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+</div>
+
+<?php /*----------------------------->
+<!-- 3. Интерфейс кликнутого бота  -->
+<!-------------------------------*/ ?>
+<div class="tab-pane ibot_container rowfix" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
+
+  <?php /*----------------------------------------------->
+  <!-- 3.1. Левый столбец: кнопка "Назад" и левое меню -->
+  <!-------------------------------------------------*/ ?>
+  <div class="spanfix_left0 spanfix_width120">
+
+    123
+
+  </div>
+
+  <?php /*-------------------------------------------------->
+  <!-- 3.2. Правый столбец: имя бота и контент интерфейса -->
+  <!----------------------------------------------------*/ ?>
+  <div class="spanfix_left120">
+
+    123
+
+  </div>
+
+</div>
+
+
+
+
+
+
 <?php /*--------------------------->
 <!-- Заголовок и хлебные крошки  -->
 <!-----------------------------*/ ?>
-<section class="content-header content-header-my">
+<section style="display: none" class="content-header content-header-my">
   <h1>
     Bots and trade automation
   </h1>
@@ -95,7 +267,7 @@
 <?php /*------------------->
 <!-- Главная таб-панель  -->
 <!---------------------*/ ?>
-<div class="row">
+<div class="row" style="display: none">
 
   <?php /* Содержание -->
   <!----------------*/ ?>
@@ -258,7 +430,28 @@
         <?php /*------------------------------->
         <!-- 2.2. Интерфейс кликнутого бота  -->
         <!---------------------------------*/ ?>
-        <div class="tab-pane ibot_container" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
+        <div class="tab-pane ibot_container rowfix" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
+
+          <?php /*------------------------------------------------->
+          <!-- 2.2.1. Левый столбец: кнопка "Назад" и левое меню -->
+          <!---------------------------------------------------*/ ?>
+          <div class="spanfix_left0 spanfix_width120">
+
+            123
+
+          </div>
+
+          <?php /*---------------------------------------------------->
+          <!-- 2.2.2. Правый столбец: имя бота и контент интерфейса -->
+          <!------------------------------------------------------*/ ?>
+          <div class="spanfix_left120">
+
+            123
+
+          </div>
+
+
+          <div style="display: none">
 
           <?php /*------------------------------------------------->
           <!-- 2.2.1. Левый столбец: кнопка "Назад" и левое меню -->
@@ -300,7 +493,8 @@
           </div>
 
 
-          <div style="display: none">
+
+
 
               <?php /*--------------------------------------------->
               <!-- 2.2.1. Кнопка "Назад" и название поддокумента -->
