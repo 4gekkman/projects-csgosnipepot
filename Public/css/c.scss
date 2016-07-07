@@ -6,14 +6,17 @@
 // Оглавление //
 //------------//
 
-  1. ...
+  1. Общие стили
+  2. Изменение основных цветовых схем
 
 
 //------------------------------//
 // Стили //
 //-------*/
 
-// 1. ...
+//----------------//
+// 1. Общие стили //
+//----------------//
 .user-panel .infotext p {
   margin-top: 11px;
 }
@@ -25,5 +28,45 @@
     margin-top: -16px !important;
   }
 }
+
+//-------------------------------------//
+// 2. Изменение основных цветовых схем //
+//-------------------------------------//
+
+  // Левый сайдбар
+  .main-sidebar {
+    background-color: #4f5a6e !important;
+  }
+
+  // Шапка
+  .navbar {
+    background-color: #4f5a6e !important;
+  }
+  .navbar .sidebar-toggle:hover {
+    color: RGBA(0,200,200,1) !important;
+    background-color: transparent !important;
+  }
+
+  // Зона лого
+  .logo {
+    background-color: #424b5f !important;
+  }
+  .logo img {
+    width: 65px;
+  }
+
+  // Левое меню
+  .main-sidebar .sidebar .sidebar-menu li>a>i {
+
+  }
+  .main-sidebar .sidebar .sidebar-menu li>a {
+    border-left: 4px solid transparent !important;
+  }
+  .main-sidebar .sidebar .sidebar-menu li>a:hover {
+    background-color: #424b5f !important;
+    border-left: 4px solid RGBA(0,200,200,1) !important;
+  }
+
+
 
 

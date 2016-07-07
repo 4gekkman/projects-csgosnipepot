@@ -98,12 +98,9 @@ desired effect
 
       <!-- Б1.1.1. Логотип -->
       <!--------------------->
-      <a class="logo">
-        <!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-mini"><b>L</b></span>
-        <!-- logo for regular state and mobile devices -->
-        <span class="logo-lg"><b>L</b>ogo</span>
-      </a>
+      <div class="logo">
+        <img src="{!! asset('public/L10000/assets/Logo_v2.png') !!}" class="user-image" alt="User Image">
+      </div>
 
       <!-- Б1.1.2. Верхняя навигационная полоса -->
       <!------------------------------------------>
@@ -118,7 +115,7 @@ desired effect
         <!-- 2] Навигационное меню в правой части верхней нав.полосы -->
         <!------------------------------------------------------------->
         <div class="navbar-custom-menu">
-          <ul class="nav navbar-nav">
+          <ul class="nav navbar-nav" style="padding-right: 20px;">
 
             <!-- User Account Menu -->
             <li class="dropdown user user-menu">
@@ -151,10 +148,6 @@ desired effect
                 </li>
               </ul>
             </li>
-            <!-- Control Sidebar Toggle Button -->
-            <li>
-              <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
-            </li>
 
           </ul>
         </div>
@@ -174,40 +167,23 @@ desired effect
 
         <!-- 1] Меню левого сайдбара -->
         <!----------------------------->
-        <ul class="sidebar-menu">
+        <ul class="sidebar-menu" style="margin-top: 15px;">
 
           <!-- 1.1] Группа "NAVIGATION -->
           <!----------------------------->
-          <li class="header">NAVIGATION</li>
 
             <!-- # Demonstration -->
-            <li class=""><a href="{!! asset('dashboard/demonstration') !!}"><i class="fa fa-dashboard"></i> <span>Demonstration</span></a></li>
+<!--            <li class=""><a href="{!! asset('dashboard/demonstration') !!}"><i class="fa fa-dashboard"></i> <span>Demonstration</span></a></li>-->
 
             <!-- # Users control system -->
-            <li class=""><a href="{!! asset('dashboard/users') !!}"><i class="fa fa-users"></i> <span>Users control system</span></a></li>
+            <li class=""><a href="{!! asset('dashboard/users') !!}"><i class="fa fa-users"></i> &nbsp;<span>Users control system</span></a></li>
 
             <!-- # Images upload system -->
-            <li class=""><a href="{!! asset('dashboard/images') !!}"><i class="fa fa-image"></i> <span>Images upload system</span></a></li>
+<!--            <li class=""><a href="{!! asset('dashboard/images') !!}"><i class="fa fa-image"></i> <span>Images upload system</span></a></li>-->
 
             <!-- # Bots and automation -->
-            <li class=""><a href="{!! asset('dashboard/bots_and_automation') !!}"><i class="fa fa-child"></i> <span>Bots and automation</span></a></li>
+            <li class=""><a href="{!! asset('dashboard/bots_and_automation') !!}"><i class="fa fa-gears"></i> &nbsp;<span>Bots control system</span></a></li>
 
-
-          <!-- 1.3] Группа "USER PROFILE -->
-          <!------------------------------->
-          <li class="header">USER PROFILE</li>
-          <li>
-            <div  class="user-panel">
-              <div class="pull-left image">
-                <img src="http://placehold.it/100x100" class="img-circle" alt="User Image">
-              </div>
-              <div class="pull-left info infotext">
-                <p data-bind="text: m.s1.fio"></p>
-              </div>
-            </div>
-          </li>
-          <li><a href="{!! asset('dashboard/profile') !!}"><i class="fa fa-bars text-aqua"></i> <span>Profile</span></a></li>
-          <li data-bind="click: f.s1.logout"><a href="#"><i class="fa fa-ban text-red"></i><span>Logout</span></a></li>
 
         </ul>
 
@@ -230,19 +206,7 @@ desired effect
     <!------------------>
     <!-- Б1.4. Footer -->
     <!------------------>
-    <footer class="main-footer">
 
-      <!-- Б1.4.1. Правая часть футера -->
-      <!--------------------------------->
-      <div class="pull-right hidden-xs">
-        Dashboard
-      </div>
-
-      <!-- Б1.4.2. Левая часть футера -->
-      <!-------------------------------->
-      <strong>Copyright © 2016 <a href="#">Company</a>.</strong> All rights reserved.
-
-    </footer>
 
     <!-------------------------->
     <!-- Б1.5. Правый столбец -->
