@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Create and send new trade offer
+ *    - Get steam name and steam ID of a trade partner by their trade url
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T22_new_trade_offer extends Command
+class T27_get_steamname_and_steamid_by_tradeurl extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T22_new_trade_offer extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm8:new_trade_offer {id_bot} {steamid_partner} {id_partner} {token_partner} {dont_trade_with_gays=1} {assets2send=nothing} {assets2recieve=nothing} {tradeoffermessage=trade}';
+    protected $signature = 'm8:get_steamname_and_steamid_by_tradeurl {id_bot} {partner} {token}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Create and send new trade offer';
+    protected $description = 'Get steam name and steam ID of a trade partner by their trade url';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -155,64 +155,32 @@ class T22_new_trade_offer extends Command
     /**
      * Оглавление
      *
-     *  1. Обработать аргументы
-     *  2. Выполнить команду
-     *  3. В случае неудачи, вывести текст ошибки
-     *  4. В случае успеха, вывести соотв.сообщение
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
      *
      */
 
-    // 1. Обработать аргументы
-
-      // 1.1. Обработать assets2send
-      $assets2send = call_user_func(function(){
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Наполнить $results
-        if($this->argument('assets2send') != 'nothing') {
-          $assets2send_arr = explode(',', $this->argument('assets2send'));
-          return $assets2send_arr;
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
-
-      // 1.2. Обработать assets2recieve
-      $assets2recieve = call_user_func(function(){
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Наполнить $results
-        if($this->argument('assets2recieve') != 'nothing') {
-          $assets2recieve_arr = explode(',', $this->argument('assets2recieve'));
-          return $assets2recieve_arr;
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
+    // 1. Выполнить команду
+    $result = runcommand('\M8\Commands\C30_get_steamname_and_steamid_by_tradeurl', $this->argument());
 
 
-    // 2. Выполнить команду
-    $result = runcommand('\M8\Commands\C25_new_trade_offer', ['id_bot'=>$this->argument('id_bot'), 'steamid_partner'=>$this->argument('steamid_partner'), 'id_partner'=>$this->argument('id_partner'), 'token_partner'=>$this->argument('token_partner'), 'dont_trade_with_gays'=>$this->argument('dont_trade_with_gays'), 'assets2send'=>$assets2send, 'assets2recieve'=>$assets2recieve]);
-
-
-    // 3. В случае неудачи, вывести текст ошибки
+    // 2. В случае неудачи, вывести текст ошибки
     if($result['status'] != 0) {
       $this->error('Error: '.$result['data']['errormsg']);
       return;
     }
 
 
-    // 4. В случае успеха, вывести соотв.сообщение
+    // 3. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
-    $this->info("New trade offer id: ".$result['data']['errormsg']);
+    $this->info("Partner ID: ".$result['data']['partner']);
+    $this->info("Partner token: ".$result['data']['token']);
+    $this->info("Trade URL of the partner: ".$result['data']['trade_url']);
+    $this->info("Steam ID of the partner: ".$result['data']['steamid_partner']);
+    $this->info("Steam name of the partner: ".$result['data']['steam_name_partner']);
+    $this->info("Escrow hold in days, my: ".$result['data']['steamescrow_days_my']);
+    $this->info("Escrow hold in days, partner: ".$result['data']['escrow_days_partner']);
 
   }
 
