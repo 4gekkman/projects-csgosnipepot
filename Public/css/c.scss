@@ -302,7 +302,6 @@
       position: relative;
     }
 
-
   //---------------//
   // Левый столбец //
   //---------------//
@@ -318,36 +317,40 @@
       background-color: RGBA(255,255,255,1);
       cursor: pointer;
       text-align: center;
-      color: RGBA(0,0,0,.5);
+      color: RGBA(0,0,0,.2);
       padding: 5px 10px;
       font-size: 16px;
     }
     .back_link:hover {
-      background-color: RGBA(0,0,9,.05);
-      color: RGBA(0,0,0,.8);
+      color: RGBA(0,0,0,.6);
     }
 
     // Бокс со стрелкой "назад"
     .box_back_style {
-      border: 1px solid RGBA(0,0,0,.2);
+      border: 1px solid RGBA(0,0,0,.1);
       box-shadow: none;
     }
 
     // Стили для бокса левого меню интерфейса бота
     .box_leftmenu_style {
-      border-right: 1px solid RGBA(0,0,0,.2);
+      border: 1px solid RGBA(0,0,0,.1);
       cursor: default;
+      background-color: #fff;
+      border-radius: 2px;
     }
     .box_leftmenu_style ul {
-      padding: 10px 0;
+      padding: 0 0 7px 0;
     }
     .box_leftmenu_style li {
       transition: color 0.3s ease-in-out;
       list-style-type: none;
-      padding: 7px 10px 7px 10px;
+      padding: 14px 10px 0px 10px;
       color: RGBA(0,0,0,.5);
     }
     .box_leftmenu_style li:hover {
+      color: RGBA(0,0,0,8);
+    }
+    .box_leftmenu_style .active {
       color: RGBA(0,0,0,1);
     }
 
@@ -355,10 +358,23 @@
   // Правый столбец //
   //----------------//
 
-    // Стили левого столбца
+    // Стили правого столбца
     .ibot_right_column {
-      padding-left: 120px;
+      padding-left: 20px;
+    }
+    .ibot_right_column .content_in_content_box {
+      padding: 10px;
     }
 
+    // Контент-бокс правого столбца
+    .ibot_right_column .content_box {
+      border: 1px solid RGBA(0,0,0,.1);
+      background-color: #fff;
+      border-radius: 2px;
+    }
+    .ibot_right_column .content_box .nav-tabs-custom {
+      border: 0;
+      box-shadow: none;
+    }
 
 

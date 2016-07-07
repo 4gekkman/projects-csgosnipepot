@@ -41,6 +41,10 @@
  *    f.s4.update 									| s4.1. Обновить код мобильного аутентификатора для выбранного бота
  *    f.s4.copy   									| s4.2. Скопировать текущий код в буфер обмена
  *
+ *  s5. Функционал модели управления меню и поддокументами интерфейса бота
+ *
+ *    f.s5.choose_subdoc            | s5.1. Выбрать subdoc с указанным id
+ *
  *
  */
 
@@ -910,9 +914,51 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+	//------------------------------------------------------------------------------------//
+	// 			        		 			                                                            //
+	// 			 s5. Функционал модели управления меню и поддокументами интерфейса бота 			//
+	// 			         					                                                            //
+	//------------------------------------------------------------------------------------//
+	f.s5 = {};
 
+		//-------------------------------------//
+		// s5.1. Выбрать subdoc с указанным id //
+		//-------------------------------------//
+		// - Пояснение
+		f.s5.choose_subdoc = function(id, data, event) {
 
+			// 1] Получить ID
+			var subdoc_id = (function(){
 
+				if(id) return id;
+				else return data.id();
+
+			})();
+
+			// 2] Получить объект поддокумента с id
+			var subdoc = self.m.s5.indexes.subdocs[subdoc_id];
+
+			// 3] Если этот subdoc уже выбран, завершить
+			if(subdoc.id() == self.m.s5.selected_subdoc().id()) return;
+
+			// 4] Если subdoc не найден, завершить
+			if(!subdoc) {
+				console.log('Поддокумент с id == '+subdoc_id+' не найден.');
+				return;
+			}
+
+			// 5] Записать subdoc в m.s5.selected_subdoc
+			self.m.s5.selected_subdoc(subdoc);
+
+			// 6] Добавить историю новое состояние
+			History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+
+			// n] Выполнить update_all
+			// - Но только если data != "without reload"
+			// if(data != "without reload")
+			//	self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
+
+		};
 
 
 

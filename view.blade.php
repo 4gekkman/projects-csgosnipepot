@@ -83,7 +83,7 @@
 <?php /*-------->
 <!-- 2. Боты  -->
 <!----------*/ ?>
-<div class="tab-pane" data-bind="css: {active: m.s1.selected_subdoc().id() == 1}">
+<div style="display: none" data-bind="visible: m.s1.selected_subdoc().id() == 1">
 
   <?php /*---------->
   <!-- 2.1. Боты  -->
@@ -224,23 +224,157 @@
 <?php /*----------------------------->
 <!-- 3. Интерфейс кликнутого бота  -->
 <!-------------------------------*/ ?>
-<div class="tab-pane ibot_container rowfix" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
+<div style="display: none" class="ibot_container rowfix" data-bind="visible: m.s1.selected_subdoc().id() == 2">
 
   <?php /*----------------------------------------------->
   <!-- 3.1. Левый столбец: кнопка "Назад" и левое меню -->
   <!-------------------------------------------------*/ ?>
-  <div class="spanfix_left0 spanfix_width120">
+  <div class="spanfix_left0 spanfix_width120 ibot_left_column">
 
-    123
+    <?php /*--------------------->
+    <!-- 3.1.1. Кнопка "назад" -->
+    <!-----------------------*/ ?>
+    <div class="box box_back_style">
+      <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, 1)">
+        <span>
+          <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
+        </span>
+      </div>
+    </div>
+
+    <?php /*--------------------------------->
+    <!-- 2.1.1. Левое меню интерфейса бота -->
+    <!-----------------------------------*/ ?>
+    <div class="box_leftmenu_style">
+      <ul>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 1}, click: f.s5.choose_subdoc.bind($data, 1)">Trade</li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 2}, click: f.s5.choose_subdoc.bind($data, 2)">Properties</li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 3}, click: f.s5.choose_subdoc.bind($data, 3)">Auth code</li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 4}, click: f.s5.choose_subdoc.bind($data, 4)">Authorization</li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 5}, click: f.s5.choose_subdoc.bind($data, 5)">Permissions</li>
+      </ul>
+    </div>
 
   </div>
 
   <?php /*-------------------------------------------------->
   <!-- 3.2. Правый столбец: имя бота и контент интерфейса -->
   <!----------------------------------------------------*/ ?>
-  <div class="spanfix_left120">
+  <div class="spanfix_left120 spanfix_right0 ibot_right_column">
 
-    123
+    <?php /*--------------------->
+    <!-- 3.2.1. Хлебные крошки -->
+    <!-----------------------*/ ?>
+    <div class="box box_back_style">
+      <div class="box-body subdoc_title">
+        Bots &nbsp; → &nbsp; <span data-bind="text: m.s2.edit.steam_name"></span>
+      </div>
+    </div>
+
+    <?php /*----------------------------------->
+    <!-- 3.2.2. Контент-бокс интерфейса бота -->
+    <!-------------------------------------*/ ?>
+    <div class="content_box">
+
+      <?php /*-------->
+      <!-- 1] Trade -->
+      <!----------*/ ?>
+      <div style="display: none" class="nav-tabs-custom" data-bind="visible: m.s5.selected_subdoc().id() == 1">
+        <ul class="nav nav-tabs pull-right">
+          <li class="active"><a href="#tab_1-1" data-toggle="tab">Tab 1</a></li>
+          <li><a href="#tab_2-2" data-toggle="tab">Tab 2</a></li>
+          <li><a href="#tab_3-2" data-toggle="tab">Tab 3</a></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+              Dropdown <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another action</a></li>
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
+              <li role="presentation" class="divider"></li>
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
+            </ul>
+          </li>
+          <li class="pull-left header"><i class="fa fa-th"></i> Custom Tabs</li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="tab_1-1">
+            <b>How to use:</b>
+
+            <p>Exactly like the original bootstrap tabs except you should use
+              the custom wrapper <code>.nav-tabs-custom</code> to achieve this style.</p>
+            A wonderful serenity has taken possession of my entire soul,
+            like these sweet mornings of spring which I enjoy with my whole heart.
+            I am alone, and feel the charm of existence in this spot,
+            which was created for the bliss of souls like mine. I am so happy,
+            my dear friend, so absorbed in the exquisite sense of mere tranquil existence,
+            that I neglect my talents. I should be incapable of drawing a single stroke
+            at the present moment; and yet I feel that I never was a greater artist than now.
+          </div>
+          <!-- /.tab-pane -->
+          <div class="tab-pane" id="tab_2-2">
+            The European languages are members of the same family. Their separate existence is a myth.
+            For science, music, sport, etc, Europe uses the same vocabulary. The languages only differ
+            in their grammar, their pronunciation and their most common words. Everyone realizes why a
+            new common language would be desirable: one could refuse to pay expensive translators. To
+            achieve this, it would be necessary to have uniform grammar, pronunciation and more common
+            words. If several languages coalesce, the grammar of the resulting language is more simple
+            and regular than that of the individual languages.
+          </div>
+          <!-- /.tab-pane -->
+          <div class="tab-pane" id="tab_3-2">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+            Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+            when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+            It has survived not only five centuries, but also the leap into electronic typesetting,
+            remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset
+            sheets containing Lorem Ipsum passages, and more recently with desktop publishing software
+            like Aldus PageMaker including versions of Lorem Ipsum.
+          </div>
+          <!-- /.tab-pane -->
+        </div>
+      </div>
+
+      <?php /*------------->
+      <!-- 2] Properties -->
+      <!---------------*/ ?>
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 2">
+
+        Properties
+
+      </div>
+
+      <?php /*------------>
+      <!-- 3] Auth code -->
+      <!--------------*/ ?>
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 3">
+
+        Auth code
+
+      </div>
+
+      <?php /*---------------->
+      <!-- 4] Authorization -->
+      <!------------------*/ ?>
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 4">
+
+        Authorization
+
+      </div>
+
+      <?php /*-------------->
+      <!-- 5] Permissions -->
+      <!----------------*/ ?>
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 5">
+
+        Permissions
+
+      </div>
+
+
+    </div>
+
 
   </div>
 

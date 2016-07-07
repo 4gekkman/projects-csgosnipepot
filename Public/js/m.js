@@ -67,6 +67,13 @@
  *    s4.8. Идёт ли сейчас ajax-запрос, или нет
  *  	s4.n. Индексы и вычисляемые значения
  *
+ *  s5. Модель управления меню и поддокументами интерфейса бота
+ *
+ *  	s5.1. Объект-контейнер для всех свойств модели
+ *    s5.2. Наблюдаемый массив поддокументов
+ *    s5.3. Ссылка на выбранный поддокумент
+ *    s5.n. Индексы и вычисляемые значения
+ *
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -742,6 +749,104 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	});
 
 
+	//-----------------------------------------------------------------------//
+	// 			        		 	                                                   //
+	// 			 s5. Модель управления меню и поддокументами интерфейса бота 		 //
+	// 			         			                                                   //
+	//-----------------------------------------------------------------------//
+
+	//------------------------------------------------//
+	// s5.1. Объект-контейнер для всех свойств модели //
+	//------------------------------------------------//
+	self.m.s5 = {};
+
+	//----------------------------------------//
+	// s5.2. Наблюдаемый массив поддокументов //
+	//----------------------------------------//
+	self.m.s5.subdocs = ko.observableArray([
+		ko.observable({
+			id: ko.observable('1'),
+			name: ko.observable('Trade'),
+			query: ko.observable('?page=bot&subdoc=trade')
+		}),
+		ko.observable({
+			id: ko.observable('2'),
+			name: ko.observable('Properties'),
+			query: ko.observable('?page=bot&subdoc=properties')
+		}),
+		ko.observable({
+			id: ko.observable('3'),
+			name: ko.observable('Authcode'),
+			query: ko.observable('?page=bot&subdoc=authcode')
+		}),
+		ko.observable({
+			id: ko.observable('4'),
+			name: ko.observable('Authorization'),
+			query: ko.observable('?page=bot&subdoc=authorization')
+		}),
+		ko.observable({
+			id: ko.observable('5'),
+			name: ko.observable('Permissions'),
+			query: ko.observable('?page=bot&subdoc=permissions')
+		})
+	]);
+
+	//---------------------------------------//
+	// s5.3. Ссылка на выбранный поддокумент //
+	//---------------------------------------//
+	self.m.s5.selected_subdoc = ko.observable(self.m.s5.subdocs()[0]());
+
+	//--------------------------------------//
+	// s5.n. Индексы и вычисляемые значения //
+	//--------------------------------------//
+	ko.computed(function(){
+
+		//--------------------------------------------------------------//
+		// s5.n.1. Объект-контейнер для индексов и вычисляемых значений //
+		//--------------------------------------------------------------//
+		self.m.s5.indexes = {};
+
+		//------------------------------//
+		// s5.n.2. Индекс поддокументов //
+		//------------------------------//
+		// - По ID поддокумента можно получить ссылку на соотв. объект в self.m.s5.subdocs
+		self.m.s5.indexes.subdocs = (function(){
+
+			// 1. Подготовить объект для результатов
+			var results = {};
+
+			// 2. Заполнить results
+			for(var i=0; i<self.m.s5.subdocs().length; i++) {
+				results[self.m.s5.subdocs()[i]().id()] = self.m.s5.subdocs()[i]();
+			}
+
+			// 3. Вернуть results
+			return results;
+
+		}());
+
+		//--------------------------------------//
+		// s5.n.3. Именной индекс поддокументов //
+		//--------------------------------------//
+		// - По name поддокумента можно получить ссылку на соотв. объект в self.m.s5.subdocs
+		self.m.s5.indexes.subdocs_by_name = (function(){
+
+			// 1. Подготовить объект для результатов
+			var results = {};
+
+			// 2. Заполнить results
+			for(var i=0; i<self.m.s5.subdocs().length; i++) {
+				results[self.m.s5.subdocs()[i]().name().toLowerCase()] = self.m.s5.subdocs()[i]();
+			}
+
+			// 3. Вернуть results
+			return results;
+
+		}());
+
+	});
+
+
 	//------------------------------------------------------------//
 	// 			        		 	                                        //
 	// 			 sN. Данные, которым доступны все прочие данные  			//
@@ -806,8 +911,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			// 2] Если состояния приложения и истории расходятся
 			// - То привести состояние приложения в соответствие
-			if(self.m.s1.selected_subdoc().id() != state_id)
-				self.f.s1.choose_subdoc(state_id);
+			// if(self.m.s1.selected_subdoc().id() != state_id)
+			// 	self.f.s1.choose_subdoc(state_id);
 
     });
 
