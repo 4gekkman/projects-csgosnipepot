@@ -21,57 +21,65 @@
 //----------------//
 // 1. Общие стили //
 //----------------//
-.selectall_cb {
-  user-select: none;
-  font-weight: normal;
-  margin: 0 0 0 15px;
-}
-.small_notes {
-  color: #aaa;
-}
-.back_link {
-  cursor: pointer;
-  text-align: center;
-  color: RGBA(0,0,200,1);
-  background-color: RGBA(0,0,255,.02);
-  padding: 5px 10px;
-  font-size: 16px;
-}
-.back_link:hover {
-  background-color: RGBA(0,0,255,.05);
-}
-.subdoc_title {
-  font-size: 16px;
-  padding: 5px 10px;
-}
-.subdoc_title {
-  font-size: 16px;
-  padding: 5px 10px;
-}
-.tools_panel {
-  border-bottom: 1px solid #f4f4f4;
-  padding: 5px 10px;
-}
-.tools_panel .tools {
-  height: 28px;
-  line-height: 28px;
-}
-.yellow_text {
-  color: RGBA(150,150,0,.7);
-  font-weight: bold;
-  font-size: 1.3em;
-}
-.red_text {
-  color: RGBA(255,0,0,.7);
-  font-weight: bold;
-  font-size: 1.5em;
-}
-.red_background_soft {
-  background-color: RGBA(255,0,0,.3);
-}
-.green_background_soft {
-  background-color: RGBA(0,255,0,.1);
-}
+
+  // Стили для боксов
+
+    // Бокс с хлебными крошками ботов
+    .box_breadcrumbs_style {
+      border: 0;
+      box-shadow: none;
+    }
+    .box_breadcrumbs_style ul {
+      padding: 0;
+      padding-left: 10px;
+    }
+    .box_breadcrumbs_style li {
+      list-style-type: none;
+    }
+
+  // Прочие стили
+  .selectall_cb {
+    user-select: none;
+    font-weight: normal;
+    margin: 0 0 0 15px;
+  }
+  .small_notes {
+    color: #aaa;
+  }
+  .subdoc_title {
+    font-size: 16px;
+    padding: 5px 10px;
+  }
+  .subdoc_title {
+    font-size: 16px;
+    padding: 5px 10px;
+  }
+  .tools_panel {
+    border-bottom: 1px solid #f4f4f4;
+    padding: 5px 10px;
+  }
+  .tools_panel .tools {
+    height: 28px;
+    line-height: 28px;
+  }
+  .yellow_text {
+    color: RGBA(150,150,0,.7);
+    font-weight: bold;
+    font-size: 1.3em;
+  }
+  .red_text {
+    color: RGBA(255,0,0,.7);
+    font-weight: bold;
+    font-size: 1.5em;
+  }
+  .red_background_soft {
+    background-color: RGBA(255,0,0,.3);
+  }
+  .green_background_soft {
+    background-color: RGBA(0,255,0,.1);
+  }
+
+
 
 //------------------------//
 // 2. Запреты на торговлю //
@@ -281,10 +289,69 @@
     margin-top: 5px;
   }
 
+//--------------------------//
+// 7. Стили интерфейса бота //
+//--------------------------//
+
+  //------------------------//
+  // Контейнер для столбцов //
+  //------------------------//
+
+    // Стили контейнера для столбцов
+    .ibot_container {
+      position: relative;
+    }
 
 
+  //---------------//
+  // Левый столбец //
+  //---------------//
 
+    // Стили левого столбца
+    .ibot_left_column {
+      width: 120px;
+    }
 
+    // Блок "назад"
+    .back_link {
+      transition: all 0.2s ease-in-out;
+      background-color: RGBA(255,255,255,1);
+      cursor: pointer;
+      text-align: center;
+      color: RGBA(0,0,0,.5);
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+    .back_link:hover {
+      background-color: RGBA(0,0,9,.05);
+      color: RGBA(0,0,0,.8);
+    }
 
+    // Бокс со стрелкой "назад"
+    .box_back_style {
+      border: 1px solid RGBA(0,0,0,.2);
+      box-shadow: none;
+    }
 
+    // Стили для бокса левого меню интерфейса бота
+    .box_leftmenu_style {
+      border-right: 1px solid RGBA(0,0,0,.2);
+      cursor: default;
+    }
+    .box_leftmenu_style ul {
+      padding: 10px 0;
+    }
+    .box_leftmenu_style li {
+      list-style-type: none;
+      padding: 5px 10px 5px 10px;
+    }
+    .box_leftmenu_style li:hover {
+      background-color: RGBA(0,0,0,.05);
+    }
 
+  //---------------//
+  // Левый столбец //
+  //---------------//
+  .ibot_right_column {
+    padding-left: 120px;
+  }

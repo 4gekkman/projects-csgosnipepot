@@ -258,9 +258,101 @@
         <?php /*------------------------------->
         <!-- 2.2. Интерфейс кликнутого бота  -->
         <!---------------------------------*/ ?>
-        <div class="tab-pane" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
+        <div class="tab-pane ibot_container" data-bind="css: {active: m.s1.selected_subdoc().id() == 2}">
 
-          123
+          <?php /*------------------------------------------------->
+          <!-- 2.2.1. Левый столбец: кнопка "Назад" и левое меню -->
+          <!---------------------------------------------------*/ ?>
+          <div class="ibot_left_column">
+
+            <?php /*----------------------->
+            <!-- 2.2.1.1. Кнопка "назад" -->
+            <!-------------------------*/ ?>
+            <div class="box box_back_style">
+              <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, 1)">
+                <span>
+                  <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
+                </span>
+              </div>
+            </div>
+
+            <?php /*----------------------------------->
+            <!-- 2.2.1.2. Левое меню интерфейса бота -->
+            <!-------------------------------------*/ ?>
+            <div class="box_leftmenu_style">
+              <ul>
+                <li>Trade</li>
+                <li>Properties</li>
+                <li>Auth code</li>
+                <li>Authorization</li>
+              </ul>
+            </div>
+
+          </div>
+
+          <?php /*---------------------------------------------------->
+          <!-- 2.2.2. Правый столбец: имя бота и контент интерфейса -->
+          <!------------------------------------------------------*/ ?>
+          <div class="ibot_right_column">
+
+            123
+
+          </div>
+
+
+          <div style="display: none">
+
+              <?php /*--------------------------------------------->
+              <!-- 2.2.1. Кнопка "Назад" и название поддокумента -->
+              <!-----------------------------------------------*/ ?>
+              <div class="row">
+                <div class="col-md-2 col-sm-2 col-xs-2">
+                  <div class="box box_back_style">
+                    <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, 1)">
+                      <span>
+                        <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-10 col-sm-10 col-xs-10">
+                  <div class="box box_breadcrumbs_style">
+                    <div class="box-body subdoc_title">
+                      Bots &nbsp; → &nbsp; <span data-bind="text: m.s2.edit.steam_name"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <?php /*--------------------------->
+              <!-- 2.2.2. Левое меню и контент -->
+              <!-----------------------------*/ ?>
+              <div class="row">
+
+                <?php /*------------------->
+                <!-- 2.2.2.1. Левое меню -->
+                <!---------------------*/ ?>
+                <div class="col-md-2 col-sm-2 col-xs-2">
+                  <div class="box_leftmenu_style">
+                    <ul>
+                      <li>Trade</li>
+                      <li>Properties</li>
+                      <li>Auth code</li>
+                      <li>Authorization</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <?php /*-------------------------------->
+                <!-- 2.2.2.2. Контент интерфейса бота -->
+                <!----------------------------------*/ ?>
+                <div class="col-md-10 col-sm-10 col-xs-10">
+
+                </div>
+              </div>
+
+          </div>
+
 
         </div>
 
