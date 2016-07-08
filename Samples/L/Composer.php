@@ -57,15 +57,15 @@
 ////==========================================================//*/
 View::composer('PARAMpackfullnamePARAM::layout', function($view) {
 
-  // 1. Получить и приготовить данные
+  // 1. Получить из конфига данные о пунктах меню
+  // $menu = config("L10000.menuitems");
 
 
 
-
-  // n. Передать необходимые данные шаблону
-
-    // n.1. Данные меню
-    // $view->with('menu', $menudata);
+  // n. Передать необходимые шаблону данные
+  $view->with('data', json_encode([
+    // "menu" => $menu
+  ], JSON_UNESCAPED_UNICODE));
 
 
 });

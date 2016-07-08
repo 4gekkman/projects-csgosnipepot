@@ -69,11 +69,15 @@
   <script>
 
     // 1. Подготовить объект для JS-кода шаблона
-    window["layout_PARAMpackfullnamePARAM"] = {};
+    var layout_data = {};
 
     // 2. Принять данные для шаблона
 
-      window["layout_PARAMpackfullnamePARAM"].csrf_token  = "{{ csrf_token() }}";
+      // 2.1. Принять csrf_token
+      layout_data.csrf_token  = "{{ csrf_token() }}";
+
+      // 2.2. Принять переданные из контроллера данные
+      layout_data.data        =  {!! $data !!};
 
   </script>
 
