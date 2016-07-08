@@ -248,11 +248,11 @@
     <!-----------------------------------*/ ?>
     <div class="box_leftmenu_style">
       <ul>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 1}, click: f.s5.choose_subdoc.bind($data, 1)">Trade</li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 2}, click: f.s5.choose_subdoc.bind($data, 2)">Properties</li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 3}, click: f.s5.choose_subdoc.bind($data, 3)">Auth code</li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 4}, click: f.s5.choose_subdoc.bind($data, 4)">Authorization</li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 5}, click: f.s5.choose_subdoc.bind($data, 5)">Permissions</li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 1}, click: f.s5.choose_subdoc.bind($data, 1)"><span>Trade</span></li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 2}, click: f.s5.choose_subdoc.bind($data, 2)"><span>Properties</span></li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 3}, click: f.s5.choose_subdoc.bind($data, 3)"><span>Auth code</span></li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 4}, click: f.s5.choose_subdoc.bind($data, 4)"><span>Authorization</span></li>
+        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 5}, click: f.s5.choose_subdoc.bind($data, 5)"><span>Permissions</span></li>
       </ul>
     </div>
 

@@ -334,24 +334,27 @@
     // Стили для бокса левого меню интерфейса бота
     .box_leftmenu_style {
       border: 1px solid RGBA(0,0,0,.1);
-      cursor: default;
       background-color: #fff;
       border-radius: 2px;
     }
     .box_leftmenu_style ul {
-      padding: 0 0 7px 0;
+      padding: 7px 0 0px 0;
     }
     .box_leftmenu_style li {
       transition: color 0.3s ease-in-out;
       list-style-type: none;
-      padding: 14px 10px 0px 10px;
+      padding: 7px 10px 7px 10px;
       color: RGBA(0,0,0,.5);
+      cursor: pointer;
     }
     .box_leftmenu_style li:hover {
       color: RGBA(0,0,0,8);
     }
     .box_leftmenu_style .active {
       color: RGBA(0,0,0,1);
+    }
+    .box_leftmenu_style li span {
+      border-bottom: 1px dashed RGBA(0,0,0,.1);
     }
 
   //----------------//
