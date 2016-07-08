@@ -43,16 +43,37 @@
     background-color: #4f5a6e !important;
   }
   .navbar .sidebar-toggle:hover {
-    color: RGBA(0,200,200,1) !important;
+    color: RGBA(180,90,0,1) !important;
     background-color: transparent !important;
+  }
+  .navbar .dropdown-menu {
+    padding-top: 0 !important;
+  }
+  .navbar .user-header {
+    background-color: #4f5a6e !important;
+  }
+  .navbar .navbar-custom-menu .user-menu:hover {
+    // background-color: #4f5a6e !important;
+  }
+  .navbar .navbar-custom-menu .user-menu:focus {
+    // background-color: #4f5a6e !important;
   }
 
   // Зона лого
   .logo {
     background-color: #424b5f !important;
+    padding: 0 !important;
+    vertical-align: bottom;
+    text-align: left !important;
+    cursor: default;
   }
   .logo img {
-    width: 65px;
+    width: 50px !important;
+    margin-bottom: 8px !important;
+  }
+  .logo span {
+    font-size: 20px;
+    font-weight: bold;
   }
 
   // Левое меню
@@ -64,9 +85,11 @@
   }
   .main-sidebar .sidebar .sidebar-menu li>a:hover {
     background-color: #424b5f !important;
-    border-left: 4px solid RGBA(0,200,200,1) !important;
   }
-
+  .main-sidebar .sidebar .sidebar-menu .choosen {
+    background-color: #424b5f !important;
+    border-left: 4px solid RGBA(180,90,0,1) !important;
+  }
 
 
 

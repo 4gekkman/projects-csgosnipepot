@@ -74,4 +74,23 @@ return [
     //-------------------------------------------------------------------------//
     'cnfupdshistory'    => [],
 
+    //-----------------------//
+    // 5] Пункты меню        //
+    //    Menu items         //
+    //-----------------------//
+    'menuitems' => [
+      [
+        "id"        => 1,
+        "name"      => "Users control system",
+        "asset"     => "dashboard/users",
+        "fa"        => "fa-users"
+      ],
+      [
+        "id"        => 2,
+        "name"      => "Bots control system",
+        "asset"     => "dashboard/bots_and_automation",
+        "fa"        => "fa-gears"
+      ]
+    ]
+
 ];

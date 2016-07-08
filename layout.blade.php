@@ -100,6 +100,7 @@ desired effect
       <!--------------------->
       <div class="logo">
         <img src="{!! asset('public/L10000/assets/Logo_v2.png') !!}" class="user-image" alt="User Image">
+        <span>CSGOPROF.IT</span>
       </div>
 
       <!-- Б1.1.2. Верхняя навигационная полоса -->
@@ -167,23 +168,15 @@ desired effect
 
         <!-- 1] Меню левого сайдбара -->
         <!----------------------------->
-        <ul class="sidebar-menu" style="margin-top: 15px;">
+        <ul class="sidebar-menu" style="margin-top: 15px;" data-bind="foreach: m.s2.subdocs">
 
-          <!-- 1.1] Группа "NAVIGATION -->
-          <!----------------------------->
-
-            <!-- # Demonstration -->
-<!--            <li class=""><a href="{!! asset('dashboard/demonstration') !!}"><i class="fa fa-dashboard"></i> <span>Demonstration</span></a></li>-->
-
-            <!-- # Users control system -->
-            <li class=""><a href="{!! asset('dashboard/users') !!}"><i class="fa fa-users"></i> &nbsp;<span>Users control system</span></a></li>
-
-            <!-- # Images upload system -->
-<!--            <li class=""><a href="{!! asset('dashboard/images') !!}"><i class="fa fa-image"></i> <span>Images upload system</span></a></li>-->
-
-            <!-- # Bots and automation -->
-            <li class=""><a href="{!! asset('dashboard/bots_and_automation') !!}"><i class="fa fa-gears"></i> &nbsp;<span>Bots control system</span></a></li>
-
+          <!-- Элемент меню -->
+          <!------------------>
+          <li>
+            <a data-bind="attr: {href: $root.m.s2.root_url() + '/' + asset()}, css: {choosen: $root.m.s2.selected_subdoc().id() == id()}">
+              <i class="fa" data-bind="css: fa"></i> &nbsp;<span data-bind="text: name"></span>
+            </a>
+          </li>
 
         </ul>
 
@@ -303,11 +296,15 @@ desired effect
   <script>
 
     // 1. Подготовить объект для JS-кода шаблона
-    window["layout_PARAMpackfullnamePARAM"] = {};
+    var layout_data = {};
 
     // 2. Принять данные для шаблона
 
-      window["layout_PARAMpackfullnamePARAM"].csrf_token  = "{{ csrf_token() }}";
+      // 2.1. Принять csrf_token
+      layout_data.csrf_token  = "{{ csrf_token() }}";
+
+      // 2.2. Принять переданные из контроллера данные
+      layout_data.data        =  {!! $data !!};
 
   </script>
 

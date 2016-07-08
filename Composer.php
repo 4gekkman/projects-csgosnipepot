@@ -57,15 +57,34 @@
 ////==========================================================//*/
 View::composer('L10000::layout', function($view) {
 
-  // 1. Получить и приготовить данные
+  // 1. Получить из конфига данные о пунктах меню
+  $menu = config("L10000.menuitems");
 
+  // 2. Получить URL и Base URL запроса
+  $url = Request::url();
+  $root_url = (\Request::secure() ? "https://" : "http://") . (\Request::getHost());
 
+  // 3. Узнать номер запрашиваемого пункта меню
+  $menu_item_number = call_user_func(function() USE ($menu, $url) {
 
+    // 3.1. Пробежаться по $menu и искать asset в $utl
+    // - Вернуть ID соотв.пункта $menu, если совпадение найдено.
+    foreach($menu as $item) {
+      if(preg_match("!".$item['asset']."!ui", $url) > 0)
+        return $item['id'];
+    }
 
-  // n. Передать необходимые данные шаблону
+    // 3.2. Если ничего не найдено, вернуть 1
+    return 1;
 
-    // n.1. Данные меню
-    // $view->with('menu', $menudata);
+  });
+
+  // n. Передать необходимые шаблону данные
+  $view->with('data', json_encode([
+    "menu"              => $menu,
+    "menu_item_number"  => $menu_item_number,
+    "root_url"          => $root_url
+  ], JSON_UNESCAPED_UNICODE));
 
 
 });

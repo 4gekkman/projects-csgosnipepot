@@ -13,6 +13,7 @@
  *
  *		f.s0.sm_func									| s0.1. Показывает модальное окно с text, заголовком "ошибка" и кнопкой "закрыть"
  *		f.s0.txt_delay_save           | s0.2. Функционал "механизма отложенного сохранения для текстовых полей"
+ *    f.s0.update_menu              | s0.3. Обновить модель меню
  *
  *  s1. Связанный с аутентификацией функционал
  *
@@ -125,6 +126,38 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 				self.m.s0.txt_delay_save.is_unsaved_data(0);
 			};
 
+		//----------------------------//
+		// s0.3. Обновить модель меню //
+		//----------------------------//
+		f.s0.update_menu = function(menu) {
+
+			// 1] Очистить меню
+			self.m.s2.subdocs.removeAll();
+
+			// 2] Наполнить меню новыми данными
+			for(var i=0; i<menu.length; i++) {
+
+				// 2.1] Сформировать объект для добавления
+				var obj = {};
+				for(var key in menu[i]) {
+
+					// Если свойство не своё, пропускаем
+					if(!menu[i].hasOwnProperty(key)) continue;
+
+					// Добавим в obj свойство key
+					obj[key] = ko.observable(menu[i][key]);
+
+				}
+
+				// 2.2] Добавить этот объект в подготовленный массив
+				self.m.s2.subdocs.push(ko.observable(obj));
+
+			}
+
+			// 3] Сделать соответствующий элемент меню выбранным
+			self.m.s2.selected_subdoc(self.m.s2.subdocs()[+layout_data.data.menu_item_number-1]());
+
+		};
 
 	//--------------------------------------------------------//
 	// 			        		 			                                //
