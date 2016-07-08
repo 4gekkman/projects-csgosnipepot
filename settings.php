@@ -81,13 +81,13 @@ return [
     'menuitems' => [
       [
         "id"        => 1,
-        "name"      => "Users control system",
+        "name"      => "User control system",
         "asset"     => "dashboard/users",
         "fa"        => "fa-users"
       ],
       [
         "id"        => 2,
-        "name"      => "Bots control system",
+        "name"      => "Bot control system",
         "asset"     => "dashboard/bots_and_automation",
         "fa"        => "fa-gears"
       ]
