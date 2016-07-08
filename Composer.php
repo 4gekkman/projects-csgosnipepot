@@ -83,7 +83,8 @@ View::composer('L10000::layout', function($view) {
   $view->with('data', json_encode([
     "menu"              => $menu,
     "menu_item_number"  => $menu_item_number,
-    "root_url"          => $root_url
+    "root_url"          => $root_url,
+    "port"              => \Request::getPort()
   ], JSON_UNESCAPED_UNICODE));
 
 

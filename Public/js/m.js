@@ -390,13 +390,18 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			return (nth >= 2) ? "" : match;
 		});
 
+		// 3] Если у root_url порт отсутствует, добавить ему layout_data.data.port
+		$matches = root_url.match(/:[0-9]+/gi);
+		if(!$matches || $matches.length === 0)
+			root_url = root_url + ':' + layout_data.data.port;
+
 		// n] Вернуть root_url
 		return root_url;
 
 	})());
 
 	//--------------------------------------//
-	// s2.n. Индексы и вычисляемые значения //
+	// ds2.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
 	ko.computed(function(){
 
