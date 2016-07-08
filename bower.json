@@ -12,7 +12,8 @@
 		"loaders.css": "latest",
 		"socket.io-client": "latest",
 		"perfect-scrollbar": "latest",
-		"d3": "latest"
+		"d3": "latest",
+		"4gekkman-bower-animsition": "latest"
 	},
   "mains": {
     "css": [

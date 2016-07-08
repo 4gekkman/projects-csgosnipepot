@@ -164,7 +164,7 @@ desired effect
 
       <!-- Б1.2.1. Левый сайдбар -->
       <!--------------------------->
-      <section class="sidebar">
+      <section class="sidebar animsition" data-animsition-out-class="fade-out-left-sm" data-animsition-out-duration="1000">
 
         <!-- 1] Меню левого сайдбара -->
         <!----------------------------->
@@ -173,7 +173,7 @@ desired effect
           <!-- Элемент меню -->
           <!------------------>
           <li>
-            <a data-bind="attr: {href: $root.m.s2.root_url() + '/' + asset()}, css: {choosen: $root.m.s2.selected_subdoc().id() == id()}">
+            <a class="animsition-link" data-bind="attr: {href: $root.m.s2.root_url() + '/' + asset()}, css: {choosen: $root.m.s2.selected_subdoc().id() == id()}">
               <i class="fa" data-bind="css: fa"></i> &nbsp;<span data-bind="text: name"></span>
             </a>
           </li>
@@ -188,7 +188,7 @@ desired effect
     <!-- Б1.3. Заголовок, хлебные крошки, контент документа -->
     <!-------------------------------------------------------->
     <div class="content-wrapper" style="min-height: 300px;" data-bind="stopBindings: true">
-      <section id="content" class="content">
+      <section id="content" class="content animsition" data-animsition-out-class="fade-out-right-sm" data-animsition-out-duration="1000">
 
         @yield('content')
 
