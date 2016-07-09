@@ -165,6 +165,7 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
       foreach($packages as $package) {
 
         // 3.1. Сформировать строку для вставки CSS для $package
+        // - В конце каждого пути добавлять случайное 4-значное число (боремся с кэшированием браузером старых версий ресурса)
         $css = call_user_func(function() USE ($index, $package) {
 
           // 1] Подготовить строку для результата
@@ -177,7 +178,7 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
             $result = $result . '  ';
 
             // 2] Добавить путь
-            $result = $result . '<link rel="stylesheet" type="text/css" href="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}' . '/' . $path . '">';
+            $result = $result . '<link rel="stylesheet" type="text/css" href="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}' . '/' . $path . '?rand=' . '{!! mt_rand(1000,9999); !!}' . '">';
 
             // 3] Добавить перенос строки
             $result = $result . PHP_EOL;
@@ -193,6 +194,7 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
         });
 
         // 3.2. Сформировать строку для вставки JS для $package
+        // - В конце каждого пути добавлять случайное 4-значное число (боремся с кэшированием браузером старых версий ресурса)
         $js = call_user_func(function() USE ($index, $package) {
 
           // 1] Подготовить строку для результата
@@ -205,7 +207,7 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
             $result = $result . '  ';
 
             // 2] Добавить путь
-            $result = $result . '<script src="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}' . '/' . $path . '"></script>';
+            $result = $result . '<script src="' . '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}' . '/' . $path . '?rand=' . '{!! mt_rand(1000,9999); !!}' . '"></script>';
 
             // 3] Добавить перенос строки
             $result = $result . PHP_EOL;
