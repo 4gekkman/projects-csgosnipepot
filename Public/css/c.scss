@@ -367,6 +367,7 @@
       min-width: 400px;
     }
     .ibot_right_column .content_in_content_box {
+      position: relative;
       padding: 10px;
     }
 
@@ -379,6 +380,13 @@
     .ibot_right_column .content_box .nav-tabs-custom {
       border: 0;
       box-shadow: none;
+    }
+
+    // Аватарка бота
+    .ibot_right_column .content_in_content_box .botava {
+      width: 100px;
+      height: 100px;
+      border: 1px solid #fafafa;
     }
 
 
