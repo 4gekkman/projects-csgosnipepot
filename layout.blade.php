@@ -89,7 +89,7 @@ desired effect
   <!------------------------------------------------->
   <!-- Б1. Блок wrapper (главный) шаблона AdminLTE -->
   <!------------------------------------------------->
-  <div class="wrapper" id="layoutmodel">
+  <div class="wrapper wrapper-color" id="layoutmodel">
 
     <!------------------>
     <!-- Б1.1. Header -->
@@ -141,7 +141,7 @@ desired effect
                 <!-- Menu Footer-->
                 <li class="user-footer">
                   <div class="pull-left">
-                    <a href="{!! asset('dashboard/profile') !!}" class="btn btn-default btn-flat">Profile</a>
+                    <!-- <a href="{!! asset('dashboard/profile') !!}" class="btn btn-default btn-flat">Profile</a>-->
                   </div>
                   <div class="pull-right">
                     <a href="#" class="btn btn-default btn-flat" data-bind="click: f.s1.logout">Logout</a>

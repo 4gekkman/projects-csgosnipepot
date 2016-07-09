@@ -34,6 +34,10 @@
 // 2. Изменение основных цветовых схем //
 //-------------------------------------//
 
+  .wrapper-color {
+    background-color: #ecf0f5 !important;
+  }
+
   // Левый сайдбар
   .main-sidebar {
     background-color: #4f5a6e !important;
@@ -102,7 +106,7 @@
     width: 40px;
     max-height: 40px;
     height: 40px;
-    margin-top: -9px;
+    margin-top: -10px;
   }
 
 
