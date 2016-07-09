@@ -29,8 +29,8 @@
  *  s1. Модель управления поддокументами приложения
  *
  *		s1.1. Объект-контейнер для всех свойств модели
- *    s1.2. Наблюдаемый массив поддокументов приложения
- *    s1.3. Ссылка на выбранный поддокумент приложения
+ *    s1.2. Группы поддокументов приложения
+ *    s1.3. Наблюдаемый массив поддокументов приложения
  *    s1.n. Индексы и вычисляемые значения
  *
  *  s2. Модель группы документов, связанных с ботами
@@ -66,13 +66,6 @@
  *    s4.7. Сколько осталось жить текущему коду в %
  *    s4.8. Идёт ли сейчас ajax-запрос, или нет
  *  	s4.n. Индексы и вычисляемые значения
- *
- *  s5. Модель управления меню и поддокументами интерфейса бота
- *
- *  	s5.1. Объект-контейнер для всех свойств модели
- *    s5.2. Наблюдаемый массив поддокументов
- *    s5.3. Ссылка на выбранный поддокумент
- *    s5.n. Индексы и вычисляемые значения
  *
  *  sN. Данные, которым доступны все прочие данные
  *
@@ -346,27 +339,82 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//------------------------------------------------//
 	self.m.s1 = {};
 
-	//---------------------------------------------------//
-	// s1.2. Наблюдаемый массив поддокументов приложения //
-	//---------------------------------------------------//
-	self.m.s1.subdocs = ko.observableArray([
-		ko.observable({
-			id: ko.observable('1'),
-			name: ko.observable('Bots'),
-			query: ko.observable('?page=bots')
-		}),
-		ko.observable({
-			id: ko.observable('2'),
-			name: ko.observable('Bot'),
-			query: ko.observable('?page=bot')
-		})
+	//---------------------------------------//
+	// s1.2. Группы поддокументов приложения //
+	//---------------------------------------//
 
-	]);
+		// 1] Наблюдаемый массив групп поддокументов приложения //
+		//------------------------------------------------------//
+		self.m.s1.groups = ko.observableArray([
 
-	//--------------------------------------------------//
-	// s1.3. Ссылка на выбранный поддокумент приложения //
-	//--------------------------------------------------//
-	self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[1]());
+			ko.observable({
+				id: ko.observable('1'),
+				name: ko.observable('Bots')
+			}),
+			ko.observable({
+				id: ko.observable('2'),
+				name: ko.observable('Bot')
+			})
+
+		]);
+
+		// 2] Выбранная группа поддокументов приложения //
+		//----------------------------------------------//
+		self.m.s1.selected_group = ko.observable(self.m.s1.groups()[0]());
+
+	//---------------------------------------------------//
+	// s1.3. Наблюдаемый массив поддокументов приложения //
+	//---------------------------------------------------//
+
+		// 1] Наблюдаемый массив поддокументов приложения //
+		//------------------------------------------------//
+		self.m.s1.subdocs = ko.observableArray([
+
+			// Поддокументы группы №1
+			ko.observable({
+				id: ko.observable('1'),
+				name: ko.observable('Bots'),
+				query: ko.observable('?group=bots'),
+				group: ko.observable('1')
+			}),
+
+			// Поддокументы группы №2
+			ko.observable({
+				id: ko.observable('100'),
+				name: ko.observable('Trade'),
+				query: ko.observable('?group=bot&subdoc=trade'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('101'),
+				name: ko.observable('Properties'),
+				query: ko.observable('?group=bot&subdoc=properties'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('102'),
+				name: ko.observable('Authcode'),
+				query: ko.observable('?group=bot&subdoc=authcode'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('103'),
+				name: ko.observable('Authorization'),
+				query: ko.observable('?group=bot&subdoc=authorization'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('104'),
+				name: ko.observable('Permissions'),
+				query: ko.observable('?group=bot&subdoc=permissions'),
+				group: ko.observable('2')
+			})
+
+		]);
+
+		// 2] Выбранный поддокумент приложения //
+		//------------------------------------//
+		self.m.s1.selected_subdoc = ko.observable(self.m.s1.subdocs()[0]());
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
@@ -378,43 +426,87 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//--------------------------------------------------------------//
 		self.m.s1.indexes = {};
 
-		//------------------------------//
-		// s1.n.2. Индекс поддокументов //
-		//------------------------------//
-		// - По ID поддокумента можно получить ссылку на соотв. объект в self.m.s1.subdocs
-		self.m.s1.indexes.subdocs = (function(){
+		//-------------------------------------//
+		// s1.n.2. Индексы групп поддокументов //
+		//-------------------------------------//
 
-			// 1. Подготовить объект для результатов
-			var results = {};
+			// 1] Индекс групп поддокументов //
+			//-------------------------------//
+			// - По ID группы поддокумента можно получить ссылку на соотв. объект в self.m.s1.groups
+			self.m.s1.indexes.groups = (function(){
 
-			// 2. Заполнить results
-			for(var i=0; i<self.m.s1.subdocs().length; i++) {
-				results[self.m.s1.subdocs()[i]().id()] = self.m.s1.subdocs()[i]();
-			}
+				// 1. Подготовить объект для результатов
+				var results = {};
 
-			// 3. Вернуть results
-			return results;
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.groups().length; i++) {
+					results[self.m.s1.groups()[i]().id()] = self.m.s1.groups()[i]();
+				}
 
-		}());
+				// 3. Вернуть results
+				return results;
 
-		//--------------------------------------//
-		// s1.n.3. Именной индекс поддокументов //
-		//--------------------------------------//
-		// - По name поддокумента можно получить ссылку на соотв. объект в self.m.s1.subdocs
-		self.m.s1.indexes.subdocs_by_name = (function(){
+			}());
 
-			// 1. Подготовить объект для результатов
-			var results = {};
+			// 2] Индекс поддокументов //
+			//-------------------------//
+			// - По name группы поддокумента можно получить ссылку на соотв. объект в self.m.s1.groups
+			self.m.s1.indexes.groups_by_name = (function(){
 
-			// 2. Заполнить results
-			for(var i=0; i<self.m.s1.subdocs().length; i++) {
-				results[self.m.s1.subdocs()[i]().name().toLowerCase()] = self.m.s1.subdocs()[i]();
-			}
+				// 1. Подготовить объект для результатов
+				var results = {};
 
-			// 3. Вернуть results
-			return results;
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.groups().length; i++) {
+					results[self.m.s1.groups()[i]().name().toLowerCase()] = self.m.s1.groups()[i]();
+				}
 
-		}());
+				// 3. Вернуть results
+				return results;
+
+			}());
+
+
+		//-------------------------------//
+		// s1.n.3. Индексы поддокументов //
+		//-------------------------------//
+
+			// 1] Индекс поддокументов //
+			//-------------------------//
+			// - По ID поддокумента можно получить ссылку на соотв. объект в self.m.s1.subdocs
+			self.m.s1.indexes.subdocs = (function(){
+
+				// 1. Подготовить объект для результатов
+				var results = {};
+
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.subdocs().length; i++) {
+					results[self.m.s1.subdocs()[i]().id()] = self.m.s1.subdocs()[i]();
+				}
+
+				// 3. Вернуть results
+				return results;
+
+			}());
+
+			// 2] Индекс поддокументов //
+			//-------------------------//
+			// - По name поддокумента можно получить ссылку на соотв. объект в self.m.s1.subdocs
+			self.m.s1.indexes.subdocs_by_name = (function(){
+
+				// 1. Подготовить объект для результатов
+				var results = {};
+
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.subdocs().length; i++) {
+					results[self.m.s1.subdocs()[i]().name().toLowerCase()] = self.m.s1.subdocs()[i]();
+				}
+
+				// 3. Вернуть results
+				return results;
+
+			}());
+
 
 	});
 
@@ -749,103 +841,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	});
 
 
-	//-----------------------------------------------------------------------//
-	// 			        		 	                                                   //
-	// 			 s5. Модель управления меню и поддокументами интерфейса бота 		 //
-	// 			         			                                                   //
-	//-----------------------------------------------------------------------//
-
-	//------------------------------------------------//
-	// s5.1. Объект-контейнер для всех свойств модели //
-	//------------------------------------------------//
-	self.m.s5 = {};
-
-	//----------------------------------------//
-	// s5.2. Наблюдаемый массив поддокументов //
-	//----------------------------------------//
-	self.m.s5.subdocs = ko.observableArray([
-		ko.observable({
-			id: ko.observable('1'),
-			name: ko.observable('Trade'),
-			query: ko.observable('?page=bot&subdoc=trade')
-		}),
-		ko.observable({
-			id: ko.observable('2'),
-			name: ko.observable('Properties'),
-			query: ko.observable('?page=bot&subdoc=properties')
-		}),
-		ko.observable({
-			id: ko.observable('3'),
-			name: ko.observable('Authcode'),
-			query: ko.observable('?page=bot&subdoc=authcode')
-		}),
-		ko.observable({
-			id: ko.observable('4'),
-			name: ko.observable('Authorization'),
-			query: ko.observable('?page=bot&subdoc=authorization')
-		}),
-		ko.observable({
-			id: ko.observable('5'),
-			name: ko.observable('Permissions'),
-			query: ko.observable('?page=bot&subdoc=permissions')
-		})
-	]);
-
-	//---------------------------------------//
-	// s5.3. Ссылка на выбранный поддокумент //
-	//---------------------------------------//
-	self.m.s5.selected_subdoc = ko.observable(self.m.s5.subdocs()[1]());
-
-	//--------------------------------------//
-	// s5.n. Индексы и вычисляемые значения //
-	//--------------------------------------//
-	ko.computed(function(){
-
-		//--------------------------------------------------------------//
-		// s5.n.1. Объект-контейнер для индексов и вычисляемых значений //
-		//--------------------------------------------------------------//
-		self.m.s5.indexes = {};
-
-		//------------------------------//
-		// s5.n.2. Индекс поддокументов //
-		//------------------------------//
-		// - По ID поддокумента можно получить ссылку на соотв. объект в self.m.s5.subdocs
-		self.m.s5.indexes.subdocs = (function(){
-
-			// 1. Подготовить объект для результатов
-			var results = {};
-
-			// 2. Заполнить results
-			for(var i=0; i<self.m.s5.subdocs().length; i++) {
-				results[self.m.s5.subdocs()[i]().id()] = self.m.s5.subdocs()[i]();
-			}
-
-			// 3. Вернуть results
-			return results;
-
-		}());
-
-		//--------------------------------------//
-		// s5.n.3. Именной индекс поддокументов //
-		//--------------------------------------//
-		// - По name поддокумента можно получить ссылку на соотв. объект в self.m.s5.subdocs
-		self.m.s5.indexes.subdocs_by_name = (function(){
-
-			// 1. Подготовить объект для результатов
-			var results = {};
-
-			// 2. Заполнить results
-			for(var i=0; i<self.m.s5.subdocs().length; i++) {
-				results[self.m.s5.subdocs()[i]().name().toLowerCase()] = self.m.s5.subdocs()[i]();
-			}
-
-			// 3. Вернуть results
-			return results;
-
-		}());
-
-	});
-
 
 	//------------------------------------------------------------//
 	// 			        		 	                                        //
@@ -898,23 +893,62 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//-------------------------------------------------//
 		// X1.2. Добавление в историю стартового состояния //
 		//-------------------------------------------------//
-		History.pushState({state:self.m.s1.selected_subdoc().id()}, self.m.s1.selected_subdoc().name(), self.m.s1.selected_subdoc().query());
+		//History.pushState({state:self.m.s1.selected_subdoc().id()}, self.m.s1.selected_subdoc().name(), self.m.s1.selected_subdoc().query());
 
-		//-----------------------------------------------------------------------//
-		// X1.3. Назначить функцию-обработчик, срабатывающую при смене состояния //
-		//-----------------------------------------------------------------------//
-    History.Adapter.bind(window, 'statechange', function(){
+		//--------------------------------------------------------------------------//
+		// X1.3. На основе параметров page и subdoc с сервера открыть соотв.докуент //
+		//--------------------------------------------------------------------------//
+		// - И заодно добавить стартовое состояние.
+		// - А также назначить функцию-обработчик, срабатывающую при смене состояния.
+		(function(){
 
-			// 1] Получить текущее новое состояние
-			var state = History.getState();
-			var state_id = state.data.state;
+			// 1] На основе параметров page и subdoc с сервера открыть соотв.докуент, добавить стартовое состояние.
+			self.f.s1.choose_subdoc({
+				group: server.data.group,
+				subdoc: server.data.subdoc,
+				reload: false
+			}, '', '');
 
-			// 2] Если состояния приложения и истории расходятся
-			// - То привести состояние приложения в соответствие
-			// if(self.m.s1.selected_subdoc().id() != state_id)
-			// 	self.f.s1.choose_subdoc(state_id);
+			// 2] Назначить функцию-обработчик, срабатывающую при смене состояния
+			History.Adapter.bind(window, 'statechange', function(){
 
-    });
+				// 1] Получить текущее новое состояние
+				var state = History.getState();
+				var state_id = state.data.state;
+
+				// 2] Если состояния приложения и истории расходятся
+				// - То привести состояние приложения в соответствие
+				if(self.m.s1.selected_subdoc().id() != state_id) {
+
+					// 2.1] Получить объект поддокумента
+					var subdoc = self.m.s1.indexes.subdocs[state_id];
+
+					// 2.2] Если subdoc не найден, вернуть ошибку и завершить
+					if(!subdoc) {
+						console.log('Ошибка: при смене состояния истории не найден поддокумент.');
+						return;
+					}
+
+					// 2.3] Получить группу поддокумента
+					var group = self.m.s1.indexes.groups[subdoc.group()].name();
+
+					// 2.4] Если group не найдена, вернуть ошибку и завершить
+					if(!group) {
+						console.log('Ошибка: при смене состояния истории не найдена группа поддокумента.');
+						return;
+					}
+
+					// 2.5] Сменить состояние
+					self.f.s1.choose_subdoc({
+						group: group.name(),
+						subdoc: subdoc.name()
+					});
+
+				}
+
+			});
+
+		})();
 
 		//---------------------------------------------------------------------//
 		// X1.4. Обновить модель ботов на основе переданных в аргументе данных //
@@ -961,7 +995,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		}, 1000);
 
 		//-----------------------------------------------------//
-		// X1.5. Обновить модель ошибок обновления цен на вещи //
+		// X1.6. Обновить модель ошибок обновления цен на вещи //
 		//-----------------------------------------------------//
 		(function(){
 

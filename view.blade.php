@@ -84,7 +84,7 @@
 <?php /*-------->
 <!-- 2. Боты  -->
 <!----------*/ ?>
-<div style="display: none" data-bind="visible: m.s1.selected_subdoc().id() == 1">
+<div style="display: none" data-bind="visible: m.s1.selected_group().id() == 1">
 
   <?php /*---------->
   <!-- 2.1. Боты  -->
@@ -225,7 +225,7 @@
 <?php /*----------------------------->
 <!-- 3. Интерфейс кликнутого бота  -->
 <!-------------------------------*/ ?>
-<div style="display: none" class="ibot_container rowfix" data-bind="visible: m.s1.selected_subdoc().id() == 2">
+<div style="display: none" class="ibot_container rowfix" data-bind="visible: m.s1.selected_group().id() == 2">
 
   <?php /*----------------------------------------------->
   <!-- 3.1. Левый столбец: кнопка "Назад" и левое меню -->
@@ -236,7 +236,7 @@
     <!-- 3.1.1. Кнопка "назад" -->
     <!-----------------------*/ ?>
     <div class="box box_back_style">
-      <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, 1)">
+      <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, {group: 'bots', subdoc: 'bots'})">
         <span>
           <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
         </span>
@@ -248,11 +248,11 @@
     <!-----------------------------------*/ ?>
     <div class="box_leftmenu_style">
       <ul>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 1}, click: f.s5.choose_subdoc.bind($data, 1)"><span>Trade</span></li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 2}, click: f.s5.choose_subdoc.bind($data, 2)"><span>Properties</span></li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 3}, click: f.s5.choose_subdoc.bind($data, 3)"><span>Auth code</span></li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 4}, click: f.s5.choose_subdoc.bind($data, 4)"><span>Authorization</span></li>
-        <li data-bind="css: {active: m.s5.selected_subdoc().id() == 5}, click: f.s5.choose_subdoc.bind($data, 5)"><span>Permissions</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'trade'})"><span>Trade</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Properties'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'properties'})"><span>Properties</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authcode'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authcode'})"><span>Auth code</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authorization'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authorization'})"><span>Authorization</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Permissions'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'permissions'})"><span>Permissions</span></li>
       </ul>
     </div>
 
@@ -268,7 +268,9 @@
     <!-----------------------*/ ?>
     <div class="box box_back_style">
       <div class="box-body subdoc_title">
-        Bots &nbsp; → &nbsp; <span data-bind="text: m.s2.edit.steam_name"></span>
+        <span>Bots &nbsp; → &nbsp; </span>
+        <span data-bind="text: m.s2.edit.steam_name"></span>
+        <span data-bind="text: '(' + m.s2.edit.steamid() + ')', visible: m.s2.edit.steamid" style="font-size: 13px; color: #ccc;"></span>
       </div>
     </div>
 
@@ -280,7 +282,7 @@
       <?php /*-------->
       <!-- 1] Trade -->
       <!----------*/ ?>
-      <div style="display: none" class="nav-tabs-custom" data-bind="visible: m.s5.selected_subdoc().id() == 1">
+      <div style="display: none" class="nav-tabs-custom" data-bind="visible: m.s1.selected_subdoc().name() == 'Trade'">
         <ul class="nav nav-tabs pull-right">
           <li class="active"><a href="#tab_1-1" data-toggle="tab">Tab 1</a></li>
           <li><a href="#tab_2-2" data-toggle="tab">Tab 2</a></li>
@@ -340,7 +342,7 @@
       <?php /*------------->
       <!-- 2] Properties -->
       <!---------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 2">
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Properties'">
 
         Properties
 
@@ -349,7 +351,7 @@
       <?php /*------------>
       <!-- 3] Auth code -->
       <!--------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 3">
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authcode'">
 
         Auth code
 
@@ -358,7 +360,7 @@
       <?php /*---------------->
       <!-- 4] Authorization -->
       <!------------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 4">
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
 
         Authorization
 
@@ -367,7 +369,7 @@
       <?php /*-------------->
       <!-- 5] Permissions -->
       <!----------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s5.selected_subdoc().id() == 5">
+      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Permissions'">
 
         Permissions
 

@@ -41,10 +41,6 @@
  *    f.s4.update 									| s4.1. Обновить код мобильного аутентификатора для выбранного бота
  *    f.s4.copy   									| s4.2. Скопировать текущий код в буфер обмена
  *
- *  s5. Функционал модели управления меню и поддокументами интерфейса бота
- *
- *    f.s5.choose_subdoc            | s5.1. Выбрать subdoc с указанным id
- *
  *
  */
 
@@ -408,57 +404,131 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		// s1.3. Выбрать subdoc с указанным id //
 		//-------------------------------------//
 		// - Пояснение
-		f.s1.choose_subdoc = function(id, data, event) {
+		f.s1.choose_subdoc = function(parameters, data, event) {
 
-			// 1] Получить ID
-			var subdoc_id = (function(){
+			// 1] Получить на основе parameters объекты группы и поддокумента
 
-				if(id) return id;
-				else return data.id();
+				// 1.1] Получить группу
+				var group = (function(){
 
-			})();
+					// 1.1.1] Если self.m.s1.groups пуст, вернуть ''
+					if(self.m.s1.groups().length == 0) return '';
 
-			// 2] Получить объект поддокумента с id
-			var subdoc = self.m.s1.indexes.subdocs[subdoc_id];
+					// 1.1.2] Если parameters.group пуста, вернуть 1-й эл-т из m.s1.groups
+					if(!parameters.group) return self.m.s1.groups()[0]();
 
-			// 3] Если этот subdoc уже выбран, завершить
-			if(subdoc.id() == self.m.s1.selected_subdoc().id()) return;
+					// 1.1.3] Попробовать найти группу в индексе по имени
+					var group = self.m.s1.indexes.groups_by_name[parameters.group];
 
-			// 4] Если subdoc не найден, завершить
-			if(!subdoc) {
-				console.log('Поддокумент с id == '+subdoc_id+' не найден.');
-				return;
-			}
+					// 1.1.4] Если group пуста, вернуть 1-й эл-т из m.s1.groups
+					if(!group) return self.m.s1.groups()[0]();
 
-			// 5] Записать subdoc в m.s1.selected_subdoc
-			self.m.s1.selected_subdoc(subdoc);
+					// 1.1.5] Вернуть group
+					return group;
 
-			// 6] Добавить историю новое состояние
-			History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+				})();
 
-			// 7] Если выбран не документ бота, очистить m.s2.edit и m.s3.inventory
-			if(self.m.s1.selected_subdoc().id() != 2) {
+				// 1.2] Получить поддокумент
+				var subdoc = (function(){
 
-				// 7.1] Очистить m.s3.inventory
-				self.m.s3.inventory.removeAll();
+					// 1.2.1] Если self.m.s1.subdocs пуст, вернуть ''
+					if(self.m.s1.subdocs().length == 0) return '';
 
-				// 7.2] Очистить m.s2.edit
-				for(var key in self.m.s2.edit) {
+					// 1.2.2] Если parameters.subdoc пуста, вернуть 1-й эл-т из m.s1.subdocs
+					if(!parameters.subdoc) return self.m.s1.subdocs()[0]();
 
-					// Если свойство не своё, пропускаем
-					if(!self.m.s2.edit.hasOwnProperty(key)) continue;
+					// 1.2.3] Попробовать найти поддокумент в индексе по имени
+					var subdoc = self.m.s1.indexes.subdocs_by_name[parameters.subdoc];
 
-					// Добавим в obj свойство key
-					self.m.s2.edit[key]("");
+					// 1.2.4] Если subdoc пуста, вернуть 1-й эл-т из m.s1.subdocs
+					if(!subdoc) return self.m.s1.subdocs()[0]();
+
+					// 1.2.5] Вернуть subdoc
+					return subdoc;
+
+				})();
+
+			// 2] В зависимости от результатов выполнить ряд задач
+			(function(){
+
+				// 2.1] !group && !subdoc
+				if(!group && !subdoc) {
+
+					// 2.1.1] Сообщить об ошибке
+					console.log("Ошибка! Наблюдаемый массив m.s1.groups не должен быть пуст!");
+					console.log("Ошибка! Наблюдаемый массив m.s1.subdocs не должен быть пуст!");
+
+					// 2.1.2] Завершить
+					return;
 
 				}
 
-			}
+				// 2.2] !group && subdoc
+				if(!group && subdoc) {
 
-			// n] Выполнить update_all
-			// - Но только если data != "without reload"
-			if(data != "without reload")
-				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
+					// 2.2.1] Сообщить об ошибке
+					console.log("Ошибка! Наблюдаемый массив m.s1.groups не должен быть пуст!");
+
+					// 2.2.2] Завершить
+					return;
+
+				}
+
+				// 2.3] group && !subdoc
+				if(group && !subdoc) {
+
+					// 2.3.1] Сообщить об ошибке
+					console.log("Ошибка! Наблюдаемый массив m.s1.subdocs не должен быть пуст!");
+
+					// 2.3.2] Завершить
+					return;
+
+				}
+
+				// 2.4] group && subdoc
+				if(group && subdoc) {
+
+					// 2.4.1] Установить группу
+					self.m.s1.selected_group(group);
+
+					// 2.4.2] Установить поддокумент
+					self.m.s1.selected_subdoc(subdoc);
+
+					// 2.4.3] Добавить в историю новое состояние
+					History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+
+					// Выполнить дополнительную работу
+
+
+				}
+
+			})();
+
+
+//			// 7] Если выбран не документ бота, очистить m.s2.edit и m.s3.inventory
+//			if(self.m.s1.selected_subdoc().id() != 2) {
+//
+//				// 7.1] Очистить m.s3.inventory
+//				self.m.s3.inventory.removeAll();
+//
+//				// 7.2] Очистить m.s2.edit
+//				for(var key in self.m.s2.edit) {
+//
+//					// Если свойство не своё, пропускаем
+//					if(!self.m.s2.edit.hasOwnProperty(key)) continue;
+//
+//					// Добавим в obj свойство key
+//					self.m.s2.edit[key]("");
+//
+//				}
+//
+//			}
+//
+//			// n] Выполнить update_all
+//			// - Но только если data != "without reload"
+//			if(data != "without reload")
+//				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
+
 
 		};
 
@@ -526,7 +596,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.captcha_text();
 
 			// 2] Открыть поддокумент редактирования пользователя
-			self.f.s1.choose_subdoc(2);
+			self.f.s1.choose_subdoc({group: 'bot', subdoc: 'trade'});
 
 		};
 
@@ -910,53 +980,6 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			}
 
 			document.body.removeChild(textArea);
-
-		};
-
-
-	//------------------------------------------------------------------------------------//
-	// 			        		 			                                                            //
-	// 			 s5. Функционал модели управления меню и поддокументами интерфейса бота 			//
-	// 			         					                                                            //
-	//------------------------------------------------------------------------------------//
-	f.s5 = {};
-
-		//-------------------------------------//
-		// s5.1. Выбрать subdoc с указанным id //
-		//-------------------------------------//
-		// - Пояснение
-		f.s5.choose_subdoc = function(id, data, event) {
-
-			// 1] Получить ID
-			var subdoc_id = (function(){
-
-				if(id) return id;
-				else return data.id();
-
-			})();
-
-			// 2] Получить объект поддокумента с id
-			var subdoc = self.m.s5.indexes.subdocs[subdoc_id];
-
-			// 3] Если этот subdoc уже выбран, завершить
-			if(subdoc.id() == self.m.s5.selected_subdoc().id()) return;
-
-			// 4] Если subdoc не найден, завершить
-			if(!subdoc) {
-				console.log('Поддокумент с id == '+subdoc_id+' не найден.');
-				return;
-			}
-
-			// 5] Записать subdoc в m.s5.selected_subdoc
-			self.m.s5.selected_subdoc(subdoc);
-
-			// 6] Добавить историю новое состояние
-			History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
-
-			// n] Выполнить update_all
-			// - Но только если data != "without reload"
-			// if(data != "without reload")
-			//	self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
 
 		};
 

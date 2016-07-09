@@ -112,14 +112,18 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. Извлечь из GET-запроса параметр page
-      if(Request::has('page')) $page = Request::input('page');
-      else $page = '';
+      // 1. Извлечь из GET-запроса параметр branch
+      if(Request::has('group')) $group = Request::input('group');
+      else $group = '';
 
-      // 2. Получить всех ботов
+      // 2. Извлечь из GET-запроса параметр subdoc
+      if(Request::has('subdoc')) $subdoc = Request::input('subdoc');
+      else $subdoc = '';
+
+      // 3. Получить всех ботов
       $bots = (array) runcommand('\M8\Commands\C1_bots', []);
 
-      // 3. Получить информацию о багах при обновлении цен
+      // 4. Получить информацию о багах при обновлении цен
       $price_update_errors = \M8\Models\MD6_price_update_bugs::find(1);
 
 
@@ -131,7 +135,8 @@ class Controller extends BaseController {
         'packid'                => $this->packid,
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
-        'page'                  => $page,
+        'group'                 => $group,
+        'subdoc'                => $subdoc,
         'bots'                  => $bots,
         'price_update_errors'   => $price_update_errors
 
