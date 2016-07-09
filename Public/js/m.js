@@ -30,6 +30,7 @@
  *
  *		s1.1. Объект-контейнер для всех свойств модели
  *    s1.2. ФИО аутентифицированного пользователя
+ *    s1.3. Аватар аутентифицированного пользователя
  *    s1.n. Индексы и вычисляемые значения
  *
  *  s2. Модель левого навигационного меню
@@ -297,6 +298,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//---------------------------------------------//
 	self.m.s1.fio = ko.observable('');
 
+	//------------------------------------------------//
+	// s1.3. Аватар аутентифицированного пользователя //
+	//------------------------------------------------//
+	self.m.s1.avatar = ko.observable('');
+
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
@@ -345,6 +351,25 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 			// 7] Записать результат в m.s1.fio
 			self.m.s1.fio(result);
+
+		})();
+
+		//-------------------------------------------------------------//
+		// s1.n.3. Рассчитать аватар аутентифицированного пользователя //
+		//-------------------------------------------------------------//
+		(function(){
+
+			// 1] Если никаких данных нет, записать placehold.it
+			if(!self.m.s0.auth.user() || ( (!self.m.s0.auth.user().avatar || !self.m.s0.auth.user().avatar()) && (!self.m.s0.auth.user().avatar_steam || !self.m.s0.auth.user().avatar_steam()) ) )
+				self.m.s1.avatar("http://placehold.it/100x100/ffffff?text=avatar");
+
+			// 2] Если есть пользовательский аватар, взять его
+			else if(self.m.s0.auth.user().avatar && self.m.s0.auth.user().avatar())
+				self.m.s1.avatar(self.m.s0.auth.user().avatar());
+
+			// 3] Если есть аватар Steam, взять его
+			else if(self.m.s0.auth.user().avatar_steam && self.m.s0.auth.user().avatar_steam())
+				self.m.s1.avatar(self.m.s0.auth.user().avatar_steam());
 
 		})();
 
@@ -401,7 +426,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	})());
 
 	//--------------------------------------//
-	// ds2.n. Индексы и вычисляемые значения //
+	// s2.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
 	ko.computed(function(){
 
@@ -515,8 +540,8 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 			$(document).ready(function() {
 				$(".animsition").animsition({
-					inClass: 'fade-in',
-					outClass: 'fade-out',
+					inClass: 'fade-in-up-sm',
+					outClass: 'fade-out-down-sm',
 					inDuration: 1500,
 					outDuration: 800,
 					linkElement: '.animsition-link',

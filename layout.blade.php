@@ -123,14 +123,14 @@ desired effect
               <!-- Menu Toggle Button -->
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <!-- The user image in the navbar-->
-                <img src="http://placehold.it/100x100" class="user-image" alt="User Image">  <!-- {!! asset('public/L10000/assets/Photo.png') !!} -->
+                <img src="http://placehold.it/100x100/ffffff?text=avatar" class="user-image user-image-correct-size" data-bind="attr: {src: m.s1.avatar}">
                 <!-- hidden-xs hides the username on small devices so only the image appears. -->
                 <span class="hidden-xs" data-bind="text: m.s1.fio"></span>
               </a>
               <ul class="dropdown-menu">
                 <!-- The user image in the menu -->
                 <li class="user-header">
-                  <img src="http://placehold.it/100x100" class="img-circle" alt="User Image">
+                  <img class="img-circle" alt="User Image" data-bind="attr: {src: m.s1.avatar}">
 
                   <p>
                     <span data-bind="text: m.s1.fio"></span>
@@ -164,11 +164,11 @@ desired effect
 
       <!-- Б1.2.1. Левый сайдбар -->
       <!--------------------------->
-      <section class="sidebar animsition" data-animsition-out-class="fade-out-left-sm" data-animsition-out-duration="1000">
+      <section class="sidebar">
 
         <!-- 1] Меню левого сайдбара -->
         <!----------------------------->
-        <ul class="sidebar-menu" style="margin-top: 15px;" data-bind="foreach: m.s2.subdocs">
+        <ul class="sidebar-menu animsition" style="margin-top: 15px;" data-bind="foreach: m.s2.subdocs">
 
           <!-- Элемент меню -->
           <!------------------>
@@ -188,7 +188,7 @@ desired effect
     <!-- Б1.3. Заголовок, хлебные крошки, контент документа -->
     <!-------------------------------------------------------->
     <div class="content-wrapper" style="min-height: 300px;" data-bind="stopBindings: true">
-      <section id="content" class="content animsition" data-animsition-out-class="fade-out-right-sm" data-animsition-out-duration="1000">
+      <section id="content" class="content animsition" style="min-height: 200px;" data-animsition-in-class="fade-in-right-sm" data-animsition-out-class="fade-out-right-sm">
 
         @yield('content')
 

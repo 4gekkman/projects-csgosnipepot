@@ -8,6 +8,7 @@
 
   1. Общие стили
   2. Изменение основных цветовых схем
+  3. Аватар
 
 
 //------------------------------//
@@ -89,6 +90,19 @@
   .main-sidebar .sidebar .sidebar-menu .choosen {
     background-color: #424b5f !important;
     border-left: 4px solid RGBA(180,90,0,1) !important;
+  }
+
+//-----------//
+// 3. Аватар //
+//-----------//
+
+  // Размер (маленького) аватара в правом верхнем углу админки
+  .navbar-nav>.user-menu .user-image-correct-size {
+    max-width: 40px;
+    width: 40px;
+    max-height: 40px;
+    height: 40px;
+    margin-top: -9px;
   }
 
 
