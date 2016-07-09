@@ -203,6 +203,9 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           return $data;
 
         });
+        if(empty($full_profile)) {
+          throw new \Exception('Steam API-key is not valid. Please contact administrator.');
+        }
 
         // 4.3. Получить из $full_profile наиболее важные сведения
         $full_profile_data = [
@@ -246,6 +249,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           "isanonymous"       => "no",
           "password"          => "",
           "adminnote"         => "Вошёл через аккаунт Steam",
+          "avatar_steam"      => $full_profile_data["avatarfull"],
           "ha_provider_name"  => $full_profile_data['provider'],
           "ha_provider_uid"   => $full_profile_data['steamid'],
           "ha_provider_data"  => $full_profile_data_json
@@ -263,6 +267,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
       else {
 
         $user2auth->nickname          = $full_profile_data['personaname'];
+        $user2auth->avatar_steam      = $full_profile_data['avatarfull'];
         $user2auth->ha_provider_data  = $full_profile_data_json;
         $user2auth->save();
 
@@ -349,7 +354,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         return [
           "status"  => -2,
           "data"    => [
-            "errortext" => $errortext,
+            "errortext" => $e->getMessage(),
             "errormsg" => $e->getMessage()
           ]
         ];
