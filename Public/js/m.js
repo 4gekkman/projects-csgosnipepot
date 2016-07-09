@@ -576,6 +576,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.apikey_last_update	  					= ko.observable("");
 		self.m.s2.edit.apikey_last_bug								= ko.observable("");
 		self.m.s2.edit.trade_url											= ko.observable("");
+		self.m.s2.edit.avatar_steam 									= ko.observable("");
 
 		self.m.s2.edit.id   													= ko.observable("");
 		self.m.s2.edit.ison_incoming 									= ko.observable("");
@@ -930,7 +931,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 					}
 
 					// 2.3] Получить группу поддокумента
-					var group = self.m.s1.indexes.groups[subdoc.group()].name();
+					var group = self.m.s1.indexes.groups[subdoc.group()];
 
 					// 2.4] Если group не найдена, вернуть ошибку и завершить
 					if(!group) {
@@ -940,8 +941,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 					// 2.5] Сменить состояние
 					self.f.s1.choose_subdoc({
-						group: group.name(),
-						subdoc: subdoc.name()
+						group: group.name().toLowerCase(),
+						subdoc: subdoc.name().toLowerCase()
 					});
 
 				}
