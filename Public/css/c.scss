@@ -207,9 +207,13 @@
   position: relative;
   min-height: 100px;
   max-height: 100px;
-  line-height: 75px;
+  line-height: 100px;
   font-size: 60px;
   text-align: center;
+}
+.auth_code_itself {
+  position: relative;
+  z-index: 1;
 }
 .auth_code_styles_expire {
   position: absolute;
@@ -332,10 +336,16 @@
     }
 
     // Стили для бокса левого меню интерфейса бота
-    .box_leftmenu_style {
+    .box_leftmenu_style ul {
       border: 1px solid RGBA(0,0,0,.1);
       background-color: #fff;
       border-radius: 2px;
+      padding-bottom: 7px !important;
+    }
+    .box_leftmenu_style .separator {
+      padding: 0;
+      background-color: #ecf0f5;
+      height: 10px;
     }
     .box_leftmenu_style ul {
       padding: 7px 0 0px 0;
@@ -371,14 +381,20 @@
       padding: 10px;
       padding-bottom: 30px;
     }
+    .ibot_right_column .no_padding {
+      padding: 0;
+    }
 
     // Контент-бокс правого столбца
-    .ibot_right_column .content_box {
+    .ibot_right_column .content_box_wrapper {
+      min-height: 380px;
+    }
+    .ibot_right_column .content_box_wrapper .content_box {
       border: 1px solid RGBA(0,0,0,.1);
       background-color: #fff;
       border-radius: 2px;
     }
-    .ibot_right_column .content_box .nav-tabs-custom {
+    .ibot_right_column .content_box_wrapper .content_box .nav-tabs-custom {
       border: 0;
       box-shadow: none;
     }

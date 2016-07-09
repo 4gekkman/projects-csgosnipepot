@@ -381,32 +381,50 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			// Поддокументы группы №2
 			ko.observable({
 				id: ko.observable('100'),
-				name: ko.observable('Trade'),
-				query: ko.observable('?group=bot&subdoc=trade'),
-				group: ko.observable('2')
-			}),
-			ko.observable({
-				id: ko.observable('101'),
 				name: ko.observable('Properties'),
 				query: ko.observable('?group=bot&subdoc=properties'),
 				group: ko.observable('2')
 			}),
 			ko.observable({
-				id: ko.observable('102'),
+				id: ko.observable('101'),
 				name: ko.observable('Authcode'),
 				query: ko.observable('?group=bot&subdoc=authcode'),
 				group: ko.observable('2')
 			}),
 			ko.observable({
-				id: ko.observable('103'),
+				id: ko.observable('102'),
 				name: ko.observable('Authorization'),
 				query: ko.observable('?group=bot&subdoc=authorization'),
 				group: ko.observable('2')
 			}),
 			ko.observable({
+				id: ko.observable('103'),
+				name: ko.observable('Partner'),
+				query: ko.observable('?group=bot&subdoc=partner'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
 				id: ko.observable('104'),
-				name: ko.observable('Permissions'),
-				query: ko.observable('?group=bot&subdoc=permissions'),
+				name: ko.observable('Tradeoffers'),
+				query: ko.observable('?group=bot&subdoc=tradeoffers'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('105'),
+				name: ko.observable('Botitems'),
+				query: ko.observable('?group=bot&subdoc=botitems'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('106'),
+				name: ko.observable('Partneritems'),
+				query: ko.observable('?group=bot&subdoc=partneritems'),
+				group: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('107'),
+				name: ko.observable('Newtradeoffer'),
+				query: ko.observable('?group=bot&subdoc=newtradeoffer'),
 				group: ko.observable('2')
 			})
 
@@ -967,7 +985,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			// 1] Если выбран не поддокумент с интерфейсом бота, завершить
 			// - Или если включен ajax-экран
-			if(self.m.s1.selected_subdoc().id() != 2 || self.m.s0.ajax_counter() != 0) return;
+			if(self.m.s1.selected_group().name() != "Bot" || self.m.s1.selected_subdoc().name() != "Authcode" || self.m.s0.ajax_counter() != 0) return;
 
 			// 2] Получить все необходимые временные метки
 			var now 						= Date.now();

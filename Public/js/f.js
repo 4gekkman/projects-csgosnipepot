@@ -597,7 +597,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.captcha_text();
 
 			// 2] Открыть поддокумент редактирования пользователя
-			self.f.s1.choose_subdoc({group: 'bot', subdoc: 'trade'});
+			self.f.s1.choose_subdoc({group: 'bot', subdoc: 'properties'});
 
 		};
 
@@ -860,7 +860,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			if(!self.m.s2.edit.id())
 				return;
 
-			// 2]
+			// 2] Запросить свежий код
 			ajaxko(self, {
 			  command: 	    "\\M8\\Commands\\C5_bot_get_mobile_code",
 				from: 		    "f.s4.update",

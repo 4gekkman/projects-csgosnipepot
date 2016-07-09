@@ -230,34 +230,37 @@
   <?php /*----------------------------------------------->
   <!-- 3.1. Левый столбец: кнопка "Назад" и левое меню -->
   <!-------------------------------------------------*/ ?>
-  <div style="position: absolute">
-    <div class="spanfix_left0 spanfix_width120 ibot_left_column">
+  <div class="spanfix_left0 spanfix_width120 ibot_left_column">
 
-      <?php /*--------------------->
-      <!-- 3.1.1. Кнопка "назад" -->
-      <!-----------------------*/ ?>
-      <div class="box box_back_style">
-        <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, {group: 'bots', subdoc: 'bots'})">
-          <span>
-            <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
-          </span>
-        </div>
+    <?php /*--------------------->
+    <!-- 3.1.1. Кнопка "назад" -->
+    <!-----------------------*/ ?>
+    <div class="box box_back_style">
+      <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, {group: 'bots', subdoc: 'bots'})">
+        <span>
+          <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
+        </span>
       </div>
-
-      <?php /*--------------------------------->
-      <!-- 3.1.2. Левое меню интерфейса бота -->
-      <!-----------------------------------*/ ?>
-      <div class="box_leftmenu_style">
-        <ul>
-          <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'trade'})"><span>Trade</span></li>
-          <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Properties'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'properties'})"><span>Properties</span></li>
-          <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authcode'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authcode'})"><span>Auth code</span></li>
-          <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authorization'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authorization'})"><span>Authorization</span></li>
-          <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Permissions'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'permissions'})"><span>Permissions</span></li>
-        </ul>
-      </div>
-
     </div>
+
+    <?php /*--------------------------------->
+    <!-- 3.1.2. Левое меню интерфейса бота -->
+    <!-----------------------------------*/ ?>
+    <div class="box_leftmenu_style" >
+      <ul>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Properties'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'properties'})"><span>Properties</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authcode'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authcode'})"><span>Auth code</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authorization'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authorization'})"><span>Authorization</span></li>
+      </ul>
+      <ul>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'partner'})"><span>Partner</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'tradeoffers'})"><span>Trade offers</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'botitems'})"><span>My items</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'partneritems'})"><span>Them items</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'newtradeoffer'})"><span>New trade</span></li>
+      </ul>
+    </div>
+
   </div>
 
   <?php /*-------------------------------------------------->
@@ -279,304 +282,331 @@
     <?php /*----------------------------------->
     <!-- 3.2.2. Контент-бокс интерфейса бота -->
     <!-------------------------------------*/ ?>
-    <div class="content_box">
+    <div class="content_box_wrapper">
+      <div class="content_box">
 
-      <?php /*-------->
-      <!-- 1] Trade -->
-      <!----------*/ ?>
-      <div style="display: none" class="nav-tabs-custom" data-bind="visible: m.s1.selected_subdoc().name() == 'Trade'">
-        <ul class="nav nav-tabs pull-right">
-          <li class="active"><a href="#tab_1-1" data-toggle="tab">Tab 1</a></li>
-          <li><a href="#tab_2-2" data-toggle="tab">Tab 2</a></li>
-          <li><a href="#tab_3-2" data-toggle="tab">Tab 3</a></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-              Dropdown <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
-              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another action</a></li>
-              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
-              <li role="presentation" class="divider"></li>
-              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
-            </ul>
-          </li>
-          <li class="pull-left header"><i class="fa fa-connectdevelop"></i> Custom Tabs</li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane active" id="tab_1-1">
-            <b>How to use:</b>
+        <?php /*------------->
+        <!-- 1] Properties -->
+        <!---------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Properties'">
 
-            <p>Exactly like the original bootstrap tabs except you should use
-              the custom wrapper <code>.nav-tabs-custom</code> to achieve this style.</p>
-            A wonderful serenity has taken possession of my entire soul,
-            like these sweet mornings of spring which I enjoy with my whole heart.
-            I am alone, and feel the charm of existence in this spot,
-            which was created for the bliss of souls like mine. I am so happy,
-            my dear friend, so absorbed in the exquisite sense of mere tranquil existence,
-            that I neglect my talents. I should be incapable of drawing a single stroke
-            at the present moment; and yet I feel that I never was a greater artist than now.
+          <?php /*------------------>
+          <!-- 1.1] Аватарка бота -->
+          <!--------------------*/ ?>
+          <div class="botava">
+            <img src="http://placehold.it/100x100/fafafa?text=avatar" data-bind="attr: {src: m.s2.edit.avatar_steam}">
           </div>
-          <!-- /.tab-pane -->
-          <div class="tab-pane" id="tab_2-2">
-            The European languages are members of the same family. Their separate existence is a myth.
-            For science, music, sport, etc, Europe uses the same vocabulary. The languages only differ
-            in their grammar, their pronunciation and their most common words. Everyone realizes why a
-            new common language would be desirable: one could refuse to pay expensive translators. To
-            achieve this, it would be necessary to have uniform grammar, pronunciation and more common
-            words. If several languages coalesce, the grammar of the resulting language is more simple
-            and regular than that of the individual languages.
-          </div>
-          <!-- /.tab-pane -->
-          <div class="tab-pane" id="tab_3-2">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-            Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-            when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-            It has survived not only five centuries, but also the leap into electronic typesetting,
-            remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset
-            sheets containing Lorem Ipsum passages, and more recently with desktop publishing software
-            like Aldus PageMaker including versions of Lorem Ipsum.
-          </div>
-          <!-- /.tab-pane -->
-        </div>
-      </div>
 
-      <?php /*------------->
-      <!-- 2] Properties -->
-      <!---------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Properties'">
+          <?php /*---------------------------------------->
+          <!-- 1.2] Форма для редактирования полей бота -->
+          <!------------------------------------------*/ ?>
+          <div class="botedit">
 
-        <?php /*------------------>
-        <!-- 2.1] Аватарка бота -->
-        <!--------------------*/ ?>
-        <div class="botava">
-          <img src="http://placehold.it/100x100/fafafa?text=avatar" data-bind="attr: {src: m.s2.edit.avatar_steam}">
-        </div>
-
-        <?php /*---------------------------------------->
-        <!-- 2.2] Форма для редактирования полей бота -->
-        <!------------------------------------------*/ ?>
-        <div class="botedit">
-
-          <?php /*---------------->
-          <!-- Базовые свойства -->
-          <!------------------*/ ?>
-          <div class="form-horizontal">
-
-            <?php /* Заголовок -->
-            <!---------------*/ ?>
-            <div class="header-note">
-              <span>Basic properties</span>
-            </div>
-
-            <?php /* 1] id -->
-            <!-----------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">ID</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.id" disabled="">
-              </div>
-            </div>
-
-            <?php /* 2] apikey -->
-            <!---------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">apikey</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey" disabled="">
-              </div>
-            </div>
-
-            <?php /* 3] apikey_domain -->
-            <!----------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">apikey_domain</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey_domain">
-              </div>
-            </div>
-
-            <?php /* 4] trade_url -->
+            <?php /*---------------->
+            <!-- Базовые свойства -->
             <!------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">trade_url</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.trade_url">
+            <div class="form-horizontal">
+
+              <?php /* Заголовок -->
+              <!---------------*/ ?>
+              <div class="header-note">
+                <span>Basic properties</span>
               </div>
-            </div>
 
-            <?php /* 5] login -->
-            <!--------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">login</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.login">
+              <?php /* 1] id -->
+              <!-----------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">ID</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.id" disabled="">
+                </div>
               </div>
-            </div>
 
-            <?php /* 6] password -->
-            <!-----------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">password</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.password">
+              <?php /* 2] apikey -->
+              <!---------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">apikey</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey" disabled="">
+                </div>
               </div>
-            </div>
 
-            <?php /* 7] steamid -->
-            <!----------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">steamid</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.steamid">
+              <?php /* 3] apikey_domain -->
+              <!----------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">apikey_domain</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.apikey_domain">
+                </div>
               </div>
-            </div>
 
-          </div>
-
-          <?php /*--------------------------------->
-          <!-- Свойства мобильной аутентификации -->
-          <!-----------------------------------*/ ?>
-          <div class="form-horizontal">
-
-            <?php /* Заголовок -->
-            <!---------------*/ ?>
-            <div class="header-note">
-              <span>Mobile authentication properties</span>
-            </div>
-
-            <?php /* 1] shared_secret -->
-            <!----------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">shared_secret</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.shared_secret">
+              <?php /* 4] trade_url -->
+              <!------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">trade_url</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.trade_url">
+                </div>
               </div>
-            </div>
 
-            <?php /* 2] serial_number -->
-            <!----------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">serial_number</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.serial_number">
+              <?php /* 5] login -->
+              <!--------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">login</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.login">
+                </div>
               </div>
-            </div>
 
-            <?php /* 3] revocation_code -->
-            <!------------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">revocation_code</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.revocation_code">
+              <?php /* 6] password -->
+              <!-----------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">password</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.password">
+                </div>
               </div>
-            </div>
 
-            <?php /* 4] uri -->
-            <!------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">uri</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.uri">
+              <?php /* 7] steamid -->
+              <!----------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">steamid</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.steamid">
+                </div>
               </div>
+
             </div>
 
-            <?php /* 5] server_time -->
-            <!--------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">server_time</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.server_time">
+            <?php /*--------------------------------->
+            <!-- Свойства мобильной аутентификации -->
+            <!-----------------------------------*/ ?>
+            <div class="form-horizontal">
+
+              <?php /* Заголовок -->
+              <!---------------*/ ?>
+              <div class="header-note">
+                <span>Mobile authentication properties</span>
               </div>
-            </div>
 
-            <?php /* 6] account_name -->
-            <!---------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">account_name</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.account_name">
+              <?php /* 1] shared_secret -->
+              <!----------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">shared_secret</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.shared_secret">
+                </div>
               </div>
-            </div>
 
-            <?php /* 7] token_gid -->
-            <!-------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">token_gid</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.token_gid">
+              <?php /* 2] serial_number -->
+              <!----------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">serial_number</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.serial_number">
+                </div>
               </div>
-            </div>
 
-            <?php /* 8] identity_secret -->
-            <!-------------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">identity_secret</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.identity_secret">
+              <?php /* 3] revocation_code -->
+              <!------------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">revocation_code</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.revocation_code">
+                </div>
               </div>
+
+              <?php /* 4] uri -->
+              <!------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">uri</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.uri">
+                </div>
+              </div>
+
+              <?php /* 5] server_time -->
+              <!--------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">server_time</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.server_time">
+                </div>
+              </div>
+
+              <?php /* 6] account_name -->
+              <!---------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">account_name</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.account_name">
+                </div>
+              </div>
+
+              <?php /* 7] token_gid -->
+              <!-------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">token_gid</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.token_gid">
+                </div>
+              </div>
+
+              <?php /* 8] identity_secret -->
+              <!-------------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">identity_secret</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.identity_secret">
+                </div>
+              </div>
+
+              <?php /* 9] secret_1 -->
+              <!------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">secret_1</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.secret_1">
+                </div>
+              </div>
+
+              <?php /* 10] device_id -->
+              <!-------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">device_id</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="textInput: m.s2.edit.device_id">
+                </div>
+              </div>
+
             </div>
 
-            <?php /* 9] secret_1 -->
+            <?php /*---------------->
+            <!-- Базовые свойства -->
             <!------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">secret_1</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.secret_1">
+            <div class="form-horizontal">
+
+              <?php /* Заголовок -->
+              <!---------------*/ ?>
+              <div class="header-note">
+                <span>Permissions</span>
               </div>
+
+              <?php /* 1] ison_incoming -->
+              <!----------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">Accept and decline</div>
+                <div class="col-sm-8">
+                  <select class="form-control input-sm" data-bind="options: m.s2.options_true_false, optionsText: function(item){ return item().name(); }, optionsValue: function(item){ return item().value(); }, value: m.s2.edit.ison_incoming"></select>
+                </div>
+              </div>
+
+              <?php /* 2] ison_outcoming -->
+              <!-----------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">Create and cancel</div>
+                <div class="col-sm-8">
+                  <select class="form-control input-sm" data-bind="options: m.s2.options_true_false, optionsText: function(item){ return item().name(); }, optionsValue: function(item){ return item().value(); }, value: m.s2.edit.ison_outcoming"></select>
+                </div>
+              </div>
+
             </div>
 
-            <?php /* 10] device_id -->
-            <!-------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-4 control-label">device_id</div>
-              <div class="col-sm-8">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.device_id">
-              </div>
+            <?php /*------------------------>
+            <!-- Кнопка "отредактировать" -->
+            <!--------------------------*/ ?>
+            <div>
+              <button type="button" class="btn btn-block btn-success" data-bind="click: f.s2.edit">Edit</button>
             </div>
 
           </div>
 
-          <?php /*------------------------>
-          <!-- Кнопка "отредактировать" -->
-          <!--------------------------*/ ?>
-          <div>
-            <button type="button" class="btn btn-block btn-success" data-bind="click: f.s2.edit">Edit</button>
+
+        </div>
+
+        <?php /*------------>
+        <!-- 2] Auth code -->
+        <!--------------*/ ?>
+        <div style="display: none" class="content_in_content_box no_padding auth_code_styles" data-bind="visible: m.s1.selected_subdoc().name() == 'Authcode'">
+
+          <?php /*--->
+          <!-- Код -->
+          <!-----*/ ?>
+          <div class="auth_code_itself">
+            <span data-bind="text: m.s4.code, visible: m.s4.is_current_code_valid"></span>
+          </div>
+
+          <?php /*----------------------------->
+          <!-- Индикатор срока действия кода -->
+          <!-------------------------------*/ ?>
+          <div class="auth_code_styles_expire" data-bind="visible: m.s4.is_current_code_valid, style: {width: m.s4.expire_percents}"></div>
+
+          <?php /*--------------->
+          <!-- Панель загрузки -->
+          <!-----------------*/ ?>
+          <div class="loader">
+            <div style="display: none" class="auth_code_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: !m.s4.is_current_code_valid()">
+              <div></div>
+            </div>
           </div>
 
         </div>
 
+        <?php /*---------------->
+        <!-- 3] Authorization -->
+        <!------------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
+
+          Authorization
+
+        </div>
+
+        <?php /*---------->
+        <!-- 4] Partner -->
+        <!------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Partner'">
+
+          Partner
+
+        </div>
+
+        <?php /*-------------->
+        <!-- 5] Tradeoffers -->
+        <!----------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Tradeoffers'">
+
+          Tradeoffers
+
+        </div>
+
+        <?php /*-------------->
+        <!-- 6] Botitems -->
+        <!----------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Botitems'">
+
+          Botitems
+
+        </div>
+
+        <?php /*--------------->
+        <!-- 7] Partneritems -->
+        <!-----------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Partneritems'">
+
+          Partneritems
+
+        </div>
+
+        <?php /*---------------->
+        <!-- 8] Newtradeoffer -->
+        <!------------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Newtradeoffer'">
+
+          Newtradeoffer
+
+        </div>
 
       </div>
-
-      <?php /*------------>
-      <!-- 3] Auth code -->
-      <!--------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authcode'">
-
-        Auth code
-
-      </div>
-
-      <?php /*---------------->
-      <!-- 4] Authorization -->
-      <!------------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
-
-        Authorization
-
-      </div>
-
-      <?php /*-------------->
-      <!-- 5] Permissions -->
-      <!----------------*/ ?>
-      <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Permissions'">
-
-        Permissions
-
-      </div>
-
-
     </div>
 
   </div>
