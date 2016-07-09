@@ -794,7 +794,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//---------------------------------------//
 	// s5.3. Ссылка на выбранный поддокумент //
 	//---------------------------------------//
-	self.m.s5.selected_subdoc = ko.observable(self.m.s5.subdocs()[0]());
+	self.m.s5.selected_subdoc = ko.observable(self.m.s5.subdocs()[1]());
 
 	//--------------------------------------//
 	// s5.n. Индексы и вычисляемые значения //

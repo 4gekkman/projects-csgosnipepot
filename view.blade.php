@@ -297,7 +297,7 @@
               <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
             </ul>
           </li>
-          <li class="pull-left header"><i class="fa fa-th"></i> Custom Tabs</li>
+          <li class="pull-left header"><i class="fa fa-connectdevelop"></i> Custom Tabs</li>
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="tab_1-1">
