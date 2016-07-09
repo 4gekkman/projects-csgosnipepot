@@ -180,6 +180,9 @@ class C3_edit_bot extends Job { // TODO: добавить "implements ShouldQueu
           // Если $key == 'id', продолжить
           if($key == 'id') continue;
 
+          // Если $key == 'avatar_steam', продолжить
+          if($key == 'avatar_steam') continue;
+
           // В общем случае
           $bot2edit[$key] = $value;
 

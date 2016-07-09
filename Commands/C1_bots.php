@@ -167,6 +167,7 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
         $bot->id_user = $bot->m5_users[0]->id;
         $bot->steam_name = $bot->m5_users[0]->nickname;
         $bot->id_steam = $bot->m5_users[0]->ha_provider_uid;
+        $bot->avatar_steam = $bot->m5_users[0]->avatar_steam;
 
         // 3.2. Удалить из $bots поле m5_users
         unset($bot->m5_users);
