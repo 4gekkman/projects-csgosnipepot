@@ -240,24 +240,28 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		//-----------------------------------------------------//
 		self.m.s0.auth.auth = ko.observable({});
 
-		// 4] Приём и обработка аутентификационных данных при 1-й загрузке //
+		// 4] Вошёл ли пользователь в аккаунт //
+		//------------------------------------//
+		self.m.s0.is_logged_in = ko.observable(false);
+
+		// n] Приём и обработка аутентификационных данных при 1-й загрузке //
 		//-----------------------------------------------------------------//
 		ko.computed(function(){
 
-			// 4.1] Если это не первый запуск, завершить
+			// n.1] Если это не первый запуск, завершить
 			if(!ko.computedContext.isInitial()) return;
 
-			// 4.2] Если сервер не прислал данные, завершить
+			// n.2] Если сервер не прислал данные, завершить
 			if(!server || !server.data || !server.data.auth) return;
 
-			// 4.3] Распаковать данные, и проверить
+			// n.3] Распаковать данные, и проверить
 			var auth = JSON.parse(server.data.auth);
 			if((!auth.is_anon && auth.is_anon != 0) || !auth.user || !auth.auth) return;
 
-			// 4.3] Наполнить m.s0.auth.is_anon
+			// n.4] Наполнить m.s0.auth.is_anon
 			self.m.s0.auth.is_anon(auth.is_anon);
 
-			// 4.4] Наполнить m.s0.auth.user
+			// n.5] Наполнить m.s0.auth.user
 			for(var key in auth.user) {
 
 				// 1] Если свойство не своё, пропускаем
@@ -268,7 +272,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 			}
 
-			// 4.5] Наполнить m.s0.auth.auth
+			// n.6] Наполнить m.s0.auth.auth
 			for(var key in auth.auth) {
 
 				// 1] Если свойство не своё, пропускаем
@@ -278,6 +282,23 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				self.m.s0.auth.auth()[key] = ko.observable(auth.auth[key]);
 
 			}
+
+			// n.7] Наполнить is_logged_in
+			(function(){
+
+				// Если пользователь "Not authenticated", записать false
+				if(!self.m.s0.auth.user() || !self.m.s0.auth.user().id || !self.m.s0.auth.user().id())
+					self.m.s0.is_logged_in(false);
+
+				// Если этот анонимный пользователь, записать false
+				else if(self.m.s0.auth.is_anon() != 0)
+					self.m.s0.is_logged_in(false);
+
+				// В противном случае, записать true
+				else
+					self.m.s0.is_logged_in(true);
+
+			})();
 
 		});
 

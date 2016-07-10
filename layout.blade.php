@@ -134,18 +134,34 @@ desired effect
 
                   <p>
                     <span data-bind="text: m.s1.fio"></span>
-                    <small data-bind="text: m.s0.auth.user().email"></small>
-                    <small data-bind="text: m.s0.auth.user().phone"></small>
+                    <small style="display: none" data-bind="text: m.s0.auth.user().email, visible: m.s0.is_logged_in"></small>
+                    <small style="display: none" data-bind="text: m.s0.auth.user().phone, visible: m.s0.is_logged_in"></small>
                   </p>
                 </li>
                 <!-- Menu Footer-->
                 <li class="user-footer">
-                  <div class="pull-left">
-                    <!-- <a href="{!! asset('dashboard/profile') !!}" class="btn btn-default btn-flat">Profile</a>-->
-                  </div>
-                  <div class="pull-right">
+
+                  <!------------------------------------------------------------------->
+                  <!-- Кнопка "Logout", показывать аутентифицированным пользователям -->
+                  <!------------------------------------------------------------------->
+                  <div class="pull-right" style="display: none" data-bind="visible: m.s0.is_logged_in">
                     <a href="#" class="btn btn-default btn-flat" data-bind="click: f.s1.logout">Logout</a>
                   </div>
+
+                  <!---------------------------------------------------------------------------------------->
+                  <!-- Кнопка "Login via steam", показывать не аутентифицированным пользователям и гостям -->
+                  <!---------------------------------------------------------------------------------------->
+                  <div class="pull-right" style="display: none" data-bind="visible: !m.s0.is_logged_in()">
+                    <a href="#" class="btn btn-default btn-flat" data-bind="click: f.s1.logout">Login via steam</a>
+                  </div>
+
+                  <!------------------------------------------------------------------------------------------->
+                  <!-- Кнопка "Login via password", показывать не аутентифицированным пользователям и гостям -->
+                  <!------------------------------------------------------------------------------------------->
+                  <div class="pull-left" style="display: none" data-bind="visible: !m.s0.is_logged_in()">
+                    <a href="#" class="btn btn-default btn-flat" data-bind="click: f.s1.logout">Login via pswd</a>
+                  </div>
+
                 </li>
               </ul>
             </li>
