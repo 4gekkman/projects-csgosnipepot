@@ -73,12 +73,11 @@
     font-size: 1.5em;
   }
   .red_background_soft {
-    background-color: RGBA(255,0,0,.3);
+    background-color: RGBA(255,0,0,.3) !important;
   }
   .green_background_soft {
-    background-color: RGBA(0,255,0,.1);
+    background-color: RGBA(0,255,0,.1) !important;
   }
-
 
 
 //------------------------//
@@ -265,7 +264,7 @@
   .authorization_styles .auth_error_descriptions .error_description {}
   .authorization_styles .auth_error_descriptions .error_description .error_header {
     color: RGBA(200,0,0,.9);
-    font-size: 1.2em;
+    font-size: 1em;
   }
   .authorization_styles .auth_error_descriptions .error_description .error_text {
     color: #999;
@@ -278,7 +277,7 @@
   }
   .authorization_styles .auth_error_descriptions .user_instructions .instructions_header {
     color: RGBA(200,0,0,.9);
-    font-size: 1.2em;
+    font-size: 1em;
   }
   .authorization_styles .auth_error_descriptions .user_instructions .instructions {
     color: #999;
@@ -296,6 +295,16 @@
 //--------------------------//
 // 7. Стили интерфейса бота //
 //--------------------------//
+
+  //-------------//
+  // Общие стили //
+  //-------------//
+  .ibot_right_column .content_in_content_box .header-note {
+    margin-bottom: 10px;
+  }
+  .ibot_right_column .content_in_content_box .header-note span {
+    font-weight: bold;
+  }
 
   //------------------------//
   // Контейнер для столбцов //
@@ -379,7 +388,6 @@
     .ibot_right_column .content_in_content_box {
       position: relative;
       padding: 10px;
-      padding-bottom: 30px;
     }
     .ibot_right_column .no_padding {
       padding: 0;
@@ -418,10 +426,10 @@
     .ibot_right_column .content_in_content_box .botedit .control-label {
       text-align: left !important;
     }
-    .ibot_right_column .content_in_content_box .botedit .header-note {
-      margin-bottom: 10px;
+
+    // Авторизация
+    .content_in_content_box .authorization-props {
+      border-right: 1px solid RGBA(0,0,0,.2);
     }
-    .ibot_right_column .content_in_content_box .botedit .header-note span {
-      font-weight: bold;
-    }
+
 

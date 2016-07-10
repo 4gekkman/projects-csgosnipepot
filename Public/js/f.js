@@ -668,7 +668,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 				from: 		    "f.s2.authorize_bot",
 			  data: 		    {
 					id_bot:           self.m.s2.edit.id(),
-					relogin:          "0",
+					relogin:          "1",
 					captchagid:       "0",
 					captcha_text:     "0",
 					method:           "GET",
@@ -682,14 +682,15 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					notify({msg: 'The bot has been authorized', time: 5, fontcolor: 'RGB(50,120,50)'});
 
 					// 2] Изменить св-ва авторизации бота
-					self.m.s2.edit.authorization("");
+					self.m.s2.edit.authorization(1);
 					self.m.s2.edit.authorization_last_bug("");
 					self.m.s2.edit.authorization_last_bug_code("");
 					self.m.s2.edit.captchagid("");
 					self.m.s2.edit.captcha_text("");
-					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization("");
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization(1);
 					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization_last_bug("");
 					self.m.s2.indexes.bots[self.m.s2.edit.id()].authorization_last_bug_code("");
+					self.m.s2.indexes.bots[self.m.s2.edit.id()].sessionid(data.data.sessionid);
 
 				},
 			  ok_2:         function(data, params){

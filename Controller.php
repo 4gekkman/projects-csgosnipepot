@@ -135,6 +135,7 @@ class Controller extends BaseController {
         'packid'                => $this->packid,
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
+        'websockets_channel'    => Session::getId(),
         'group'                 => $group,
         'subdoc'                => $subdoc,
         'bots'                  => $bots,

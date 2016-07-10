@@ -300,7 +300,7 @@
           <?php /*---------------------------------------->
           <!-- 1.2] Форма для редактирования полей бота -->
           <!------------------------------------------*/ ?>
-          <div class="botedit">
+          <div class="botedit" style="padding-bottom: 30px;">
 
             <?php /*---------------->
             <!-- Базовые свойства -->
@@ -555,9 +555,325 @@
         <?php /*---------------->
         <!-- 3] Authorization -->
         <!------------------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
+        <div style="display: none" class="content_in_content_box row" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
 
-          <div>
+          <?php /*----------------------->
+          <!-- Левый столбец (контент) -->
+          <!-------------------------*/ ?>
+          <div class="col-md-7 col-sm-7 col-xs-7 authorization-props">
+
+            <?php /*-------------------->
+            <!-- Свойства авторизации -->
+            <!----------------------*/ ?>
+            <div>
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note">
+                <span>Authorization properties</span>
+              </div>
+
+              <?php /*-------->
+              <!-- Свойства -->
+              <!----------*/ ?>
+              <div class="form-horizontal">
+
+                <?php /* 1] Authorized -->
+                <!-------------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">Authorized</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="css: {green_background_soft: m.s2.edit.authorization, red_background_soft: !m.s2.edit.authorization()}, textInput: m.s2.edit.authorization() ? 'Yes' : 'No'" disabled="">
+                  </div>
+                </div>
+
+                <?php /* 2] Session ID -->
+                <!-------------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">SessionID</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="textInput: m.s2.indexes.bots[m.s2.edit.id()] ? m.s2.indexes.bots[m.s2.edit.id()].sessionid : ''" disabled="">
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*------------------------------------------------------------->
+            <!-- Инструкции на случай ошибки, свои для каждого из кодов ошибки -->
+            <!---------------------------------------------------------------*/ ?>
+            <div style="display: none" class="authorization_styles" data-bind="visible: m.s2.edit.authorization_last_bug_code">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note">
+                <span>Authorization errors</span>
+              </div>
+
+              <?php /*---------->
+              <!-- Инструкции -->
+              <!------------*/ ?>
+              <div class="auth_error_descriptions">
+
+                <?php /*------------------------------------------------->
+                <!-- Код ошибки "1": recieved from Steam json is empty -->
+                <!---------------------------------------------------*/ ?>
+                <div data-bind="visible: m.s2.edit.authorization_last_bug_code() == 1">
+
+                  <?php /*--------------->
+                  <!-- Описание ошибки -->
+                  <!-----------------*/ ?>
+                  <div class="error_description">
+                    <div class="error_header">Authorization error, code 1</div>
+                    <div class="error_text" data-bind="text: m.s2.edit.authorization_last_bug"></div>
+                  </div>
+
+                  <?php /*--------------------------->
+                  <!-- Инструкции для пользователя -->
+                  <!-----------------------------*/ ?>
+                  <div class="user_instructions">
+                    <div class="instructions_header">Instructions</div>
+                    <div class="instructions">
+                      <ol>
+                        <li>Try again.</li>
+                        <li>If it doesn't work, contact administrator of the service.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <?php /*------------->
+                  <!-- Всё остальное -->
+                  <!---------------*/ ?>
+                  <div class="the_rest_stuff"></div>
+
+                </div>
+
+                <?php /*------------------------------>
+                <!-- Код ошибки "2": captcha needed -->
+                <!--------------------------------*/ ?>
+                <div data-bind="visible: m.s2.edit.authorization_last_bug_code() == 2">
+
+                  <?php /*--------------->
+                  <!-- Описание ошибки -->
+                  <!-----------------*/ ?>
+                  <div class="error_description">
+                    <div class="error_header">Authorization error, code 2</div>
+                    <div class="error_text" data-bind="text: m.s2.edit.authorization_last_bug">Some error text</div>
+                  </div>
+
+                  <?php /*--------------------------->
+                  <!-- Инструкции для пользователя -->
+                  <!-----------------------------*/ ?>
+                  <div class="user_instructions">
+                    <div class="instructions_header">Instructions</div>
+                    <div class="instructions">
+                      <ol>
+                        <li>Click the button "Show the captcha..." below.</li>
+                        <li>Enter text from the captcha to the field "Captcha text" below.</li>
+                        <li>Push the button "Authorize..." above again, and wait.</li>
+                        <li>If it doesn't work, contact administrator of the service.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <?php /*------------->
+                  <!-- Всё остальное -->
+                  <!---------------*/ ?>
+                  <div class="the_rest_stuff form-horizontal">
+
+                    <?php /*-------------------------->
+                    <!-- 1] Кнопка "Показать капчу" -->
+                    <!----------------------------*/ ?>
+                    <div style="margin-bottom: 15px;">
+                      <button type="button" class="btn btn-xs btn-block btn-default" data-bind="click: function(){ window.open('https://steamcommunity.com/login/rendercaptcha/?gid='+m.s2.edit.captchagid()); }">Show the captcha in separate window</button>
+                    </div>
+
+                    <?php /*----------->
+                    <!-- 2] ID капчи -->
+                    <!-------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">Captcha ID</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.captchagid" disabled="">
+                      </div>
+                    </div>
+
+                    <?php /*-------------->
+                    <!-- 3] Текст капчи -->
+                    <!----------------*/ ?>
+                    <div class="form-group">
+                      <div class="col-sm-4 control-label">Captcha text</div>
+                      <div class="col-sm-8">
+                        <input class="form-control input-sm" data-bind="textInput: m.s2.edit.captcha_text">
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <?php /*--------------------------------->
+                <!-- Код ошибки "3": 2FA code not fits -->
+                <!-----------------------------------*/ ?>
+                <div data-bind="visible: m.s2.edit.authorization_last_bug_code() == 3">
+
+                  <?php /*--------------->
+                  <!-- Описание ошибки -->
+                  <!-----------------*/ ?>
+                  <div class="error_description">
+                    <div class="error_header">Authorization error, code 3</div>
+                    <div class="error_text" data-bind="text: m.s2.edit.authorization_last_bug">Some error text</div>
+                  </div>
+
+                  <?php /*--------------------------->
+                  <!-- Инструкции для пользователя -->
+                  <!-----------------------------*/ ?>
+                  <div class="user_instructions">
+                    <div class="instructions_header">Instructions</div>
+                    <div class="instructions">
+                      <ol>
+                        <li>Try again, use fresh and valid code (see the panel above).</li>
+                        <li>If it doesn't work, contact administrator of the service.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <?php /*------------->
+                  <!-- Всё остальное -->
+                  <!---------------*/ ?>
+                  <div class="the_rest_stuff"></div>
+
+                </div>
+
+                <?php /*--------------------------------------->
+                <!-- Код ошибки "4": wrong login or password -->
+                <!-----------------------------------------*/ ?>
+                <div data-bind="visible: m.s2.edit.authorization_last_bug_code() == 4">
+
+                  <?php /*--------------->
+                  <!-- Описание ошибки -->
+                  <!-----------------*/ ?>
+                  <div class="error_description">
+                    <div class="error_header">Authorization error, code 4</div>
+                    <div class="error_text" data-bind="text: m.s2.edit.authorization_last_bug">Some error text</div>
+                  </div>
+
+                  <?php /*--------------------------->
+                  <!-- Инструкции для пользователя -->
+                  <!-----------------------------*/ ?>
+                  <div class="user_instructions">
+                    <div class="instructions_header">Instructions</div>
+                    <div class="instructions">
+                      <ol>
+                        <li>Try again, double check login and password correctness.</li>
+                        <li>If it doesn't work, contact administrator of the service.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <?php /*------------->
+                  <!-- Всё остальное -->
+                  <!---------------*/ ?>
+                  <div class="the_rest_stuff"></div>
+
+                </div>
+
+                <?php /*--------------------------------------------------->
+                <!-- Код ошибки "5": somehow in response success = false -->
+                <!-----------------------------------------------------*/ ?>
+                <div data-bind="visible: m.s2.edit.authorization_last_bug_code() == 5">
+
+                  <?php /*--------------->
+                  <!-- Описание ошибки -->
+                  <!-----------------*/ ?>
+                  <div class="error_description">
+                    <div class="error_header">Authorization error, code 5</div>
+                    <div class="error_text" data-bind="text: m.s2.edit.authorization_last_bug">Some error text</div>
+                  </div>
+
+                  <?php /*--------------------------->
+                  <!-- Инструкции для пользователя -->
+                  <!-----------------------------*/ ?>
+                  <div class="user_instructions">
+                    <div class="instructions_header">Instructions</div>
+                    <div class="instructions">
+                      <ol>
+                        <li>Try again.</li>
+                        <li>If it doesn't work, contact administrator of the service.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <?php /*------------->
+                  <!-- Всё остальное -->
+                  <!---------------*/ ?>
+                  <div class="the_rest_stuff"></div>
+
+                </div>
+
+                <?php /*------------------------------------->
+                <!-- Неизвестный код ошибки: general error -->
+                <!---------------------------------------*/ ?>
+                <div data-bind="visible: !m.s2.edit.authorization_last_bug_code() && m.s2.edit.authorization_last_bug()">
+
+                  <?php /*--------------->
+                  <!-- Описание ошибки -->
+                  <!-----------------*/ ?>
+                  <div class="error_description">
+                    <div class="error_header">Authorization error, general error code</div>
+                    <div class="error_text" data-bind="text: m.s2.edit.authorization_last_bug">Some error text</div>
+                  </div>
+
+                  <?php /*--------------------------->
+                  <!-- Инструкции для пользователя -->
+                  <!-----------------------------*/ ?>
+                  <div class="user_instructions">
+                    <div class="instructions_header">Instructions</div>
+                    <div class="instructions">
+                      <ol>
+                        <li>Try again.</li>
+                        <li>If it doesn't work, contact administrator of the service.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <?php /*------------->
+                  <!-- Всё остальное -->
+                  <!---------------*/ ?>
+                  <div class="the_rest_stuff"></div>
+
+                </div>
+
+              </div>
+
+
+            </div>
+
+
+
+          </div>
+
+          <?php /*---------------------------------->
+          <!-- Правый столбец (панель управления) -->
+          <!------------------------------------*/ ?>
+          <div class="col-md-5 col-sm-5 col-xs-5">
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <div class="header-note">
+              <span>Actions</span>
+            </div>
+
+            <?php /*-------------------------->
+            <!-- Кнопка "Авторизовать бота" -->
+            <!----------------------------*/ ?>
+            <div>
+              <button type="button" class="btn btn-block btn-default" data-bind="click: f.s2.authorize_bot">(Re) Authorize</button>
+            </div>
 
           </div>
 
@@ -1780,7 +2096,6 @@
                         <div class="the_rest_stuff"></div>
 
                       </div>
-
 
                     </div>
 

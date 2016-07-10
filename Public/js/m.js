@@ -181,6 +181,19 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			});
 
+			// A4.3.3. Обработка сообщений об успешной аутентификации через Steam //
+			//--------------------------------------------------------------------//
+			self.websocket.ws1.on(server.data.websockets_channel, function(message) {
+
+				// 1] Сообщить об успешной аутентификации через Steam
+				notify({msg: 'Successful auth with Steam!', time: 5, fontcolor: 'RGB(50,120,50)'});
+				console.log('Successful auth with Steam!');
+
+				// 2] Перезагрузить документ
+				location.reload();
+
+			});
+
 
 	});
 
@@ -688,7 +701,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			return results;
 
 		}());
-
 
 	});
 
