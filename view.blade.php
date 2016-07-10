@@ -481,15 +481,15 @@
 
             </div>
 
-            <?php /*---------------->
-            <!-- Базовые свойства -->
-            <!------------------*/ ?>
+            <?php /*-------------->
+            <!-- Торговые права -->
+            <!----------------*/ ?>
             <div class="form-horizontal">
 
               <?php /* Заголовок -->
               <!---------------*/ ?>
               <div class="header-note">
-                <span>Permissions</span>
+                <span>Trade permissions</span>
               </div>
 
               <?php /* 1] ison_incoming -->
@@ -557,7 +557,9 @@
         <!------------------*/ ?>
         <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
 
-          Authorization
+          <div>
+            
+          </div>
 
         </div>
 
