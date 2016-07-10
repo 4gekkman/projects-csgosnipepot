@@ -253,8 +253,8 @@
         <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authorization'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authorization', without_reload: '1'})"><span>Authorization</span></li>
       </ul>
       <ul>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'newtrade', without_reload: '1'})"><span>New trade</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'tradeoffers', without_reload: '1'})"><span>Trade offers</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Newtrade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'newtrade', without_reload: '1'})"><span>New trade</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Tradeoffers'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'tradeoffers', without_reload: '1'})"><span>Trade offers</span></li>
       </ul>
     </div>
 
