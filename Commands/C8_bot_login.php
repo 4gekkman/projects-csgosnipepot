@@ -200,7 +200,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         $bot->authorization_last_bug_code = "";
         $bot->authorization_status_last_bug = "";
         $bot->authorization_used_attempts = "0";
-        $bot->sessionid = $is_bot_authorized['data']['sessionid'];
+        $bot->sessionid = $is_bot_authorized['sessionid'];
         $bot->save();
         DB::commit();
 
@@ -211,6 +211,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
             'was_bot_authorized'  => $is_bot_authorized['is_bot_authenticated'],
             'id_bot'              => $this->data['id_bot'],
             'relogin'             => $this->data['relogin'],
+            'sessionid'           => $is_bot_authorized['sessionid']
           ]
         ];
 
@@ -368,16 +369,49 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
 
       // 9. Обработать ошибки авторизации для $authorization
       switch($authorization['error_code']) {
+
+        // 9.1. Ошибки нет
         case 0:
+
+          // 1] Получить новый sessionid бота
+          $is_bot_authorized_new = call_user_func(function() USE ($bot) {
+
+            // 1.1] Выполнить запрос
+            $result = runcommand('\M8\Commands\C7_bot_get_sessid_steamid', [
+              'id_bot'          => $this->data['id_bot'],
+              'method'          => 'GET',
+              'cookies_domain'  => 'steamcommunity.com'
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+            // 1.2] Вернуть результат
+            return $result['data'];
+
+          });
+
+          // 2] Обновить информацию в БД
           $bot->authorization = 1;
           $bot->authorization_last_update = (string) \Carbon\Carbon::now();
           $bot->authorization_last_bug = "";
           $bot->authorization_last_bug_code = "";
           $bot->authorization_status_last_bug = "";
           $bot->authorization_used_attempts = "0";
-          $bot->sessionid = $is_bot_authorized['data']['sessionid'];
+          $bot->sessionid = $is_bot_authorized_new['sessionid'];
           $bot->save();
-          break;
+          DB::commit();
+
+          // 3] Вернуть результаты
+          return [
+            "status"  => 0,
+            "data"    => [
+              'was_bot_authorized'  => $is_bot_authorized['is_bot_authenticated'],
+              'id_bot'              => $this->data['id_bot'],
+              'relogin'             => $this->data['relogin'],
+              'sessionid'           => $is_bot_authorized_new['sessionid']
+            ]
+          ];
+
         case 1:
           $text = "OAuth authorization failed: recieved from Steam json is empty.";
           $bot->authorization = 0;
