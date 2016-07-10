@@ -558,7 +558,7 @@
         <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Authorization'">
 
           <div>
-            
+
           </div>
 
         </div>
