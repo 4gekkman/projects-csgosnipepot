@@ -181,6 +181,7 @@ class T27_get_steamname_and_steamid_by_tradeurl extends Command
     $this->info("Steam name of the partner: ".$result['data']['steam_name_partner']);
     $this->info("Escrow hold in days, my: ".$result['data']['steamescrow_days_my']);
     $this->info("Escrow hold in days, partner: ".$result['data']['escrow_days_partner']);
+    $this->info("Avatar: ".$result['data']['avatar']);
 
   }
 

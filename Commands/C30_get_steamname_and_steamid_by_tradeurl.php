@@ -246,17 +246,50 @@ class C30_get_steamname_and_steamid_by_tradeurl extends Job { // TODO: доба�
         $g_daysTheirEscrow = str_replace('"', '', $matches[1]);
         $results['escrow_days_partner'] = $g_daysTheirEscrow;
 
-        // 4.6. Провести валидацию полученных результатов
+        // 4.6. Аватар партнёра
+        $avatar = call_user_func(function() USE ($html) {
+
+          // 1] Создать новые объекты DOMDocument и DOMXpath, загрузить в них $html
+          libxml_use_internal_errors(true);
+          $doc = new \DOMDocument();
+          $doc->loadHTML($html);
+          $xpath = new \DOMXPath($doc);
+          libxml_use_internal_errors(false);
+
+          // 2] Получить URL аватара партнёра
+          $avatar = call_user_func(function() USE ($xpath) {
+
+            // 2.1] Найти аватар в $html
+            $ava = $xpath->query('//div[@class="avatarIcon"]/descendant::a/img/@src');
+
+            // 2.2] Если $ava пуст, вернуть пустую строку
+            if(empty($ava)) return '';
+
+            // 3.3] Иначе, вернуть URL аватара
+            return $ava[0]->nodeValue;
+
+          });
+
+          // 3]  
+
+          // 4] Вернуть URL аватара
+          return $avatar;
+
+        });
+        $results['avatar'] = $avatar;
+
+        // 4.n. Провести валидацию полученных результатов
         $validator = r4_validate($results, [
           "steamid"               => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
           "steam_name"            => ["required", "string"],
           "escrow_days_my"        => ["required", "regex:/^[0-9]+$/ui"],
           "escrow_days_partner"   => ["required", "regex:/^[0-9]+$/ui"],
+          "avatar"                => ["required", "url"],
         ]); if($validator['status'] == -1) {
           throw new \Exception($validator['data']);
         }
 
-        // 4.n. Вернуть результаты
+        // 4.m. Вернуть результаты
         return $results;
 
       });
@@ -272,6 +305,7 @@ class C30_get_steamname_and_steamid_by_tradeurl extends Job { // TODO: доба�
           "steam_name_partner"    => $needed_data['steam_name'],
           "steamescrow_days_my"   => $needed_data['escrow_days_my'],
           "escrow_days_partner"   => $needed_data['escrow_days_partner'],
+          "avatar"                => $needed_data['avatar']
         ]
       ];
 
