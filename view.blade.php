@@ -849,8 +849,6 @@
 
             </div>
 
-
-
           </div>
 
           <?php /*---------------------------------->
@@ -881,7 +879,159 @@
         <!-------------*/ ?>
         <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Newtrade'">
 
-          New trade
+          <?php /*----------------------------->
+          <!-- Ввод и проверка торгового URL -->
+          <!-------------------------------*/ ?>
+          <div>
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <div class="header-note">
+              <span>Enter trade url to choose a trade partner</span>
+            </div>
+
+            <?php /*-------->
+            <!-- Свойства -->
+            <!----------*/ ?>
+            <div class="form-horizontal">
+
+              <?php /* 1] Authorized -->
+              <!-------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label">Them trade URL</div>
+                <div class="col-sm-8">
+                  <input class="form-control input-sm" data-bind="css: {green_background_soft: m.s5.steam_name_partner, red_background_soft: !m.s5.steam_name_partner()}, textInput: m.s5.trade_url">
+                </div>
+              </div>
+
+              <?php /* 2] Session ID -->
+              <!-------------------*/ ?>
+              <div class="form-group">
+                <div class="col-sm-4 control-label"></div>
+                <div class="col-sm-8">
+                  <button type="button" class="btn btn-block btn-default btn-sm" data-bind="click: f.s5.update_tp">Check trade url and choose trade partner</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /*-------------------------->
+          <!-- Выбранный торговый партнёр -->
+          <!----------------------------*/ ?>
+          <div>
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <div class="header-note">
+              <span>Choosen trade partner</span>
+            </div>
+
+            <?php /*-------------------------------------->
+            <!-- Свойства выбранного торгового партнёра -->
+            <!----------------------------------------*/ ?>
+            <div>
+
+              <?php /*------------------------------>
+              <!-- 1] Аватарка торгового партнёра -->
+              <!--------------------------------*/ ?>
+              <div class="partnerava">
+                <img src="http://placehold.it/100x100/fafafa?text=avatar" data-bind="attr: {src: m.s5.avatar}">
+              </div>
+
+              <?php /*----------->
+              <!-- 2] Свойства -->
+              <!-------------*/ ?>
+              <div class="partneredit form-horizontal" style="padding-bottom: 30px;">
+
+                <?php /* 1] Steam name -->
+                <!-------------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">Steam name</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="textInput: m.s5.steam_name_partner" disabled="">
+                  </div>
+                </div>
+
+                <?php /* 2] Steam ID -->
+                <!-----------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">Steam ID</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="textInput: m.s5.steamid_partner" disabled="">
+                  </div>
+                </div>
+
+                <?php /* 3] Partner ID -->
+                <!--------------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">Partner ID</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="textInput: m.s5.partner" disabled="">
+                  </div>
+                </div>
+
+                <?php /* 4] Partner token -->
+                <!----------------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">Partner token</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="textInput: m.s5.token" disabled="">
+                  </div>
+                </div>
+
+                <?php /* 5] Escrow hold, days -->
+                <!--------------------------*/ ?>
+                <div class="form-group">
+                  <div class="col-sm-4 control-label">Escrow hold, days</div>
+                  <div class="col-sm-8">
+                    <input class="form-control input-sm" data-bind="textInput: m.s5.escrow_days_partner" disabled="">
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /*-------------------------------------------------------->
+          <!-- Создани и отправка нового торгового предложения партнёру -->
+          <!----------------------------------------------------------*/ ?>
+          <div> <!-- style="display: none" data-bind="visible: m.s5.steam_name_partner"> -->
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <div class="header-note">
+              <span>Trade</span>
+            </div>
+
+            <?php /*--------->
+            <!-- Интерфейс -->
+            <!-----------*/ ?>
+            <div class="row">
+
+              <?php /*----------------------------------------->
+              <!-- Левый столбец (инвентари бота и партнёра) -->
+              <!-------------------------------------------*/ ?>
+              <div class="col-md-7 col-sm-7 col-xs-7">
+                123
+              </div>
+
+              <?php /*---------------------------------------------------->
+              <!-- Правый столбец (вещи для обмена и панель управления) -->
+              <!------------------------------------------------------*/ ?>
+              <div class="col-md-5 col-sm-5 col-xs-5">
+                123
+              </div>
+
+            </div>
+
+          </div>
 
         </div>
 

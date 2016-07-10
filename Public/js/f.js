@@ -15,6 +15,7 @@
  *    f.s0.update_bots              | s0.2. Обновить модель ботов на основе переданных данных
  *    f.s0.update_inventory         | s0.3. Обновить инвентарь выбранного бота
  *    f.s0.upd_price_update_errors  | s0.4. Обновить модель ошибок обновления цен на вещи
+ *    f.s0.update_inventory_tp      | s0.5. Обновить инвентарь торгового партнёра
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -40,6 +41,18 @@
  *
  *    f.s4.update 									| s4.1. Обновить код мобильного аутентификатора для выбранного бота
  *    f.s4.copy   									| s4.2. Скопировать текущий код в буфер обмена
+ *
+ *  s5. Функционал модели торгового партнёра
+ *
+ *  	f.s5.update_tp                | s5.1. Обновить инфу о торговом партнёре по указанному торговому URL
+ *
+ *  s6. Функционал модели инвентаря торгового партнёра
+ *
+ *    f.s6.update 									| s6.1. Обновить инвентарь торгового партнёра
+ *    f.s6.get_item_title           | s6.2. Формирует title для вещей в инвентаре
+ *    f.s6.deselect_all             | s6.3. Развыделить все элементы в инвентаре
+ *
+ *
  *
  *
  */
@@ -220,27 +233,27 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
-			// 2. Применить к боксу с инвентарём perfect-scroll
-			(function(){
-
-				// 2.1. Получить ссылку на DOM-элемент
-				var dom = document.getElementsByClassName('inventory-container')[0];
-				if(!dom) return;
-
-				// 2.2. Если у dom нет класса ps-container
-				// - Тогда инициилизировать perfect-scroll на этом элементе
-				if(!checkClass('', 'ps-container', dom)) {
-					Ps.initialize(document.getElementsByClassName('inventory-container')[0], {
-						'wheelSpeed': .2
-					});
-				}
-
-				// 2.3. Иначе обновить
-				else {
-					Ps.update(dom);
-				}
-
-			})();
+//			// 2. Применить к боксу с инвентарём perfect-scroll
+//			(function(){
+//
+//				// 2.1. Получить ссылку на DOM-элемент
+//				var dom = document.getElementsByClassName('inventory-container')[0];
+//				if(!dom) return;
+//
+//				// 2.2. Если у dom нет класса ps-container
+//				// - Тогда инициилизировать perfect-scroll на этом элементе
+//				if(!checkClass('', 'ps-container', dom)) {
+//					Ps.initialize(document.getElementsByClassName('inventory-container')[0], {
+//						'wheelSpeed': .2
+//					});
+//				}
+//
+//				// 2.3. Иначе обновить
+//				else {
+//					Ps.update(dom);
+//				}
+//
+//			})();
 
   	};
 
@@ -258,6 +271,68 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			if(data.steammarket_last_bug) self.m.s2.price_update_errors.steammarket_last_bug(data.steammarket_last_bug);
 
  		};
+
+
+		//---------------------------------------------//
+		// s0.5. Обновить инвентарь торгового партнёра //
+		//---------------------------------------------//
+		// - Пояснение
+		f.s0.update_inventory_tp = function(data) {
+
+			// 1. Обновить m.s6.inventory
+
+				// 1.1. Очистить
+				self.m.s6.inventory.removeAll();
+
+				// 1.2. Наполнить
+				for(var i=0; i<data.data.rgDescriptions.length; i++) {
+
+					// 1.2.1. Сформировать объект для добавления
+					var obj = {};
+					for(var key in data.data.rgDescriptions[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!data.data.rgDescriptions[i].hasOwnProperty(key)) continue;
+
+						// 2] Добавим в obj свойство key
+						obj[key] = ko.observable(data.data.rgDescriptions[i][key]);
+
+					}
+
+					// 1.2.2. Добавить св-во number
+					obj['number'] = ko.observable(i+1);
+
+					// 1.2.3. Добавить св-во selected
+					obj['selected'] = ko.observable(false);
+
+					// 1.2.4. Добавить этот объект в подготовленный массив
+					self.m.s6.inventory.push(ko.observable(obj))
+
+				}
+
+//			// 2. Применить к боксу с инвентарём perfect-scroll
+//			(function(){
+//
+//				// 2.1. Получить ссылку на DOM-элемент
+//				var dom = document.getElementsByClassName('inventory-container')[0];
+//				if(!dom) return;
+//
+//				// 2.2. Если у dom нет класса ps-container
+//				// - Тогда инициилизировать perfect-scroll на этом элементе
+//				if(!checkClass('', 'ps-container', dom)) {
+//					Ps.initialize(document.getElementsByClassName('inventory-container')[0], {
+//						'wheelSpeed': .2
+//					});
+//				}
+//
+//				// 2.3. Иначе обновить
+//				else {
+//					Ps.update(dom);
+//				}
+//
+//			})();
+
+  	};
 
 
 		//------------------------------------------------------------------------//
@@ -297,6 +372,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 							// 1.2.2] Обновить инвентарь выбранного бота
 							self.f.s3.update();
+
+							// 1.2.3] Обновить инвентарь торгового партнёра
+							// - Если таковой, конечно, уже выбран
+							if(self.m.s5.steam_name_partner)
+								self.f.s6.update();
 
 						}
 					});
@@ -504,31 +584,30 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 			})();
 
+			// 3] Если выбрана не группа поддокументов с именем "Bot"
+			if(self.m.s1.selected_group().name() != 'Bot') {
 
-//			// 7] Если выбран не документ бота, очистить m.s2.edit и m.s3.inventory
-//			if(self.m.s1.selected_subdoc().id() != 2) {
-//
-//				// 7.1] Очистить m.s3.inventory
-//				self.m.s3.inventory.removeAll();
-//
-//				// 7.2] Очистить m.s2.edit
-//				for(var key in self.m.s2.edit) {
-//
-//					// Если свойство не своё, пропускаем
-//					if(!self.m.s2.edit.hasOwnProperty(key)) continue;
-//
-//					// Добавим в obj свойство key
-//					self.m.s2.edit[key]("");
-//
-//				}
-//
-//			}
+				// 3.1] Очистить m.s3.inventory и m.s6.inventory
+				self.m.s3.inventory.removeAll();
+				self.m.s6.inventory.removeAll();
+
+				// 3.2] Очистить m.s2.edit
+				for(var key in self.m.s2.edit) {
+
+					// Если свойство не своё, пропускаем
+					if(!self.m.s2.edit.hasOwnProperty(key)) continue;
+
+					// Добавим в obj свойство key
+					self.m.s2.edit[key]("");
+
+				}
+
+			}
 
 			// n] Выполнить update_all
 			// - Но только если parameters.without_reload != "1"
 			if(parameters.without_reload != "1")
 				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
-
 
 		};
 
@@ -762,8 +841,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 1] Обновить инвентарь выбранного бота
 					self.f.s0.update_inventory(data);
 
-					// 2] Сообщить, что пользователь был успешно отредактирован
-					notify({msg: "The bots inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+					// 2] Сообщить, что инвентарь бота был успешно отредактирован
+					// notify({msg: "The bots inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 					// 3] Отметить, что ajax-запрос закончился
 					self.m.s3.is_ajax_invoking(false);
@@ -987,6 +1066,227 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+	//--------------------------------------------------------//
+	// 			        		 			                                //
+	// 			 s5. Функционал модели торгового партнёра   			//
+	// 			         					                                //
+	//--------------------------------------------------------//
+	f.s5 = {};
+
+		//---------------------------------------------------------------------//
+		// s5.1. Обновить инфу о торговом партнёре по указанному торговому URL //
+		//---------------------------------------------------------------------//
+		f.s5.update_tp = function(){
+
+			// 1] Если trade_url выбранного бота пуст, сообщить и завершить
+			if(!self.m.s5.trade_url()) {
+				notify({msg: "Enter partner's trade url first", time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Получить "Partner ID" и "Token" из m.s5.trade_url
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C26_get_partner_and_token_from_trade_url",
+				from: 		    "f.s5.update_tp",
+			  data: 		    {
+					trade_url: 				self.m.s5.trade_url()
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Обновить инфу о торговом партнёре
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C30_get_steamname_and_steamid_by_tradeurl",
+						from: 		    "f.s5.update_tp",
+						data: 		    {
+							id_bot: 				  self.m.s2.edit.id(),
+							partner:          data.data.partner,
+							token:            data.data.token
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){},
+						ok_0:         function(data, params){
+
+							// 1] Сохранить полученные данные в модель партнёра
+							self.m.s5.steam_name_partner(data.data.steam_name_partner);
+							self.m.s5.steamid_partner(data.data.steamid_partner);
+							self.m.s5.partner(data.data.partner);
+							self.m.s5.token(data.data.token);
+							self.m.s5.escrow_days_partner(data.data.escrow_days_partner);
+							self.m.s5.avatar(data.data.avatar);
+
+							// n] Сообщить, что торговый партнёр по указанному торговому URL найден
+							notify({msg: "Trade partner has been found", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+						},
+						ok_1: function(data, params){},
+						ok_2: function(data, params){
+
+							notify({msg: "The entered trade url is not correct", time: 10, fontcolor: 'RGB(200,50,50)'});
+							console.log(data.data.errortext);
+
+						}
+						//ajax_params:  {},
+						//key: 			    "D1:1",
+						//from_ex: 	    [],
+						//callback:     function(data, params){},
+						//ok_1:         function(data, params){},
+						//error:        function(){},
+						//timeout:      function(){},
+						//timeout_sec:  200,
+						//url:          window.location.href,
+						//ajax_method:  "post",
+						//ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+					});
+
+					// n] Сообщить, что торговый партнёр по указанному торговому URL найден
+					notify({msg: "Trade partner has been found", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+				ok_2: function(data, params){
+
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+
+	//--------------------------------------------------------------//
+	// 			        		 			                                      //
+	// 			 s6. Функционал модели инвентаря торгового партнёра			//
+	// 			         					                                      //
+	//--------------------------------------------------------------//
+	f.s6 = {};
+
+		//---------------------------------------------//
+		// s6.1. Обновить инвентарь торгового партнёра //
+		//---------------------------------------------//
+		f.s6.update = function(data, event) {
+
+			// 1] Если steamid торгового партнёра пуст, сообщить и завершить
+			if(!self.m.s5.steamid_partner()) {
+				notify({msg: 'Enter and check trade url of a trade partner', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C4_getinventory",
+				from: 		    "f.s6.update",
+			  data: 		    {
+					steamid: 				  self.m.s5.steamid_partner()
+				},
+			  prejob:       function(config, data, event){
+
+					// 1] Отметить, что идёт ajax-запрос
+					self.m.s6.is_ajax_invoking(true);
+
+					// 2] Очистить содержимое инвентаря
+					self.m.s6.inventory.removeAll();
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Обновить инвентарь торгового партнёра
+					self.f.s0.update_inventory_tp(data);
+
+					// 2] Сообщить, что инвентарь был успешно обновлён
+					// notify({msg: "The trade partner's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 3] Отметить, что ajax-запрос закончился
+					self.m.s6.is_ajax_invoking(false);
+
+				},
+				ok_1: function(data, params){
+
+					// 1] Отметить, что ajax-запрос закончился
+					self.m.s6.is_ajax_invoking(false);
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+					// 2] Отметить, что ajax-запрос закончился
+					self.m.s6.is_ajax_invoking(false);
+
+				},
+				dont_touch_ajax_counter: true
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//---------------------------------------------//
+		// s6.2. Формирует title для вещей в инвентаре //
+		//---------------------------------------------//
+		f.s6.get_item_title = function(data) {
+
+			// 1] Подготовить строку для результата
+			var result = "";
+
+			// 2] Name
+			result = result + "--- Name --- " + (data.name ? data.name() : "''");
+
+			// 3] Type
+			result = result + "\n--- Type --- " + (data.type ? data.type() : "''");
+
+			// 4] Weapon
+			result = result + "\n--- Weapon --- " + (data.weapon ? data.weapon() : "''");
+
+			// 5] Category
+			result = result + "\n--- Category --- " + (data.category ? data.category() : "''");
+
+			// 6] Quality
+			result = result + "\n--- Quality --- " + (data.quality ? data.quality() : "''");
+
+			// 7] Exterior
+			result = result + "\n--- Exterior --- " + (data.exterior ? data.exterior() : "''");
+
+			// n] Вернуть результат
+			return result;
+
+		};
+
+
+		//--------------------------------------------//
+		// s6.3. Развыделить все элементы в инвентаре //
+		//--------------------------------------------//
+		f.s6.deselect_all = function(data) {
+
+			for(var i=0; i<self.m.s6.inventory().length; i++) {
+				self.m.s6.inventory()[i]().selected(false);
+			}
+
+		};
 
 
 
