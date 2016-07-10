@@ -116,7 +116,7 @@ desired effect
         <!-- 2] Навигационное меню в правой части верхней нав.полосы -->
         <!------------------------------------------------------------->
         <div class="navbar-custom-menu">
-          <ul class="nav navbar-nav" style="padding-right: 20px;">
+          <ul class="nav navbar-nav">
 
             <!-- User Account Menu -->
             <li class="dropdown user user-menu">
@@ -152,7 +152,7 @@ desired effect
                   <!-- Кнопка "Login via steam", показывать не аутентифицированным пользователям и гостям -->
                   <!---------------------------------------------------------------------------------------->
                   <div class="pull-right" style="display: none" data-bind="visible: !m.s0.is_logged_in()">
-                    <a href="#" class="btn btn-default btn-flat" data-bind="click: f.s1.logout">Login via steam</a>
+                    <a href="#" class="btn btn-default btn-flat" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>Login via steam</a>
                   </div>
 
                   <!------------------------------------------------------------------------------------------->

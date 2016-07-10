@@ -29,6 +29,12 @@
     margin-top: -16px !important;
   }
 }
+body {
+  overflow-x: auto !important;
+}
+.wrapper {
+  min-width: 640px;
+}
 
 //-------------------------------------//
 // 2. Изменение основных цветовых схем //
@@ -72,6 +78,11 @@
     text-align: left !important;
     cursor: default;
   }
+  @media (max-width: 767px) {
+    .logo {
+      text-align: center !important;
+    }
+  }
   .logo img {
     width: 50px !important;
     margin-bottom: 8px !important;
@@ -101,13 +112,22 @@
 //-----------//
 
   // Размер (маленького) аватара в правом верхнем углу админки
-  .navbar-nav>.user-menu .user-image-correct-size {
-    max-width: 40px;
-    width: 40px;
-    max-height: 40px;
-    height: 40px;
-    margin-top: -10px;
+  @media (min-width: 768px) {
+    .navbar-nav>.user-menu .user-image-correct-size {
+      max-width: 40px;
+      width: 40px;
+      max-height: 40px;
+      height: 40px;
+      margin-top: -10px;
+    }
   }
-
+  @media (max-width: 767px) {
+    .navbar-nav>.user-menu .user-image-correct-size {
+      max-width: 25px;
+      width: 25px;
+      max-height: 25px;
+      height: 25px;
+    }
+  }
 
 
