@@ -72,11 +72,11 @@
 -------------------------*/ ?>
 @section('content')
 
-<?php /*--------------->
+<?php /*------------------>
 <!-- 1. Панель загрузки -->
 <!-----------------*/ ?>
 <div class="loader">
-  <div style="display: none" class="loading_state_panel loader-inner square-spin" data-bind="visible: m.s0.is_loadshield_on">
+  <div style="display: none" class="loading_state_panel loader-inner ball-scale" data-bind="visible: m.s0.is_loadshield_on">
     <div></div>
   </div>
 </div>
@@ -248,16 +248,13 @@
     <!-----------------------------------*/ ?>
     <div class="box_leftmenu_style" >
       <ul>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Properties'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'properties'})"><span>Properties</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authcode'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authcode'})"><span>Auth code</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authorization'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authorization'})"><span>Authorization</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Properties'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'properties', without_reload: '1'})"><span>Properties</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authcode'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authcode', without_reload: '1'})"><span>Auth code</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Authorization'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'authorization', without_reload: '1'})"><span>Authorization</span></li>
       </ul>
       <ul>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'partner'})"><span>Partner</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'tradeoffers'})"><span>Trade offers</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'botitems'})"><span>My items</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'partneritems'})"><span>Them items</span></li>
-        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'newtradeoffer'})"><span>New trade</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'newtrade', without_reload: '1'})"><span>New trade</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Trade'}, click: f.s1.choose_subdoc.bind($data, {group: 'bot', subdoc: 'tradeoffers', without_reload: '1'})"><span>Trade offers</span></li>
       </ul>
     </div>
 
@@ -872,19 +869,19 @@
             <!-- Кнопка "Авторизовать бота" -->
             <!----------------------------*/ ?>
             <div>
-              <button type="button" class="btn btn-block btn-default" data-bind="click: f.s2.authorize_bot">(Re) Authorize</button>
+              <button type="button" class="btn btn-block btn-default" data-bind="click: f.s2.authorize_bot">Authorize</button>
             </div>
 
           </div>
 
         </div>
 
-        <?php /*---------->
-        <!-- 4] Partner -->
-        <!------------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Partner'">
+        <?php /*----------->
+        <!-- 4] Newtrade -->
+        <!-------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Newtrade'">
 
-          Partner
+          New trade
 
         </div>
 
@@ -894,33 +891,6 @@
         <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Tradeoffers'">
 
           Tradeoffers
-
-        </div>
-
-        <?php /*-------------->
-        <!-- 6] Botitems -->
-        <!----------------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Botitems'">
-
-          Botitems
-
-        </div>
-
-        <?php /*--------------->
-        <!-- 7] Partneritems -->
-        <!-----------------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Partneritems'">
-
-          Partneritems
-
-        </div>
-
-        <?php /*---------------->
-        <!-- 8] Newtradeoffer -->
-        <!------------------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Newtradeoffer'">
-
-          Newtradeoffer
 
         </div>
 

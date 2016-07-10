@@ -433,8 +433,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			}),
 			ko.observable({
 				id: ko.observable('103'),
-				name: ko.observable('Partner'),
-				query: ko.observable('?group=bot&subdoc=partner'),
+				name: ko.observable('Newtrade'),
+				query: ko.observable('?group=bot&subdoc=newtrade'),
 				group: ko.observable('2')
 			}),
 			ko.observable({
@@ -442,26 +442,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 				name: ko.observable('Tradeoffers'),
 				query: ko.observable('?group=bot&subdoc=tradeoffers'),
 				group: ko.observable('2')
-			}),
-			ko.observable({
-				id: ko.observable('105'),
-				name: ko.observable('Botitems'),
-				query: ko.observable('?group=bot&subdoc=botitems'),
-				group: ko.observable('2')
-			}),
-			ko.observable({
-				id: ko.observable('106'),
-				name: ko.observable('Partneritems'),
-				query: ko.observable('?group=bot&subdoc=partneritems'),
-				group: ko.observable('2')
-			}),
-			ko.observable({
-				id: ko.observable('107'),
-				name: ko.observable('Newtradeoffer'),
-				query: ko.observable('?group=bot&subdoc=newtradeoffer'),
-				group: ko.observable('2')
 			})
-
 		]);
 
 		// 2] Выбранный поддокумент приложения //

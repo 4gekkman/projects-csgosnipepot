@@ -523,11 +523,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 //				}
 //
 //			}
-//
-//			// n] Выполнить update_all
-//			// - Но только если data != "without reload"
-//			if(data != "without reload")
-//				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
+
+			// n] Выполнить update_all
+			// - Но только если parameters.without_reload != "1"
+			if(parameters.without_reload != "1")
+				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
 
 
 		};
