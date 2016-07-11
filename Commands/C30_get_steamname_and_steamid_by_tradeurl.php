@@ -263,7 +263,7 @@ class C30_get_steamname_and_steamid_by_tradeurl extends Job { // TODO: доба�
             $ava = $xpath->query('//div[@class="avatarIcon"]/descendant::a/img/@src');
 
             // 2.2] Если $ava пуст, вернуть пустую строку
-            if(empty($ava)) return '';
+            if($ava->length == 0) return '';
 
             // 3.3] Иначе, вернуть URL аватара
             return $ava[0]->nodeValue;
@@ -273,17 +273,20 @@ class C30_get_steamname_and_steamid_by_tradeurl extends Job { // TODO: доба�
           // 3] Добавить "_full" в конце к имени аватара
           $full_avatar = call_user_func(function() USE ($avatar) {
 
-            // 3.1] Извлечь расширение
+            // 3.1] Если $avatar пуст, ничего не делать
+            if(empty($avatar)) return "";
+
+            // 3.2] Извлечь расширение
             preg_match("#\.[^\/]+$#ui", $avatar, $matches);
             $ext = $matches[0];
 
-            // 3.2] Удалить из $avatar расширение
+            // 3.3] Удалить из $avatar расширение
             $avatar = preg_replace("#\.[^\/]+$#ui", '', $avatar);
 
-            // 3.3] Добавить в конец $avatar строку '_full', и затем $ext
+            // 3.4] Добавить в конец $avatar строку '_full', и затем $ext
             $avatar = $avatar . '_full' . $ext;
 
-            // 3.4] Вернуть результат
+            // 3.5] Вернуть результат
             return $avatar;
 
           });

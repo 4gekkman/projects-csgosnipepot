@@ -492,7 +492,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               // 10.3.3] Наполнить $itemToGive_arr
               if($itemInfo[0] == 'classinfo') {
                 $itemToGive_arr["appid"] = $itemInfo[1];
-                $itemToGive_arr["classid"] = $itemInfo[1];
+                $itemToGive_arr["classid"] = $itemInfo[2];
                 if(isset($itemInfo[3])) $itemToGive_arr["instanceid"] = $itemInfo[3];
               } else {
                 $itemToGive_arr["appid"] = $itemInfo[0];
@@ -506,7 +506,25 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               else
                 $itemToGive_arr["missing"] = false;
 
-              // 10.3.5] Добавить $itemToGive_arr в $results
+              // 10.3.5] Добавить значение image
+              $image = call_user_func(function() USE ($itemToGive, $xpath) {
+
+                // Найти изображение в $itemToGive
+                $img = $xpath->query('.//img/@src', $itemToGive);
+
+                // Если $img пуста, вернуть пустую строку
+                if($img->length == 0) return '';
+
+                // Если $img не пуста, добавить в конце " 2x"
+                else $img = $img[0]->nodeValue . ' 2x';
+
+                // Вернуть URL изображения
+                return $img;
+
+              });
+              $itemToGive_arr["image"] = $image;
+
+              // 10.3.n] Добавить $itemToGive_arr в $results
               array_push($results, $itemToGive_arr);
 
             }
@@ -543,7 +561,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               // 11.3.3] Наполнить $itemToReceive_arr
               if($itemInfo[0] == 'classinfo') {
                 $itemToReceive_arr["appid"] = $itemInfo[1];
-                $itemToReceive_arr["classid"] = $itemInfo[1];
+                $itemToReceive_arr["classid"] = $itemInfo[2];
                 if(isset($itemInfo[3])) $itemToReceive_arr["instanceid"] = $itemInfo[3];
               } else {
                 $itemToReceive_arr["appid"] = $itemInfo[0];
@@ -557,7 +575,25 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               else
                 $itemToReceive_arr["missing"] = false;
 
-              // 11.3.5] Добавить $itemToReceive_arr в $results
+              // 11.3.5] Добавить значение image
+              $image = call_user_func(function() USE ($itemToReceive, $xpath) {
+
+                // Найти изображение в $itemToReceive
+                $img = $xpath->query('.//img/@src', $itemToReceive);
+
+                // Если $img пуста, вернуть пустую строку
+                if($img->length == 0) return '';
+
+                // Если $img не пуста, добавить в конце " 2x"
+                else $img = $img[0]->nodeValue . ' 2x';
+
+                // Вернуть URL изображения
+                return $img;
+
+              });
+              $itemToReceive_arr["image"] = $image;
+
+              // 11.3.n] Добавить $itemToReceive_arr в $results
               array_push($results, $itemToReceive_arr);
 
             }
@@ -583,7 +619,75 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               $tradeoffer['items_to_give'] = $primary;
             }
 
-          // n] 4.5. Добавить $tradeoffer в $tradeoffers
+          // 13] Аватар партнёра
+          $avatar = call_user_func(function() USE ($tradeOfferElement, $xpath) {
+
+            // 13.1] Получить URL аватара партнёра
+            // - Если mode == 1 или 2, то брать аватар из primary.
+            // - Если mode == 3 или 4, то брать аватар из seconfary.
+            $avatar = call_user_func(function() USE ($tradeOfferElement, $xpath) {
+
+              // 13.1.1] Если mode = 1/2
+              if($this->data['mode'] == 1 || $this->data['mode'] == 2) {
+
+                // Найти аватар в $html
+                $ava = $xpath->query('//div[contains(@class, "tradeoffer_items primary")]/descendant::a/img/@src', $tradeOfferElement);
+
+                // Если $ava пуст, вернуть пустую строку
+                if($ava->length == 0) return '';
+
+                // Иначе, вернуть URL аватара
+                return $ava[0]->nodeValue;
+
+              }
+
+              // 13.1.2] Если mode = 3/4
+              if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
+
+                // Найти аватар в $html
+                $ava = $xpath->query('//div[contains(@class, "tradeoffer_items secondary")]/descendant::a/img/@src', $tradeOfferElement);
+
+                // Если $ava пуст, вернуть пустую строку
+                if($ava->length == 0) return '';
+
+                // Иначе, вернуть URL аватара
+                return $ava[0]->nodeValue;
+
+              }
+
+              // 13.1.3] Иначе вернуть пустую строку
+              return "";
+
+            });
+
+            // 13.2] Добавить "_full" в конце к имени аватара
+            $full_avatar = call_user_func(function() USE ($avatar) {
+
+              // Если $avatar пуст, ничего не делать
+              if(empty($avatar)) return "";
+
+              // Извлечь расширение
+              preg_match("#\.[^\/]+$#ui", $avatar, $matches);
+              $ext = $matches[0];
+
+              // Удалить из $avatar расширение
+              $avatar = preg_replace("#\.[^\/]+$#ui", '', $avatar);
+
+              // Добавить в конец $avatar строку '_full', и затем $ext
+              $avatar = $avatar . '_full' . $ext;
+
+              // Вернуть результат
+              return $avatar;
+
+            });
+
+            // 13.3] Вернуть URL аватара
+            return $full_avatar;
+
+          });
+          $tradeoffer['avatar'] = $avatar;
+
+          // n] Добавить $tradeoffer в $tradeoffers
           // - Если mode = 1/2, то в trade_offers_sent
           // - Если mode = 3/4, то в trade_offers_received
           if($this->data['mode'] == 1 || $this->data['mode'] == 2)
