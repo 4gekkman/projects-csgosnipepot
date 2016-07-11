@@ -371,12 +371,12 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() != 2) return;
 
 							// 1.2.2] Обновить инвентарь выбранного бота
-							self.f.s3.update();
+							self.f.s3.update({silence: true});
 
 							// 1.2.3] Обновить инвентарь торгового партнёра
 							// - Если таковой, конечно, уже выбран
 							if(self.m.s5.steam_name_partner)
-								self.f.s6.update();
+								self.f.s6.update({silence: true});
 
 						}
 					});
@@ -811,11 +811,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//------------------------------------------//
 		// s3.1. Обновить инвентарь выбранного бота //
 		//------------------------------------------//
-		f.s3.update = function(data, event) {
+		f.s3.update = function(parameters, data, event) {
 
 			// 1] Если steamid выбранного бота пуст, сообщить и завершить
 			if(!self.m.s2.edit.steamid()) {
-				notify({msg: 'Enter steamid of the bot below', time: 5, fontcolor: 'RGB(200,50,50)'});
+				notify({msg: 'Enter steamid of the bot first', time: 5, fontcolor: 'RGB(200,50,50)'});
 				return;
 			}
 
@@ -834,6 +834,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 2] Очистить содержимое инвентаря
 					self.m.s3.inventory.removeAll();
 
+					// 3] Сообщить, что начинается запрос инвентаря
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Inventory updating...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
 				},
 			  postjob:      function(data, params){},
 			  ok_0:         function(data, params){
@@ -842,7 +847,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					self.f.s0.update_inventory(data);
 
 					// 2] Сообщить, что инвентарь бота был успешно отредактирован
-					// notify({msg: "The bots inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "The bot's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 					// 3] Отметить, что ajax-запрос закончился
 					self.m.s3.is_ajax_invoking(false);
@@ -1176,7 +1183,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//---------------------------------------------//
 		// s6.1. Обновить инвентарь торгового партнёра //
 		//---------------------------------------------//
-		f.s6.update = function(data, event) {
+		f.s6.update = function(parameters, data, event) {
 
 			// 1] Если steamid торгового партнёра пуст, сообщить и завершить
 			if(!self.m.s5.steamid_partner()) {
@@ -1199,6 +1206,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 2] Очистить содержимое инвентаря
 					self.m.s6.inventory.removeAll();
 
+					// 3] Сообщить, что начинается запрос инвентаря
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Inventory updating...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
 				},
 			  postjob:      function(data, params){},
 			  ok_0:         function(data, params){
@@ -1206,8 +1218,10 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 1] Обновить инвентарь торгового партнёра
 					self.f.s0.update_inventory_tp(data);
 
-					// 2] Сообщить, что инвентарь был успешно обновлён
-					// notify({msg: "The trade partner's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+					// 2] Сообщить, что инвентарь партнёра был успешно отредактирован
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "The partner's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 					// 3] Отметить, что ajax-запрос закончился
 					self.m.s6.is_ajax_invoking(false);

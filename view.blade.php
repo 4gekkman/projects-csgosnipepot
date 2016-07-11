@@ -1018,8 +1018,109 @@
               <?php /*----------------------------------------->
               <!-- Левый столбец (инвентари бота и партнёра) -->
               <!-------------------------------------------*/ ?>
-              <div class="col-md-7 col-sm-7 col-xs-7">
-                123
+              <div class="new-trade-left-column col-md-7 col-sm-7 col-xs-7">
+
+                <?php /*--------------------->
+                <!-- Панель инвентаря бота -->
+                <!-----------------------*/ ?>
+                <div class="box">
+
+                  <?php /*---------------------------------------->
+                  <!-- Заголовочная часть и панель инструментов -->
+                  <!------------------------------------------*/ ?>
+                  <div class="box-header with-border">
+
+                    <?php /*-------------------------------->
+                    <!-- Заголовок, переключатель, кол-во -->
+                    <!----------------------------------*/ ?>
+                    <div>
+
+                      <?php /*--------->
+                      <!-- Заголовок -->
+                      <!-----------*/ ?>
+                      <span>The bot's inventory</span>
+
+                      <?php /*----------------------------------->
+                      <!-- Переключатель "развернуть/свернуть" -->
+                      <!-------------------------------------*/ ?>
+                      <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                      </button>
+
+                      <?php /*---------------------------->
+                      <!-- Количество вещей в инвентаре -->
+                      <!------------------------------*/ ?>
+                      <small class="small_notes"><span title="Number of selected inventory items" data-bind="text: m.s3.inventory_selected"></span> / <span title="Total number of inventory items" data-bind="text: m.s3.inventory_total"></span></small>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*--------->
+                  <!-- Инвентарь -->
+                  <!-----------*/ ?>
+                  <div class="box-body no-padding" style="display: block;">
+
+                    <?php /*------------------------------>
+                    <!-- Строка поиска, кнопка "Update" -->
+                    <!--------------------------------*/ ?>
+                    <div class="row">
+
+                      <?php /*------------------------------>
+                      <!-- Строка поиска, кнопка "Update" -->
+                      <!--------------------------------*/ ?>
+                      <div class="col-md-7 col-sm-7 col-xs-7">
+                        <input type="text" class="search-str" data-bind="textInput: m.s3.search_string">
+                        <i class="fa fa-search" title="Search"></i>
+                      </div>
+
+                      <?php /*--------------->
+                      <!-- Кнопка "Update" -->
+                      <!-----------------*/ ?>
+                      <div class="col-md-5 col-sm-5 col-xs-5">
+                        <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: f.s3.update.bind($data, {silent: false})">Update</button>
+                      </div>
+
+                    </div>
+
+                    <?php /*-------------------->
+                    <!-- Содержимое инвентаря -->
+                    <!----------------------*/ ?>
+                    <div class="inventory-container">
+
+                      <?php /*-------------------------------------->
+                      <!-- Надпись на случай, если инвентарь пуст -->
+                      <!----------------------------------------*/ ?>
+                      <div class="empty-inventory" data-bind="visible: !m.s3.inventory().length && !m.s3.is_ajax_invoking()">
+                        <span>Inventory is empty...</span>
+                      </div>
+
+                      <?php /*-------------------->
+                      <!-- Содержимое инвентаря -->
+                      <!----------------------*/ ?>
+                      <div class="inventory" data-bind="foreach: m.s3.inventory, visible: !m.s3.is_ajax_invoking()">
+
+                        <?php /*------------------->
+                        <!-- Предмет в инвентаре -->
+                        <!---------------------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
               </div>
 
               <?php /*---------------------------------------------------->
