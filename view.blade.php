@@ -1018,7 +1018,7 @@
               <?php /*----------------------------------------->
               <!-- Левый столбец (инвентари бота и партнёра) -->
               <!-------------------------------------------*/ ?>
-              <div class="new-trade-left-column col-md-7 col-sm-7 col-xs-7">
+              <div class="new-trade-column left-column col-md-7 col-sm-7 col-xs-7">
 
                 <?php /*--------------------->
                 <!-- Панель инвентаря бота -->
@@ -1050,7 +1050,7 @@
                       <?php /*---------------------------->
                       <!-- Количество вещей в инвентаре -->
                       <!------------------------------*/ ?>
-                      <small class="small_notes"><span title="Number of selected inventory items" data-bind="text: m.s3.inventory_selected"></span> / <span title="Total number of inventory items" data-bind="text: m.s3.inventory_total"></span></small>
+                      <small class="small_notes"><span title="Number of selected inventory items" data-bind="text: m.s3.inventory_selected"></span> / <span title="Inventory items have passed thru the filters" data-bind="text: m.s3.found_inventory_items().length"></span> / <span title="Total number of inventory items" data-bind="text: m.s3.inventory_total"></span></small>
 
                     </div>
 
@@ -1092,7 +1092,7 @@
                       <!-- Надпись на случай, если инвентарь пуст -->
                       <!----------------------------------------*/ ?>
                       <div class="empty-inventory" data-bind="visible: !m.s3.inventory().length && !m.s3.is_ajax_invoking()">
-                        <span>Inventory is empty...</span>
+                        <span>Inventory is empty. Try to update.</span>
                       </div>
 
                       <?php /*-------------------->
@@ -1103,7 +1103,7 @@
                         <?php /*------------------->
                         <!-- Предмет в инвентаре -->
                         <!---------------------*/ ?>
-                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }">
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s3.found_inventory_items.indexOf(assetid()) != -1 && $root.m.s3.inventory_items2trade.indexOf(assetid()) == -1">
 
                           <?php /*------------->
                           <!-- Лэйбл с ценой -->
@@ -1116,18 +1116,398 @@
 
                       </div>
 
+                      <?php /*--------------->
+                      <!-- Панель загрузки -->
+                      <!-----------------*/ ?>
+                      <div class="loader">
+                        <div style="display: none" class="inventory_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: m.s3.is_ajax_invoking">
+
+                        </div>
+                      </div>
+
                     </div>
 
                   </div>
 
                 </div>
+
+                <?php /*------------------------->
+                <!-- Панель инвентаря партнёра -->
+                <!---------------------------*/ ?>
+                <div class="box">
+
+                  <?php /*---------------------------------------->
+                  <!-- Заголовочная часть и панель инструментов -->
+                  <!------------------------------------------*/ ?>
+                  <div class="box-header with-border">
+
+                    <?php /*-------------------------------->
+                    <!-- Заголовок, переключатель, кол-во -->
+                    <!----------------------------------*/ ?>
+                    <div>
+
+                      <?php /*--------->
+                      <!-- Заголовок -->
+                      <!-----------*/ ?>
+                      <span>The partners's inventory</span>
+
+                      <?php /*----------------------------------->
+                      <!-- Переключатель "развернуть/свернуть" -->
+                      <!-------------------------------------*/ ?>
+                      <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                      </button>
+
+                      <?php /*---------------------------->
+                      <!-- Количество вещей в инвентаре -->
+                      <!------------------------------*/ ?>
+                      <small class="small_notes"><span title="Number of selected inventory items" data-bind="text: m.s6.inventory_selected"></span> / <span title="Inventory items have passed thru the filters" data-bind="text: m.s6.found_inventory_items().length"></span> / <span title="Total number of inventory items" data-bind="text: m.s6.inventory_total"></span></small>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*--------->
+                  <!-- Инвентарь -->
+                  <!-----------*/ ?>
+                  <div class="box-body no-padding" style="display: block;">
+
+                    <?php /*------------------------------>
+                    <!-- Строка поиска, кнопка "Update" -->
+                    <!--------------------------------*/ ?>
+                    <div class="row">
+
+                      <?php /*------------------------------>
+                      <!-- Строка поиска, кнопка "Update" -->
+                      <!--------------------------------*/ ?>
+                      <div class="col-md-7 col-sm-7 col-xs-7">
+                        <input type="text" class="search-str" data-bind="textInput: m.s6.search_string">
+                        <i class="fa fa-search" title="Search"></i>
+                      </div>
+
+                      <?php /*--------------->
+                      <!-- Кнопка "Update" -->
+                      <!-----------------*/ ?>
+                      <div class="col-md-5 col-sm-5 col-xs-5">
+                        <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: f.s6.update.bind($data, {silent: false})">Update</button>
+                      </div>
+
+                    </div>
+
+                    <?php /*-------------------->
+                    <!-- Содержимое инвентаря -->
+                    <!----------------------*/ ?>
+                    <div class="inventory-container">
+
+                      <?php /*-------------------------------------->
+                      <!-- Надпись на случай, если инвентарь пуст -->
+                      <!----------------------------------------*/ ?>
+                      <div class="empty-inventory" data-bind="visible: !m.s6.inventory().length && !m.s6.is_ajax_invoking()">
+                        <span>Inventory is empty. Try to update.</span>
+                      </div>
+
+                      <?php /*-------------------->
+                      <!-- Содержимое инвентаря -->
+                      <!----------------------*/ ?>
+                      <div class="inventory" data-bind="foreach: m.s6.inventory, visible: !m.s6.is_ajax_invoking()">
+
+                        <?php /*------------------->
+                        <!-- Предмет в инвентаре -->
+                        <!---------------------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s6.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s6.found_inventory_items.indexOf(assetid()) != -1 && $root.m.s6.inventory_items2trade.indexOf(assetid()) == -1">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*--------------->
+                      <!-- Панель загрузки -->
+                      <!-----------------*/ ?>
+                      <div class="loader">
+                        <div style="display: none" class="inventory_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: m.s6.is_ajax_invoking">
+
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+
               </div>
 
               <?php /*---------------------------------------------------->
               <!-- Правый столбец (вещи для обмена и панель управления) -->
               <!------------------------------------------------------*/ ?>
-              <div class="col-md-5 col-sm-5 col-xs-5">
-                123
+              <div class="new-trade-column right-column col-md-5 col-sm-5 col-xs-5">
+
+                <?php /*------------------------>
+                <!-- Вещи, которые отдаёт бот -->
+                <!--------------------------*/ ?>
+                <div class="box">
+
+                  <?php /*---------------------------------------->
+                  <!-- Заголовочная часть и панель инструментов -->
+                  <!------------------------------------------*/ ?>
+                  <div class="box-header with-border">
+
+                    <?php /*-------------------------------->
+                    <!-- Заголовок, переключатель, кол-во -->
+                    <!----------------------------------*/ ?>
+                    <div>
+
+                      <?php /*--------->
+                      <!-- Заголовок -->
+                      <!-----------*/ ?>
+                      <span>Items to give</span>
+
+                      <?php /*----------------------------------->
+                      <!-- Переключатель "развернуть/свернуть" -->
+                      <!-------------------------------------*/ ?>
+                      <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                      </button>
+
+                      <?php /*-------------------------------------->
+                      <!-- Количество вещей, которые будут отданы -->
+                      <!----------------------------------------*/ ?>
+                      <small class="small_notes"><span title="Number of selected inventory items" data-bind="text: m.s3.inventory_selected"></span></small>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*------------------------------------>
+                  <!-- Вещи инвентаря, которые будут отданы -->
+                  <!--------------------------------------*/ ?>
+                  <div class="box-body no-padding" style="display: block;">
+
+                    <?php /*-------------------->
+                    <!-- Содержимое инвентаря -->
+                    <!----------------------*/ ?>
+                    <div class="inventory-container">
+
+                      <?php /*----------------------------------------------->
+                      <!-- Надпись на случай, если никакие вещи не выбраны -->
+                      <!-------------------------------------------------*/ ?>
+                      <div class="empty-inventory" data-bind="visible: !m.s3.inventory_items2trade().length">
+                        <span>No items to give.</span>
+                      </div>
+
+                      <?php /*-------------------->
+                      <!-- Содержимое инвентаря -->
+                      <!----------------------*/ ?>
+                      <div class="inventory" data-bind="foreach: m.s3.inventory, visible: !m.s3.is_ajax_invoking()">
+
+                        <?php /*------------------->
+                        <!-- Предмет в инвентаре -->
+                        <!---------------------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s3.inventory_items2trade.indexOf(assetid()) != -1">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*--------------->
+                      <!-- Панель загрузки -->
+                      <!-----------------*/ ?>
+                      <div class="loader">
+                        <div style="display: none" class="inventory_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: m.s3.is_ajax_invoking">
+
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <?php /*-------------------------->
+                <!-- Вещи, которые получает бот -->
+                <!----------------------------*/ ?>
+                <div class="box">
+
+                  <?php /*---------------------------------------->
+                  <!-- Заголовочная часть и панель инструментов -->
+                  <!------------------------------------------*/ ?>
+                  <div class="box-header with-border">
+
+                    <?php /*-------------------------------->
+                    <!-- Заголовок, переключатель, кол-во -->
+                    <!----------------------------------*/ ?>
+                    <div>
+
+                      <?php /*--------->
+                      <!-- Заголовок -->
+                      <!-----------*/ ?>
+                      <span>Items to get</span>
+
+                      <?php /*----------------------------------->
+                      <!-- Переключатель "развернуть/свернуть" -->
+                      <!-------------------------------------*/ ?>
+                      <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                      </button>
+
+                      <?php /*---------------------------------------->
+                      <!-- Количество вещей, которые будут получены -->
+                      <!------------------------------------------*/ ?>
+                      <small class="small_notes"><span title="Number of selected inventory items" data-bind="text: m.s6.inventory_selected"></span></small>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*-------------------------------------->
+                  <!-- Вещи инвентаря, которые будут получены -->
+                  <!----------------------------------------*/ ?>
+                  <div class="box-body no-padding" style="display: block;">
+
+                    <?php /*-------------------->
+                    <!-- Содержимое инвентаря -->
+                    <!----------------------*/ ?>
+                    <div class="inventory-container">
+
+                      <?php /*----------------------------------------------->
+                      <!-- Надпись на случай, если никакие вещи не выбраны -->
+                      <!-------------------------------------------------*/ ?>
+                      <div class="empty-inventory" data-bind="visible: !m.s6.inventory_items2trade().length">
+                        <span>No items to get.</span>
+                      </div>
+
+                      <?php /*-------------------->
+                      <!-- Содержимое инвентаря -->
+                      <!----------------------*/ ?>
+                      <div class="inventory" data-bind="foreach: m.s6.inventory, visible: !m.s6.is_ajax_invoking()">
+
+                        <?php /*------------------->
+                        <!-- Предмет в инвентаре -->
+                        <!---------------------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s6.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s6.inventory_items2trade.indexOf(assetid()) != -1">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*--------------->
+                      <!-- Панель загрузки -->
+                      <!-----------------*/ ?>
+                      <div class="loader">
+                        <div style="display: none" class="inventory_loading_state_panel loader-inner ball-clip-rotate" data-bind="visible: m.s6.is_ajax_invoking">
+
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <?php /*-------------------------------------------->
+                <!-- Экономика планируемого торгового предложения -->
+                <!----------------------------------------------*/ ?>
+                <div class="box economy-container">
+
+                  <?php /*--------->
+                  <!-- Заголовок -->
+                  <!-----------*/ ?>
+                  <div>
+                    <span>Economy</span>
+                  </div>
+
+                  <?php /*---------->
+                  <!-- Содержимое -->
+                  <!------------*/ ?>
+                  <div class="economy-content">
+
+                    <?php /*-------------->
+                    <!-- Дебет и кредит -->
+                    <!----------------*/ ?>
+                    <div class="debit-and-credit">
+
+                      <?php /*----->
+                      <!-- Дебет -->
+                      <!-------*/ ?>
+                      <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                          <span>Debit</span>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                          <span data-bind="text: m.s6.items2trade_sumprice() + '$'"></span>
+                        </div>
+                      </div>
+
+                      <?php /*------>
+                      <!-- Кредит -->
+                      <!--------*/ ?>
+                      <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                          <span>Credit</span>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                          <span data-bind="text: m.s3.items2trade_sumprice() + '$'"></span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <?php /*------>
+                    <!-- Баланс -->
+                    <!--------*/ ?>
+                    <div class="balance">
+
+                      <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                          <span>Balance</span>
+                        </div>
+                        <div class="balance-class col-md-6 col-sm-6 col-xs-6">
+                          <span data-bind="text: +m.s6.items2trade_sumprice() - +m.s3.items2trade_sumprice() + '$', css: {greentext: (+m.s6.items2trade_sumprice() - +m.s3.items2trade_sumprice()) > 0, redtext: (+m.s6.items2trade_sumprice() - +m.s3.items2trade_sumprice()) < 0}"></span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <?php /*-------->
+                <!-- Действия -->
+                <!----------*/ ?>
+                <div class="box">
+
+                  <?php /*------------------------------>
+                  <!-- Отправить торговое предложение -->
+                  <!--------------------------------*/ ?>
+                  <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: f.s0.send_trade_offer">Send trade offer</button>
+
+                </div>
+
               </div>
 
             </div>

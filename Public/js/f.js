@@ -16,6 +16,7 @@
  *    f.s0.update_inventory         | s0.3. Обновить инвентарь выбранного бота
  *    f.s0.upd_price_update_errors  | s0.4. Обновить модель ошибок обновления цен на вещи
  *    f.s0.update_inventory_tp      | s0.5. Обновить инвентарь торгового партнёра
+ *    f.s0.send_trade_offer         | s0.6. Отправить торговое предложение
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -335,6 +336,140 @@ var ModelFunctions = { constructor: function(self) { var f = this;
   	};
 
 
+		//--------------------------------------//
+		// s0.6. Отправить торговое предложение //
+		//--------------------------------------//
+		f.s0.send_trade_offer	= function(what, from, data, event) {
+
+			// 1] Если никакие вещи не выбраны для торговли, сообщить и завершить
+			if(!self.m.s3.inventory_items2trade().length && !self.m.s6.inventory_items2trade().length) {
+				notify({msg: "Choose some items to trade", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Запретить торговать с партнёрами, у которых escrow hold > 0
+			if(+self.m.s5.escrow_days_partner() > 0) {
+				notify({msg: "The partner's escrow hold days > 0. Trade canceled.", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 3] Проверить наличие необходимых данных
+			if(!self.m.s2.edit.id()) {
+				notify({msg: "Check partner's id", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+			if(!self.m.s5.trade_url()) {
+				notify({msg: "Check partner's trade url", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+			if(!self.m.s5.steamid_partner()) {
+				notify({msg: "Check partner's Steam ID", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+			if(!self.m.s5.partner()) {
+				notify({msg: "Check partner's partner ID", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+			if(!self.m.s5.token()) {
+				notify({msg: "Check partner's token", time: 10, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 4] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C25_new_trade_offer",
+				from: 		    "f.s0.send_trade_offer",
+			  data: 		    {
+					id_bot: 							self.m.s2.edit.id(),
+					steamid_partner: 			self.m.s5.steamid_partner(),
+					id_partner: 					self.m.s5.partner(),
+					token_partner: 				self.m.s5.token(),
+					dont_trade_with_gays: "1",
+					assets2send: 					self.m.s3.inventory_items2trade(),
+					assets2recieve: 			self.m.s6.inventory_items2trade(),
+					tradeoffermessage: 		"Manual trade via dashboard."
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Тихо обновить инвентарь выбранного бота
+					self.f.s3.update({silent: true});
+
+					// 2] Тихо обновить инвентарь партнёра
+					self.f.s6.update({silent: true});
+
+					// 3] Сообщить, что новое торговое предложение успешно создано
+					notify({msg: "New trade offer successfully created", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+				},
+				callback:     function(data, params){
+
+					// 1] Подтвердить все торговые предложения выбранного бота
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C21_fetch_confirmations",
+						from: 		    "f.s0.send_trade_offer",
+						data: 		    {
+							id_bot: 							self.m.s2.edit.id(),
+							need_to_ids:          "0",
+							just_fetch_info:      "0"
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){},
+						ok_0:         function(data, params){
+
+							// 1] Сообщить, что новое торговое предложение было подтверждено
+							notify({msg: "New trade offer successfully approved", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+						},
+						ok_2: function(data, params){
+
+							// 1] Сообщить об ошибке
+							notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+							console.log(data.data.errortext);
+
+						},
+						callback:     function(data, params){
+
+							// 1] Подтвердить все торговые предложения выбранного бота
+
+
+						}
+						//ajax_params:  {},
+						//key: 			    "D1:1",
+						//from_ex: 	    [],
+						//ok_1:         function(data, params){},
+						//error:        function(){},
+						//timeout:      function(){},
+						//timeout_sec:  200,
+						//url:          window.location.href,
+						//ajax_method:  "post",
+						//ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+					});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+
 		//------------------------------------------------------------------------//
 		// s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера //
 		//------------------------------------------------------------------------//
@@ -604,6 +739,14 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
+			// 4] Если выбрана группа поддокументов с именем "Bot"
+			if(self.m.s1.selected_group().name() == 'Bot') {
+
+				// 4.1] Обновить инвентарь по-тихому
+				self.f.s3.update({silent: true});
+
+			}
+
 			// n] Выполнить update_all
 			// - Но только если parameters.without_reload != "1"
 			if(parameters.without_reload != "1")
@@ -815,7 +958,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 			// 1] Если steamid выбранного бота пуст, сообщить и завершить
 			if(!self.m.s2.edit.steamid()) {
-				notify({msg: 'Enter steamid of the bot first', time: 5, fontcolor: 'RGB(200,50,50)'});
+				notify({msg: 'Enter steamid of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
 				return;
 			}
 
@@ -1122,6 +1265,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							self.m.s5.token(data.data.token);
 							self.m.s5.escrow_days_partner(data.data.escrow_days_partner);
 							self.m.s5.avatar(data.data.avatar);
+
+							// 2] Обновить инвентарь торгового партнёра
+							self.f.s6.update({silent: false});
 
 							// n] Сообщить, что торговый партнёр по указанному торговому URL найден
 							notify({msg: "Trade partner has been found", time: 5, fontcolor: 'RGB(50,120,50)'});
