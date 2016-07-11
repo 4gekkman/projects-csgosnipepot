@@ -396,10 +396,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 1] Тихо обновить инвентарь выбранного бота
 					self.f.s3.update({silent: true});
 
-					// 2] Тихо обновить инвентарь партнёра
-					self.f.s6.update({silent: true});
-
-					// 3] Сообщить, что новое торговое предложение успешно создано
+					// 2] Сообщить, что новое торговое предложение успешно создано
 					notify({msg: "New trade offer successfully created", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 				},
@@ -438,8 +435,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						},
 						callback:     function(data, params){
 
-							// 1] Подтвердить все торговые предложения выбранного бота
-
+							// 1] Тихо обновить инвентарь партнёра
+							self.f.s6.update({silent: true});
 
 						}
 						//ajax_params:  {},
