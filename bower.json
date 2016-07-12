@@ -13,7 +13,8 @@
 		"socket.io-client": "latest",
 		"perfect-scrollbar": "latest",
 		"d3": "latest",
-		"4gekkman-bower-animsition": "latest"
+		"4gekkman-bower-animsition": "latest",
+		"momentjs": "latest"
 	},
   "mains": {
     "css": [
