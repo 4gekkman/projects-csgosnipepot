@@ -200,7 +200,12 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
           // 1] Подготовить строку для результата
           $result = "<!-- document js: start -->" . PHP_EOL;
 
-          // 2] Добавить пути к CSS-файлам
+          // 2] Добавить следующие 2 строки, чтобы бороться с багом в Browser-sync
+          // - Из-за которого во 2-м запросе getHost прописывается порт 80 почему-то
+          $result = $result . '  <script attr1="\Request::getHost();" attr2="\Request::getHost();"></script>' . PHP_EOL;
+          $result = $result . '  <script attr1="\Request::getHost();" attr2="\Request::getHost();"></script>' . PHP_EOL;
+
+          // 3] Добавить пути к CSS-файлам
           collect($index[$package]['js'])->each(function($path) USE (&$result, $package) {
 
             // 1] Добавить пробелы
@@ -214,10 +219,10 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
 
           });
 
-          // 3] Финальные штрихи для $result
+          // 4] Финальные штрихи для $result
           $result = $result . "  <!-- document js: stop -->";
 
-          // 4] Вернуть $result
+          // 5] Вернуть $result
           return $result;
 
         });
