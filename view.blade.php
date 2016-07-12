@@ -1526,10 +1526,10 @@
           <!-------------------------*/ ?>
           <div class="col-md-7 col-sm-7 col-xs-7">
 
-            <?php /*-------------------->
-            <!-- Свойства авторизации -->
-            <!----------------------*/ ?>
-            <div>
+            <?php /*----------->
+            <!-- 1] Incoming -->
+            <!-------------*/ ?>
+            <div style="display: none" data-bind="visible: m.s7.types.choosen() == 1">
 
               <?php /*--------->
               <!-- Заголовок -->
@@ -1538,12 +1538,163 @@
                 <span>Incoming offers</span>
               </div>
 
-              <?php /*-------->
-              <!-- Свойства -->
-              <!----------*/ ?>
-              <div class="form-horizontal">
+              <?php /*-------------------->
+              <!-- Торговые предложения -->
+              <!----------------------*/ ?>
+              <div class="trade-offers-list" data-bind="foreach: m.s7.tradeoffers_incoming">
 
-                123
+                <?php /*-------------------->
+                <!-- Торговое предложения -->
+                <!----------------------*/ ?>
+                <div class="trade-offer">
+
+                  <?php /*----->
+                  <!-- Шапка -->
+                  <!-------*/ ?>
+                  <div class="head-part">
+
+                    <?php /*--------------->
+                    <!-- Аватар партнёра -->
+                    <!-----------------*/ ?>
+                    <div class="avatar">
+                      <img data-bind="attr: {src: avatar}">
+                    </div>
+
+                  </div>
+
+                  <?php /*---->
+                  <!-- Тело -->
+                  <!------*/ ?>
+                  <div class="body-part">
+
+                    body
+
+                  </div>
+
+                  <?php /*------>
+                  <!-- Подвал -->
+                  <!--------*/ ?>
+                  <div class="footer-part">
+
+                    footer
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*------------------->
+            <!-- 2] Incoming history -->
+            <!---------------------*/ ?>
+            <div style="display: none" data-bind="visible: m.s7.types.choosen() == 2">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note">
+                <span>Incoming offers</span>
+              </div>
+
+              <?php /*-------------------->
+              <!-- Торговые предложения -->
+              <!----------------------*/ ?>
+              <div class="trade-offers-list" data-bind="foreach: m.s7.tradeoffers_incoming_history">
+
+                <?php /*-------------------->
+                <!-- Торговое предложения -->
+                <!----------------------*/ ?>
+                <div class="trade-offer">
+
+                  <?php /*----->
+                  <!-- Шапка -->
+                  <!-------*/ ?>
+                  <div class="head-part">
+
+                    <?php /*--------------->
+                    <!-- Аватар партнёра -->
+                    <!-----------------*/ ?>
+                    <div class="avatar">
+                      <img data-bind="attr: {src: avatar}">
+                    </div>
+
+                    <?php /*------------>
+                    <!-- Имя партнёра -->
+                    <!--------------*/ ?>
+                    <div>
+                      <span data-bind="text: name"></span>
+                    </div>
+
+
+                  </div>
+
+                  <?php /*---->
+                  <!-- Тело -->
+                  <!------*/ ?>
+                  <div class="body-part">
+
+                    body
+
+                  </div>
+
+                  <?php /*------>
+                  <!-- Подвал -->
+                  <!--------*/ ?>
+                  <div class="footer-part">
+
+                    footer
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*------->
+            <!-- 3] Sent -->
+            <!---------*/ ?>
+            <div style="display: none" data-bind="visible: m.s7.types.choosen() == 3">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note">
+                <span>Sent</span>
+              </div>
+
+              <?php /*-------------------->
+              <!-- Торговые предложения -->
+              <!----------------------*/ ?>
+              <div>
+
+                Sent
+
+              </div>
+
+            </div>
+
+            <?php /*--------------->
+            <!-- 4] Sent history -->
+            <!-----------------*/ ?>
+            <div style="display: none" data-bind="visible: m.s7.types.choosen() == 4">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note">
+                <span>Sent history</span>
+              </div>
+
+              <?php /*-------------------->
+              <!-- Торговые предложения -->
+              <!----------------------*/ ?>
+              <div>
+
+                Sent history
 
               </div>
 
@@ -1607,10 +1758,6 @@
                   </div>
 
                 </div>
-
-
-
-
 
               </div>
 

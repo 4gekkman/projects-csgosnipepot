@@ -479,101 +479,329 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 			// 1. Если data.mode == 1
 			// - Обновить торговые операции в m.s7.tradeoffers_incoming
-			if(data.mode == 1) {
+			if(data.data.mode == 1) {
 
 				// 1] Очистить
 				self.m.s7.tradeoffers_incoming.removeAll();
 
 				// 2] Записать массив с торговыми предложениями в переменную
-				var offers = data.data.tradeoffers.trade_offers_recieved;
+				var offers = data.data.tradeoffers.trade_offers_received;
 
-				// 2] Наполнить
+				// 3] Наполнить
 				for(var i=0; i<offers.length; i++) {
 
-					// 2.1] Сформировать объект для добавления
+					// 3.1] Сформировать объект для добавления
 					var obj = {};
 					for(var key in offers[i]) {
 
-						// 1] Если свойство не своё, пропускаем
+						// 3.1.1] Если свойство не своё, пропускаем
 						if(!offers[i].hasOwnProperty(key)) continue;
 
-						// 2] Если key == items_to_give
+						// 3.1.2] Если key == items_to_give
 						if(key == 'items_to_give') {
 							for(var j=0; j<offers[i][key].length; j++) {
 
-								offers[i][key]
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
 
 							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
 						}
 
-						// 3] Если key == items_to_recieve
-						if(key == 'items_to_recieve') {
+						// 3.1.3] Если key == items_to_receive
+						if(key == 'items_to_receive') {
+							for(var j=0; j<offers[i][key].length; j++) {
 
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
 
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
 
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
 						}
 
-						// 4] Добавим в obj свойство key
+						// 3.1.4] Добавим в obj свойство key
 						obj[key] = ko.observable(offers[i][key]);
 
 					}
+
+					// 3.2] Добавить этот объект в подготовленный массив
+					self.m.s7.tradeoffers_incoming.push(ko.observable(obj))
 
 				}
 
 			}
 
-			// 2. Если data.mode == 1
+			// 2. Если data.mode == 2
 			// - Обновить торговые операции в m.s7.tradeoffers_incoming_history
-			if(data.mode == 2) {
+			if(data.data.mode == 2) {
+
+				// 1] Очистить
+				self.m.s7.tradeoffers_incoming_history.removeAll();
+
+				// 2] Записать массив с торговыми предложениями в переменную
+				var offers = data.data.tradeoffers.trade_offers_received;
+
+				// 3] Наполнить
+				for(var i=0; i<offers.length; i++) {
+
+					// 3.1] Сформировать объект для добавления
+					var obj = {};
+					for(var key in offers[i]) {
+
+						// 3.1.1] Если свойство не своё, пропускаем
+						if(!offers[i].hasOwnProperty(key)) continue;
+
+						// 3.1.2] Если key == items_to_give
+						if(key == 'items_to_give') {
+
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
+						}
+
+						// 3.1.3] Если key == items_to_receive
+						if(key == 'items_to_receive') {
+
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
+						}
+
+						// 3.1.4] Добавим в obj свойство key
+						obj[key] = ko.observable(offers[i][key]);
+
+					}
+
+					// 3.2] Добавить этот объект в подготовленный массив
+					self.m.s7.tradeoffers_incoming_history.push(ko.observable(obj))
+
+				}
 
 			}
 
-			// 3. Если data.mode == 1
+			// 3. Если data.mode == 3
 			// - Обновить торговые операции в m.s7.tradeoffers_sent
-			if(data.mode == 3) {
+			if(data.data.mode == 3) {
+
+				// 1] Очистить
+				self.m.s7.tradeoffers_sent.removeAll();
+
+				// 2] Записать массив с торговыми предложениями в переменную
+				var offers = data.data.tradeoffers.trade_offers_sent;
+
+				// 3] Наполнить
+				for(var i=0; i<offers.length; i++) {
+
+					// 3.1] Сформировать объект для добавления
+					var obj = {};
+					for(var key in offers[i]) {
+
+						// 3.1.1] Если свойство не своё, пропускаем
+						if(!offers[i].hasOwnProperty(key)) continue;
+
+						// 3.1.2] Если key == items_to_give
+						if(key == 'items_to_give') {
+
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
+						}
+
+						// 3.1.3] Если key == items_to_receive
+						if(key == 'items_to_receive') {
+
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
+						}
+
+						// 3.1.4] Добавим в obj свойство key
+						obj[key] = ko.observable(offers[i][key]);
+
+					}
+
+					// 3.2] Добавить этот объект в подготовленный массив
+					self.m.s7.tradeoffers_sent.push(ko.observable(obj))
+
+				}
 
 			}
 
-			// 4. Если data.mode == 1
+			// 4. Если data.mode == 4
 			// - Обновить торговые операции в m.s7.tradeoffers_sent_history
-			if(data.mode == 4) {
+			if(data.data.mode == 4) {
+
+				// 1] Очистить
+				self.m.s7.tradeoffers_sent_history.removeAll();
+
+				// 2] Записать массив с торговыми предложениями в переменную
+				var offers = data.data.tradeoffers.trade_offers_sent;
+
+				// 3] Наполнить
+				for(var i=0; i<offers.length; i++) {
+
+					// 3.1] Сформировать объект для добавления
+					var obj = {};
+					for(var key in offers[i]) {
+
+						// 3.1.1] Если свойство не своё, пропускаем
+						if(!offers[i].hasOwnProperty(key)) continue;
+
+						// 3.1.2] Если key == items_to_give
+						if(key == 'items_to_give') {
+
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
+						}
+
+						// 3.1.3] Если key == items_to_receive
+						if(key == 'items_to_receive') {
+
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								// Сформировать объект для добавления
+								var obj2 = {};
+								for(var key2 in offers[i][key][j]) {
+
+									// Если свойство не своё, пропускаем
+									if(!offers[i][key][j].hasOwnProperty(key2)) continue;
+
+									// Добавим в obj2 свойство key
+									obj2[key2] = ko.observable(offers[i][key][j][key2]);
+
+								}
+
+								// Подменить этим объектом оригинальный
+								offers[i][key][j] = ko.observable(obj2);
+
+							}
+							obj[key] = ko.observable(offers[i][key]);
+							continue;
+						}
+
+						// 3.1.4] Добавим в obj свойство key
+						obj[key] = ko.observable(offers[i][key]);
+
+					}
+
+					// 3.2] Добавить этот объект в подготовленный массив
+					self.m.s7.tradeoffers_sent_history.push(ko.observable(obj))
+
+				}
 
 			}
-
-
-			console.log(data);
-
-
-//			// 1. Обновить m.s6.inventory
-//
-//				// 1.1. Очистить
-//				self.m.s6.inventory.removeAll();
-//
-//				// 1.2. Наполнить
-//				for(var i=0; i<data.data.rgDescriptions.length; i++) {
-//
-//					// 1.2.1. Сформировать объект для добавления
-//					var obj = {};
-//					for(var key in data.data.rgDescriptions[i]) {
-//
-//						// 1] Если свойство не своё, пропускаем
-//						if(!data.data.rgDescriptions[i].hasOwnProperty(key)) continue;
-//
-//						// 2] Добавим в obj свойство key
-//						obj[key] = ko.observable(data.data.rgDescriptions[i][key]);
-//
-//					}
-//
-//					// 1.2.2. Добавить св-во number
-//					obj['number'] = ko.observable(i+1);
-//
-//					// 1.2.3. Добавить св-во selected
-//					obj['selected'] = ko.observable(false);
-//
-//					// 1.2.4. Добавить этот объект в подготовленный массив
-//					self.m.s6.inventory.push(ko.observable(obj))
-//
-//				}
 
   	};
 
