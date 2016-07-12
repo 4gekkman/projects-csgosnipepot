@@ -603,19 +603,19 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
           });
 
-          // 12] В зависимости от mode записать их в items_to_give / items_to_recieve
-          // - Если mode = 1/2, то в items_to_recieve
+          // 12] В зависимости от mode записать их в items_to_give / items_to_receive
+          // - Если mode = 1/2, то в items_to_receive
           // - Если mode = 3/4, то в items_to_give
 
             // 12.1] Если mode = 1/2
             if($this->data['mode'] == 1 || $this->data['mode'] == 2) {
-              $tradeoffer['items_to_recieve'] = $primary;
+              $tradeoffer['items_to_receive'] = $primary;
               $tradeoffer['items_to_give'] = $secondary;
             }
 
             // 12.2] Если mode = 3/4
             if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
-              $tradeoffer['items_to_recieve'] = $secondary;
+              $tradeoffer['items_to_receive'] = $secondary;
               $tradeoffer['items_to_give'] = $primary;
             }
 
@@ -624,7 +624,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
             // 13.1] Получить URL аватара партнёра
             // - Если mode == 1 или 2, то брать аватар из primary.
-            // - Если mode == 3 или 4, то брать аватар из seconfary.
+            // - Если mode == 3 или 4, то брать аватар из secondary.
             $avatar = call_user_func(function() USE ($tradeOfferElement, $xpath) {
 
               // 13.1.1] Если mode = 1/2
@@ -687,6 +687,69 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           });
           $tradeoffer['avatar'] = $avatar;
 
+          // 14] Имя партнёра
+          $name_of_the_partner = call_user_func(function()  USE ($tradeOfferElement, $xpath) {
+
+            // 14.1] Получить имя партнёра
+            // - Если mode == 1 или 2, то брать имя из primary.
+            // - Если mode == 3 или 4, то брать имя из secondary.
+            $name = call_user_func(function() USE ($tradeOfferElement, $xpath) {
+
+              // 14.1.1] Если mode = 1/2
+              if($this->data['mode'] == 1 || $this->data['mode'] == 2) {
+
+                // Найти имя в $html
+                $name = $xpath->query('//div[contains(@class, "tradeoffer_items primary")]/div[contains(@class, "tradeoffer_items_header")]/text()', $tradeOfferElement);
+
+                // Если $name пуст, вернуть пустую строку
+                if($name->length == 0) return '';
+
+                // Отрезать у $name строку " offered:" в конце
+                $name = preg_replace("/ offered:.*$/ui", "", $name[0]->nodeValue);
+
+                // Обрезать пробелы из начала и конца $name
+                $name = preg_replace("/^ */ui", "", $name);
+                $name = preg_replace("/ *$/ui", "", $name);
+
+                // Вернуть $name аватара
+                return $name;
+
+              }
+
+              // 14.1.2] Если mode = 3/4
+              if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
+
+                // Найти аватар в $html
+                $name = $xpath->query('//div[contains(@class, "tradeoffer_items secondary")]/div[contains(@class, "tradeoffer_items_header")]/text()', $tradeOfferElement);
+
+                // Если $name пуст, вернуть пустую строку
+                if($name->length == 0) return '';
+
+                // Отрезать у $name строку "'s:" в конце
+                $name = preg_replace("/'s:.*$/ui", "", $name[0]->nodeValue);
+
+                // Отрезать у $name строку "For " в начале
+                $name = preg_replace("/^For /ui", "", $name);
+
+                // Обрезать пробелы из начала и конца $name
+                $name = preg_replace("/(^ *| *$)/ui", "", $name);
+
+                // Вернуть $name аватара
+                return $name;
+
+              }
+
+              // 13.1.3] Иначе вернуть пустую строку
+              return "";
+
+            });
+
+            // 14.2] Вернуть имя партнёра
+            return $name;
+
+          });
+          $tradeoffer['name_of_the_partner'] = $name_of_the_partner;
+
           // n] Добавить $tradeoffer в $tradeoffers
           // - Если mode = 1/2, то в trade_offers_received
           // - Если mode = 3/4, то в trade_offers_sent
@@ -701,7 +764,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
         return $tradeoffers;
 
       });
-
+Log::info($tradeoffers);
       // 5. Вернуть результаты
       return [
         "status"  => 0,
