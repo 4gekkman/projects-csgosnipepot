@@ -351,7 +351,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
           // 5] expiration_time
           $footerElement = $xpath->query('.//div[contains(@class, "tradeoffer_footer")]', $tradeOfferElement)->item(0);
-          $tradeoffer['expiration_time'] = !empty($footerElement->nodeValue) ? strtotime(str_replace('Offer expires on ', '', $footerElement->nodeValue)) : "";
+          $expiration_time = preg_replace("/^[\n\r \s]*/ui", "", $footerElement->nodeValue);
+          $expiration_time = preg_replace("/[\n\r \s]*$/ui", "", $expiration_time);
+          $tradeoffer['expiration_time'] = !empty($expiration_time) ? strtotime(str_replace('Offer expires on ', '', $expiration_time)) : "";
 
           // 6] trade_offer_state + confirmation_method + time_updated + escrow_end_date
 
@@ -359,8 +361,10 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
             $bannerElement = $xpath->query('.//div[contains(@class, "tradeoffer_items_banner")]', $tradeOfferElement)->item(0);
 
             // 6.2] Active (2)
-            if (is_null($bannerElement))
+            if (is_null($bannerElement)) {
               $tradeoffer['trade_offer_state'] = 2;
+              $tradeoffer['time_updated'] = "";
+            }
 
             // 6.3] Прочие
             else {
@@ -369,12 +373,14 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               if (strpos($bannerElement->nodeValue, 'Awaiting Mobile Confirmation') !== false) {
                 $tradeoffer['trade_offer_state']  = 9;
                 $tradeoffer['confirmation_method'] = 2;
+                $tradeoffer['time_updated'] = "";
               }
 
               // 6.3.2] trade_offer_state(9) + confirmation_method(1)
               else if (strpos($bannerElement->nodeValue, 'Awaiting Email Confirmation') !== false) {
                 $tradeoffer['trade_offer_state']  = 9;
                 $tradeoffer['confirmation_method'] = 1;
+                $tradeoffer['time_updated'] = "";
               }
 
               // 6.3.3] trade_offer_state(6) + time_updated
@@ -383,6 +389,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
                 $canceledDate = strtotime(str_replace('Trade Offer Canceled ', '', $bannerElement->nodeValue));
                 if($canceledDate !== false)
                   $tradeoffer['time_updated'] = $canceledDate;
+                else
+                  $tradeoffer['time_updated'] = "";
+
               }
 
               // 6.3.4] trade_offer_state(7) + time_updated
@@ -391,7 +400,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
                 $declinedDate = strtotime(str_replace('Trade Declined ', '', $bannerElement->nodeValue));
                 if($declinedDate !== false) {
                   $tradeoffer['time_updated'] = $declinedDate;
-                }
+                } else
+                  $tradeoffer['time_updated'] = "";
+
               }
 
               // 6.3.5] trade_offer_state(11) + time_updated + escrow_end_date
@@ -406,7 +417,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
                 $acceptedDate = \DateTime::createFromFormat('M j, Y @ g:ia', str_replace('Trade Accepted ', '', $acceptedString));
                 if ($acceptedDate !== false) {
                   $tradeoffer['time_updated'] = $acceptedDate->getTimestamp();
-                }
+                } else
+                  $tradeoffer['time_updated'] = "";
+
 
                 // escrow_end_date
                 $escrowString = trim($split[1]);
@@ -429,6 +442,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               // 6.3.7] trade_offer_state(8)
               else if (strpos($bannerElement->nodeValue, 'Items Now Unavailable For Trade') !== false) {
                 $tradeoffer['trade_offer_state'] = 8;
+                $tradeoffer['time_updated'] = "";
               }
 
               // 6.3.8] trade_offer_state(4) + time_updated
@@ -452,6 +466,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               // 6.3.10] trade_offer_state(1)
               else {
                 $tradeoffer['trade_offer_state'] = 1;
+                $tradeoffer['time_updated'] = "";
               }
 
             }
@@ -524,6 +539,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               });
               $itemToGive_arr["image"] = $image;
 
+              // 10.3.6] Цена элемента (просто пустая строка)
+              $itemToGive_arr["price"] = "";
+
               // 10.3.n] Добавить $itemToGive_arr в $results
               array_push($results, $itemToGive_arr);
 
@@ -592,6 +610,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
               });
               $itemToReceive_arr["image"] = $image;
+
+              // 11.3.6] Цена элемента (просто пустая строка)
+              $itemToReceive_arr["price"] = "";
 
               // 11.3.n] Добавить $itemToReceive_arr в $results
               array_push($results, $itemToReceive_arr);
@@ -704,12 +725,12 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
                 // Если $name пуст, вернуть пустую строку
                 if($name->length == 0) return '';
 
-                // Отрезать у $name строку " offered:" в конце
-                $name = preg_replace("/ offered:.*$/ui", "", $name[0]->nodeValue);
-
                 // Обрезать пробелы из начала и конца $name
-                $name = preg_replace("/^ */ui", "", $name);
-                $name = preg_replace("/ *$/ui", "", $name);
+                $name = preg_replace("/^[\n\r \s]*/ui", "", $name[0]->nodeValue);
+                $name = preg_replace("/[\n\r \s]*$/ui", "", $name);
+
+                // Отрезать у $name строку " offered:" в конце
+                $name = preg_replace("/ offered:.*$/ui", "", $name);
 
                 // Вернуть $name аватара
                 return $name;
@@ -719,20 +740,21 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
               // 14.1.2] Если mode = 3/4
               if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
 
-                // Найти аватар в $html
+                // Найти имя в $html
                 $name = $xpath->query('//div[contains(@class, "tradeoffer_items secondary")]/div[contains(@class, "tradeoffer_items_header")]/text()', $tradeOfferElement);
 
                 // Если $name пуст, вернуть пустую строку
                 if($name->length == 0) return '';
 
+                // Обрезать пробелы из начала и конца $name
+                $name = preg_replace("/^[\n\r \s]*/ui", "", $name[0]->nodeValue);
+                $name = preg_replace("/[\n\r \s]*$/ui", "", $name);
+
                 // Отрезать у $name строку "'s:" в конце
-                $name = preg_replace("/'s:.*$/ui", "", $name[0]->nodeValue);
+                $name = preg_replace("/'s:.*$/ui", "", $name);
 
                 // Отрезать у $name строку "For " в начале
                 $name = preg_replace("/^For /ui", "", $name);
-
-                // Обрезать пробелы из начала и конца $name
-                $name = preg_replace("/(^ *| *$)/ui", "", $name);
 
                 // Вернуть $name аватара
                 return $name;
@@ -749,6 +771,71 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
           });
           $tradeoffer['name_of_the_partner'] = $name_of_the_partner;
+
+          // 15] Steam ID партнёра
+          $partner_steamid = call_user_func(function() USE ($tradeOfferElement, $xpath) {
+
+            // 15.1] Получить Steam ID партнёра
+            // - Если mode == 1 или 2, то брать его из primary.
+            // - Если mode == 3 или 4, то брать из из secondary.
+            $steamid = call_user_func(function() USE ($tradeOfferElement, $xpath) {
+
+              // 15.1.1] Если mode = 1/2
+              if($this->data['mode'] == 1 || $this->data['mode'] == 2) {
+
+                // Найти steam id в $html
+                $steamid = $xpath->query('//div[contains(@class, "tradeoffer_items primary")]/descendant::a[contains(@class, "tradeoffer_avatar")]/@href', $tradeOfferElement);
+
+                // Если $steamid пуст, вернуть пустую строку
+                if($steamid->length == 0) return '';
+
+                // Вырезать steamid из полученного URL
+                preg_match("/[0-9]+$/ui", $steamid[0]->nodeValue, $matches);
+                if(!empty($matches)) $steamid = $matches[0];
+                else $steamid = "";
+
+                // Вернуть URL аватара
+                return $steamid;
+
+              }
+
+              // 15.1.2] Если mode = 3/4
+              if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
+
+                // Найти аватар в $html
+                $steamid = $xpath->query('//div[contains(@class, "tradeoffer_items secondary")]/descendant::a[contains(@class, "tradeoffer_avatar")]/@href', $tradeOfferElement);
+
+                // Если $steamid пуст, вернуть пустую строку
+                if($steamid->length == 0) return '';
+
+                // Вырезать steamid из полученного URL
+                preg_match("/[0-9]+$/ui", $steamid[0]->nodeValue, $matches);
+                if(!empty($matches)) $steamid = $matches[0];
+                else $steamid = "";
+
+                // Вернуть URL аватара
+                return $steamid;
+
+              }
+
+              // 15.1.3] Иначе вернуть пустую строку
+              return "";
+
+            });
+
+            // 15.2] Вернуть URL аватара
+            return $steamid;
+
+          });
+          $tradeoffer['partner_steamid'] = $partner_steamid;
+
+          // 16] Заготовки для экономики
+          $tradeoffer['total_sum_receive'] = "";
+          $tradeoffer['total_sum_give'] = "";
+          $tradeoffer['balance'] = "";
+
+          // 17] Добавить ID режима извлечения
+          $tradeoffer["mode"] = $this->data['mode'];
 
           // n] Добавить $tradeoffer в $tradeoffers
           // - Если mode = 1/2, то в trade_offers_received
