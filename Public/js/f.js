@@ -706,8 +706,21 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 2.4.2] Установить поддокумент
 					self.m.s1.selected_subdoc(subdoc);
 
-					// 2.4.3] Добавить в историю новое состояние
-					History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+					// 2.4.3] Если это первый вход в документ
+					if(parameters.first) {
+
+						// Подменить текущее состояние на новое
+						History.replaceState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+
+					}
+
+					// 2.3.4] Если это не первый вход в документ
+					else {
+
+						// Добавить в историю новое состояние
+						History.pushState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+
+					}
 
 					// Выполнить дополнительную работу
 

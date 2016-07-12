@@ -1521,7 +1521,56 @@
         <!----------------*/ ?>
         <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Tradeoffers'">
 
-          Tradeoffers
+          <?php /*----------------------->
+          <!-- Левый столбец (контент) -->
+          <!-------------------------*/ ?>
+          <div class="col-md-7 col-sm-7 col-xs-7 authorization-props">
+
+            <?php /*-------------------->
+            <!-- Свойства авторизации -->
+            <!----------------------*/ ?>
+            <div>
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note">
+                <span>Authorization properties</span>
+              </div>
+
+              <?php /*-------->
+              <!-- Свойства -->
+              <!----------*/ ?>
+              <div class="form-horizontal">
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /*---------------------------------->
+          <!-- Правый столбец (панель управления) -->
+          <!------------------------------------*/ ?>
+          <div class="col-md-5 col-sm-5 col-xs-5">
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <div class="header-note">
+              <span>Actions</span>
+            </div>
+
+            <?php /*-------------------------->
+            <!-- Кнопка "Авторизовать бота" -->
+            <!----------------------------*/ ?>
+            <div>
+              <button type="button" class="btn btn-block btn-default" data-bind="click: f.s2.authorize_bot">Authorize</button>
+            </div>
+
+          </div>
+          
+
 
         </div>
 

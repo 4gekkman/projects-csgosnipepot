@@ -1339,12 +1339,13 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// - И заодно добавить стартовое состояние.
 		// - А также назначить функцию-обработчик, срабатывающую при смене состояния.
 		(function(){
- 
+
 			// 1] На основе параметров page и subdoc с сервера открыть соотв.докуент, добавить стартовое состояние.
 			self.f.s1.choose_subdoc({
 				group: server.data.group,
 				subdoc: server.data.subdoc,
-				reload: false
+				reload: false,
+				first: true
 			}, '', '');
 
 			// 2] Назначить функцию-обработчик, срабатывающую при смене состояния
