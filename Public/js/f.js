@@ -18,6 +18,7 @@
  *    f.s0.update_inventory_tp      | s0.5. Обновить инвентарь торгового партнёра
  *    f.s0.send_trade_offer         | s0.6. Отправить торговое предложение
  *    f.s0.update_trade_offers      | s0.7. Обновить информацию об указанном типе торговых операций
+ *    f.s0.unix_timestamp_tojstime  | s0.8. Конвертировать unix timestamp в строку формата: "yyyy-mm-dd hh:mm"
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -806,6 +807,18 @@ var ModelFunctions = { constructor: function(self) { var f = this;
   	};
 
 
+		//--------------------------------------------------------------------------//
+		// s0.8. Конвертировать unix timestamp в строку формата: "yyyy-mm-dd hh:mm" //
+		//--------------------------------------------------------------------------//
+		// - Пояснение
+		f.s0.unix_timestamp_tojstime = function(UNIX_timestamp) {
+
+			return moment.unix(UNIX_timestamp).format("YYYY-MM-DD HH:ss");
+
+		};
+
+
+
 		//------------------------------------------------------------------------//
 		// s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера //
 		//------------------------------------------------------------------------//
@@ -962,19 +975,24 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 				// 1.1] Получить группу
 				var group = (function(){
 
-					// 1.1.1] Если self.m.s1.groups пуст, вернуть ''
+					// 1.1.1] Если это первый вход в документ, то:
+					// - Использовать group с id = 1
+					if(parameters.first)
+						return self.m.s1.groups()[0]();
+
+					// 1.1.2] Если self.m.s1.groups пуст, вернуть ''
 					if(self.m.s1.groups().length == 0) return '';
 
-					// 1.1.2] Если parameters.group пуста, вернуть 1-й эл-т из m.s1.groups
+					// 1.1.3] Если parameters.group пуста, вернуть 1-й эл-т из m.s1.groups
 					if(!parameters.group) return self.m.s1.groups()[0]();
 
-					// 1.1.3] Попробовать найти группу в индексе по имени
+					// 1.1.4] Попробовать найти группу в индексе по имени
 					var group = self.m.s1.indexes.groups_by_name[parameters.group];
 
-					// 1.1.4] Если group пуста, вернуть 1-й эл-т из m.s1.groups
+					// 1.1.5] Если group пуста, вернуть 1-й эл-т из m.s1.groups
 					if(!group) return self.m.s1.groups()[0]();
 
-					// 1.1.5] Вернуть group
+					// 1.1.6] Вернуть group
 					return group;
 
 				})();
@@ -982,19 +1000,24 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 				// 1.2] Получить поддокумент
 				var subdoc = (function(){
 
-					// 1.2.1] Если self.m.s1.subdocs пуст, вернуть ''
+					// 1.2.1] Если это первый вход в документ, то:
+					// - Использовать subdoc с id = 1
+					if(parameters.first)
+						return self.m.s1.subdocs()[0]();
+
+					// 1.2.2] Если self.m.s1.subdocs пуст, вернуть ''
 					if(self.m.s1.subdocs().length == 0) return '';
 
-					// 1.2.2] Если parameters.subdoc пуста, вернуть 1-й эл-т из m.s1.subdocs
+					// 1.2.3] Если parameters.subdoc пуста, вернуть 1-й эл-т из m.s1.subdocs
 					if(!parameters.subdoc) return self.m.s1.subdocs()[0]();
 
-					// 1.2.3] Попробовать найти поддокумент в индексе по имени
+					// 1.2.4] Попробовать найти поддокумент в индексе по имени
 					var subdoc = self.m.s1.indexes.subdocs_by_name[parameters.subdoc];
 
-					// 1.2.4] Если subdoc пуста, вернуть 1-й эл-т из m.s1.subdocs
+					// 1.2.5] Если subdoc пуста, вернуть 1-й эл-т из m.s1.subdocs
 					if(!subdoc) return self.m.s1.subdocs()[0]();
 
-					// 1.2.5] Вернуть subdoc
+					// 1.2.6] Вернуть subdoc
 					return subdoc;
 
 				})();
@@ -1045,11 +1068,15 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 2.4.2] Установить поддокумент
 					self.m.s1.selected_subdoc(subdoc);
 
-					// 2.4.3] Если это первый вход в документ
+					// 2.4.3] Если это первый вход в документ, то:
+					// - Подменить текущее состояние, а не добавлять новое.
+					// - Назначить состояние с id = 1
 					if(parameters.first) {
 
 						// Подменить текущее состояние на новое
-						History.replaceState({state:subdoc.id()}, subdoc.name(), subdoc.query());
+						History.replaceState({state:self.m.s1.subdocs()[0]().id()}, self.m.s1.subdocs()[0]().name(), self.m.s1.subdocs()[0]().query());
+
+						// Установить
 
 					}
 
@@ -1831,7 +1858,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  prejob:       function(config, data, event){
 
 					// 1] Отметить, что идёт ajax-запрос
-					self.m.s6.is_ajax_invoking(true);
+					self.m.s7.is_ajax_invoking(true);
 
 					// 2] Сообщить, что начинается обновление ТП
 					// - Но только если parameters.silent != true
@@ -1851,13 +1878,13 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						notify({msg: "The partner's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 					// 3] Отметить, что ajax-запрос закончился
-					self.m.s6.is_ajax_invoking(false);
+					self.m.s7.is_ajax_invoking(false);
 
 				},
 				ok_1: function(data, params){
 
 					// 1] Отметить, что ajax-запрос закончился
-					self.m.s6.is_ajax_invoking(false);
+					self.m.s7.is_ajax_invoking(false);
 
 				},
 				ok_2: function(data, params){
@@ -1867,7 +1894,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					console.log(data.data.errortext);
 
 					// 2] Отметить, что ajax-запрос закончился
-					self.m.s6.is_ajax_invoking(false);
+					self.m.s7.is_ajax_invoking(false);
 
 				},
 				dont_touch_ajax_counter: true

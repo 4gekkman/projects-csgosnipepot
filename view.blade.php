@@ -1535,7 +1535,7 @@
               <!-- Заголовок -->
               <!-----------*/ ?>
               <div class="header-note">
-                <span>Incoming offers</span>
+                <span>Incoming</span>
               </div>
 
               <?php /*-------------------->
@@ -1551,13 +1551,42 @@
                   <?php /*----->
                   <!-- Шапка -->
                   <!-------*/ ?>
-                  <div class="head-part">
+                  <div class="head-part row">
 
-                    <?php /*--------------->
-                    <!-- Аватар партнёра -->
-                    <!-----------------*/ ?>
-                    <div class="avatar">
-                      <img data-bind="attr: {src: avatar}">
+                    <div class="col-md-8 col-sm-12 col-xs-12" style="text-align: left; padding-left: 0;">
+
+                      <?php /*--------------->
+                      <!-- Аватар партнёра -->
+                      <!-----------------*/ ?>
+                      <div class="avatar">
+                        <img data-bind="attr: {src: avatar}">
+                      </div>
+
+                      <?php /*------------>
+                      <!-- Имя партнёра -->
+                      <!--------------*/ ?>
+                      <div>
+                        <span data-bind="text: name_of_the_partner"></span>
+                      </div>
+
+                      <?php /*----------------->
+                      <!-- Steam ID партнёра -->
+                      <!-------------------*/ ?>
+                      <div class="partner-steam-id">
+                        <span data-bind="text: '(' + partner_steamid() + ')'"></span>
+                      </div>
+
+                    </div>
+
+                    <div class="col-md-4 col-sm-12 col-xs-12" style="text-align: right; padding-right: 5px;">
+
+                      <?php /*------------------------>
+                      <!-- ID торгового предложения -->
+                      <!--------------------------*/ ?>
+                      <div class="trade-offer-id">
+                        <span data-bind="text: '#' + tradeofferid()"></span>
+                      </div>
+
                     </div>
 
                   </div>
@@ -1565,18 +1594,153 @@
                   <?php /*---->
                   <!-- Тело -->
                   <!------*/ ?>
-                  <div class="body-part">
+                  <div class="body-part row">
 
-                    body
+                    <?php /*------------>
+                    <!-- Бот получает -->
+                    <!--------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gets</span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                      </div>
+
+                      <?php /*---------------------------------->
+                      <!-- Список вещей, которые бот получает -->
+                      <!------------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_receive, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_receive().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
+
+                    <?php /*---------->
+                    <!-- Бот отдаёт -->
+                    <!------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gives</span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                      </div>
+
+                      <?php /*-------------------------------->
+                      <!-- Список вещей, которые бот отдаёт -->
+                      <!----------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_give, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_give().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
 
                   </div>
 
                   <?php /*------>
                   <!-- Подвал -->
                   <!--------*/ ?>
-                  <div class="footer-part">
+                  <div class="footer-part row">
 
-                    footer
+                    <?php /*---------------------------------------------->
+                    <!-- Дата и время последнего обновления / истечения -->
+                    <!------------------------------------------------*/ ?>
+                    <div class="time_updated_created col-md-7 col-sm-12 col-xs-12">
+
+                      <div style="display: none" data-bind="visible: time_updated() && expiration_time()">
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, time_updated())()" title="Last update"></span>
+                        <span>, </span>
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, expiration_time())()" title="Expiration date/time"></span>
+                      </div>
+
+                    </div>
+
+                    <?php /*----------------->
+                    <!-- Кнопка "Действия" -->
+                    <!-------------------*/ ?>
+                    <div class="trade-offer-actions col-md-5 col-sm-12 col-xs-12">
+
+                      <div class="btn-group" data-bind="visible: mode() == 1 || mode() == 3">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items">
+                            <i class="fa fa-gear"></i>
+                            <span> Actions</span>
+                          </button>
+                          <ul class="dropdown-menu" role="menu">
+
+                            <?php /*------>
+                            <!-- Accept -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Accept</a></li>
+
+                            <?php /*------->
+                            <!-- Decline -->
+                            <!---------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Decline</a></li>
+
+                            <?php /*---------->
+                            <!-- Get prices -->
+                            <!------------*/ ?>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: function(){}">Get prices</a></li>
+
+                            <?php /*------>
+                            <!-- Cancel -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 3"><a href="#" data-bind="click: function(){}">Cancel</a></li>
+
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+
 
                   </div>
 
@@ -1611,40 +1775,196 @@
                   <?php /*----->
                   <!-- Шапка -->
                   <!-------*/ ?>
-                  <div class="head-part">
+                  <div class="head-part row">
 
-                    <?php /*--------------->
-                    <!-- Аватар партнёра -->
-                    <!-----------------*/ ?>
-                    <div class="avatar">
-                      <img data-bind="attr: {src: avatar}">
+                    <div class="col-md-8 col-sm-12 col-xs-12" style="text-align: left; padding-left: 0;">
+
+                      <?php /*--------------->
+                      <!-- Аватар партнёра -->
+                      <!-----------------*/ ?>
+                      <div class="avatar">
+                        <img data-bind="attr: {src: avatar}">
+                      </div>
+
+                      <?php /*------------>
+                      <!-- Имя партнёра -->
+                      <!--------------*/ ?>
+                      <div>
+                        <span data-bind="text: name_of_the_partner"></span>
+                      </div>
+
+                      <?php /*----------------->
+                      <!-- Steam ID партнёра -->
+                      <!-------------------*/ ?>
+                      <div class="partner-steam-id">
+                        <span data-bind="text: '(' + partner_steamid() + ')'"></span>
+                      </div>
+
                     </div>
 
-                    <?php /*------------>
-                    <!-- Имя партнёра -->
-                    <!--------------*/ ?>
-                    <div>
-                      <span data-bind="text: name"></span>
-                    </div>
+                    <div class="col-md-4 col-sm-12 col-xs-12" style="text-align: right; padding-right: 5px;">
 
+                      <?php /*------------------------>
+                      <!-- ID торгового предложения -->
+                      <!--------------------------*/ ?>
+                      <div class="trade-offer-id">
+                        <span data-bind="text: '#' + tradeofferid()"></span>
+                      </div>
+
+                    </div>
 
                   </div>
 
                   <?php /*---->
                   <!-- Тело -->
                   <!------*/ ?>
-                  <div class="body-part">
+                  <div class="body-part row">
 
-                    body
+                    <?php /*------------>
+                    <!-- Бот получает -->
+                    <!--------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gets</span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                      </div>
+
+                      <?php /*---------------------------------->
+                      <!-- Список вещей, которые бот получает -->
+                      <!------------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_receive, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_receive().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
+
+                    <?php /*---------->
+                    <!-- Бот отдаёт -->
+                    <!------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gives</span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                      </div>
+
+                      <?php /*-------------------------------->
+                      <!-- Список вещей, которые бот отдаёт -->
+                      <!----------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_give, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_give().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
 
                   </div>
 
                   <?php /*------>
                   <!-- Подвал -->
                   <!--------*/ ?>
-                  <div class="footer-part">
+                  <div class="footer-part row">
 
-                    footer
+                    <?php /*---------------------------------------------->
+                    <!-- Дата и время последнего обновления / истечения -->
+                    <!------------------------------------------------*/ ?>
+                    <div class="time_updated_created col-md-7 col-sm-12 col-xs-12">
+
+                      <div style="display: none" data-bind="visible: time_updated() && expiration_time()">
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, time_updated())()" title="Last update"></span>
+                        <span>, </span>
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, expiration_time())()" title="Expiration date/time"></span>
+                      </div>
+
+                    </div>
+
+                    <?php /*----------------->
+                    <!-- Кнопка "Действия" -->
+                    <!-------------------*/ ?>
+                    <div class="trade-offer-actions col-md-5 col-sm-12 col-xs-12">
+
+                      <div class="btn-group" data-bind="visible: mode() == 1 || mode() == 3">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items">
+                            <i class="fa fa-gear"></i>
+                            <span> Actions</span>
+                          </button>
+                          <ul class="dropdown-menu" role="menu">
+
+                            <?php /*------>
+                            <!-- Accept -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Accept</a></li>
+
+                            <?php /*------->
+                            <!-- Decline -->
+                            <!---------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Decline</a></li>
+
+                            <?php /*---------->
+                            <!-- Get prices -->
+                            <!------------*/ ?>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: function(){}">Get prices</a></li>
+
+                            <?php /*------>
+                            <!-- Cancel -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 3"><a href="#" data-bind="click: function(){}">Cancel</a></li>
+
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+
 
                   </div>
 
@@ -1663,15 +1983,216 @@
               <!-- Заголовок -->
               <!-----------*/ ?>
               <div class="header-note">
-                <span>Sent</span>
+                <span>Sent offets</span>
               </div>
 
               <?php /*-------------------->
               <!-- Торговые предложения -->
               <!----------------------*/ ?>
-              <div>
+              <div class="trade-offers-list" data-bind="foreach: m.s7.tradeoffers_sent">
 
-                Sent
+                <?php /*-------------------->
+                <!-- Торговое предложения -->
+                <!----------------------*/ ?>
+                <div class="trade-offer">
+
+                  <?php /*----->
+                  <!-- Шапка -->
+                  <!-------*/ ?>
+                  <div class="head-part row">
+
+                    <div class="col-md-8 col-sm-12 col-xs-12" style="text-align: left; padding-left: 0;">
+
+                      <?php /*--------------->
+                      <!-- Аватар партнёра -->
+                      <!-----------------*/ ?>
+                      <div class="avatar">
+                        <img data-bind="attr: {src: avatar}">
+                      </div>
+
+                      <?php /*------------>
+                      <!-- Имя партнёра -->
+                      <!--------------*/ ?>
+                      <div>
+                        <span data-bind="text: name_of_the_partner"></span>
+                      </div>
+
+                      <?php /*----------------->
+                      <!-- Steam ID партнёра -->
+                      <!-------------------*/ ?>
+                      <div class="partner-steam-id">
+                        <span data-bind="text: '(' + partner_steamid() + ')'"></span>
+                      </div>
+
+                    </div>
+
+                    <div class="col-md-4 col-sm-12 col-xs-12" style="text-align: right; padding-right: 5px;">
+
+                      <?php /*------------------------>
+                      <!-- ID торгового предложения -->
+                      <!--------------------------*/ ?>
+                      <div class="trade-offer-id">
+                        <span data-bind="text: '#' + tradeofferid()"></span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*---->
+                  <!-- Тело -->
+                  <!------*/ ?>
+                  <div class="body-part row">
+
+                    <?php /*------------>
+                    <!-- Бот получает -->
+                    <!--------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gets</span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                      </div>
+
+                      <?php /*---------------------------------->
+                      <!-- Список вещей, которые бот получает -->
+                      <!------------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_receive, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_receive().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
+
+                    <?php /*---------->
+                    <!-- Бот отдаёт -->
+                    <!------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gives</span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                      </div>
+
+                      <?php /*-------------------------------->
+                      <!-- Список вещей, которые бот отдаёт -->
+                      <!----------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_give, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_give().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*------>
+                  <!-- Подвал -->
+                  <!--------*/ ?>
+                  <div class="footer-part row">
+
+                    <?php /*---------------------------------------------->
+                    <!-- Дата и время последнего обновления / истечения -->
+                    <!------------------------------------------------*/ ?>
+                    <div class="time_updated_created col-md-7 col-sm-12 col-xs-12">
+
+                      <div style="display: none" data-bind="visible: time_updated() && expiration_time()">
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, time_updated())()" title="Last update"></span>
+                        <span>, </span>
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, expiration_time())()" title="Expiration date/time"></span>
+                      </div>
+
+                    </div>
+
+                    <?php /*----------------->
+                    <!-- Кнопка "Действия" -->
+                    <!-------------------*/ ?>
+                    <div class="trade-offer-actions col-md-5 col-sm-12 col-xs-12">
+
+                      <div class="btn-group" data-bind="visible: mode() == 1 || mode() == 3">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items">
+                            <i class="fa fa-gear"></i>
+                            <span> Actions</span>
+                          </button>
+                          <ul class="dropdown-menu" role="menu">
+
+                            <?php /*------>
+                            <!-- Accept -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Accept</a></li>
+
+                            <?php /*------->
+                            <!-- Decline -->
+                            <!---------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Decline</a></li>
+
+                            <?php /*---------->
+                            <!-- Get prices -->
+                            <!------------*/ ?>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: function(){}">Get prices</a></li>
+
+                            <?php /*------>
+                            <!-- Cancel -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 3"><a href="#" data-bind="click: function(){}">Cancel</a></li>
+
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+
+
+                  </div>
+
+                </div>
 
               </div>
 
@@ -1692,9 +2213,210 @@
               <?php /*-------------------->
               <!-- Торговые предложения -->
               <!----------------------*/ ?>
-              <div>
+              <div class="trade-offers-list" data-bind="foreach: m.s7.tradeoffers_sent_history">
 
-                Sent history
+                <?php /*-------------------->
+                <!-- Торговое предложения -->
+                <!----------------------*/ ?>
+                <div class="trade-offer">
+
+                  <?php /*----->
+                  <!-- Шапка -->
+                  <!-------*/ ?>
+                  <div class="head-part row">
+
+                    <div class="col-md-8 col-sm-12 col-xs-12" style="text-align: left; padding-left: 0;">
+
+                      <?php /*--------------->
+                      <!-- Аватар партнёра -->
+                      <!-----------------*/ ?>
+                      <div class="avatar">
+                        <img data-bind="attr: {src: avatar}">
+                      </div>
+
+                      <?php /*------------>
+                      <!-- Имя партнёра -->
+                      <!--------------*/ ?>
+                      <div>
+                        <span data-bind="text: name_of_the_partner"></span>
+                      </div>
+
+                      <?php /*----------------->
+                      <!-- Steam ID партнёра -->
+                      <!-------------------*/ ?>
+                      <div class="partner-steam-id">
+                        <span data-bind="text: '(' + partner_steamid() + ')'"></span>
+                      </div>
+
+                    </div>
+
+                    <div class="col-md-4 col-sm-12 col-xs-12" style="text-align: right; padding-right: 5px;">
+
+                      <?php /*------------------------>
+                      <!-- ID торгового предложения -->
+                      <!--------------------------*/ ?>
+                      <div class="trade-offer-id">
+                        <span data-bind="text: '#' + tradeofferid()"></span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*---->
+                  <!-- Тело -->
+                  <!------*/ ?>
+                  <div class="body-part row">
+
+                    <?php /*------------>
+                    <!-- Бот получает -->
+                    <!--------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gets</span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                      </div>
+
+                      <?php /*---------------------------------->
+                      <!-- Список вещей, которые бот получает -->
+                      <!------------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_receive, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_receive().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
+
+                    <?php /*---------->
+                    <!-- Бот отдаёт -->
+                    <!------------*/ ?>
+                    <div class="bot-gives-gets col-md-6 col-sm-6 col-xs-12">
+
+                      <?php /*----------------->
+                      <!-- Заголовок и дебет -->
+                      <!-------------------*/ ?>
+                      <div class="header-bot-gives-gets">
+                        <span class="title-bot-gives-gets">Bot gives</span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                      </div>
+
+                      <?php /*-------------------------------->
+                      <!-- Список вещей, которые бот отдаёт -->
+                      <!----------------------------------*/ ?>
+                      <div class="items-list" data-bind="foreach: items_to_give, visible: !$root.m.s7.is_ajax_invoking()">
+
+                        <?php /*------->
+                        <!-- Предмет -->
+                        <!---------*/ ?>
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + image() + '\')'}">
+
+                          <?php /*------------->
+                          <!-- Лэйбл с ценой -->
+                          <!---------------*/ ?>
+                          <div class="price_label" data-bind="visible: price">
+                            <span data-bind="text: '$'+price()"></span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <?php /*------------------------------------------->
+                      <!-- Сообщение о том, что бот ничего не получает -->
+                      <!---------------------------------------------*/ ?>
+                      <div style="display: none" class="nothing" data-bind="visible: !items_to_give().length">
+                        <span>Nothing</span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*------>
+                  <!-- Подвал -->
+                  <!--------*/ ?>
+                  <div class="footer-part row">
+
+                    <?php /*---------------------------------------------->
+                    <!-- Дата и время последнего обновления / истечения -->
+                    <!------------------------------------------------*/ ?>
+                    <div class="time_updated_created col-md-7 col-sm-12 col-xs-12">
+
+                      <div style="display: none" data-bind="visible: time_updated() && expiration_time()">
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, time_updated())()" title="Last update"></span>
+                        <span>, </span>
+                        <span data-bind="text: $root.f.s0.unix_timestamp_tojstime.bind($data, expiration_time())()" title="Expiration date/time"></span>
+                      </div>
+
+                    </div>
+
+                    <?php /*----------------->
+                    <!-- Кнопка "Действия" -->
+                    <!-------------------*/ ?>
+                    <div class="trade-offer-actions col-md-5 col-sm-12 col-xs-12">
+
+                      <div class="btn-group" data-bind="visible: mode() == 1 || mode() == 3">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" title="Actions with the selected items">
+                            <i class="fa fa-gear"></i>
+                            <span> Actions</span>
+                          </button>
+                          <ul class="dropdown-menu" role="menu">
+
+                            <?php /*------>
+                            <!-- Accept -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Accept</a></li>
+
+                            <?php /*------->
+                            <!-- Decline -->
+                            <!---------*/ ?>
+                            <li data-bind="visible: mode() == 1"><a href="#" data-bind="click: function(){}">Decline</a></li>
+
+                            <?php /*---------->
+                            <!-- Get prices -->
+                            <!------------*/ ?>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: function(){}">Get prices</a></li>
+
+                            <?php /*------>
+                            <!-- Cancel -->
+                            <!--------*/ ?>
+                            <li data-bind="visible: mode() == 3"><a href="#" data-bind="click: function(){}">Cancel</a></li>
+
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+
+
+                  </div>
+
+                </div>
 
               </div>
 
@@ -3050,6 +3772,7 @@
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/perfect-scrollbar/js/perfect-scrollbar.js?rand={!! mt_rand(1000,9999); !!}"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/d3/d3.js?rand={!! mt_rand(1000,9999); !!}"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/4gekkman-bower-animsition/animsition/dist/js/animsition.min.js?rand={!! mt_rand(1000,9999); !!}"></script>
+  <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/momentjs/moment.js?rand={!! mt_rand(1000,9999); !!}"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/L10000/js/j.js?rand={!! mt_rand(1000,9999); !!}"></script>
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/D10005/js/j.js?rand={!! mt_rand(1000,9999); !!}"></script>
   <!-- document js: stop -->
