@@ -58,6 +58,10 @@
  *  s7. Функционал модели торговых предложений выбранного бота
  *
  *    f.s7.update                   | s7.1. Обновить массив с ТП выбранного на данный момент типа
+ *    f.s7.accept                   | s7.2. Принять указанное торговое предложение
+ *    f.s7.decline                  | s7.3. Отклонить указанное торговое предложение
+ *    f.s7.cancel                   | s7.4. Отменить указанное торговое предложение
+ *    f.s7.get_prices               | s7.5. Получить инвентари бота и его ТП, заполнить ценовые свойства вещей указанного оффера
  *
  *
  *
@@ -394,7 +398,13 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					assets2recieve: 			self.m.s6.inventory_items2trade(),
 					tradeoffermessage: 		"Manual trade via dashboard."
 				},
-			  prejob:       function(config, data, event){},
+			  prejob:       function(config, data, event){
+
+					// 1] Сообщить, что начинается создание торгового предложения
+					// - Но только если parameters.silent != true
+					notify({msg: "Creating new trade offer...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
 			  postjob:      function(data, params){},
 			  ok_0:         function(data, params){
 
@@ -402,7 +412,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					self.f.s3.update({silent: true});
 
 					// 2] Сообщить, что новое торговое предложение успешно создано
-					notify({msg: "New trade offer successfully created", time: 5, fontcolor: 'RGB(50,120,50)'});
+					notify({msg: "Approving operation...", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 				},
 				ok_2: function(data, params){
@@ -428,7 +438,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						ok_0:         function(data, params){
 
 							// 1] Сообщить, что новое торговое предложение было подтверждено
-							notify({msg: "New trade offer successfully approved", time: 5, fontcolor: 'RGB(50,120,50)'});
+							notify({msg: "New trade offer successfully created", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 						},
 						ok_2: function(data, params){
@@ -1088,8 +1098,22 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 					}
 
-					// Выполнить дополнительную работу
+					// 2.3.5] Если group.id = 2
+					if(group.id() == 2) {
 
+						// Переключить блок радио-кнопок на опцию №1 (Incoming)
+						self.m.s7.types.choosen('1');
+
+						// Обновить входящие торговые операции бота
+						self.f.s7.update({silent: true});
+
+						// Очистить наблюдаемые массивы с торговыми операциями
+						self.m.s7.tradeoffers_incoming.removeAll();
+						self.m.s7.tradeoffers_incoming_history.removeAll();
+						self.m.s7.tradeoffers_sent.removeAll();
+						self.m.s7.tradeoffers_sent_history.removeAll();
+
+					}
 
 				}
 
@@ -1705,8 +1729,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//---------------------------------------------//
 		f.s6.update = function(parameters, data, event) {
 
-			// 1] Если steamid торгового партнёра пуст, сообщить и завершить
-			if(!self.m.s5.steamid_partner()) {
+			// 1] Если steamid торгового партнёра пуст
+			// - И если он не передан в parameters.steamid, сообщить и завершить
+			if(!self.m.s5.steamid_partner() && !parameters.steamid) {
 				notify({msg: 'Enter and check trade url of a trade partner', time: 5, fontcolor: 'RGB(200,50,50)'});
 				return;
 			}
@@ -1716,7 +1741,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  command: 	    "\\M8\\Commands\\C4_getinventory",
 				from: 		    "f.s6.update",
 			  data: 		    {
-					steamid: 				  self.m.s5.steamid_partner()
+					steamid: 				  self.m.s5.steamid_partner() || parameters.steamid
 				},
 			  prejob:       function(config, data, event){
 
@@ -1875,7 +1900,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 2] Сообщить, что торговые предложения были успешно обновлены
 					// - Но только если parameters.silent != true
 					if(parameters.silent != true)
-						notify({msg: "The partner's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+						notify({msg: "Trade offers successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
 
 					// 3] Отметить, что ajax-запрос закончился
 					self.m.s7.is_ajax_invoking(false);
@@ -1912,6 +1937,368 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			});
 
 		};
+
+		//----------------------------------------------//
+		// s7.2. Принять указанное торговое предложение //
+		//----------------------------------------------//
+		f.s7.accept = function(parameters, data, event) {
+
+			// 1] Если тип не равен 1, сообщить и завершить
+			if(self.m.s7.types.choosen() != '1') {
+				notify({msg: 'Only incoming trade offers can be accepted', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Если id бота неизвестно, сообщить и завершить
+			if(!self.m.s2.edit.id()) {
+				notify({msg: 'Wrong id of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 3] Если id торговой операции неизвестно, сообщить и завершить
+			if(!data.tradeofferid()) {
+				notify({msg: 'Wrong trade offer id', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 4] Если id партнёра неизвестно, сообщить и завершить
+			if(!data.accountid_other()) {
+				notify({msg: 'Wrong partner id', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 5] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C28_accept_trade_offer",
+				from: 		    "f.s7.accept",
+			  data: 		    {
+					id_bot: 				  self.m.s2.edit.id(),
+					id_tradeoffer:    data.tradeofferid(),
+					id_partner:    		data.accountid_other()
+				},
+			  prejob:       function(config, data, event){
+
+					// 1] Сообщить, что начинается принятие торгового предложения
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Accepting trade offer...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что торговое предложение успешно принято
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Approving operation...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+				},
+				callback:     function(data, params){
+
+					// 1] Подтвердить все торговые предложения выбранного бота
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C21_fetch_confirmations",
+						from: 		    "f.s7.accept",
+						data: 		    {
+							id_bot: 							self.m.s2.edit.id(),
+							need_to_ids:          "0",
+							just_fetch_info:      "0"
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){},
+						ok_0:         function(data, params){
+
+							// 1] Сообщить, что новое торговое предложение было подтверждено
+							notify({msg: "Trade offer successfully accepted", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+							// 2] Обновить торговые предложения
+							self.f.s7.update({silent: true});
+
+						},
+						ok_2: function(data, params){
+
+							// 1] Сообщить об ошибке
+							notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+							console.log(data.data.errortext);
+
+						},
+						callback:     function(data, params){}
+						//ajax_params:  {},
+						//key: 			    "D1:1",
+						//from_ex: 	    [],
+						//ok_1:         function(data, params){},
+						//error:        function(){},
+						//timeout:      function(){},
+						//timeout_sec:  200,
+						//url:          window.location.href,
+						//ajax_method:  "post",
+						//ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+					});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//------------------------------------------------//
+		// s7.3. Отклонить указанное торговое предложение //
+		//------------------------------------------------//
+		f.s7.decline = function(parameters, data, event) {
+
+			// 1] Если тип не равен 1, сообщить и завершить
+			if(self.m.s7.types.choosen() != '1') {
+				notify({msg: 'Only incoming trade offers can be declined', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Если id бота неизвестно, сообщить и завершить
+			if(!self.m.s2.edit.id()) {
+				notify({msg: 'Wrong id of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 3] Если id торговой операции неизвестно, сообщить и завершить
+			if(!data.tradeofferid()) {
+				notify({msg: 'Wrong trade offer id', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 4] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C29_decline_trade_offer",
+				from: 		    "f.s7.decline",
+			  data: 		    {
+					id_bot: 				  self.m.s2.edit.id(),
+					id_tradeoffer:    data.tradeofferid()
+				},
+			  prejob:       function(config, data, event){
+
+					// 1] Сообщить, что начинается отклонение торгового предложения
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Declining trade offer...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что торговое предложение успешно отклонено
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Approving operation...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+				},
+				callback:     function(data, params){
+
+					// 1] Подтвердить все торговые предложения выбранного бота
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C21_fetch_confirmations",
+						from: 		    "f.s7.decline",
+						data: 		    {
+							id_bot: 							self.m.s2.edit.id(),
+							need_to_ids:          "0",
+							just_fetch_info:      "0"
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){},
+						ok_0:         function(data, params){
+
+							// 1] Сообщить, что новое торговое предложение было подтверждено
+							notify({msg: "Trade offer successfully declined", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+							// 2] Обновить торговые предложения
+							self.f.s7.update({silent: true});
+
+						},
+						ok_2: function(data, params){
+
+							// 1] Сообщить об ошибке
+							notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+							console.log(data.data.errortext);
+
+						},
+						callback:     function(data, params){}
+						//ajax_params:  {},
+						//key: 			    "D1:1",
+						//from_ex: 	    [],
+						//ok_1:         function(data, params){},
+						//error:        function(){},
+						//timeout:      function(){},
+						//timeout_sec:  200,
+						//url:          window.location.href,
+						//ajax_method:  "post",
+						//ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+					});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//-----------------------------------------------//
+		// s7.4. Отменить указанное торговое предложение //
+		//-----------------------------------------------//
+		f.s7.cancel = function(parameters, data, event) {
+
+			// 1] Если тип не равен 3, сообщить и завершить
+			if(self.m.s7.types.choosen() != '3') {
+				notify({msg: 'Only sent trade offers can be canceled', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Если id бота неизвестно, сообщить и завершить
+			if(!self.m.s2.edit.id()) {
+				notify({msg: 'Wrong id of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 3] Если id торговой операции неизвестно, сообщить и завершить
+			if(!data.tradeofferid()) {
+				notify({msg: 'Wrong trade offer id', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 4] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C27_cancel_trade_offer",
+				from: 		    "f.s7.decline",
+			  data: 		    {
+					id_bot: 				  self.m.s2.edit.id(),
+					id_tradeoffer:    data.tradeofferid()
+				},
+			  prejob:       function(config, data, event){
+
+					// 1] Сообщить, что начинается отклонение торгового предложения
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Canceling trade offer...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что торговое предложение успешно отклонено
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Approving operation...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+				},
+				callback:     function(data, params){
+
+					// 1] Подтвердить все торговые предложения выбранного бота
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C21_fetch_confirmations",
+						from: 		    "f.s7.decline",
+						data: 		    {
+							id_bot: 							self.m.s2.edit.id(),
+							need_to_ids:          "0",
+							just_fetch_info:      "0"
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){},
+						ok_0:         function(data, params){
+
+							// 1] Сообщить, что новое торговое предложение было подтверждено
+							notify({msg: "Trade offer successfully canceled", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+							// 2] Обновить торговые предложения
+							self.f.s7.update({silent: true});
+
+						},
+						ok_2: function(data, params){
+
+							// 1] Сообщить об ошибке
+							notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+							console.log(data.data.errortext);
+
+						},
+						callback:     function(data, params){}
+						//ajax_params:  {},
+						//key: 			    "D1:1",
+						//from_ex: 	    [],
+						//ok_1:         function(data, params){},
+						//error:        function(){},
+						//timeout:      function(){},
+						//timeout_sec:  200,
+						//url:          window.location.href,
+						//ajax_method:  "post",
+						//ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+					});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//--------------------------------------------------------------------------------------------//
+		// s7.5. Получить инвентари бота и его ТП, заполнить ценовые свойства вещей указанного оффера //
+		//--------------------------------------------------------------------------------------------//
+		f.s7.get_prices = function(parameters, data, event) {
+
+
+
+		};
+
+
+
+
+
+
+
 
 
 

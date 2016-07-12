@@ -320,6 +320,13 @@
   .ibot_right_column .content_in_content_box .header-note span {
     font-weight: bold;
   }
+  .ibot_right_column .content_in_content_box .empty-note {
+    padding-left: 25px;
+    padding-top: 15px;
+    font-style: italic;
+    color: RGBA(0,0,0,.3);
+    font-size: 1em;
+  }
 
   //------------------------//
   // Контейнер для столбцов //
@@ -526,8 +533,17 @@
     }
 
     // Торговые предложения
+    .content_in_content_box.trade-offers {
+      margin: 0;
+    }
+    .content_in_content_box.trade-offers>div {
+      padding: 0;
+    }
     .content_in_content_box.trade-offers .control-panel {
       border-left: 1px solid RGBA(0,0,0,.2);
+    }
+    .content_in_content_box.trade-offers .control-panel>div {
+      padding-left: 10px;
     }
     .content_in_content_box.trade-offers .control-panel .auto-update {
       user-select: none;
@@ -541,10 +557,11 @@
 
     // Список торговых предложений
     .content_in_content_box.trade-offers .trade-offers-list {
-
+      padding-right: 10px;
     }
     .content_in_content_box.trade-offers .trade-offers-list .trade-offer {
       margin-bottom: 15px;
+      box-shadow: 1px 1px 2px RGBA(0,0,0,.5);
     }
     .content_in_content_box.trade-offers .trade-offers-list .trade-offer .head-part {
       min-height: 22px;
@@ -632,7 +649,7 @@
     .content_in_content_box.trade-offers .trade-offers-list .trade-offer .footer-part {
       border: 1px solid #eee;
       border-top: 0;
-      padding: 5px;
+      padding: 1px;
       margin: 0;
     }
     .content_in_content_box.trade-offers .trade-offers-list .trade-offer .footer-part .time_updated_created {
