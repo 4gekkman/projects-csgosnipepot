@@ -688,12 +688,12 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           $tradeoffer['avatar'] = $avatar;
 
           // n] Добавить $tradeoffer в $tradeoffers
-          // - Если mode = 1/2, то в trade_offers_sent
-          // - Если mode = 3/4, то в trade_offers_received
+          // - Если mode = 1/2, то в trade_offers_received
+          // - Если mode = 3/4, то в trade_offers_sent
           if($this->data['mode'] == 1 || $this->data['mode'] == 2)
-            array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
-          if($this->data['mode'] == 3 || $this->data['mode'] == 4)
             array_push($tradeoffers['trade_offers_received'], $tradeoffer);
+          if($this->data['mode'] == 3 || $this->data['mode'] == 4)
+            array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
 
         }
 
@@ -706,7 +706,8 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
       return [
         "status"  => 0,
         "data"    => [
-          "tradeoffers" => $tradeoffers
+          "tradeoffers" => $tradeoffers,
+          "mode"        => $this->data['mode']
         ]
       ];
 
