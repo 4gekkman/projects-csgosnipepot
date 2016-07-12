@@ -202,10 +202,10 @@ class C27_cancel_trade_offer extends Job { // TODO: добавить "implements
         $json = json_decode($response->getBody(), true);
 
         // 3.5. Если нет поля tradeofferid, вернуть ошибку
-        $validator = r4_validate($json, [
-          "tradeofferid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        ]); if($validator['status'] == -1)
-          throw new \Exception($validator['data']);
+//        $validator = r4_validate($json, [
+//          "tradeofferid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+//        ]); if($validator['status'] == -1)
+//          throw new \Exception($validator['data']);
 
       // 4. Вернуть результаты
       return [

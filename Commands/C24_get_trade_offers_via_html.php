@@ -838,12 +838,36 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           $tradeoffer["mode"] = $this->data['mode'];
 
           // n] Добавить $tradeoffer в $tradeoffers
-          // - Если mode = 1/2, то в trade_offers_received
-          // - Если mode = 3/4, то в trade_offers_sent
-          if($this->data['mode'] == 1 || $this->data['mode'] == 2)
-            array_push($tradeoffers['trade_offers_received'], $tradeoffer);
-          if($this->data['mode'] == 3 || $this->data['mode'] == 4)
-            array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
+
+            // n.1] Если mode = 1/2, то в trade_offers_received
+            if($this->data['mode'] == 1 || $this->data['mode'] == 2) {
+
+              // n.1.1] Если mode = 1, то добавлять ТП только, если trade_offer_state == 2
+              if($this->data['mode'] == 1) {
+                if($tradeoffer['trade_offer_state'] == '2' || $tradeoffer['trade_offer_state'] == '9' || $tradeoffer['trade_offer_state'] == '11')
+                  array_push($tradeoffers['trade_offers_received'], $tradeoffer);
+              }
+
+              // n.1.2] В противном случае, всегда добавлять
+              else
+                array_push($tradeoffers['trade_offers_received'], $tradeoffer);
+
+            }
+
+            // n.2] Если mode = 3/4, то в trade_offers_sent
+            if($this->data['mode'] == 3 || $this->data['mode'] == 4) {
+
+              // n.2.1] Если mode = 3, то добавлять ТП только, если trade_offer_state == 2/9/11
+              if($this->data['mode'] == 3) {
+                if($tradeoffer['trade_offer_state'] == '2' || $tradeoffer['trade_offer_state'] == '9' || $tradeoffer['trade_offer_state'] == '11')
+                  array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
+              }
+
+              // n.2.2] В противном случае, всегда добавлять
+              else
+                array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
+
+            }
 
         }
 
@@ -851,7 +875,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
         return $tradeoffers;
 
       });
-Log::info($tradeoffers);
+
       // 5. Вернуть результаты
       return [
         "status"  => 0,
