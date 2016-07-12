@@ -524,3 +524,20 @@
     .new-trade-column .economy-container .economy-content .balance .redtext {
       color: RGBA(200,0,0,1);
     }
+
+    // Торговые предложения
+    .content_in_content_box.trade-offers .control-panel {
+      border-left: 1px solid RGBA(0,0,0,.2);
+    }
+    .content_in_content_box.trade-offers .control-panel .auto-update {
+      user-select: none;
+    }
+    .content_in_content_box.trade-offers .control-panel .radio-block {
+      user-select: none;
+    }
+    .content_in_content_box.trade-offers .control-panel .radio-block input {
+      outline: 0;
+    }
+
+
+

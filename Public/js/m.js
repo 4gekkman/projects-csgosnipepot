@@ -98,6 +98,8 @@
  *    s7.3. Наблюдаемый массив со входящими закрытыми торговыми предложениями
  *    s7.4. Наблюдаемый массив с исходящими активными торговыми предложениями
  * 		s7.5. Наблюдаемый массив с исходящими закрытыми торговыми предложениями
+ * 		s7.6. Включить ли автообновление
+ * 		s7.7. Модель блока radio-кнопок торговых предложений
  *  	s7.n. Индексы и вычисляемые значения
  *
  *  sN. Данные, которым доступны все прочие данные
@@ -1263,6 +1265,49 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	// s7.5. Наблюдаемый массив с исходящими закрытыми торговыми предложениями //
 	//-------------------------------------------------------------------------//
 	self.m.s7.tradeoffers_sent_history = ko.observableArray([]);
+
+	//----------------------------------//
+	// s7.6. Включить ли автообновление //
+	//----------------------------------//
+	self.m.s7.auto_update = ko.observable(false);
+
+	//------------------------------------------------------//
+	// s7.7. Модель блока radio-кнопок торговых предложений //
+	//------------------------------------------------------//
+	self.m.s7.types = {};
+
+		// 1] Опции //
+		//----------//
+		self.m.s7.types.options = ko.observableArray([
+			ko.observable({
+				id: ko.observable('options_types1'),
+				name: ko.observable('options_types'),
+				text: ko.observable('Incoming'),
+				value: ko.observable('1')
+			}),
+			ko.observable({
+				id: ko.observable('options_types2'),
+				name: ko.observable('options_types'),
+				text: ko.observable('Incoming History'),
+				value: ko.observable('2')
+			}),
+			ko.observable({
+				id: ko.observable('options_types3'),
+				name: ko.observable('options_types'),
+				text: ko.observable('Sent'),
+				value: ko.observable('3')
+			}),
+			ko.observable({
+				id: ko.observable('options_types4'),
+				name: ko.observable('options_types'),
+				text: ko.observable('Sent History'),
+				value: ko.observable('4')
+			})
+		]);
+
+		// 2] Выбранная опция //
+		//--------------------//
+		self.m.s7.types.choosen = ko.observable('1');
 
 
 	//--------------------------------------//

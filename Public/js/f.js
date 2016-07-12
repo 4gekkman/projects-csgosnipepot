@@ -17,6 +17,7 @@
  *    f.s0.upd_price_update_errors  | s0.4. Обновить модель ошибок обновления цен на вещи
  *    f.s0.update_inventory_tp      | s0.5. Обновить инвентарь торгового партнёра
  *    f.s0.send_trade_offer         | s0.6. Отправить торговое предложение
+ *    f.s0.update_trade_offers      | s0.7. Обновить информацию об указанном типе торговых операций
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -53,6 +54,9 @@
  *    f.s6.get_item_title           | s6.2. Формирует title для вещей в инвентаре
  *    f.s6.deselect_all             | s6.3. Развыделить все элементы в инвентаре
  *
+ *  s7. Функционал модели торговых предложений выбранного бота
+ *
+ *    f.s7.update                   | s7.1. Обновить массив с ТП выбранного на данный момент типа
  *
  *
  *
@@ -465,6 +469,113 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			});
 
 		};
+
+
+		//---------------------------------------------------------------//
+		// s0.7. Обновить информацию об указанном типе торговых операций //
+		//---------------------------------------------------------------//
+		// - Пояснение
+		f.s0.update_trade_offers = function(data) {
+
+			// 1. Если data.mode == 1
+			// - Обновить торговые операции в m.s7.tradeoffers_incoming
+			if(data.mode == 1) {
+
+				// 1] Очистить
+				self.m.s7.tradeoffers_incoming.removeAll();
+
+				// 2] Записать массив с торговыми предложениями в переменную
+				var offers = data.data.tradeoffers.trade_offers_recieved;
+
+				// 2] Наполнить
+				for(var i=0; i<offers.length; i++) {
+
+					// 2.1] Сформировать объект для добавления
+					var obj = {};
+					for(var key in offers[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!offers[i].hasOwnProperty(key)) continue;
+
+						// 2] Если key == items_to_give
+						if(key == 'items_to_give') {
+							for(var j=0; j<offers[i][key].length; j++) {
+
+								offers[i][key]
+
+							}
+						}
+
+						// 3] Если key == items_to_recieve
+						if(key == 'items_to_recieve') {
+
+
+
+						}
+
+						// 4] Добавим в obj свойство key
+						obj[key] = ko.observable(offers[i][key]);
+
+					}
+
+				}
+
+			}
+
+			// 2. Если data.mode == 1
+			// - Обновить торговые операции в m.s7.tradeoffers_incoming_history
+			if(data.mode == 2) {
+
+			}
+
+			// 3. Если data.mode == 1
+			// - Обновить торговые операции в m.s7.tradeoffers_sent
+			if(data.mode == 3) {
+
+			}
+
+			// 4. Если data.mode == 1
+			// - Обновить торговые операции в m.s7.tradeoffers_sent_history
+			if(data.mode == 4) {
+
+			}
+
+
+			console.log(data);
+
+
+//			// 1. Обновить m.s6.inventory
+//
+//				// 1.1. Очистить
+//				self.m.s6.inventory.removeAll();
+//
+//				// 1.2. Наполнить
+//				for(var i=0; i<data.data.rgDescriptions.length; i++) {
+//
+//					// 1.2.1. Сформировать объект для добавления
+//					var obj = {};
+//					for(var key in data.data.rgDescriptions[i]) {
+//
+//						// 1] Если свойство не своё, пропускаем
+//						if(!data.data.rgDescriptions[i].hasOwnProperty(key)) continue;
+//
+//						// 2] Добавим в obj свойство key
+//						obj[key] = ko.observable(data.data.rgDescriptions[i][key]);
+//
+//					}
+//
+//					// 1.2.2. Добавить св-во number
+//					obj['number'] = ko.observable(i+1);
+//
+//					// 1.2.3. Добавить св-во selected
+//					obj['selected'] = ko.observable(false);
+//
+//					// 1.2.4. Добавить этот объект в подготовленный массив
+//					self.m.s6.inventory.push(ko.observable(obj))
+//
+//				}
+
+  	};
 
 
 		//------------------------------------------------------------------------//
@@ -1159,8 +1270,6 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
 			});
 
-
-
 		};
 
 		//----------------------------------------------//
@@ -1455,6 +1564,97 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			for(var i=0; i<self.m.s6.inventory().length; i++) {
 				self.m.s6.inventory()[i]().selected(false);
 			}
+
+		};
+
+
+	//----------------------------------------------------------------------//
+	// 			        		 			                                              //
+	// 			 s7. Функционал модели торговых предложений выбранного бота			//
+	// 			         					                                              //
+	//----------------------------------------------------------------------//
+	f.s7 = {};
+
+		//-------------------------------------------------------------//
+		// s7.1. Обновить массив с ТП выбранного на данный момент типа //
+		//-------------------------------------------------------------//
+		f.s7.update = function(parameters, data, event) {
+
+			// 1] Если тип не равен 1/2/3/4, сообщить и завершить
+			if(self.m.s7.types.choosen() != '1' && self.m.s7.types.choosen() != '2' && self.m.s7.types.choosen() != '3' && self.m.s7.types.choosen() != '4') {
+				notify({msg: 'Wrong type of trade offers', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Если id бота неизвестно, сообщить и завершить
+			if(!self.m.s2.edit.id()) {
+				notify({msg: 'Wrong id of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 3] Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C24_get_trade_offers_via_html",
+				from: 		    "f.s7.update",
+			  data: 		    {
+					id_bot: 				  self.m.s2.edit.id(),
+					mode:             self.m.s7.types.choosen()
+				},
+			  prejob:       function(config, data, event){
+
+					// 1] Отметить, что идёт ajax-запрос
+					self.m.s6.is_ajax_invoking(true);
+
+					// 2] Сообщить, что начинается обновление ТП
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "Trade offers updating...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Обновить торговые предложения
+					self.f.s0.update_trade_offers(data);
+
+					// 2] Сообщить, что торговые предложения были успешно обновлены
+					// - Но только если parameters.silent != true
+					if(parameters.silent != true)
+						notify({msg: "The partner's inventory successfully updated", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 3] Отметить, что ajax-запрос закончился
+					self.m.s6.is_ajax_invoking(false);
+
+				},
+				ok_1: function(data, params){
+
+					// 1] Отметить, что ajax-запрос закончился
+					self.m.s6.is_ajax_invoking(false);
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+					// 2] Отметить, что ajax-запрос закончился
+					self.m.s6.is_ajax_invoking(false);
+
+				},
+				dont_touch_ajax_counter: true
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
 
 		};
 

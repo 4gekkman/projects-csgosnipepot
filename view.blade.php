@@ -1519,12 +1519,12 @@
         <?php /*-------------->
         <!-- 5] Tradeoffers -->
         <!----------------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Tradeoffers'">
+        <div style="display: none" class="content_in_content_box trade-offers row" data-bind="visible: m.s1.selected_subdoc().name() == 'Tradeoffers'">
 
           <?php /*----------------------->
           <!-- Левый столбец (контент) -->
           <!-------------------------*/ ?>
-          <div class="col-md-7 col-sm-7 col-xs-7 authorization-props">
+          <div class="col-md-7 col-sm-7 col-xs-7">
 
             <?php /*-------------------->
             <!-- Свойства авторизации -->
@@ -1535,13 +1535,15 @@
               <!-- Заголовок -->
               <!-----------*/ ?>
               <div class="header-note">
-                <span>Authorization properties</span>
+                <span>Incoming offers</span>
               </div>
 
               <?php /*-------->
               <!-- Свойства -->
               <!----------*/ ?>
               <div class="form-horizontal">
+
+                123
 
               </div>
 
@@ -1552,20 +1554,66 @@
           <?php /*---------------------------------->
           <!-- Правый столбец (панель управления) -->
           <!------------------------------------*/ ?>
-          <div class="col-md-5 col-sm-5 col-xs-5">
+          <div class="col-md-5 col-sm-5 col-xs-5 control-panel">
 
             <?php /*--------->
             <!-- Заголовок -->
             <!-----------*/ ?>
             <div class="header-note">
-              <span>Actions</span>
+              <span>Control panel</span>
             </div>
 
-            <?php /*-------------------------->
-            <!-- Кнопка "Авторизовать бота" -->
-            <!----------------------------*/ ?>
+            <?php /*----------------->
+            <!-- Панель управления -->
+            <!-------------------*/ ?>
             <div>
-              <button type="button" class="btn btn-block btn-default" data-bind="click: f.s2.authorize_bot">Authorize</button>
+
+              <?php /*--------------->
+              <!-- Кнопка "Update" -->
+              <!-----------------*/ ?>
+              <div>
+                <button type="button" class="btn btn-block btn-default btn-sm" data-bind="click: f.s7.update.bind($data, {silent: false})">Update</button>
+              </div>
+
+              <?php /*------------------------->
+              <!-- Автоматическое обновление -->
+              <!---------------------------*/ ?>
+              <div class="form-group auto-update">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s7.auto_update">
+                    Auto update every 1 min.
+                  </label>
+                </div>
+              </div>
+
+              <?php /*----------------------------------------->
+              <!-- Какой тип торговых предложений показывать -->
+              <!-------------------------------------------*/ ?>
+              <div>
+
+                <?php /*----------------->
+                <!-- Блок radio-кнопок -->
+                <!-------------------*/ ?>
+                <div style="border-top: 1px solid #ddd; padding-top: 4px;" class="radio-block">
+
+                  <div class="form-group" data-bind="foreach: m.s7.types.options">
+                    <div class="radio">
+                      <label>
+                        <input type="radio" data-bind="attr: {id: id, name: name, value: value}, checked: $root.m.s7.types.choosen">
+                        <span data-bind="text: text"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+
+
+
+
+
+              </div>
+
             </div>
 
           </div>
