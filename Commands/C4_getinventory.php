@@ -298,18 +298,18 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           $steam_image_server = config('M8.steam_image_server') ?: 'https://steamcommunity-a.akamaihd.net/economy/image/';
 
           // 2] Сформировать полный URL для icon_url
-          $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "https://placehold.it/300?text=steamerror&size=50";
+          $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
 
           // 3] Сформировать полный URL для icon_url_large
-          $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "https://placehold.it/300?text=steamerror&size=50";
+          $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
 
           // 4] Сформировать полный URL для icon_drag_url
-          $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "https://placehold.it/300?text=steamerror&size=50";
+          $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
 
         // 5.4. На случай глюков steam, добавить необходимые значения полям
         if(!array_key_exists('tags', $description)) {
           $description['background_color'] = "#fff";
-          $description['price'] = "";
+          $description['price'] = "0";
         }
 
 
