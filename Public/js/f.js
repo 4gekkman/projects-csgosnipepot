@@ -2289,7 +2289,145 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//--------------------------------------------------------------------------------------------//
 		f.s7.get_prices = function(parameters, data, event) {
 
+			// Если steamid выбранного бота пуст, сообщить и завершить
+			if(!self.m.s2.edit.steamid()) {
+				notify({msg: 'Enter steamid of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
 
+			// Выполнить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C4_getinventory",
+				from: 		    "f.s3.update",
+			  data: 		    {
+					steamid: 				  self.m.s2.edit.steamid()
+				},
+			  prejob:       function(config, data, event){
+
+					// 1] Сообщить, что начинается процесс получения цен
+					notify({msg: "Getting prices for 'Bot gives' items...", time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Подготовить переменную с массивом вещей оффера
+					// - Кстати: она является ссылкой на наблюдаемый массив.
+					var items2give = params.env.items_to_give();
+
+					// 2] Подготовить переменную для итоговой суммы отдаваемых предметов
+					var total_sum_give = 0;
+
+					// 3] Наполнить prices вещей оффера в params.env.items_to_give, и total_sum_give
+					for(var i=0; i<items2give.length; i++) {
+
+						// 3.1] Искать i-ую вещь в полученном инвентаре
+						var inventory = data.data.rgDescriptions;
+						for(var i=0; i<data.data.rgDescriptions.length; i++) {
+
+							// Сравнить assetid эл-та из оффера с assetid эл-та из инвентаря
+							if(items2give[i]().assetid() == inventory.assetid) {
+								items2give[i]().price(inventory.price);
+								items2give[i]().price_success = ko.observable(inventory.price_success);
+								total_sum_give = +total_sum_give + inventory.price;
+								break;
+							}
+
+						}
+
+					}
+
+					console.log(total_sum_give);
+
+
+
+
+
+
+
+
+//					// 1] Если цены надо получить для активного входящего оффера
+//					if(parameters.mode == 1) {
+//
+//
+//
+//					}
+//
+//					// 2] Если цены надо получить для активного исходящего оффера
+//					if(parameters.mode == 3) {
+//
+//
+//
+//					}
+
+
+
+
+// - В инвентаре для бота, в rgDescriptions есть цены на вещи.
+// - Вещи в инвентаре обозначены уникальным assetid.
+// - Надо пробежаться по всем вещам из оффера (из params.env).
+// - Следует использовать items2give, т.к. сравнение будет с собственным инвентарём.
+// - Во время обхода сравниваем assetid эл-та из оффера (items2give[i]().assetid()) с assetid эл-та из инвентаря (inventory.assetid).
+// - Если находим, то:
+//   - Добавляем price из инвентаря в наблюдаемую в оффере (items2give[i]().price())
+//   - Переходим к следующей итерации
+// - Рассчитываем финальную сумму на отдачу, и записываем в оффер (params.env.total_sum_give)
+
+
+
+
+// params.env.total_sum_receive
+// params.env.total_sum_give
+
+
+
+// params.env.tradeofferid
+
+
+//					var inventory = data.data.rgDescriptions;
+//					for(var i=0; i<data.data.rgDescriptions.length; i++) {
+//
+//						inventory.assetid
+//						price
+//						price_success
+//
+//					}
+
+
+//					var items2give = params.env.items_to_give();
+//					var items2receive = params.env.items_to_receive();
+//					for(var i=0; i<items2give.length; i++) {
+//						items2give[i]().assetid();
+//						items2give[i]().price();
+//					}
+//					for(var i=0; i<items2receive.length; i++) {
+//						items2receive[i]().assetid();
+//						items2receive[i]().price();
+//					}
+
+				},
+				ok_2: function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+				},
+				ajax_params: 		{
+					env: 	data
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
 
 		};
 

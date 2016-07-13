@@ -1728,7 +1728,7 @@
                             <?php /*---------->
                             <!-- Get prices -->
                             <!------------*/ ?>
-                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: ''">Get prices</a></li>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: $root.f.s7.get_prices.bind($data, {mode: mode()})">Get prices</a></li>
 
                             <?php /*------>
                             <!-- Cancel -->
@@ -1959,7 +1959,7 @@
                             <?php /*---------->
                             <!-- Get prices -->
                             <!------------*/ ?>
-                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: ''">Get prices</a></li>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: $root.f.s7.get_prices.bind($data, {mode: mode()})">Get prices</a></li>
 
                             <?php /*------>
                             <!-- Cancel -->
@@ -2190,7 +2190,7 @@
                             <?php /*---------->
                             <!-- Get prices -->
                             <!------------*/ ?>
-                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: ''">Get prices</a></li>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: $root.f.s7.get_prices.bind($data, {mode: mode()})">Get prices</a></li>
 
                             <?php /*------>
                             <!-- Cancel -->
@@ -2421,7 +2421,7 @@
                             <?php /*---------->
                             <!-- Get prices -->
                             <!------------*/ ?>
-                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: ''">Get prices</a></li>
+                            <li data-bind="visible: mode() == 1 || mode() == 3"><a href="#" data-bind="click: $root.f.s7.get_prices.bind($data, {mode: mode()})">Get prices</a></li>
 
                             <?php /*------>
                             <!-- Cancel -->
