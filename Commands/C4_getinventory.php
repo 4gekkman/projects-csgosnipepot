@@ -246,39 +246,50 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         });
 
         // 5.2. Вынести важную информацию из тегов на 1-й уровень массива
-        foreach($description['tags'] as $tag) {
+        // - Если, конечно, индекс 'tags' присутствует
+        if(array_key_exists('tags', $description)) {
+          foreach($description['tags'] as $tag) {
 
-          // 1] Type
-          if($tag['category_name'] == "Type") {
-            $description['type'] = $tag['name'];
+            // 1] Type
+            if($tag['category_name'] == "Type") {
+              $description['type'] = $tag['name'];
+            }
+
+            // 2] Weapon
+            if($tag['category_name'] == "Weapon") {
+              $description['weapon'] = $tag['name'];
+            }
+
+            // 3] Collection
+            if($tag['category_name'] == "Collection") {
+              $description['collection'] = $tag['name'];
+            }
+
+            // 4] Category
+            if($tag['category_name'] == "Category") {
+              $description['category'] = $tag['name'];
+            }
+
+            // 5] Quality
+            if($tag['category_name'] == "Quality") {
+              $description['quality'] = $tag['name'];
+              $description['quality_color'] = $tag['color'];
+            }
+
+            // 6] Exterior
+            if($tag['category_name'] == "Exterior") {
+              $description['exterior'] = $tag['name'];
+            }
+
           }
-
-          // 2] Weapon
-          if($tag['category_name'] == "Weapon") {
-            $description['weapon'] = $tag['name'];
-          }
-
-          // 3] Collection
-          if($tag['category_name'] == "Collection") {
-            $description['collection'] = $tag['name'];
-          }
-
-          // 4] Category
-          if($tag['category_name'] == "Category") {
-            $description['category'] = $tag['name'];
-          }
-
-          // 5] Quality
-          if($tag['category_name'] == "Quality") {
-            $description['quality'] = $tag['name'];
-            $description['quality_color'] = $tag['color'];
-          }
-
-          // 6] Exterior
-          if($tag['category_name'] == "Exterior") {
-            $description['exterior'] = $tag['name'];
-          }
-
+        } else {
+          $description['type'] = "";
+          $description['weapon'] = "";
+          $description['collection'] = "";
+          $description['category'] = "";
+          $description['quality'] = "";
+          $description['quality_color'] = "";
+          $description['exterior'] = "";
         }
 
         // 5.3. Сформировать полные URL для картинок
@@ -287,13 +298,20 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           $steam_image_server = config('M8.steam_image_server') ?: 'https://steamcommunity-a.akamaihd.net/economy/image/';
 
           // 2] Сформировать полный URL для icon_url
-          $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "";
+          $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "https://placehold.it/300?text=steamerror&size=50";
 
           // 3] Сформировать полный URL для icon_url_large
-          $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "";
+          $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "https://placehold.it/300?text=steamerror&size=50";
 
           // 4] Сформировать полный URL для icon_drag_url
-          $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "";
+          $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "https://placehold.it/300?text=steamerror&size=50";
+
+        // 5.4. На случай глюков steam, добавить необходимые значения полям
+        if(!array_key_exists('tags', $description)) {
+          $description['background_color'] = "#fff";
+          $description['price'] = "";
+        }
+
 
       }
 
@@ -326,7 +344,8 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
           // 2] Наполнить $results
           foreach($rgDescriptions as $item) {
-            array_push($results, $item['market_hash_name']);
+            if(array_key_exists('market_hash_name', $item))
+              array_push($results, $item['market_hash_name']);
           }
 
           // 3] Вернуть результаты
@@ -337,20 +356,26 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         // 7.2. Для каждого $market_hash_names получить цену
         $prices = call_user_func(function() USE ($market_hash_names) {
 
-          // 1] Выполнить запрос цен
+          // 1] Если $market_hash_names пуст, вернуть []
+          if(empty($market_hash_names)) return [];
+
+          // 2] Выполнить запрос цен
           $result = runcommand('\M8\Commands\C17_get_final_items_prices', ['items' => $market_hash_names]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 2] Вернуть результат
+          // 3] Вернуть результат
           return $result['data']['prices'];
 
         });
 
         // 7.3. Добавить в $rgDescriptions доп.поля
+        // - Если $prices не пуст
         foreach($rgDescriptions as &$item) {
-          $item['price']          = $prices[$item['market_hash_name']]['price'];
-          $item['price_success']  = $prices[$item['market_hash_name']]['success'];
+          if(array_key_exists('market_hash_name', $item) && !empty($prices)) {
+            $item['price']          = $prices[$item['market_hash_name']]['price'];
+            $item['price_success']  = $prices[$item['market_hash_name']]['success'];
+          }
         }
 
       });
