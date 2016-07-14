@@ -832,6 +832,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
           // 16] Заготовки для экономики
           $tradeoffer['total_sum_receive'] = "";
           $tradeoffer['total_sum_give'] = "";
+          $tradeoffer['total_sum_is_some_absent'] = "";
           $tradeoffer['balance'] = "";
 
           // 17] Добавить ID режима извлечения
