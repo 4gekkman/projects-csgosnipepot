@@ -13,6 +13,7 @@
   5. Инвентарь
   6. Стили текущего аутентификационного кода
   7. Стили панели ручной авторизации
+  8. Стили таблицы ботов
 
 //------------------------------//
 // Стили //
@@ -610,6 +611,9 @@
     .content_in_content_box.trade-offers .trade-offers-list .trade-offer .body-part .bot-gives-gets .header-bot-gives-gets .price {
 
     }
+    .content_in_content_box.trade-offers .trade-offers-list .trade-offer .body-part .bot-gives-gets .header-bot-gives-gets .absent {
+      color: RGBA(255,0,0,.8);
+    }
     .content_in_content_box.trade-offers .trade-offers-list .trade-offer .body-part .bot-gives-gets .items-list {
       padding: 0;
       user-select: none;
@@ -666,6 +670,15 @@
       text-align: right;
       padding: 0;
     }
+
+
+//------------------------//
+// 8. Стили таблицы ботов //
+//------------------------//
+
+  // Общие стили
+  .bots-table {}
+
 
 
 

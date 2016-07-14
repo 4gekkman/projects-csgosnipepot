@@ -58,16 +58,19 @@
   Панель загрузки
   Заголовок и хлебные крошки
 
-    1. Меню главной таб-панели
-    2. Контент главной таб-панели
+    1. Панель загрузки
+    2. Боты
       2.1. Боты
-        2.1.1. Боты
-      2.2. Интерфейс кликнутого бота
-        2.2.1. Кнопка "Назад" и название поддокумента
-        2.2.2. Содержимое интерфейса бота
-          2.2.2.1. Различного рода предупреждения
-          2.2.2.2. Инвентарь и торговые предложения
-          2.2.2.3. Свойства бота
+    3. Интерфейс кликнутого бота
+      3.1. Левый столбец: кнопка "Назад" и левое меню
+        3.1.1. Кнопка "назад"
+        3.1.2. Левое меню интерфейса бота
+      3.2. Правый столбец: имя бота и контент интерфейса
+        3.2.1. Хлебные крошки
+        3.2.2. Контент-бокс интерфейса бота
+    4. Получение данных с сервера и подключение JS этого документа
+      4.1. Получение данных с сервера
+      4.2. Подключение JS этого документа
 
 -------------------------*/ ?>
 @section('content')
@@ -84,7 +87,7 @@
 <?php /*-------->
 <!-- 2. Боты  -->
 <!----------*/ ?>
-<div style="display: none" data-bind="visible: m.s1.selected_group().id() == 1">
+<div class="bots-table" style="display: none" data-bind="visible: m.s1.selected_group().id() == 1">
 
   <?php /*---------->
   <!-- 2.1. Боты  -->
@@ -128,7 +131,7 @@
 
       <div class="col-md-12">
 
-        <div class="box box-info">
+        <div class="box">
 
           <?php /* Заголовок  -->
           <!----------------*/ ?>
@@ -1536,6 +1539,7 @@
               <!-----------*/ ?>
               <div class="header-note">
                 <span>Incoming</span>
+                <small class="small_notes" style="cursor: default">- <span title="Number of incoming trade offers" data-bind="text: m.s7.tradeoffers_incoming().length"></span></small>
               </div>
 
               <?php /*-------------------->
@@ -1606,7 +1610,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -1649,7 +1653,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*-------------------------------->
@@ -1767,6 +1771,7 @@
               <!-----------*/ ?>
               <div class="header-note">
                 <span>Incoming offers</span>
+                <small class="small_notes" style="cursor: default">- <span title="Number of incoming history trade offers" data-bind="text: m.s7.tradeoffers_incoming_history().length"></span></small>
               </div>
 
               <?php /*-------------------->
@@ -1837,7 +1842,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -1880,7 +1885,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*-------------------------------->
@@ -1998,6 +2003,7 @@
               <!-----------*/ ?>
               <div class="header-note">
                 <span>Sent offets</span>
+                <small class="small_notes" style="cursor: default">- <span title="Number of sent trade offers" data-bind="text: m.s7.tradeoffers_sent().length"></span></small>
               </div>
 
               <?php /*-------------------->
@@ -2068,7 +2074,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -2111,7 +2117,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*-------------------------------->
@@ -2229,6 +2235,7 @@
               <!-----------*/ ?>
               <div class="header-note">
                 <span>Sent history</span>
+                <small class="small_notes" style="cursor: default">- <span title="Number of sent history trade offers" data-bind="text: m.s7.tradeoffers_sent_history().length"></span></small>
               </div>
 
               <?php /*-------------------->
@@ -2299,7 +2306,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -2342,7 +2349,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
                       </div>
 
                       <?php /*-------------------------------->
