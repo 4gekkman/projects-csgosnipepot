@@ -2325,6 +2325,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						var inventory = data.data.rgDescriptions;
 						for(var i=0; i<data.data.rgDescriptions.length; i++) {
 
+							console.log(items2give[i]);
+							console.log(items2give[i]());
+
 							// Сравнить assetid эл-та из оффера с assetid эл-та из инвентаря
 							if(items2give[i]().assetid() == inventory.assetid) {
 								items2give[i]().price(inventory.price);
@@ -2336,6 +2339,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						}
 
 					}
+
 
 					console.log(total_sum_give);
 
