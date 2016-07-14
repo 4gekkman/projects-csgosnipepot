@@ -1610,7 +1610,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -1653,7 +1653,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*-------------------------------->
@@ -1842,7 +1842,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -1885,7 +1885,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*-------------------------------->
@@ -2074,7 +2074,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -2117,7 +2117,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*-------------------------------->
@@ -2306,7 +2306,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gets</span>
-                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_receive() + ')', visible: total_sum_receive() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*---------------------------------->
@@ -2349,7 +2349,7 @@
                       <!-------------------*/ ?>
                       <div class="header-bot-gives-gets">
                         <span class="title-bot-gives-gets">Bot gives</span>
-                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give && !total_sum_is_some_absent"></span>
+                        <span class="price" data-bind="text: '($' + total_sum_give() + ')', visible: total_sum_give() && !total_sum_is_some_absent()"></span>
                       </div>
 
                       <?php /*-------------------------------->
