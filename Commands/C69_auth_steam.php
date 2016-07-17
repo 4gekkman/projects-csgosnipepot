@@ -284,14 +284,14 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         if($user2auth->is_blocked !== 0)
           throw new \Exception("The user is blocked.");
 
-        // 10.3. Извлечь для $user2auth время жизни аутентификации
+        // 10.3. Извлечь для $user2auth время жизни аутентификации в часах
         $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $user2auth->id]);
         if($lifetime['status'] != 0)
           throw new \Exception($lifetime['data']);
         $lifetime = $lifetime['data'];
 
         // 10.4. Получить дату и время, когда эта аутентификация истекает
-        $expired_at = \Carbon\Carbon::now()->addMinutes($lifetime);
+        $expired_at = \Carbon\Carbon::now()->addHours($lifetime);
 
         // 10.5. Создать для пользователя новую запись в таблице аутентификаций, связать
         $auth = new \M5\Models\MD8_auth();
@@ -312,8 +312,8 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         // 10.7. Записать пользователю новый аутентиф.кэш в сессию
         session(['auth_cache' => $json]);
 
-        // 10.8. Записать пользователю новую куку с временем жизни $lifetime
-        Cookie::queue('auth', $json_encrypted, $lifetime);
+        // 10.8. Записать пользователю новую куку с временем жизни $lifetime*60 минут
+        Cookie::queue('auth', $json, $lifetime*60);
 
       // 11. Создать группу "Steam Users", если её ещё нет
       $steamusers = \M5\Models\MD2_groups::where('name', 'SteamUsers')->first();

@@ -176,7 +176,7 @@ class C57_get_auth_limit extends Job { // TODO: добавить "implements Sho
       $auth_cookie_lifetime_global = config("M5.auth_cookie_lifetime_global") ?: 525600;
       $auth_cookie_lifetime_locals = config("M5.auth_cookie_lifetime_locals") ?: [];
 
-      // 5. Вычислить время жизни аутентификации в минутах для пользователя $user
+      // 5. Вычислить время жизни аутентификации в часах для пользователя $user
       $lifetime = call_user_func(function() USE ($user, $groups, $auth_cookie_lifetime_global, $auth_cookie_lifetime_locals) {
 
         // 5.1. Если массив $groups пуст, вернуть $auth_cookie_lifetime_global

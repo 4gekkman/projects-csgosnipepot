@@ -205,6 +205,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
 
       // 2. Получить аутентификационную куку
       $auth_cookie = Request::cookie('auth');
+      if(!empty($auth_cookie)) $auth_cookie = Crypt::decrypt($auth_cookie);
 
       // 3. Провести валидацию аутентификационной куки
       // - Если она не пуста
@@ -214,7 +215,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         if(empty($auth_cookie)) return false;
 
         // 3.2. Удостовериться, что кука содержит валидный json
-        $validator = r4_validate(["auth", $auth_cookie], [
+        $validator = r4_validate(["auth" => $auth_cookie], [
           "auth"              => ["required", "json"],
         ]); if($validator['status'] == -1) {
           return false;
@@ -252,15 +253,15 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         })->first();
 
         // 4.4. Проверить, валидна ли $auth_note
-        $is_valid_auth_note = call_user_func(function() USE ($auth_cookie, $auth_note, $auth_cookie_user_id) {
+        $is_valid_auth_note = call_user_func(function() USE ($auth_cookie, $auth_cookie_arr, $auth_note, $auth_cookie_user_id) {
 
-          // 1] Если $auth_cookie['is_anon'] == 1, вернуть 525600
-          if($auth_cookie['is_anon'] == 1) return 525600;
+          // 1] Если $auth_cookie_arr['is_anon'] == 1, вернуть 525600
+          if($auth_cookie_arr['is_anon'] == 1) return 525600;
 
           // 2] Если $auth_note пуста, вернуть false
           if(empty($auth_note)) return false;
 
-          // 3] Получить время жизни аутентификации для пользователя $auth_cookie_user_id
+          // 3] Получить время жизни аутентификации для пользователя $auth_cookie_user_id в часах
           $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $auth_cookie_user_id]);
           if($lifetime['status'] != 0)
             throw new \Exception($lifetime['data']);
@@ -275,12 +276,12 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           // 6] Получить разницу в минутах между $now и $created_at
           $diff_in_min = $now->diffInMinutes($created_at);
 
-          // 7] Если эта разница больше/равна $lifetime, вернуть false
-          if($diff_in_min >= $lifetime)
+          // 7] Если эта разница больше/равна $lifetime*60, вернуть false
+          if($diff_in_min >= $lifetime*60)
             return false;
 
-          // 8] Вернуть оставшееся время жизни $auth_note
-          return +$lifetime - +$diff_in_min;
+          // 8] Вернуть оставшееся время жизни $auth_note в минутах
+          return +$lifetime*60 - +$diff_in_min;
 
         });
 
@@ -288,10 +289,10 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         if($is_valid_auth_note !== false) {
 
           // 1] Если мы имеем дело с анонимным пользователем
-          if($auth_cookie['is_anon'] == 1) {
+          if($auth_cookie_arr['is_anon'] == 1) {
 
             // 1.1] Попробовать найти анонимного пользователя
-            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone', 'nickname']);
+            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
             if(count($anon) == 0) {
 
               // Обнулить аутентификационный кэш в сессии
@@ -321,15 +322,15 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             // 1.4] Записать пользователю новую куку
             // - С временем жизни 525600 минут.
             // - В куку пишем зашифрованный json
-            Cookie::queue('auth', $json_encrypted, 525600);
+            Cookie::queue('auth', $json, 525600);
 
           }
 
           // 2] Если мы имеем дело не с анонимным пользователем
-          if($auth_cookie['is_anon'] == 0) {
+          if($auth_cookie_arr['is_anon'] == 0) {
 
             // 2.1] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
-            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->only(['id','name','surname','patronymic','avatar','email','phone','nickname']);
+            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
             $json = [
               'auth'    => $auth_note,
               'user'    => $auth_cookie_user,
@@ -345,7 +346,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             // 2.3] Записать пользователю новую куку
             // - С временем жизни $is_valid_auth_note минут.
             // - В куку пишем зашифрованный json
-            Cookie::queue('auth', $json_encrypted, $is_valid_auth_note);
+            Cookie::queue('auth', $json, $is_valid_auth_note);
 
           }
 
@@ -362,7 +363,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
       else {
 
         // 5.1. Попробовать найти анонимного пользователя
-        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->only(['id','name','surname','patronymic','avatar','email','phone', 'nickname']);
+        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
         if(count($anon) == 0) {
 
           // Обнулить аутентификационный кэш в сессии
@@ -392,7 +393,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         // 5.4. Записать пользователю новую куку
         // - С временем жизни 525600 минут.
         // - В куку пишем зашифрованный json
-        Cookie::queue('auth', $json_encrypted, 525600);
+        Cookie::queue('auth', $json, 525600);
 
       }
 
