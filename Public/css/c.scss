@@ -677,8 +677,37 @@
 //------------------------//
 
   // Общие стили
-  .bots-table {}
+  .bots-table-new {}
 
+  // Общие стили для box-ов
+  .bots-table-new .box-common {
+    border: 1px solid RGBA(0,0,0,.1);
+    box-shadow: none;
+  }
 
+  // Кнопки
+  .bots-table-new button {
+    margin-bottom: 10px;
+  }
+
+  // Заголовки в панели управления
+  .bots-table-new .box-common .header-note {
+    margin-bottom: 10px;
+  }
+  .bots-table-new .box-common .header-note span {
+    font-weight: bold;
+  }
+  .bots-table-new .box-common .header-note.filter-header {
+    margin: 10px 0 5px 0 !important;
+  }
+  .bots-table-new .box-common .header-note.filter-header span {
+    font-weight: normal !important;
+    font-style: italic;
+  }
+
+  // Фильтры
+  .bots-table-new .filters-box {
+    padding: 0 5px 10px 15px;
+  }
 
 

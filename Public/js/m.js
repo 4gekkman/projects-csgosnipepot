@@ -43,6 +43,8 @@
  *    s2.6. Модель редактирования бота
  *    s2.7. Модель опций для эл-в select со значениями true/false
  *    s2.8. Модель ошибок обновления цен
+ *    s2.9. Модель сортировки списка ботов
+ *    s2.10. Модель фильтров списка ботов
  *    s2.n. Индексы и вычисляемые значения
  *
  *  s3. Модель инвентаря выбранного бота
@@ -689,6 +691,56 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// s2.8.2. Объект-контейнер для индексов //
 		//---------------------------------------//
 		self.m.s2.price_update_errors.steammarket_last_bug = ko.observable("");
+
+	//--------------------------------------//
+	// s2.9. Модель сортировки списка ботов //
+	//--------------------------------------//
+	self.m.s2.sortbots = {};
+
+		// 1] Опции //
+		//----------//
+		self.m.s2.sortbots.options = ko.observableArray([
+			ko.observable({
+				id: ko.observable('options_sortbots1'),
+				name: ko.observable('options_sortbots'),
+				text: ko.observable("Bot's ID"),
+				value: ko.observable('1')
+			}),
+			ko.observable({
+				id: ko.observable('options_sortbots2'),
+				name: ko.observable('options_sortbots'),
+				text: ko.observable('Number of items in inventory'),
+				value: ko.observable('2')
+			})
+		]);
+
+		// 2] Выбранная опция //
+		//--------------------//
+		self.m.s2.sortbots.choosen = ko.observable('1');
+
+	//-------------------------------------//
+	// s2.10. Модель фильтров списка ботов //
+	//-------------------------------------//
+	self.m.s2.filterbots = {};
+
+		// 1] By name //
+		//------------//
+		self.m.s2.filterbots.name = ko.observable('');
+
+		// 2] By Steam ID //
+		//----------------//
+		self.m.s2.filterbots.steamid = ko.observable('');
+
+		// 3] By trade permissions //
+		//-------------------------//
+		self.m.s2.filterbots.tradepermissions = {};
+		self.m.s2.filterbots.tradepermissions.create_and_cancel = ko.observable(true);
+		self.m.s2.filterbots.tradepermissions.accept_and_decline = ko.observable(true);
+
+		// 4] By games //
+		//-------------//
+		self.m.s2.filterbots.games = {};
+		self.m.s2.filterbots.games.lottery = ko.observable(true);
 
 	//--------------------------------------//
 	// s2.n. Индексы и вычисляемые значения //

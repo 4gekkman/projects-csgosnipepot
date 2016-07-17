@@ -87,11 +87,239 @@
 <?php /*-------->
 <!-- 2. Боты  -->
 <!----------*/ ?>
+<div class="bots-table-new row" style="display: none" data-bind="visible: m.s1.selected_group().id() == 1">
+
+  <?php /*---------------------------->
+  <!-- 2.1. Левый столбец (контент) -->
+  <!------------------------------*/ ?>
+  <div class="col-md-7 col-sm-7 col-xs-7">
+
+    <?php /*------------------------------------------>
+    <!-- 2.1.1. Панель с заголовком и кол-вом ботов -->
+    <!--------------------------------------------*/ ?>
+    <div class="box box-common">
+      <div class="box-body subdoc_title">
+        <span>Bots</span>
+        <span data-bind="text: '- 5'" style="font-size: 13px; color: rgb(204, 204, 204);">(76561198303487947)</span>
+      </div>
+    </div>
+
+    <?php /*------------------->
+    <!-- 2.1.2. Список ботов -->
+    <!---------------------*/ ?>
+    <div data-bind="foreach: m.s2.bots">
+
+      <span data-bind="text: steam_name"></span>
+
+    </div>
+
+  </div>
+
+  <?php /*--------------------------------------->
+  <!-- 2.2. Правый столбец (панель управления) -->
+  <!-----------------------------------------*/ ?>
+  <div class="col-md-5 col-sm-5 col-xs-5" style="padding-left: 0;">
+    
+    <?php /*-------------------------->
+    <!-- 2.1.2. Панель инструментов -->
+    <!----------------------------*/ ?>
+    <div class="box box-common">
+      <div class="box-body">
+
+        <?php /*---------->
+        <!-- 1] Actions -->
+        <!------------*/ ?>
+        <div>
+
+          <?php /*--------->
+          <!-- Заголовок -->
+          <!-----------*/ ?>
+          <div class="header-note">
+            <span>Actions</span>
+          </div>
+
+          <?php /*-------------------->
+          <!-- Кнопка "Add new bot" -->
+          <!----------------------*/ ?>
+          <div>
+            <button type="button" class="btn btn-block btn-success btn-xs" data-bind="click: ''">Add new bot</button>
+          </div>
+
+          <?php /*---------------------------------------->
+          <!-- Кнопки "Apply filters" и "Clear filters" -->
+          <!------------------------------------------*/ ?>
+          <div class="row">
+            <div class="col-md-8 col-sm-8 col-xs-8">
+              <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: ''">Apply filters</button>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-4" style="padding-left: 0;">
+              <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: ''">Clear filters</button>
+            </div>
+          </div>
+
+        </div>
+
+        <?php /*---------->
+        <!-- 2] Sort by -->
+        <!------------*/ ?>
+        <div>
+
+          <?php /*--------->
+          <!-- Заголовок -->
+          <!-----------*/ ?>
+          <div class="header-note">
+            <span>Sort by</span>
+          </div>
+
+          <?php /*---------->
+          <!-- Сортировка -->
+          <!------------*/ ?>
+          <select class="form-control" data-bind="options: m.s2.sortbots.options, optionsText: function(item) { return item().text; }, value: m.s2.sortbots.choosen"></select>
+
+        </div>
+
+        <?php /*---------->
+        <!-- 3] Filters -->
+        <!------------*/ ?>
+        <div style="margin-top: 10px;">
+
+          <?php /*--------->
+          <!-- Заголовок -->
+          <!-----------*/ ?>
+          <div class="header-note">
+            <span>Filters</span>
+          </div>
+
+          <?php /*------->
+          <!-- Фильтры -->
+          <!---------*/ ?>
+          <div class="filters-box">
+
+            <?php /*------------->
+            <!-- 3.1] По имени -->
+            <!---------------*/ ?>
+            <div>
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By name</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div>
+                <input class="form-control input-sm" data-bind="textInput: m.s2.filterbots.name" placeholder="Enter bot's steam name...">
+              </div>
+
+            </div>
+
+            <?php /*---------------->
+            <!-- 3.2] По Steam ID -->
+            <!------------------*/ ?>
+            <div>
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By Steam ID</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div>
+                <input class="form-control input-sm" data-bind="textInput: m.s2.filterbots.steamid" placeholder="Enter bot's steam id...">
+              </div>
+
+            </div>
+
+            <?php /*---------------------------->
+            <!-- 3.3] По торговым разрешениям -->
+            <!------------------------------*/ ?>
+            <div>
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By trade permissions</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div class="form-group">
+
+                <?php /*----------------->
+                <!-- Create and cancel -->
+                <!-------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterbots.tradepermissions.create_and_cancel">
+                    Create and cancel
+                  </label>
+                </div>
+
+                <?php /*------------------>
+                <!-- Accept and decline -->
+                <!--------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterbots.tradepermissions.accept_and_decline">
+                    Accept and decline
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*------------->
+            <!-- 3.4] По играм -->
+            <!---------------*/ ?>
+            <div>
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By games</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div class="form-group">
+
+                <?php /*----------------->
+                <!-- Create and cancel -->
+                <!-------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterbots.games.lottery">
+                    Lottery
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
 
 
+      </div>
+    </div>
 
+  </div>
 
-
+</div>
 
 
 
