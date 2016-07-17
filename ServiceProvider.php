@@ -107,8 +107,8 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->cron("5,15,25,35,45,55 * * * * *");',
-          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->cron("0,10,20,30,40,50 * * * * *");',
+          '$schedule->command("m8:update_bots_inventory_count")->withoutOverlapping()->cron("*/10 * * * * *");',
+          '$schedule->command("m8:update_bots_authorization_statuses")->withoutOverlapping()->cron("*/10 * * * * *");',
           '$schedule->command("m8:update_bots_apikeys")->withoutOverlapping()->hourly();',
           '$schedule->command("m8:update_prices_all")->withoutOverlapping()->twiceDaily(1,13);'
         ];
