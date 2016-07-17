@@ -107,13 +107,13 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m5:email_cleartable")->withoutOverlapping()->cron("0,15,30,45 * * * * *");',
-          '$schedule->command("m5:phone_cleartable")->withoutOverlapping()->cron("3,18,33,48 * * * * *");',
+          '$schedule->command("m5:email_cleartable")->withoutOverlapping()->cron("*/15 * * * * *");',
+          '$schedule->command("m5:phone_cleartable")->withoutOverlapping()->cron("*/15 * * * * *");',
           '$schedule->command("m5:delnotverifiedemail")->withoutOverlapping()->hourly();',
           '$schedule->command("m5:delnotverifiedphone")->withoutOverlapping()->hourly();',
           '$schedule->command("m5:auth_clear_expired")->withoutOverlapping()->daily();',
-          '$schedule->command("m5:email_authcodes_clear")->withoutOverlapping()->cron("6,21,36,51 * * * * *");',
-          '$schedule->command("m5:phone_authcodes_clear")->withoutOverlapping()->cron("9,24,39,54 * * * * *");',
+          '$schedule->command("m5:email_authcodes_clear")->withoutOverlapping()->cron("*/15 * * * * *");',
+          '$schedule->command("m5:phone_authcodes_clear")->withoutOverlapping()->cron("*/15 * * * * *");',
         ];
 
       //----------------------------------------------------//
