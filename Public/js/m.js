@@ -716,7 +716,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 		// 2] Выбранная опция //
 		//--------------------//
-		self.m.s2.sortbots.choosen = ko.observable('1');
+		self.m.s2.sortbots.choosen = ko.observable(self.m.s2.sortbots.options()[0]());
 
 	//-------------------------------------//
 	// s2.10. Модель фильтров списка ботов //
@@ -1579,6 +1579,16 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			});
 
 		})();
+
+		//---------------------------------------------------//
+		// X1.9. Выполнить стартовую сортировку списка ботов //
+		//---------------------------------------------------//
+		(function(){
+
+			self.f.s2.sortfunc('', '');
+
+		})();
+
 
 	});
 

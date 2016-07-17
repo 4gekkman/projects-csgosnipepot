@@ -33,6 +33,7 @@
  *    f.s2.show_bots_interface      | s2.2. Открыть интерфейс кликнутого бота
  *    f.s2.edit                     | s2.3. Отредактировать пользователя
  *    f.s2.authorize_bot            | s2.4. Авторизовать бота
+ *    f.s2.sortfunc                 | s2.5. Функция для сортировки списка ботов
  *
  *  s3. Функционал модели инвентаря выбранного бота
  *
@@ -1342,6 +1343,30 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			});
 
 		};
+
+		//-------------------------------------------//
+		// s2.5. Функция для сортировки списка ботов //
+		//-------------------------------------------//
+		f.s2.sortfunc = function(data, event){
+
+			// 1] Если выбрана сортировка по ID
+			if(self.m.s2.sortbots.choosen().value() == 1) {
+				self.m.s2.bots.sort(function(left, right){
+					return left().id() >= right().id();
+				});
+			}
+
+			// 2] Если выбрана сортировка по количеству вещей в инвентаре
+			if(self.m.s2.sortbots.choosen().value() == 2) {
+				self.m.s2.bots.sort(function(left, right){
+					return left().inventory_count() >= right().inventory_count();
+				});
+			}
+
+		};
+
+
+
 
 
 	//--------------------------------------------------------------//

@@ -92,7 +92,7 @@
   <?php /*---------------------------->
   <!-- 2.1. Левый столбец (контент) -->
   <!------------------------------*/ ?>
-  <div class="col-md-7 col-sm-7 col-xs-7">
+  <div class="bots-list-new col-md-7 col-sm-7 col-xs-7">
 
     <?php /*------------------------------------------>
     <!-- 2.1.1. Панель с заголовком и кол-вом ботов -->
@@ -100,16 +100,106 @@
     <div class="box box-common">
       <div class="box-body subdoc_title">
         <span>Bots</span>
-        <span data-bind="text: '- 5'" style="font-size: 13px; color: rgb(204, 204, 204);">(76561198303487947)</span>
+        <span data-bind="text: '-' + m.s2.bots().length" style="font-size: 13px; color: rgb(204, 204, 204);">(76561198303487947)</span>
       </div>
     </div>
 
     <?php /*------------------->
     <!-- 2.1.2. Список ботов -->
     <!---------------------*/ ?>
-    <div data-bind="foreach: m.s2.bots">
+    <div class="row new-bot-list" data-bind="foreach: m.s2.bots" style="margin: 0;">
 
-      <span data-bind="text: steam_name"></span>
+      <?php /*--->
+      <!-- Бот -->
+      <!-----*/ ?>
+      <div class="new-bot-container col-lg-6 col-md-6 col-sm-12 col-xs-12" data-bind="click: $root.f.s2.show_bots_interface">
+        <div class="box box-common new-bot rowfix">
+
+          <?php /*------>
+          <!-- Аватар -->
+          <!--------*/ ?>
+          <div class="spanfix_left0 spanfix_width62 bots_avatar">
+
+            <?php /*-------->
+            <!-- Картинка -->
+            <!----------*/ ?>
+            <img data-bind="attr: {src: avatar_steam}">
+
+            <?php /*------->
+            <!-- ID бота -->
+            <!---------*/ ?>
+            <div class="bots_id">
+              <span data-bind="text: id"></span>
+            </div>
+
+          </div>
+
+          <?php /*---------->
+          <!-- Информация -->
+          <!------------*/ ?>
+          <div class="bots_info">
+
+            <?php /*------------>
+            <!-- Никнэйм бота -->
+            <!--------------*/ ?>
+            <div class="bots-nickname">
+              <span data-bind="text: steam_name, attr: {title: steam_name}"></span>
+            </div>
+
+            <?php /*----------------->
+            <!-- Информация о боте -->
+            <!-------------------*/ ?>
+            <div class="bots-additionals">
+
+              <?php /*---------------------------->
+              <!-- Количество вещей в инвентаре -->
+              <!------------------------------*/ ?>
+              <div>
+                <i class="fa fa-fw fa-cube"></i>
+                <span data-bind="text: inventory_count"></span>
+              </div>
+
+              <?php /*------------------------------->
+              <!-- В каком кол-ве игр задействован -->
+              <!---------------------------------*/ ?>
+              <div>
+                <i class="fa fa-fw fa-gamepad"></i>
+                <span data-bind="text: '1'"></span>
+              </div>
+
+              <?php /*--------------------------------->
+              <!-- Какие торговые операции разрешены -->
+              <!-----------------------------------*/ ?>
+              <div>
+
+                <?php /*---------------------------------------------->
+                <!-- Если разрешены входящие, и запрещены исходящие -->
+                <!------------------------------------------------*/ ?>
+                <i class="fa fa-fw fa-long-arrow-down" data-bind="visible: ison_incoming() && !ison_outcoming()"></i>
+
+                <?php /*---------------------------------------------->
+                <!-- Если разрешены исходящие, и запрещены входящие -->
+                <!------------------------------------------------*/ ?>
+                <i class="fa fa-fw fa-long-arrow-up" data-bind="visible: !ison_incoming() && ison_outcoming()"></i>
+
+                <?php /*------------------>
+                <!-- Если все разрешены -->
+                <!--------------------*/ ?>
+                <i class="fa fa-fw fa-arrows-v" data-bind="visible: ison_incoming() && ison_outcoming()"></i>
+
+                <?php /*------------------------>
+                <!-- Если ничего не разрешено -->
+                <!--------------------------*/ ?>
+                <i class="fa fa-fw fa-ban" data-bind="visible: !ison_incoming() && !ison_outcoming()"></i>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
 
     </div>
 
@@ -174,7 +264,7 @@
           <?php /*---------->
           <!-- Сортировка -->
           <!------------*/ ?>
-          <select class="form-control" data-bind="options: m.s2.sortbots.options, optionsText: function(item) { return item().text; }, value: m.s2.sortbots.choosen"></select>
+          <select class="form-control" data-bind="options: m.s2.sortbots.options, optionsText: function(item) { return item().text; }, value: m.s2.sortbots.choosen, event: {change: f.s2.sortfunc}"></select>
 
         </div>
 

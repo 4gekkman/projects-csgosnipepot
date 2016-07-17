@@ -683,6 +683,7 @@
   .bots-table-new .box-common {
     border: 1px solid RGBA(0,0,0,.1);
     box-shadow: none;
+    margin-bottom: 15px;
   }
 
   // Кнопки
@@ -710,4 +711,91 @@
     padding: 0 5px 10px 15px;
   }
 
-
+  // Список ботов
+  .bots-table-new .bots-list-new {
+    margin: 0;
+  }
+  .bots-table-new .bots-list-new .new-bot-list {
+    margin-left: -10px !important;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container {
+    padding: 0;
+    padding-left: 10px;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot {
+    margin: 0; margin-bottom: 5px;
+    height: 62px;
+    transition: box-shadow 0.2s ease-in-out;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot:hover {
+    box-shadow: 2px 2px 10px RGBA(0,0,0,.3);
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_avatar {
+    position: relative;
+    max-height: 60px;
+    max-width: 60px;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_avatar img {
+    width: 60px;
+    max-width: 60px;
+    height: 60px;
+    max-height: 60px;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_avatar .bots_id {
+    position: absolute; top: 0; left: 0;
+    width: 60px;
+    height:60px;
+    text-align: center;
+    line-height: 60px;
+    font-size: 1.5em;
+    color: white;
+    text-shadow:
+     -1px -1px 0 #000,
+      1px -1px 0 #000,
+      -1px 1px 0 #000,
+       1px 1px 0 #000;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info {
+    margin-left: 60px;
+    cursor: default;
+    height: 60px;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-nickname {
+    padding: 0 5px;
+    height: 40px;
+    line-height: 40px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 3px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals {
+    padding: 0 5px;
+    height: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals>div {
+    display: inline-block;
+    height: 20px;
+    line-height: 20px;
+    padding-right: 10px;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals>div:nth-child(1)>i {
+    color: RGBA(0,180,0,1);
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals>div:nth-child(2)>i {
+    color: RGBA(180,180,0,1);
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals>div:nth-child(3) {
+    float: right;
+    padding: 0;
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals>div:nth-child(3)>i {
+    color: RGBA(0,0,0,.2);
+  }
+  .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot .bots_info .bots-additionals>div:nth-child(3)>i:nth-child(4) {
+    color: RGBA(180,0,0,1);
+  }
