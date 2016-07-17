@@ -77,7 +77,7 @@
     background-color: RGBA(255,0,0,.3) !important;
   }
   .green_background_soft {
-    background-color: RGBA(0,255,0,.1) !important;
+    background-color: RGBA(0,255,0,.05) !important;
   }
   .control-label {
     text-align: left !important;
@@ -709,6 +709,12 @@
   // Фильтры
   .bots-table-new .filters-box {
     padding: 0 5px 10px 15px;
+  }
+  .bots-table-new .filters-box .filter-noselect {
+    user-select: none;
+  }
+  .bots-table-new .filters-box .filter-noselect input {
+    outline: 0;
   }
 
   // Список ботов

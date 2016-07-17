@@ -100,14 +100,14 @@
     <div class="box box-common">
       <div class="box-body subdoc_title">
         <span>Bots</span>
-        <span data-bind="text: '-' + m.s2.bots().length" style="font-size: 13px; color: rgb(204, 204, 204);">(76561198303487947)</span>
+        <span data-bind="text: '- ' + m.s2.bots_filtered().length + ' / ' + m.s2.bots().length" style="font-size: 13px; color: rgb(204, 204, 204);"></span>
       </div>
     </div>
 
     <?php /*------------------->
     <!-- 2.1.2. Список ботов -->
     <!---------------------*/ ?>
-    <div class="row new-bot-list" data-bind="foreach: m.s2.bots" style="margin: 0;">
+    <div class="row new-bot-list" data-bind="foreach: m.s2.bots_filtered" style="margin: 0;">
 
       <?php /*--->
       <!-- Бот -->
@@ -142,7 +142,7 @@
             <?php /*------------>
             <!-- Никнэйм бота -->
             <!--------------*/ ?>
-            <div class="bots-nickname">
+            <div class="bots-nickname" data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}">
               <span data-bind="text: steam_name, attr: {title: steam_name}"></span>
             </div>
 
@@ -154,7 +154,7 @@
               <?php /*---------------------------->
               <!-- Количество вещей в инвентаре -->
               <!------------------------------*/ ?>
-              <div>
+              <div title="How many items the bot has in it's inventory">
                 <i class="fa fa-fw fa-cube"></i>
                 <span data-bind="text: inventory_count"></span>
               </div>
@@ -162,7 +162,7 @@
               <?php /*------------------------------->
               <!-- В каком кол-ве игр задействован -->
               <!---------------------------------*/ ?>
-              <div>
+              <div title="How many games the bot is involved in">
                 <i class="fa fa-fw fa-gamepad"></i>
                 <span data-bind="text: '1'"></span>
               </div>
@@ -170,7 +170,7 @@
               <?php /*--------------------------------->
               <!-- Какие торговые операции разрешены -->
               <!-----------------------------------*/ ?>
-              <div>
+              <div title="What trade opeartions is allowed">
 
                 <?php /*---------------------------------------------->
                 <!-- Если разрешены входящие, и запрещены исходящие -->
@@ -228,22 +228,15 @@
             <span>Actions</span>
           </div>
 
-          <?php /*-------------------->
-          <!-- Кнопка "Add new bot" -->
-          <!----------------------*/ ?>
-          <div>
-            <button type="button" class="btn btn-block btn-success btn-xs" data-bind="click: ''">Add new bot</button>
-          </div>
-
-          <?php /*---------------------------------------->
-          <!-- Кнопки "Apply filters" и "Clear filters" -->
-          <!------------------------------------------*/ ?>
+          <?php /*-------------------------------------->
+          <!-- Кнопки "Add new bot" и "Reset filters" -->
+          <!----------------------------------------*/ ?>
           <div class="row">
             <div class="col-md-8 col-sm-8 col-xs-8">
-              <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: ''">Apply filters</button>
+              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: ''">Add new bot</button>
             </div>
             <div class="col-md-4 col-sm-4 col-xs-4" style="padding-left: 0;">
-              <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: ''">Clear filters</button>
+              <button type="button" class="btn btn-block btn-default btn-sm" data-bind="click: f.s2.reset_filters">Reset filters</button>
             </div>
           </div>
 
@@ -330,7 +323,7 @@
             <?php /*---------------------------->
             <!-- 3.3] По торговым разрешениям -->
             <!------------------------------*/ ?>
-            <div>
+            <div class="filter-noselect">
 
               <?php /*--------->
               <!-- Заголовок -->
@@ -371,7 +364,7 @@
             <?php /*------------->
             <!-- 3.4] По играм -->
             <!---------------*/ ?>
-            <div>
+            <div style="display: none" class="filter-noselect">
 
               <?php /*--------->
               <!-- Заголовок -->

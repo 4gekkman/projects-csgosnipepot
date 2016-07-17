@@ -742,6 +742,39 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.filterbots.games = {};
 		self.m.s2.filterbots.games.lottery = ko.observable(true);
 
+		// n] Отфильтрованный массив ботов //
+		//---------------------------------//
+		self.m.s2.bots_filtered = ko.computed(function(){
+
+			return ko.utils.arrayFilter(self.m.s2.bots(), function(item){
+
+				// 1] Фильтрация по nickname
+				if(!(new RegExp(self.m.s2.filterbots.name(),'i')).test(item().steam_name()) && self.m.s2.filterbots.name())
+					return false;
+
+				// 2] Фильтрация по Steam ID
+				if(!(new RegExp(self.m.s2.filterbots.steamid(),'i')).test(item().steamid()) && self.m.s2.filterbots.steamid())
+					return false;
+
+				// 3] Фильтрация по trade permissions
+				if(item().ison_outcoming() != self.m.s2.filterbots.tradepermissions.create_and_cancel())
+					return false;
+				if(item().ison_incoming() != self.m.s2.filterbots.tradepermissions.accept_and_decline())
+					return false;
+
+
+
+
+				// n] Вернуть true
+				return true;
+
+			});
+
+		});
+
+
+
+
 	//--------------------------------------//
 	// s2.n. Индексы и вычисляемые значения //
 	//--------------------------------------//

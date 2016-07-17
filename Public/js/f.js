@@ -1347,7 +1347,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//-------------------------------------------//
 		// s2.5. Функция для сортировки списка ботов //
 		//-------------------------------------------//
-		f.s2.sortfunc = function(data, event){
+		f.s2.sortfunc = function(data, event) {
 
 			// 1] Если выбрана сортировка по ID
 			if(self.m.s2.sortbots.choosen().value() == 1) {
@@ -1365,8 +1365,18 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//---------------------------------------------------//
+		// s2.6. Функция для сброса фильтров по списку ботов //
+		//---------------------------------------------------//
+		f.s2.reset_filters = function(data, event) {
 
+			self.m.s2.filterbots.name('');
+			self.m.s2.filterbots.steamid('');
+			self.m.s2.filterbots.tradepermissions.create_and_cancel(true);
+			self.m.s2.filterbots.tradepermissions.accept_and_decline(true);
+			self.m.s2.filterbots.games.lottery(true);
 
+		};
 
 
 	//--------------------------------------------------------------//
