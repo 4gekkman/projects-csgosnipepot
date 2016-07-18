@@ -151,11 +151,11 @@ class C36_delusers extends Job { // TODO: добавить "implements ShouldQue
       // 1. Провести валидацию
       $validator = r4_validate($this->data, [
 
-        "ids"              => ["required", "array"],                     // IDS должен быть массивом
-        "ids.*"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
-        "filtered_ids"     => ["required", "array"],                     // filtered_ids должен быть массивом
-        "filtered_ids.*"   => ["required", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в filtered_ids д.б. полож.целыми числами
-        "selectall"        => ["required", "boolean"]
+        "ids"              => ["r4_defined", "array"],                     // IDS должен быть массивом
+        "ids.*"            => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в IDS д.б. полож.целыми числами
+        "filtered_ids"     => ["r4_defined", "array"],                     // filtered_ids должен быть массивом
+        "filtered_ids.*"   => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],  // Все id в filtered_ids д.б. полож.целыми числами
+        "selectall"        => ["r4_defined", "boolean"]
 
       ]); if($validator['status'] == -1) {
 
