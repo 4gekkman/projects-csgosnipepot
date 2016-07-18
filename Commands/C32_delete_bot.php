@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Add new empty bot
+ *    - Delete the bot by ID
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        steamid
+ *        id_bot
  *      ]
  *    ]
  *
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C31_add_new_bot extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C32_delete_bot extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,137 +136,58 @@ class C31_add_new_bot extends Job { // TODO: добавить "implements Should
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Убедиться, что такого steamid нет в таблице пользователей
-     *  3. Убедитсья, что такого steamid нет в таблице ботов
-     *  4. Проверить валидность steamid и открытость инвентаря бота
-     *  5. Создать пользователя с ha_provider_name = steam и ha_provider_uid = Steam ID
-     *  6. Добавить этого пользователя в группы Steam-юзеров и Steam-ботов (их названия брать из конфига)
+     *  2. Получить экземпляр бота по id_bot
+     *  3. Получить ID пользователя, который связан с ботом
+     *  4. Отвязать от $bot всех пользователей
+     *  5. Удалить бота
+     *  6. Удалить пользователя по $id_user
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------------------//
-    // Создать нового пустого бота //
-    //-----------------------------//
+    //-------------------------------//
+    // Удалить бота по указанному ID //
+    //-------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "steamid"              => ["required", "regex:/^[0-9]+$/ui"],
+        "id_bot"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Убедиться, что такого steamid нет в таблице пользователей
-      // - Искать в строках с ha_provider_name = steam
-      $users = \M5\Models\MD1_users::where('ha_provider_name', 'steam')->where('ha_provider_uid', $this->data['steamid'])->get();
-      if(count($users) != 0)
-        throw new \Exception('There is already a user with that Steam ID');
+      // 2. Получить экземпляр бота по id_bot
+      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+      if(empty($bot))
+        throw new \Exception("Can't find steam bot with id = '".$this->data['id_bot']."'");
 
-      // 3. Убедитсья, что такого steamid нет в таблице ботов
-      $users = \M8\Models\MD1_bots::where('steamid', $this->data['steamid'])->get();
-      if(count($users) != 0)
-        throw new \Exception('There is already a user with that Steam ID');
+      // 3. Получить ID пользователя, который связан с ботом
+      $id_user = $bot->m5_users[0]->id;
 
-      // 4. Проверить валидность steamid и открытость инвентаря бота
-      $result = runcommand('\M8\Commands\C4_getinventory', [
-        'steamid' => $this->data['steamid']
+      // 4. Отвязать от $bot всех пользователей
+      $bot->m5_users()->detach();
+
+      // 5. Удалить бота
+      $bot->delete();
+
+      // 6. Удалить пользователя по $id_user
+      $result = runcommand('\M5\Commands\C36_delusers', [
+        "ids"           => [$id_user],
+        "filtered_ids"  => [],
+        "selectall"     => false
       ]);
       if($result['status'] != 0)
-        throw new \Exception("Not valid steamid (bot's inventory must be public)");
-
-      // 5. Создать пользователя с ha_provider_name = steam и ha_provider_uid = Steam ID
-
-        // Создать
-        $result = runcommand('\M5\Commands\C9_newuser', [
-          'nickname'          => '[New bot]',
-          'gender'            => 'u',
-          'isanonymous'       => 'no',
-          'ha_provider_name'  => 'steam',
-          'ha_provider_uid'   => $this->data['steamid'],
-          'ha_provider_data'  => json_encode([], JSON_UNESCAPED_UNICODE)
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
-
-        // Получить его ID
-        $new_user_id = $result['data']['id'];
-
-      // 6. Добавить этого пользователя в группы Steam-юзеров и Steam-ботов (их названия брать из конфига)
-
-        // 6.1. Получить экземпляр пользователя $new_user_id
-        $new_user = call_user_func(function() USE ($new_user_id) {
-
-          // 1] Попробовать найти пользователя с ID = $new_user_id
-          $user = \M5\Models\MD1_users::find($new_user_id);
-
-          // 2] Если $user пуст, возбудить исключение
-          if(empty($user))
-            throw new \Exception("Can't find steam user with id = '".$new_user_id."'");
-
-          // 3] Вернуть результат
-          return $user;
-
-        });
-
-        // 6.2. Получить экземпляр группы пользователей
-        $group_steam_users = call_user_func(function(){
-
-          // 1] Получить название группы Steam-пользователей из конфига M8
-          $group_name = config("M8.group_steam_users");
-          if(empty($group_name))
-            throw new \Exception("Can't find name for steam users group in the M8 config");
-
-          // 2] Получить группу $group_name
-          $group = \M5\Models\MD2_groups::where('name', $group_name)->first();
-
-          // 3] Если $group пуста, возбудить исключение
-          if(empty($group))
-            throw new \Exception("Can't find steam users group '".$group."'");
-
-          // 4] Вернуть результат
-          return $group;
-
-        });
-
-        // 6.3. Получить экземпляр группы ботов
-        $group_steam_bots = call_user_func(function(){
-
-          // 1] Получить название группы Steam-ботов из конфига M8
-          $group_name = config("M8.group_steam_bots");
-          if(empty($group_name))
-            throw new \Exception("Can't find name for steam bots group in the M8 config");
-
-          // 2] Получить группу $group_name
-          $group = \M5\Models\MD2_groups::where('name', $group_name)->first();
-
-          // 3] Если $group пуста, возбудить исключение
-          if(empty($group))
-            throw new \Exception("Can't find steam bots group '".$group."'");
-
-          // 4] Вернуть результат
-          return $group;
-
-        });
-
-        // 6.4. Связать $new_user с $group_steam_users и $group_steam_bots
-
-          // 1] $new_user с $group_steam_users
-          if(!$group_steam_users->users->contains($new_user->id))
-            $group_steam_users->users()->attach($new_user->id);
-
-          // 2] $new_user с $group_steam_bots
-          if(!$group_steam_bots->users->contains($new_user->id))
-            $group_steam_bots->users()->attach($new_user->id);
+        throw new \Exception($result['data']['errormsg']);
 
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C31_add_new_bot from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C32_delete_bot from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C31_add_new_bot']);
+        write2log($errortext, ['M8', 'C32_delete_bot']);
         return [
           "status"  => -2,
           "data"    => [

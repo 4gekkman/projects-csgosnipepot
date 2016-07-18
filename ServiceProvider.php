@@ -147,7 +147,8 @@
           '\M8\Console\T25_accept_trade_offer',
           '\M8\Console\T26_decline_trade_offer',
           '\M8\Console\T27_get_steamname_and_steamid_by_tradeurl',
-          '\M8\Console\T28_add_new_bot'
+          '\M8\Console\T28_add_new_bot',
+          '\M8\Console\T29_delete_bot'
         ];
 
         // Регистрация команд в методе register
