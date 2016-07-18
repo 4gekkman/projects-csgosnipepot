@@ -1,0 +1,21 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/m9",
+		"description": "M9 - CSGO Lottery game",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/m9"
+        }
+    ],
+    "require": {
+			"4gekkman/M5": "~1.0"
+		},
+    "autoload": {
+        "psr-4": {"M9\\": ""}
+    }
+}
