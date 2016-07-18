@@ -426,10 +426,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			ko.observable({
 				id: ko.observable('2'),
 				name: ko.observable('Bot')
-			}),
-			ko.observable({
-				id: ko.observable('3'),
-				name: ko.observable('Newbot')
 			})
 
 		]);
@@ -484,14 +480,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 				name: ko.observable('Tradeoffers'),
 				query: ko.observable('?group=bot&subdoc=tradeoffers'),
 				group: ko.observable('2')
-			}),
-
-			// Поддокументы группы №3
-			ko.observable({
-				id: ko.observable('200'),
-				name: ko.observable('Newbot'),
-				query: ko.observable('?group=newbot'),
-				group: ko.observable('3')
 			})
 
 		]);
