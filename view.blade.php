@@ -254,18 +254,18 @@
           <!-- Заголовок -->
           <!-----------*/ ?>
           <div class="header-note">
-            <span>Actions</span>
+            <span>New bot</span>
           </div>
 
-          <?php /*-------------------------------------->
-          <!-- Кнопки "Add new bot" и "Reset filters" -->
-          <!----------------------------------------*/ ?>
+          <?php /*---------------------->
+          <!-- Добавление нового бота -->
+          <!------------------------*/ ?>
           <div class="row">
             <div class="col-md-8 col-sm-8 col-xs-8">
-              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: f.s1.choose_subdoc.bind($data, {group: 'newbot', subdoc: 'newbot'})">Add new bot</button>
+              <input class="form-control input-sm" data-bind="textInput: m.s2.newbot.steamid" placeholder="Enter bot's steam id...">
             </div>
             <div class="col-md-4 col-sm-4 col-xs-4" style="padding-left: 0;">
-              <button type="button" class="btn btn-block btn-default btn-sm" data-bind="click: f.s2.reset_filters">Reset filters</button>
+              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: f.s2.add_new_bot">Add new bot</button>
             </div>
           </div>
 
@@ -421,6 +421,15 @@
 
             </div>
 
+          </div>
+
+          <?php /*---------------------->
+          <!-- Кнопка "Reset filters" -->
+          <!------------------------*/ ?>
+          <div>
+            <div style="padding-left: 0;">
+              <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: f.s2.reset_filters">Reset filters</button>
+            </div>
           </div>
 
         </div>
@@ -659,6 +668,7 @@
           <!--------------------*/ ?>
           <div class="botava">
             <img src="http://placehold.it/100x100/fafafa?text=avatar" data-bind="attr: {src: m.s2.edit.avatar_steam}">
+            <button type="button" class="btn btn-block btn-danger" data-bind="click: f.s2.delete_bot">Delete bot</button>
           </div>
 
           <?php /*---------------------------------------->

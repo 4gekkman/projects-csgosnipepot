@@ -45,6 +45,7 @@
  *    s2.8. Модель ошибок обновления цен
  *    s2.9. Модель сортировки списка ботов
  *    s2.10. Модель фильтров списка ботов
+ *    s2.11. Модель создания нового бота
  *    s2.n. Индексы и вычисляемые значения
  *
  *  s3. Модель инвентаря выбранного бота
@@ -763,15 +764,23 @@ var ModelProto = { constructor: function(ModelFunctions) {
 				if(item().ison_incoming() != self.m.s2.filterbots.tradepermissions.accept_and_decline())
 					return false;
 
-
-
-
 				// n] Вернуть true
 				return true;
 
 			});
 
 		});
+
+	//------------------------------------//
+	// s2.11. Модель создания нового бота //
+	//------------------------------------//
+	self.m.s2.newbot = {};
+
+		// 1] Steamid //
+		//------------//
+		self.m.s2.newbot.steamid = ko.observable('');
+
+
 
 
 

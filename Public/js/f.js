@@ -34,6 +34,9 @@
  *    f.s2.edit                     | s2.3. Отредактировать пользователя
  *    f.s2.authorize_bot            | s2.4. Авторизовать бота
  *    f.s2.sortfunc                 | s2.5. Функция для сортировки списка ботов
+ *    f.s2.reset_filters            | s2.6. Функция для сброса фильтров по списку ботов
+ *    f.s2.add_new_bot              | s2.7. Добавить нового бота
+ *    f.s2.delete_bot               | s2.8. Удалить бота по его ID
  *
  *  s3. Функционал модели инвентаря выбранного бота
  *
@@ -1377,6 +1380,105 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.filterbots.games.lottery(true);
 
 		};
+
+		//----------------------------//
+		// s2.7. Добавить нового бота //
+		//----------------------------//
+		f.s2.add_new_bot = function(data, event) {
+
+			// 1] Если поле со steamid пусто, сообщить и завершить
+			if(!self.m.s2.newbot.steamid()) {
+				notify({msg: 'Enter steamid of the bot', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
+
+			// 2] Осуществить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C31_add_new_bot",
+				from: 		    "f.s2.add_new_bot",
+			  data: 		    {
+					steamid:           self.m.s2.newbot.steamid()
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что новый бот был успешно добавлен
+					notify({msg: 'A new bot has been successfully added', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 2] Обновить ботов
+					self.f.s0.update_all([], 'f.s2.add_new_bot', '', '');
+
+					// 3] Очистить поле ввода steamid
+					self.m.s2.newbot.steamid('');
+
+				},
+			  ok_2:         function(data, params){
+
+					// 1] Сообщить, что авторизовать пользователя не удалось
+					notify({msg: 'The bots addition have failed', time: 10, fontcolor: 'RGB(200,50,50)'});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//------------------------------//
+		// s2.8. Удалить бота по его ID //
+		//------------------------------//
+		f.s2.delete_bot = function(data, event) {
+
+			// 1] Осуществить запрос
+			ajaxko(self, {
+			  command: 	    "\\M8\\Commands\\C32_delete_bot",
+				from: 		    "f.s2.delete_bot",
+			  data: 		    {
+					id_bot:           self.m.s2.edit.id()
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что новый бот был успешно добавлен
+					notify({msg: 'The bot has been successfully deleted', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 2] Перейти к таблице ботов
+					self.f.s1.choose_subdoc({group: 'bots'});
+
+				},
+			  ok_2:         function(data, params){
+
+					// 1] Сообщить, что авторизовать пользователя не удалось
+					notify({msg: 'The bots removal have failed', time: 10, fontcolor: 'RGB(200,50,50)'});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+
 
 
 	//--------------------------------------------------------------//

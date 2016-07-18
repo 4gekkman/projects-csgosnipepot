@@ -437,6 +437,9 @@
       height: 100px;
       border: 1px solid #fafafa;
     }
+    .ibot_right_column .content_in_content_box .botava button {
+      position: absolute; top: 110px;
+    }
     .ibot_right_column .content_in_content_box .botava img {
       max-width: 100px;
       max-height: 100px;
@@ -729,7 +732,7 @@
     padding-left: 10px;
   }
   .bots-table-new .bots-list-new .new-bot-list .new-bot-container .new-bot {
-    margin: 0; margin-bottom: 5px;
+    margin: 0; margin-bottom: 10px;
     height: 62px;
     transition: box-shadow 0.2s ease-in-out;
   }
