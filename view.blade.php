@@ -60,7 +60,12 @@
 
     1. Панель загрузки
     2. Боты
-      2.1. Боты
+      2.0. Различные предупреждения
+      2.1. Левый столбец (контент)
+        2.1.1. Панель с заголовком и кол-вом ботов
+        2.1.2. Список ботов
+      2.2. Правый столбец (панель управления)
+        2.2.1. Панель инструментов
     3. Интерфейс кликнутого бота
       3.1. Левый столбец: кнопка "Назад" и левое меню
         3.1.1. Кнопка "назад"
@@ -68,16 +73,18 @@
       3.2. Правый столбец: имя бота и контент интерфейса
         3.2.1. Хлебные крошки
         3.2.2. Контент-бокс интерфейса бота
-    4. Получение данных с сервера и подключение JS этого документа
-      4.1. Получение данных с сервера
-      4.2. Подключение JS этого документа
+    4. Интерфейс создания нового бота
+
+    n. Получение данных с сервера и подключение JS этого документа
+      n.1. Получение данных с сервера
+      n.2. Подключение JS этого документа
 
 -------------------------*/ ?>
 @section('content')
 
 <?php /*------------------>
 <!-- 1. Панель загрузки -->
-<!-----------------*/ ?>
+<!--------------------*/ ?>
 <div class="loader">
   <div style="display: none" class="loading_state_panel loader-inner ball-scale" data-bind="visible: m.s0.is_loadshield_on">
     <div></div>
@@ -88,6 +95,29 @@
 <!-- 2. Боты  -->
 <!----------*/ ?>
 <div class="bots-table-new row" style="display: none" data-bind="visible: m.s1.selected_group().id() == 1">
+
+  <?php /*------------------------------>
+  <!-- 2.0. Различные предупреждения  -->
+  <!--------------------------------*/ ?>
+  <div>
+
+    <?php /*----------------------------------------->
+    <!-- 1] Ошибка при обновлении цен с csgofast -->
+    <!-------------------------------------------*/ ?>
+    <div style="display: none" class="callout callout-danger" data-bind="visible: m.s2.price_update_errors.csgofast_last_bug">
+      <h4>There is csgofast price update error!</h4>
+      <p data-bind="text: m.s2.price_update_errors.csgofast_last_bug"></p>
+    </div>
+
+    <?php /*--------------------------------------------->
+    <!-- 2] Ошибка при обновлении цен с Steam Market -->
+    <!-----------------------------------------------*/ ?>
+    <div style="display: none" class="callout callout-danger" data-bind="visible: m.s2.price_update_errors.steammarket_last_bug">
+      <h4>There is Steam Market price update error!</h4>
+      <p data-bind="text: m.s2.price_update_errors.steammarket_last_bug"></p>
+    </div>
+
+  </div>
 
   <?php /*---------------------------->
   <!-- 2.1. Левый столбец (контент) -->
@@ -211,7 +241,7 @@
   <div class="col-md-5 col-sm-5 col-xs-5" style="padding-left: 0;">
     
     <?php /*-------------------------->
-    <!-- 2.1.2. Панель инструментов -->
+    <!-- 2.2.1. Панель инструментов -->
     <!----------------------------*/ ?>
     <div class="box box-common">
       <div class="box-body">
@@ -233,7 +263,7 @@
           <!----------------------------------------*/ ?>
           <div class="row">
             <div class="col-md-8 col-sm-8 col-xs-8">
-              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: ''">Add new bot</button>
+              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: f.s1.choose_subdoc.bind($data, {group: 'newbot', subdoc: 'newbot'})">Add new bot</button>
             </div>
             <div class="col-md-4 col-sm-4 col-xs-4" style="padding-left: 0;">
               <button type="button" class="btn btn-block btn-default btn-sm" data-bind="click: f.s2.reset_filters">Reset filters</button>
@@ -2875,6 +2905,16 @@
 
 </div>
 
+<?php /*---------------------------------->
+<!-- 4. Интерфейс создания нового бота  -->
+<!------------------------------------*/ ?>
+<div class="row" style="display: none" data-bind="visible: m.s1.selected_group().id() == 3">
+
+  new bot
+
+</div>
+
+
 
 
 @stop
@@ -2882,12 +2922,12 @@
 
 
 <?php /*--------------------------------------------------------------->
-<!-- 4. Получение данных с сервера и подключение JS этого документа  -->
+<!-- n. Получение данных с сервера и подключение JS этого документа  -->
 <!-----------------------------------------------------------------*/ ?>
 @section('js')
 
   <?php /*-------------------------------->
-  <!-- 4.1. Получение данных с сервера  -->
+  <!-- n.1. Получение данных с сервера  -->
   <!----------------------------------*/ ?>
   <script>
 
@@ -2906,7 +2946,7 @@
 
 
   <?php /*------------------------------------>
-  <!-- 4.2. Подключение JS этого документа  -->
+  <!-- n.2. Подключение JS этого документа  -->
   <!--------------------------------------*/ ?>
 
   <!-- document js: start -->
