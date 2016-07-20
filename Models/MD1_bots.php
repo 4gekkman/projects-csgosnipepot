@@ -68,6 +68,9 @@ class MD1_bots extends Model {
 
     // relationships start
     public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm8.md2000', 'id_bot', 'id_user'); }
+    public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2002', 'id_bot', 'id_bet'); }
+    public function m9_rooms() { return $this->belongsToMany('\M9\Models\MD1_rooms', 'm9.md2003', 'id_bot', 'id_room'); }
+    public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2005', 'id_bot', 'id_win'); }
     // relationships stop
 
 
