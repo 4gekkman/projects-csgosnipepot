@@ -1,7 +1,8 @@
 {
   "name": "PARAMpackfullnamePARAM",
   "dependencies": {
-		"4gekkman-bower-jslib1": "latest"
+		"4gekkman-bower-jslib1": "latest",
+		"4gekkman-bower-cssgrids": "latest"
 	},
   "mains": {
     "css": [
