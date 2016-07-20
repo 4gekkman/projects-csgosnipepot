@@ -12,6 +12,8 @@
  *  s0. Функционал, доступный всему остальному функционалу
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
+ *    f.s0.update_rooms             | s0.2. Обновить модель комнат на основе переданных данных
+ *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
  *
@@ -20,7 +22,8 @@
  *  s2. Функционал игровых комнат
  *
  *    f.s2.sortfunc                 | s2.1. Функция для сортировки списка ботов
- *
+ *    f.s2.create_new_room          | s2.2. Создать новую комнату
+ *    f.s2.show_rooms_interface     | s2.3. Открыть интерфейс кликнутой комнаты
  *
  */
 
@@ -104,6 +107,147 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			f.s0.txt_delay_save.unblock = function(){
 				self.m.s0.txt_delay_save.is_unsaved_data(0);
 			};
+
+
+		//----------------------------------------------------------//
+		// s0.2. Обновить модель комнат на основе переданных данных //
+		//----------------------------------------------------------//
+		// - Пояснение
+		f.s0.update_rooms = function(data) {
+
+			// 1. Обновить self.m.s2.rooms
+
+				// 1.1. Очистить
+				self.m.s2.rooms.removeAll();
+
+				// 1.2. Наполнить
+				for(var i=0; i<data.rooms.length; i++) {
+
+					// 1.2.1. Сформировать объект для добавления
+					var obj = {};
+					for(var key in data.rooms[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!data.rooms[i].hasOwnProperty(key)) continue;
+
+						// 2] Добавим в obj свойство key
+						obj[key] = ko.observable(data.rooms[i][key]);
+
+					}
+
+					// 1.2.2. Добавить св-во number
+					obj['number'] = ko.observable(i+1);
+
+					// 1.2.3. Добавить св-во selected
+					obj['selected'] = ko.observable(false);
+
+					// 1.2.4. Добавить этот объект в подготовленный массив
+					self.m.s2.rooms.push(ko.observable(obj))
+
+				}
+
+			// 2. Обновить m.s2.rooms_total
+			self.m.s2.rooms_total(data.rooms_total);
+
+		};
+
+
+		//------------------------------------------------------------------------//
+		// s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера //
+		//------------------------------------------------------------------------//
+		// - Пояснение
+		f.s0.update_all = function(what, from, data, event) {
+
+			// 1] Подготовить объект с функциями-обновлялками моделей документа
+			var update_funcs = {
+
+				// 1.1] Обновлялка комнат
+				rooms: function(){
+					ajaxko(self, {
+						command: 	    "\\M9\\Commands\\C1_rooms",
+						from: 		    "f.s0.update_all",
+						data: 		    {
+
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){
+
+							// Уменьшить счётчик ajax-запросов на 1
+							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+
+						},
+						ok_0:         function(data, params){
+
+							// Обновить модель комнат на основе полученных данных
+							self.f.s0.update_rooms(data.data);
+
+						},
+						callback:			function(){
+
+
+
+						}
+					});
+				}
+
+				// 1.2] Обновлялка инвентаря выбранного бота
+
+			};
+
+			// 2] Подсчитать, сколько обновлялок будет запущено
+			var updates_counter = (function(){
+
+				// 2.1] Подготовить переменную для результата
+				var result = 0;
+
+				// 2.2] Если what пуст, или является пустым массивом
+				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
+					for(var key in update_funcs) {
+						if(!update_funcs.hasOwnProperty(key)) continue;
+						result = +result + 1;
+					}
+				}
+
+				// 2.3] В ином случае
+				else {
+					for(var i=0; i<what.length; i++) {
+						if(update_funcs[what[i]]) result = +result + 1;
+					}
+				}
+
+				// 2.n] Вернуть результат
+				return result;
+
+			})();
+
+			// 3] Включить экран обновления
+			self.m.s0.ajax_counter(+self.m.s0.ajax_counter() + +updates_counter);
+
+			// 4] Произвести обновление
+
+				// 4.1] Если what пуст, или является пустым массивом, обновить всё
+				if(!what || (get_object_type(what) == "Array" && what.length == 0)) {
+
+					for(var key in update_funcs) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!update_funcs.hasOwnProperty(key)) continue;
+
+						// 2] Выполнить обновление для key
+						update_funcs[key]();
+
+					}
+
+				}
+
+				// 4.2] Если what не пуст, обновить только указанное в нём
+				else {
+					for(var i=0; i<what.length; i++) {
+						update_funcs[what[i]]();
+					}
+				}
+
+		};
 
 
 
@@ -316,9 +460,103 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//-----------------------------//
+		// s2.2. Создать новую комнату //
+		//-----------------------------//
+		f.s2.create_new_room = function(data, event) {
 
+			// 1] Если поле с именем комнаты пусто, сообщить и завершить
+			if(!self.m.s2.newroom.name()) {
+				notify({msg: 'Enter name for a new room', time: 5, fontcolor: 'RGB(200,50,50)'});
+				return;
+			}
 
+			// 2] Осуществить запрос
+			ajaxko(self, {
+			  command: 	    "\\M9\\Commands\\C2_create_new_room",
+				from: 		    "f.s2.create_new_room",
+			  data: 		    {
+					name:           self.m.s2.newroom.name()
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
 
+					// 1] Сообщить, что новый бот был успешно добавлен
+					notify({msg: 'A new room has been successfully added', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 2] Обновить ботов
+					self.f.s0.update_all([], 'f.s2.create_new_room', '', '');
+
+					// 3] Очистить поле ввода steamid
+					self.m.s2.newroom.name('');
+
+				},
+			  ok_2:         function(data, params){
+
+					// 1] Сообщить, что авторизовать пользователя не удалось
+					notify({msg: 'Could not create a new room', time: 10, fontcolor: 'RGB(200,50,50)'});
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+		//-------------------------------------------//
+		// s2.3. Открыть интерфейс кликнутой комнаты //
+		//-------------------------------------------//
+		f.s2.show_rooms_interface = function(data, event){
+
+//			// 1] Загрузить в форму текущие данные редактируемого бота
+//			self.m.s2.edit.login(data.login());
+//			self.m.s2.edit.password(data.password());
+//			self.m.s2.edit.steamid(data.steamid());
+//			self.m.s2.edit.shared_secret(data.shared_secret());
+//			self.m.s2.edit.serial_number(data.serial_number());
+//			self.m.s2.edit.revocation_code(data.revocation_code());
+//			self.m.s2.edit.uri(data.uri());
+//			self.m.s2.edit.server_time(data.server_time());
+//			self.m.s2.edit.account_name(data.account_name());
+//			self.m.s2.edit.token_gid(data.token_gid());
+//			self.m.s2.edit.identity_secret(data.identity_secret());
+//			self.m.s2.edit.secret_1(data.secret_1());
+//			self.m.s2.edit.device_id(data.device_id());
+//			self.m.s2.edit.apikey(data.apikey());
+//			self.m.s2.edit.apikey_domain(data.apikey_domain());
+//			self.m.s2.edit.apikey_last_update(data.apikey_last_update());
+//			self.m.s2.edit.apikey_last_bug(data.apikey_last_bug());
+//			self.m.s2.edit.trade_url(data.trade_url());
+//			self.m.s2.edit.avatar_steam(data.avatar_steam());
+//
+//			self.m.s2.edit.id(data.id());
+//			self.m.s2.edit.ison_incoming(data.ison_incoming());
+//			self.m.s2.edit.ison_outcoming(data.ison_outcoming());
+//
+//			self.m.s2.edit.steam_name(data.steam_name());
+//
+//			self.m.s2.edit.authorization(data.authorization());
+//			self.m.s2.edit.authorization_status_last_bug(data.authorization_status_last_bug());
+//			self.m.s2.edit.authorization_last_bug(data.authorization_last_bug());
+//			self.m.s2.edit.authorization_last_bug_code(data.authorization_last_bug_code());
+//
+//			self.m.s2.edit.captchagid();
+//			self.m.s2.edit.captcha_text();
+
+			// 2] Открыть поддокумент редактирования пользователя
+			self.f.s1.choose_subdoc({group: 'room', subdoc: 'properties'});
+
+		};
 
 
 return f; }};

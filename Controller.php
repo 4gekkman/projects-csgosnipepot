@@ -112,7 +112,16 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. ...
+      // 1. Извлечь из GET-запроса параметр branch
+      if(Request::has('group')) $group = Request::input('group');
+      else $group = '';
+
+      // 2. Извлечь из GET-запроса параметр subdoc
+      if(Request::has('subdoc')) $subdoc = Request::input('subdoc');
+      else $subdoc = '';
+
+      // 3. Получить все комнаты
+      $rooms = (array) runcommand('\M9\Commands\C1_rooms', []);
 
 
       // N. Вернуть клиенту представление и данные $data
@@ -124,6 +133,9 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
+        'group'                 => $group,
+        'subdoc'                => $subdoc,
+        'rooms'                 => $rooms,
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

@@ -98,7 +98,58 @@
     <!----------------------*/ ?>
     <div class="row room-list" data-bind="foreach: m.s2.rooms" style="margin: 0;">
 
-      <span data-bind="text: name"></span>
+      <?php /*------->
+      <!-- Комната -->
+      <!---------*/ ?>
+      <div class="new-room-container col-lg-6 col-md-6 col-sm-12 col-xs-12" data-bind="click: $root.f.s2.show_rooms_interface">
+        <div class="box box-common new-room rowfix">
+
+          <?php /*---------->
+          <!-- ID комнаты -->
+          <!------------*/ ?>
+          <div class="spanfix_left0 spanfix_width62 rooms_avatar">
+
+            <?php /*------->
+            <!-- ID бота -->
+            <!---------*/ ?>
+            <div class="rooms_id" data-bind="css: {green_background_soft: is_on, red_background_soft: !is_on()}">
+              <span data-bind="text: id"></span>
+            </div>
+
+          </div>
+
+          <?php /*---------->
+          <!-- Информация -->
+          <!------------*/ ?>
+          <div class="rooms_info">
+
+            <?php /*------------>
+            <!-- Никнэйм бота -->
+            <!--------------*/ ?>
+            <div class="rooms-nickname">
+              <span data-bind="text: name, attr: {title: name}"></span>
+            </div>
+
+            <?php /*----------------->
+            <!-- Информация о боте -->
+            <!-------------------*/ ?>
+            <div class="rooms-additionals">
+
+              <?php /*-------------------------->
+              <!-- Количество ботов в комнате -->
+              <!----------------------------*/ ?>
+              <div title="How many bots have been attached to that room">
+                <i class="fa fa-fw fa-child"></i>
+                <span data-bind="text: bot_count"></span>
+              </div>
+
+            </div>
+
+          </div>
+
+
+        </div>
+      </div>
 
     </div>
 
@@ -132,10 +183,10 @@
           <!--------------------------*/ ?>
           <div class="row">
             <div class="col-md-8 col-sm-8 col-xs-8">
-              <input class="form-control input-sm" data-bind="textInput: ''" placeholder="Enter new room's name...">
+              <input class="form-control input-sm" data-bind="textInput: m.s2.newroom.name" placeholder="Enter new room's name...">
             </div>
             <div class="col-md-4 col-sm-4 col-xs-4" style="padding-left: 0;">
-              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: ''">Add new room</button>
+              <button type="button" class="btn btn-block btn-success btn-sm" data-bind="click: f.s2.create_new_room">New room</button>
             </div>
           </div>
 
