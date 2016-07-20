@@ -37,6 +37,8 @@
  *
  *   	s2.1. Объект-контейнер для всех свойств модели
  *   	s2.2. Наблюдаемый массив с элементами-комнатами
+ *    s2.3. Модель сортировки списка ботов
+ *    s2.4. Модель фильтров списка комнат
  *
  *   	s2.n. Индексы и вычисляемые значения
  *
@@ -458,6 +460,35 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// 2] Выбранная опция //
 		//--------------------//
 		self.m.s2.sortrooms.choosen = ko.observable(self.m.s2.sortrooms.options()[0]());
+
+	//-------------------------------------//
+	// s2.4. Модель фильтров списка комнат //
+	//-------------------------------------//
+	self.m.s2.filterrooms = {};
+
+		// 1] By mode //
+		//------------//
+		self.m.s2.filterrooms.mode = {};
+		self.m.s2.filterrooms.mode.roll = ko.observable(true);
+		self.m.s2.filterrooms.mode.availability = ko.observable(true);
+
+		// 2] By status //
+		//--------------//
+		self.m.s2.filterrooms.status = {};
+		self.m.s2.filterrooms.status.enabled = ko.observable(true);
+		self.m.s2.filterrooms.status.disabled = ko.observable(true);
+
+		// 3] By change //
+		//--------------//
+		self.m.s2.filterrooms.change = {};
+		self.m.s2.filterrooms.change.enabled = ko.observable(true);
+		self.m.s2.filterrooms.change.disabled = ko.observable(true);
+
+		// 4] By onebotpayout //
+		//--------------------//
+		self.m.s2.filterrooms.onebotpayout = {};
+		self.m.s2.filterrooms.onebotpayout.enabled = ko.observable(true);
+		self.m.s2.filterrooms.onebotpayout.disabled = ko.observable(true);
 
 
 	//--------------------------------------//

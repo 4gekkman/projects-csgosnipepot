@@ -80,7 +80,7 @@
   <?php /*---------------------------->
   <!-- 2.1. Левый столбец (контент) -->
   <!------------------------------*/ ?>
-  <div class="bots-list-new col-md-7 col-sm-7 col-xs-7">
+  <div class="room-list-cont col-md-7 col-sm-7 col-xs-7">
 
     <?php /*------------------------------------------->
     <!-- 2.1.1. Панель с заголовком и кол-вом комнат -->
@@ -96,7 +96,7 @@
     <?php /*-------------------->
     <!-- 2.1.2. Список комнат -->
     <!----------------------*/ ?>
-    <div class="row new-bot-list" data-bind="foreach: m.s2.rooms" style="margin: 0;">
+    <div class="row room-list" data-bind="foreach: m.s2.rooms" style="margin: 0;">
 
       <span data-bind="text: name"></span>
 
@@ -159,6 +159,195 @@
           <select class="form-control" data-bind="options: m.s2.sortrooms.options, optionsText: function(item) { return item().text; }, value: m.s2.sortrooms.choosen, event: {change: f.s2.sortfunc}"></select>
 
         </div>
+
+        <?php /*---------->
+        <!-- 3] Filters -->
+        <!------------*/ ?>
+        <div style="margin-top: 10px;">
+
+          <?php /*--------->
+          <!-- Заголовок -->
+          <!-----------*/ ?>
+          <div class="header-note">
+            <span>Filters</span>
+          </div>
+
+          <?php /*------->
+          <!-- Фильтры -->
+          <!---------*/ ?>
+          <div class="filters-box">
+
+            <?php /*---------------------------->
+            <!-- 3.1] По режиму приёма ставок -->
+            <!------------------------------*/ ?>
+            <div class="filter-noselect">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By bet's acception mode</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div class="form-group">
+
+                <?php /*----------------->
+                <!-- Create and cancel -->
+                <!-------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.mode.roll">
+                    Roll
+                  </label>
+                </div>
+
+                <?php /*------------------>
+                <!-- Accept and decline -->
+                <!--------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.mode.availability">
+                    Availability
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*--------------->
+            <!-- 3.2] По статусу -->
+            <!-----------------*/ ?>
+            <div class="filter-noselect">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By status</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div class="form-group">
+
+                <?php /*----------------->
+                <!-- Create and cancel -->
+                <!-------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.status.enabled">
+                    Enabled
+                  </label>
+                </div>
+
+                <?php /*------------------>
+                <!-- Accept and decline -->
+                <!--------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.status.disabled">
+                    Disabled
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*--------------------------->
+            <!-- 3.3] По режиму выдачи сдачи -->
+            <!-----------------------------*/ ?>
+            <div class="filter-noselect">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By change</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div class="form-group">
+
+                <?php /*----------------->
+                <!-- Create and cancel -->
+                <!-------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.change.enabled">
+                    Enabled
+                  </label>
+                </div>
+
+                <?php /*------------------>
+                <!-- Accept and decline -->
+                <!--------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.change.disabled">
+                    Disabled
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+            <?php /*------------------------------------------->
+            <!-- 3.4] По режиму выдачи выигрыша от 1-го бота -->
+            <!---------------------------------------------*/ ?>
+            <div class="filter-noselect">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
+              <div class="header-note filter-header">
+                <span>By one bot payout mode</span>
+              </div>
+
+              <?php /*------>
+              <!-- Фильтр -->
+              <!--------*/ ?>
+              <div class="form-group">
+
+                <?php /*----------------->
+                <!-- Create and cancel -->
+                <!-------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.onebotpayout.enabled">
+                    Enabled
+                  </label>
+                </div>
+
+                <?php /*------------------>
+                <!-- Accept and decline -->
+                <!--------------------*/ ?>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" data-bind="checked: m.s2.filterrooms.onebotpayout.disabled">
+                    Disabled
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+
+          </div>
+
+        </div>
+
+
+
 
       </div>
     </div>

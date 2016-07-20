@@ -46,7 +46,34 @@
     margin-bottom: 10px;
   }
 
+  // Фильтры
+  .rooms-styles .filters-box {
+    padding: 0 5px 10px 15px;
+  }
+  .rooms-styles .filters-box .checkbox {
+    padding-left: 10px;
+  }
+  .rooms-styles .filters-box .filter-noselect {
+    user-select: none;
+  }
+  .rooms-styles .filters-box .filter-noselect input {
+    outline: 0;
+  }
+  .rooms-styles .box-common .header-note.filter-header {
+    margin: 10px 0 5px 0 !important;
+  }
+  .rooms-styles .box-common .header-note.filter-header span {
+    font-weight: normal !important;
+    font-style: italic;
+  }
 
+  // Список ботов
+  .room-list-cont .room-list {
+    margin: 0;
+  }
+  .room-list-cont .room-list {
+    margin-left: -10px !important;
+  }
 
 
 
