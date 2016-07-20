@@ -3,7 +3,7 @@
 			"version": "1.0.0"
 		},
     "name": "4gekkman/d10005",
-		"description": "D10005 - ФInterface for the M8 package (bots and automation)",
+		"description": "D10005 - Interface for the M8 package (bots and automation)",
     "license": "4gekkman@gmail.com",
     "authors": [
         {
