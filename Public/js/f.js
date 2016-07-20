@@ -853,13 +853,13 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						prejob:       function(config, data, event){},
 						postjob:      function(data, params){
 
-							// Уменьшить счёрчик ajax-запросов на 1
+							// Уменьшить счётчик ajax-запросов на 1
 							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
 
 						},
 						ok_0:         function(data, params){
 
-							// Обновить модель групп на основе полученных данных
+							// Обновить модель ботов на основе полученных данных
 							self.f.s0.update_bots(data.data);
 
 						},
