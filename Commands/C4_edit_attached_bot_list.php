@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Get all game rooms
+ *    - Edit by passed array of bot ids the specified game room relationsheeps with bot table
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C1_rooms extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C4_edit_attached_bot_list extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,54 +135,27 @@ class C1_rooms extends Job { // TODO: добавить "implements ShouldQueue" 
     /**
      * Оглавление
      *
-     *  1. Получить все игровые комнаты
-     *  n. Вернуть результаты
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------//
-    // Получить все игровые комнаты //
-    //------------------------------//
-    $res = call_user_func(function() { try {
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить все игровые комнаты
-      $rooms = \M9\Models\MD1_rooms::query()->get();
 
-      // 2. Добавить в $rooms некоторые дополнительные поля
-      foreach($rooms as &$room) {
+      // ...
 
-        // 1] Получить коллекцию всех связанных с комнатой ботов
-        $bots = r1_query(function() USE ($room) {
-          return \M8\Models\MD1_bots::whereHas('m9_rooms', function($query) USE ($room) {
-            $query->where('name',$room->name);
-          })->get();
-        });
 
-        // 2] Записать массив ID ботов в $room
-        $room->bot_ids = $bots->pluck(['id']);
-
-        // 3] Записать количество ботов, связанных с комнатой
-        $bot_count = $bots->count();
-        if(!empty($bot_count)) $room->bot_count = $bot_count;
-        else $room->bot_count = 0;
-
-      }
-
-      // n. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "rooms"           => $rooms,
-          "rooms_total"      => $rooms->count()
-        ]
-      ];
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_rooms from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C4_edit_attached_bot_list from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C1_rooms']);
+        write2log($errortext, ['M9', 'C4_edit_attached_bot_list']);
         return [
           "status"  => -2,
           "data"    => [
