@@ -534,13 +534,18 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.min_bet_round(data.min_bet_round());
 			self.m.s2.edit.max_bet_round(data.max_bet_round());
 			self.m.s2.edit.allow_unstable_prices(data.allow_unstable_prices());
-			self.m.s2.edit.allow_only_types(data.allow_only_types());
 			self.m.s2.edit.fee_percents(data.fee_percents());
 			self.m.s2.edit.change(data.change());
 			self.m.s2.edit.one_bot_payout(data.one_bot_payout());
 			self.m.s2.edit.payout_limit_min(data.payout_limit_min());
 
-			// 2] Открыть поддокумент редактирования пользователя
+			// 2] Загрузить данные для allow_only_types
+			var allow_only_types = JSON.parse(data.allow_only_types());
+			for(var i=0; i<allow_only_types.length; i++) {
+				self.m.s2.edit.allow_only_types[allow_only_types[i]](true);
+			}
+
+			// 3] Открыть поддокумент редактирования пользователя
 			self.f.s1.choose_subdoc({group: 'room', subdoc: 'properties'});
 
 		};

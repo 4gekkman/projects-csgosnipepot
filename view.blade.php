@@ -476,7 +476,324 @@
     <div class="content_box_wrapper">
       <div class="content_box">
 
-        123
+        <?php /*------------->
+        <!-- 1] Properties -->
+        <!---------------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Properties'">
+
+          <?php /*---------------->
+          <!-- Базовые свойства -->
+          <!------------------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Basic properties</span>
+            </div>
+
+            <?php /* 1] name -->
+            <!-------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">name</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.name">
+              </div>
+            </div>
+
+            <?php /* 2] is_on -->
+            <!--------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Is on</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.is_on">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 3] allow_unstable_prices -->
+            <!------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Allow unstable prices</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_unstable_prices">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <?php /*---------------------->
+          <!-- Экономические свойства -->
+          <!------------------------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Economy</span>
+            </div>
+
+            <?php /* 1] one_bot_payout -->
+            <!-----------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">One bot payout</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.one_bot_payout">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 2] payout_limit_min -->
+            <!-------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Payout limit, min</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.payout_limit_min">
+              </div>
+            </div>
+
+            <?php /* 3] change -->
+            <!---------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Change</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.change">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 4] fee_percents -->
+            <!---------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Fee, %</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.fee_percents">
+              </div>
+            </div>
+
+          </div>
+
+          <?php /*---------------------->
+          <!-- Экономические свойства -->
+          <!------------------------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Restrictions</span>
+            </div>
+
+            <?php /* 1] room_round_duration_sec -->
+            <!--------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Round duration, sec</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.room_round_duration_sec">
+              </div>
+            </div>
+
+            <?php /* 2] max_items_per_bet -->
+            <!--------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Max items per bet</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_bet">
+              </div>
+            </div>
+
+            <?php /* 3] min_items_per_bet -->
+            <!--------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Min items per bet</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_items_per_bet">
+              </div>
+            </div>
+
+            <?php /* 4] max_items_per_round -->
+            <!----------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Max items per round</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_round">
+              </div>
+            </div>
+
+            <?php /* 5] min_items_per_round -->
+            <!----------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Min items per round</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_items_per_round">
+              </div>
+            </div>
+
+            <?php /* 6] min_bet -->
+            <!----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Min bet, $</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_bet">
+              </div>
+            </div>
+
+            <?php /* 7] max_bet -->
+            <!----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Max bet, $</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bet">
+              </div>
+            </div>
+
+            <?php /* 8] min_bet_round -->
+            <!----------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Min bet per round, $</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_bet_round">
+              </div>
+            </div>
+
+            <?php /* 9] max_bet_round -->
+            <!----------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Max bet per round, $</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bet_round">
+              </div>
+            </div>
+
+          </div>
+
+          <?php /*---------------------->
+          <!-- Экономические свойства -->
+          <!------------------------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Allow only specified types</span>
+            </div>
+
+            <?php /* 1] Case -->
+            <!-------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Case</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.case">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 2] Key -->
+            <!------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Key</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.key">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 3] Startrak -->
+            <!-----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Startrak</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.startrak">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 4] Souvenir pack -->
+            <!----------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Souvenir pack</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.souvenirpack">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 5] Souvenir -->
+            <!-----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Souvenir</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.souvenir">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 6] Knife -->
+            <!--------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Knife</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.knife">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <?php /* 7] Weapon -->
+            <!---------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Weapon</div>
+              <div class="col-sm-7">
+                <div class="checkbox">
+                  <label>
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.weapon">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <?php /*------->
+        <!-- 2] Bots -->
+        <!---------*/ ?>
+        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Bots'">
+
+          Bots
+
+        </div>
 
       </div>
     </div>

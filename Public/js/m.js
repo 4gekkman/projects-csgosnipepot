@@ -615,7 +615,15 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.min_bet_round 								= ko.observable("");
 		self.m.s2.edit.max_bet_round 								= ko.observable("");
 		self.m.s2.edit.allow_unstable_prices 				= ko.observable("");
-		self.m.s2.edit.allow_only_types 						= ko.observable("");
+		self.m.s2.edit.allow_only_types 						= {
+			"case": 					ko.observable(false),
+			"key": 						ko.observable(false),
+			"startrak": 			ko.observable(false),
+			"souvenirpack": 	ko.observable(false),
+			"souvenir": 			ko.observable(false),
+			"knife": 					ko.observable(false),
+			"weapon": 				ko.observable(false)
+		};
 		self.m.s2.edit.fee_percents 								= ko.observable("");
 		self.m.s2.edit.change 											= ko.observable("");
 		self.m.s2.edit.one_bot_payout 							= ko.observable("");
