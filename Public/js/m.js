@@ -493,21 +493,52 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//----------------------------------//
 		self.m.s2.rooms_filtered = ko.computed(function(){
 
-//			return ko.utils.arrayFilter(self.m.s2.rooms(), function(item){
-//
-//				// 1] Фильтрация по mode
-//
-//
-//
-//				if(item().ison_outcoming() != self.m.s2.filterrooms.mode.roll())
-//					return false;
-//				if(item().ison_incoming() != self.m.s2.filterbots.tradepermissions.accept_and_decline())
-//					return false;
-//
-//				// n] Вернуть true
-//				return true;
-//
-//			});
+			return ko.utils.arrayFilter(self.m.s2.rooms(), function(item){
+
+				// 1] Фильтрация по mode
+				if(item().bet_accepting_mode() == 'roll') {
+					if(self.m.s2.filterrooms.mode.roll() == false)
+						return false;
+				}
+				if(item().bet_accepting_mode() == 'availability') {
+					if(self.m.s2.filterrooms.mode.availability() == false)
+						return false;
+				}
+
+				// 2] Фильтрация по status
+				if(item().is_on() == 1) {
+					if(self.m.s2.filterrooms.status.enabled() == false)
+						return false;
+				}
+				if(item().is_on() == 0) {
+					if(self.m.s2.filterrooms.status.disabled() == false)
+						return false;
+				}
+
+				// 3] Фильтрация по change
+				if(item().change() == 1) {
+					if(self.m.s2.filterrooms.change.enabled() == false)
+						return false;
+				}
+				if(item().change() == 0) {
+					if(self.m.s2.filterrooms.change.disabled() == false)
+						return false;
+				}
+
+				// 4] Фильтрация по onebotpayout
+				if(item().one_bot_payout() == 1) {
+					if(self.m.s2.filterrooms.onebotpayout.enabled() == false)
+						return false;
+				}
+				if(item().one_bot_payout() == 0) {
+					if(self.m.s2.filterrooms.onebotpayout.disabled() == false)
+						return false;
+				}
+
+				// n] Вернуть результат
+				return true;
+
+			});
 
 		});
 

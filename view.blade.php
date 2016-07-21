@@ -88,15 +88,14 @@
     <div class="box box-common">
       <div class="box-body subdoc_title">
         <span>Rooms</span>
-        <span data-bind="text: '- ' + '2' + ' / ' + '2'" style="font-size: 13px; color: rgb(204, 204, 204);"></span>
-<!--        <span data-bind="text: '- ' + m.s2.bots_filtered().length + ' / ' + m.s2.bots().length" style="font-size: 13px; color: rgb(204, 204, 204);"></span>-->
+        <span data-bind="text: '- ' + m.s2.rooms_filtered().length + ' / ' + m.s2.rooms().length" style="font-size: 13px; color: rgb(204, 204, 204);"></span>
       </div>
     </div>
 
     <?php /*-------------------->
     <!-- 2.1.2. Список комнат -->
     <!----------------------*/ ?>
-    <div class="row room-list" data-bind="foreach: m.s2.rooms" style="margin: 0;">
+    <div class="row room-list" data-bind="foreach: m.s2.rooms_filtered" style="margin: 0;">
 
       <?php /*------->
       <!-- Комната -->
