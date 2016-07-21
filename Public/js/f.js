@@ -424,7 +424,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			}
 
 			// 4] Если выбрана группа поддокументов с именем "Room"
-			if(self.m.s1.selected_group().name() == 'Bot') {
+			if(self.m.s1.selected_group().name() == 'Room') {
 
 //				// 4.1] Обновить инвентарь по-тихому
 //				self.f.s3.update({silent: true});
@@ -433,8 +433,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 			// n] Выполнить update_all
 			// - Но только если parameters.without_reload != "1"
-//			if(parameters.without_reload != "1")
-//				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
+			if(parameters.without_reload != "1")
+				self.f.s0.update_all([], 'subdocs:choose_subdoc', '', '');
 
 		};
 
@@ -518,43 +518,50 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		//-------------------------------------------//
 		f.s2.show_rooms_interface = function(data, event){
 
-//			// 1] Загрузить в форму текущие данные редактируемого бота
-//			self.m.s2.edit.login(data.login());
-//			self.m.s2.edit.password(data.password());
-//			self.m.s2.edit.steamid(data.steamid());
-//			self.m.s2.edit.shared_secret(data.shared_secret());
-//			self.m.s2.edit.serial_number(data.serial_number());
-//			self.m.s2.edit.revocation_code(data.revocation_code());
-//			self.m.s2.edit.uri(data.uri());
-//			self.m.s2.edit.server_time(data.server_time());
-//			self.m.s2.edit.account_name(data.account_name());
-//			self.m.s2.edit.token_gid(data.token_gid());
-//			self.m.s2.edit.identity_secret(data.identity_secret());
-//			self.m.s2.edit.secret_1(data.secret_1());
-//			self.m.s2.edit.device_id(data.device_id());
-//			self.m.s2.edit.apikey(data.apikey());
-//			self.m.s2.edit.apikey_domain(data.apikey_domain());
-//			self.m.s2.edit.apikey_last_update(data.apikey_last_update());
-//			self.m.s2.edit.apikey_last_bug(data.apikey_last_bug());
-//			self.m.s2.edit.trade_url(data.trade_url());
-//			self.m.s2.edit.avatar_steam(data.avatar_steam());
-//
-//			self.m.s2.edit.id(data.id());
-//			self.m.s2.edit.ison_incoming(data.ison_incoming());
-//			self.m.s2.edit.ison_outcoming(data.ison_outcoming());
-//
-//			self.m.s2.edit.steam_name(data.steam_name());
-//
-//			self.m.s2.edit.authorization(data.authorization());
-//			self.m.s2.edit.authorization_status_last_bug(data.authorization_status_last_bug());
-//			self.m.s2.edit.authorization_last_bug(data.authorization_last_bug());
-//			self.m.s2.edit.authorization_last_bug_code(data.authorization_last_bug_code());
-//
-//			self.m.s2.edit.captchagid();
-//			self.m.s2.edit.captcha_text();
+			// 1] Загрузить в форму текущие данные редактируемой комнаты
+			self.m.s2.edit.id(data.id());
+
+			self.m.s2.edit.is_on(data.is_on());
+			self.m.s2.edit.bet_accepting_mode(data.bet_accepting_mode());
+			self.m.s2.edit.name(data.name());
+			self.m.s2.edit.room_round_duration_sec(data.room_round_duration_sec());
+			self.m.s2.edit.max_items_per_bet(data.max_items_per_bet());
+			self.m.s2.edit.max_items_per_round(data.max_items_per_round());
+			self.m.s2.edit.min_items_per_bet(data.min_items_per_bet());
+			self.m.s2.edit.min_items_per_round(data.min_items_per_round());
+			self.m.s2.edit.min_bet(data.min_bet());
+			self.m.s2.edit.max_bet(data.max_bet());
+			self.m.s2.edit.min_bet_round(data.min_bet_round());
+			self.m.s2.edit.max_bet_round(data.max_bet_round());
+			self.m.s2.edit.allow_unstable_prices(data.allow_unstable_prices());
+			self.m.s2.edit.allow_only_types(data.allow_only_types());
+			self.m.s2.edit.fee_percents(data.fee_percents());
+			self.m.s2.edit.change(data.change());
+			self.m.s2.edit.one_bot_payout(data.one_bot_payout());
+			self.m.s2.edit.payout_limit_min(data.payout_limit_min());
 
 			// 2] Открыть поддокумент редактирования пользователя
 			self.f.s1.choose_subdoc({group: 'room', subdoc: 'properties'});
+
+		};
+
+
+		//---------------------------------------------------//
+		// s2.4. Функция для сброса фильтров по списку ботов //
+		//---------------------------------------------------//
+		f.s2.reset_filters = function(data, event) {
+
+			self.m.s2.filterrooms.mode.roll(true);
+			self.m.s2.filterrooms.mode.availability(true);
+
+			self.m.s2.filterrooms.status.enabled(true);
+			self.m.s2.filterrooms.status.disabled(true);
+
+			self.m.s2.filterrooms.change.enabled(true);
+			self.m.s2.filterrooms.change.disabled(true);
+
+			self.m.s2.filterrooms.onebotpayout.enabled(true);
+			self.m.s2.filterrooms.onebotpayout.disabled(true);
 
 		};
 

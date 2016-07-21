@@ -9,6 +9,7 @@
   1. Общие стили
   2. Стили поддокумента "Игровые комнаты"
   3. Стили панели загрузки
+  4. Стили интерфейса комнаты
 
 //------------------------------//
 // Стили //
@@ -24,6 +25,10 @@
   }
   .green_background_soft {
     background-color: RGBA(0,255,0,.05) !important;
+  }
+  .subdoc_title {
+    font-size: 16px;
+    padding: 5px 10px;
   }
 
 //-----------------------------------------//
@@ -172,3 +177,131 @@
 }
 
 
+//-----------------------------//
+// 4. Стили интерфейса комнаты //
+//-----------------------------//
+
+  //------------------------//
+  // Контейнер для столбцов //
+  //------------------------//
+
+    // Стили контейнера для столбцов
+    .choosen-room-cont {
+      position: relative;
+    }
+
+  //---------------//
+  // Левый столбец //
+  //---------------//
+
+    // Стили левого столбца
+    .choosen-room-cont .room-submenu {
+      width: 120px;
+    }
+
+    // Блок "назад"
+    .choosen-room-cont .room-submenu .back_link {
+      transition: all 0.2s ease-in-out;
+      background-color: RGBA(255,255,255,1);
+      cursor: pointer;
+      text-align: center;
+      color: RGBA(0,0,0,.2);
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+    .choosen-room-cont .room-submenu .back_link:hover {
+      color: RGBA(0,0,0,.6);
+    }
+
+    // Бокс со стрелкой "назад"
+    .choosen-room-cont .room-submenu .box_back_style {
+      border: 1px solid RGBA(0,0,0,.1);
+      box-shadow: none;
+    }
+
+    // Стили для бокса левого меню интерфейса бота
+    .choosen-room-cont .room-submenu .box_leftmenu_style ul {
+      border: 1px solid RGBA(0,0,0,.1);
+      background-color: #fff;
+      border-radius: 2px;
+      padding-bottom: 7px !important;
+    }
+    .choosen-room-cont .room-submenu .box_leftmenu_style .separator {
+      padding: 0;
+      background-color: #ecf0f5;
+      height: 10px;
+    }
+    .choosen-room-cont .room-submenu .box_leftmenu_style ul {
+      padding: 7px 0 0px 0;
+    }
+    .choosen-room-cont .room-submenu .box_leftmenu_style li {
+      transition: color 0.3s ease-in-out;
+      list-style-type: none;
+      padding: 7px 10px 7px 10px;
+      color: RGBA(0,0,0,.5);
+      cursor: pointer;
+    }
+    .choosen-room-cont .room-submenu .box_leftmenu_style li:hover {
+      color: RGBA(0,0,0,8);
+    }
+    .choosen-room-cont .room-submenu .box_leftmenu_style .active {
+      color: RGBA(0,0,0,1);
+    }
+    .choosen-room-cont .room-submenu .box_leftmenu_style li span {
+      border-bottom: 1px dashed RGBA(0,0,0,.1);
+    }
+
+  //----------------//
+  // Правый столбец //
+  //----------------//
+
+    // Общие стили
+    .choosen-room-cont .room-content .content_in_content_box .header-note {
+      margin-bottom: 10px;
+    }
+    .choosen-room-cont .room-content .content_in_content_box .header-note span {
+      font-weight: bold;
+    }
+    .choosen-room-cont .room-content .content_in_content_box .empty-note {
+      padding-left: 25px;
+      padding-top: 15px;
+      font-style: italic;
+      color: RGBA(0,0,0,.3);
+      font-size: 1em;
+    }
+    .choosen-room-cont .room-content .box_back_style {
+      border: 1px solid RGBA(0,0,0,.1);
+      box-shadow: none;
+    }
+
+    // Стили правого столбца
+    .choosen-room-cont {
+      padding-left: 140px;
+      min-width: 400px;
+    }
+    .choosen-room-cont .content_in_content_box {
+      position: relative;
+      padding: 10px;
+    }
+    .choosen-room-cont .no_padding {
+      padding: 0;
+    }
+
+    // Контент-бокс правого столбца
+    .choosen-room-cont .content_box_wrapper {
+      min-height: 380px;
+    }
+    .choosen-room-cont .content_box_wrapper .content_box {
+      border: 1px solid RGBA(0,0,0,.1);
+      background-color: #fff;
+      border-radius: 2px;
+    }
+    .choosen-room-cont .content_box_wrapper .content_box .nav-tabs-custom {
+      border: 0;
+      box-shadow: none;
+    }
+
+    // Форма для редактирования полей комнаты
+    .choosen-room-cont .content_in_content_box .roomedit {
+      margin-left: 120px;
+    }

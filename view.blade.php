@@ -59,6 +59,16 @@
   2. Игровые комнаты
     2.1. Левый столбец (контент)
       2.1.1. Панель с заголовком и кол-вом комнат
+      2.1.2. Список комнат
+    2.2. Правый столбец (панель управления)
+      2.2.1. Панель инструментов
+  3. Интерфейс кликнутой комнаты
+    3.1. Левый столбец: кнопка "Назад" и левое меню
+      3.1.1. Кнопка "назад"
+      3.1.2. Левое меню интерфейса комнаты
+    3.2. Правый столбец: имя бота и контент интерфейса
+      3.2.1. Хлебные крошки
+      3.2.2. Контент-бокс интерфейса комнаты
 
 -------------------------*/ ?>
 @section('content')
@@ -391,23 +401,89 @@
 
             </div>
 
+          </div>
 
+          <?php /*---------------------->
+          <!-- Кнопка "Reset filters" -->
+          <!------------------------*/ ?>
+          <div>
+            <div style="padding-left: 0;">
+              <button type="button" class="btn btn-block btn-default btn-xs" data-bind="click: f.s2.reset_filters">Reset filters</button>
+            </div>
           </div>
 
         </div>
-
-
-
 
       </div>
     </div>
 
   </div>
 
-
-
 </div>
 
+
+<?php /*----------------------------->
+<!-- 3. Интерфейс кликнутого бота  -->
+<!-------------------------------*/ ?>
+<div style="display: none" class="choosen-room-cont" data-bind="visible: m.s1.selected_group().id() == 2">
+
+  <?php /*----------------------------------------------->
+  <!-- 3.1. Левый столбец: кнопка "Назад" и левое меню -->
+  <!-------------------------------------------------*/ ?>
+  <div class="spanfix_left0 spanfix_width120 room-submenu">
+
+    <?php /*--------------------->
+    <!-- 3.1.1. Кнопка "назад" -->
+    <!-----------------------*/ ?>
+    <div class="box box_back_style">
+      <div class="box-body back_link" style="padding-top: 0; padding-bottom: 0;" data-bind="click: f.s1.choose_subdoc.bind($data, {group: 'rooms', subdoc: 'rooms'})">
+        <span>
+          <i class="fa fa-long-arrow-left" style="font-size: 32px;"></i>&nbsp;&nbsp;
+        </span>
+      </div>
+    </div>
+
+    <?php /*--------------------------------->
+    <!-- 3.1.2. Левое меню интерфейса бота -->
+    <!-----------------------------------*/ ?>
+    <div class="box_leftmenu_style" >
+      <ul>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Properties'}, click: f.s1.choose_subdoc.bind($data, {group: 'room', subdoc: 'properties', without_reload: '1'})"><span>Properties</span></li>
+        <li data-bind="css: {active: m.s1.selected_subdoc().name() == 'Bots'}, click: f.s1.choose_subdoc.bind($data, {group: 'room', subdoc: 'bots', without_reload: '1'})"><span>Bots</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <?php /*-------------------------------------------------->
+  <!-- 3.2. Правый столбец: имя бота и контент интерфейса -->
+  <!----------------------------------------------------*/ ?>
+  <div class="room-content">
+
+    <?php /*--------------------->
+    <!-- 3.2.1. Хлебные крошки -->
+    <!-----------------------*/ ?>
+    <div class="box box_back_style">
+      <div class="box-body subdoc_title">
+        <span>Rooms &nbsp; → &nbsp; </span>
+        <span data-bind="text: m.s2.edit.name"></span>
+      </div>
+    </div>
+
+    <?php /*----------------------------------->
+    <!-- 3.2.2. Контент-бокс интерфейса бота -->
+    <!-------------------------------------*/ ?>
+    <div class="content_box_wrapper">
+      <div class="content_box">
+
+        123
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
 
 @stop
 

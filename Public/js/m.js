@@ -382,8 +382,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// s1.n.2. Индексы групп и поддокументов //
 		//---------------------------------------//
 
-			// 1] Индекс групп поддокументов //
-			//-------------------------------//
+			// 1] Индекс групп поддокументов (по ID) //
+			//---------------------------------------//
 			// - По ID группы поддокумента можно получить ссылку на соотв. объект в self.m.s1.groups
 			self.m.s1.indexes.groups = (function(){
 
@@ -400,8 +400,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			}());
 
-			// 2] Индекс поддокументов //
-			//-------------------------//
+			// 2] Индекс групп поддокументов (по name) //
+			//-----------------------------------------//
 			// - По name группы поддокумента можно получить ссылку на соотв. объект в self.m.s1.groups
 			self.m.s1.indexes.groups_by_name = (function(){
 
@@ -418,7 +418,45 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 			}());
 
+		//-------------------------------//
+		// s1.n.3. Индексы поддокументов //
+		//-------------------------------//
 
+			// 1] Индекс поддокументов //
+			//-------------------------//
+			// - По ID поддокумента можно получить ссылку на соотв. объект в self.m.s1.subdocs
+			self.m.s1.indexes.subdocs = (function(){
+
+				// 1. Подготовить объект для результатов
+				var results = {};
+
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.subdocs().length; i++) {
+					results[self.m.s1.subdocs()[i]().id()] = self.m.s1.subdocs()[i]();
+				}
+
+				// 3. Вернуть results
+				return results;
+
+			}());
+
+			// 2] Индекс поддокументов //
+			//-------------------------//
+			// - По name поддокумента можно получить ссылку на соотв. объект в self.m.s1.subdocs
+			self.m.s1.indexes.subdocs_by_name = (function(){
+
+				// 1. Подготовить объект для результатов
+				var results = {};
+
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.subdocs().length; i++) {
+					results[self.m.s1.subdocs()[i]().name().toLowerCase()] = self.m.s1.subdocs()[i]();
+				}
+
+				// 3. Вернуть results
+				return results;
+
+			}());
 
 
 	});
@@ -556,6 +594,32 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// 1] Steamid //
 		//------------//
 		self.m.s2.newroom.name = ko.observable('');
+
+	//----------------------------------//
+	// s2.7. Модель редактирования бота //
+	//----------------------------------//
+	self.m.s2.edit = {};
+
+		self.m.s2.edit.id 													= ko.observable("");
+
+		self.m.s2.edit.is_on 												= ko.observable("");
+		self.m.s2.edit.bet_accepting_mode  					= ko.observable("");
+		self.m.s2.edit.name 												= ko.observable("");
+		self.m.s2.edit.room_round_duration_sec 			= ko.observable("");
+		self.m.s2.edit.max_items_per_bet 						= ko.observable("");
+		self.m.s2.edit.max_items_per_round 					= ko.observable("");
+		self.m.s2.edit.min_items_per_bet 						= ko.observable("");
+		self.m.s2.edit.min_items_per_round 					= ko.observable("");
+		self.m.s2.edit.min_bet 											= ko.observable("");
+		self.m.s2.edit.max_bet 											= ko.observable("");
+		self.m.s2.edit.min_bet_round 								= ko.observable("");
+		self.m.s2.edit.max_bet_round 								= ko.observable("");
+		self.m.s2.edit.allow_unstable_prices 				= ko.observable("");
+		self.m.s2.edit.allow_only_types 						= ko.observable("");
+		self.m.s2.edit.fee_percents 								= ko.observable("");
+		self.m.s2.edit.change 											= ko.observable("");
+		self.m.s2.edit.one_bot_payout 							= ko.observable("");
+		self.m.s2.edit.payout_limit_min 						= ko.observable("");
 
 
 	//--------------------------------------//
