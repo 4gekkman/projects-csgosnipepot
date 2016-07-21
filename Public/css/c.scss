@@ -361,6 +361,7 @@
     .box_back_style {
       border: 1px solid RGBA(0,0,0,.1);
       box-shadow: none;
+      margin-bottom: 15px;
     }
 
     // Стили для бокса левого меню интерфейса бота
@@ -401,7 +402,7 @@
 
     // Стили правого столбца
     .ibot_right_column {
-      padding-left: 140px;
+      padding-left: 135px;
       min-width: 400px;
     }
     .ibot_right_column .content_in_content_box {
