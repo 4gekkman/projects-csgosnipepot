@@ -645,7 +645,7 @@
             <?php /* 6] min_bet -->
             <!----------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Min bet, $</div>
+              <div class="col-sm-5 control-label">Min bet, ¢</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_bet">
               </div>
@@ -654,7 +654,7 @@
             <?php /* 7] max_bet -->
             <!----------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Max bet, $</div>
+              <div class="col-sm-5 control-label">Max bet, ¢</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bet">
               </div>
@@ -663,7 +663,7 @@
             <?php /* 8] min_bet_round -->
             <!----------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Min bet per round, $</div>
+              <div class="col-sm-5 control-label">Min bet per round, ¢</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_bet_round">
               </div>
@@ -672,7 +672,7 @@
             <?php /* 9] max_bet_round -->
             <!----------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Max bet per round, $</div>
+              <div class="col-sm-5 control-label">Max bet per round, ¢</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bet_round">
               </div>
@@ -733,11 +733,11 @@
             <?php /* 4] Souvenir pack -->
             <!----------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Souvenir pack</div>
+              <div class="col-sm-5 control-label">Souvenir packages</div>
               <div class="col-sm-7">
                 <div class="checkbox">
                   <label>
-                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types.souvenirpack">
+                    <input class="no_outline" type="checkbox" data-bind="checked: m.s2.edit.allow_only_types['souvenir packages']">
                   </label>
                 </div>
               </div>
@@ -780,6 +780,31 @@
                   </label>
                 </div>
               </div>
+            </div>
+
+          </div>
+
+          <?php /*-------->
+          <!-- Действия -->
+          <!----------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Actions</span>
+            </div>
+
+            <?php /* Сохранить изменения -->
+            <!-------------------------*/ ?>
+            <div>
+              <button type="button" class="btn btn-block btn-success" data-bind="click: f.s2.edit">Edit</button>
+            </div>
+
+            <?php /* Удалить комнату -->
+            <!---------------------*/ ?>
+            <div style="margin-top: 10px;">
+              <button type="button" class="btn btn-block btn-danger" data-bind="click: ''">Delete room</button>
             </div>
 
           </div>

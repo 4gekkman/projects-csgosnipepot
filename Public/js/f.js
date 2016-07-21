@@ -24,6 +24,9 @@
  *    f.s2.sortfunc                 | s2.1. Функция для сортировки списка ботов
  *    f.s2.create_new_room          | s2.2. Создать новую комнату
  *    f.s2.show_rooms_interface     | s2.3. Открыть интерфейс кликнутой комнаты
+ *    f.s2.reset_filters            | s2.4. Функция для сброса фильтров по списку ботов
+ *    f.s2.edit                     | s2.5. Отредактировать комнату
+ *
  *
  */
 
@@ -569,6 +572,65 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.filterrooms.onebotpayout.disabled(true);
 
 		};
+
+
+		//-------------------------------//
+		// s2.5. Отредактировать комнату //
+		//-------------------------------//
+		f.s2.edit = function(data, event) {
+
+			ajaxko(self, {
+			  command: 	    "\\M9\\Commands\\C3_edit_room",
+				from: 		    "f.s2.edit",
+			  data: 		    {
+					id: 											self.m.s2.edit.id(),
+
+					is_on: 										self.m.s2.edit.is_on() == true ? 1 : 0,
+					bet_accepting_mode: 			self.m.s2.edit.bet_accepting_mode(),
+					name: 										self.m.s2.edit.name(),
+					room_round_duration_sec: 	self.m.s2.edit.room_round_duration_sec(),
+					max_items_per_bet: 				self.m.s2.edit.max_items_per_bet(),
+					max_items_per_round: 			self.m.s2.edit.max_items_per_round(),
+					min_items_per_bet: 				self.m.s2.edit.min_items_per_bet(),
+					min_items_per_round: 			self.m.s2.edit.min_items_per_round(),
+					min_bet: 									self.m.s2.edit.min_bet(),
+					max_bet: 									self.m.s2.edit.max_bet(),
+					min_bet_round: 						self.m.s2.edit.min_bet_round(),
+					max_bet_round: 						self.m.s2.edit.max_bet_round(),
+					allow_unstable_prices: 		self.m.s2.edit.allow_unstable_prices() == true ? 1 : 0,
+					fee_percents: 						self.m.s2.edit.fee_percents(),
+					change: 									self.m.s2.edit.change() == true ? 1 : 0,
+					one_bot_payout: 					self.m.s2.edit.one_bot_payout() == true ? 1 : 0,
+					payout_limit_min: 				self.m.s2.edit.payout_limit_min(),
+					allow_only_types: 				self.m.s2.edit.allow_only_types_json()
+
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что пользователь был успешно отредактирован
+					notify({msg: 'The bot has been edited', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+				},
+			  ok_2:         function(data, params){
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+	  };
 
 
 return f; }};

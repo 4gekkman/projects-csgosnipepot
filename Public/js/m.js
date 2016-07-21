@@ -600,6 +600,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//----------------------------------//
 	self.m.s2.edit = {};
 
+		// 1] Поля модели //
+		//----------------//
 		self.m.s2.edit.id 													= ko.observable("");
 
 		self.m.s2.edit.is_on 												= ko.observable("");
@@ -616,18 +618,44 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.max_bet_round 								= ko.observable("");
 		self.m.s2.edit.allow_unstable_prices 				= ko.observable("");
 		self.m.s2.edit.allow_only_types 						= {
-			"case": 					ko.observable(false),
-			"key": 						ko.observable(false),
-			"startrak": 			ko.observable(false),
-			"souvenirpack": 	ko.observable(false),
-			"souvenir": 			ko.observable(false),
-			"knife": 					ko.observable(false),
-			"weapon": 				ko.observable(false)
+			"case": 							ko.observable(false),
+			"key": 								ko.observable(false),
+			"startrak": 					ko.observable(false),
+			"souvenir packages": 	ko.observable(false),
+			"souvenir": 					ko.observable(false),
+			"knife": 							ko.observable(false),
+			"weapon": 						ko.observable(false)
 		};
 		self.m.s2.edit.fee_percents 								= ko.observable("");
 		self.m.s2.edit.change 											= ko.observable("");
 		self.m.s2.edit.one_bot_payout 							= ko.observable("");
 		self.m.s2.edit.payout_limit_min 						= ko.observable("");
+
+		// 2] Поле allow_only_types в виде json-строки //
+		//---------------------------------------------//
+		self.m.s2.edit.allow_only_types_json = ko.computed(function(){
+
+			// 2.1] Подготовить переменную для результата
+			var result = [];
+
+			// 2.2] Наполнить result
+			for(var key in self.m.s2.edit.allow_only_types) {
+
+				// Если свойство не своё, пропускаем
+				if(!self.m.s2.edit.allow_only_types.hasOwnProperty(key)) continue;
+
+				// Добавить key в result, если значение true
+				if(self.m.s2.edit.allow_only_types[key]() == true)
+					result.push(key);
+
+			}
+
+			// 2.3] Вернуть result
+			return JSON.stringify(result);
+
+		});
+
+
 
 
 	//--------------------------------------//
