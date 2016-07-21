@@ -134,6 +134,12 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						// 1] Если свойство не своё, пропускаем
 						if(!data.rooms[i].hasOwnProperty(key)) continue;
 
+						// 2] Если key == 'bot_ids', делаем из него наблюдаемый массив
+						if(key == 'bot_ids') {
+							obj[key] = ko.observableArray(data.rooms[i][key]);
+							continue;
+						}
+
 						// 2] Добавим в obj свойство key
 						obj[key] = ko.observable(data.rooms[i][key]);
 
@@ -721,12 +727,27 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					return;
 				}
 
-			// 2] Осуществить запрос к серверу
+			// 2] Если надо открепить этого бота от комнаты, сделать это
+			if(action == 'detach') {
+				self.m.s2.indexes.rooms[self.m.s2.edit.id()].bot_ids(ko.utils.arrayFilter(self.m.s2.indexes.rooms[self.m.s2.edit.id()].bot_ids(), function(item){
+
+					if(item == data.id()) return false;
+					return true;
+
+				}));
+			}
+
+			// 3] Если надо прикрепить этого бота к комнате, сделать это
+			if(action == 'attach') {
+				self.m.s2.indexes.rooms[self.m.s2.edit.id()].bot_ids.push(data.id());
+			}
+
+			// 4] Осуществить запрос к серверу
 			ajaxko(self, {
 			  command: 	    "\\M9\\Commands\\C4_edit_attached_bot_list",
 				from: 		    "f.s2.edit",
 			  data: 		    {
-					id_room:                            self.self.m.s2.edit.id(),
+					id_room:                            self.m.s2.edit.id(),
 					attached2selectedroom_bot_ids: 			self.m.s3.attached2selectedroom_bot_ids()
 				},
 			  prejob:       function(config, data, event){},

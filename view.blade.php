@@ -841,7 +841,7 @@
               <?php /*--->
               <!-- Бот -->
               <!-----*/ ?>
-              <div class="attached-bot" data-bind="click: $root.f.s2.edit_attached_bot_list.bind($data, {action: 'detach'}), visible: $root.m.s3.notattached2selectedroom_bot_ids.indexOf(id()) != -1">
+              <div class="attached-bot" data-bind="click: $root.f.s2.edit_attached_bot_list.bind($data, {action: 'detach'}), visible: $root.m.s3.attached2selectedroom_bot_ids.indexOf(id()) != -1">
 
                 <?php /*------>
                 <!-- Аватар -->
@@ -951,7 +951,7 @@
               <?php /*--->
               <!-- Бот -->
               <!-----*/ ?>
-              <div class="attached-bot" data-bind="click: $root.f.s2.edit_attached_bot_list.bind($data, {action: 'attach'}), visible: $root.m.s3.attached2selectedroom_bot_ids.indexOf(id()) != -1">
+              <div class="attached-bot" data-bind="click: $root.f.s2.edit_attached_bot_list.bind($data, {action: 'attach'}), visible: $root.m.s3.notattached2selectedroom_bot_ids.indexOf(id()) != -1">
 
                 <?php /*------>
                 <!-- Аватар -->
