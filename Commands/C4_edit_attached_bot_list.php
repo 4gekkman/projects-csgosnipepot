@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        id_room                         | ID комнаты, чьи связи надо подправить
+ *        attached2selectedroom_bot_ids   | комнада должна быть связана с ботами с ID из этого массива
  *      ]
  *    ]
  *
@@ -135,20 +136,61 @@ class C4_edit_attached_bot_list extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Провести валидацию входящих параметров
+     *  2. Попробовать найти комнату с ID = id_room
+     *  3. Проверить, существует ли связь m8_bots в md1_rooms в m9
+     *  4. Отвязать комнату $room от всех связей с ботами
      *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------------------------------------------------------//
+    // Отредактировать переданными ID ботов связи с таблицей ботов указанной игровой комнаты //
+    //---------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "id_room"                         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "attached2selectedroom_bot_ids"   => ["r4_defined", "array"],
+        "attached2selectedroom_bot_ids.*" => ["sometimes", "regex:/^[0-9]+$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Попробовать найти комнату с ID = id_room
+      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
+      if(empty($room))
+        throw new \Exception('A room with id == '.$this->data['id_room'].' not found in the system.');
+
+      // 3. Проверить, существует ли связь m8_bots в md1_rooms в m9
+      if(!r1_rel_exists('m9', 'md1_rooms', 'm8_bots'))
+        throw new \Exception('Necessary relation m8_bots in md1_rooms in M9 is absent.');
+
+      // 4. Отвязать комнату $room от всех связей с ботами
+      $room->m8_bots()->detach();
+
+      // 5. Связать комнату с ботами из attached2selectedroom_bot_ids, если они существуют
+      foreach($this->data['attached2selectedroom_bot_ids'] as $id_bot) {
+
+        // 5.1. Попробовать найти бота с $id_bot
+        $bot = r1_query(function() USE ($id_bot) {
+          return \M8\Models\MD1_bots::find($id_bot);
+        });
+        if(empty($bot))
+          throw new \Exception('A bot with id == '.$id_bot.' not found in the system.');
+
+        // 5.2. Связать $room и $bot
+        if(!$room->m8_bots->contains($bot->id))
+          $room->m8_bots()->attach($bot->id);
+
+      }
 
 
     DB::commit(); } catch(\Exception $e) {
