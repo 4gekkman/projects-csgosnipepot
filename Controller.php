@@ -123,6 +123,8 @@ class Controller extends BaseController {
       // 3. Получить все комнаты
       $rooms = (array) runcommand('\M9\Commands\C1_rooms', []);
 
+      // 4. Получить всех ботов
+      $bots = (array) runcommand('\M8\Commands\C1_bots', []);
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -136,6 +138,7 @@ class Controller extends BaseController {
         'group'                 => $group,
         'subdoc'                => $subdoc,
         'rooms'                 => $rooms,
+        'bots'                  => $bots
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

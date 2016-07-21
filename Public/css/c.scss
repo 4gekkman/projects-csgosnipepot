@@ -197,120 +197,248 @@
       position: relative;
     }
 
-  //---------------//
-  // Левый столбец //
-  //---------------//
+  //----------------------------------//
+  // Свойства поддокумента properties //
+  //----------------------------------//
 
-    // Стили левого столбца
-    .choosen-room-cont .room-submenu {
-      width: 120px;
+    //---------------//
+    // Левый столбец //
+    //---------------//
+
+      // Стили левого столбца
+      .choosen-room-cont .room-submenu {
+        width: 120px;
+      }
+
+      // Блок "назад"
+      .choosen-room-cont .room-submenu .back_link {
+        transition: all 0.2s ease-in-out;
+        background-color: RGBA(255,255,255,1);
+        cursor: pointer;
+        text-align: center;
+        color: RGBA(0,0,0,.2);
+        padding: 5px 10px;
+        font-size: 16px;
+      }
+      .choosen-room-cont .room-submenu .back_link:hover {
+        color: RGBA(0,0,0,.6);
+      }
+
+      // Бокс со стрелкой "назад"
+      .choosen-room-cont .room-submenu .box_back_style {
+        border: 1px solid RGBA(0,0,0,.1);
+        box-shadow: none;
+        margin-bottom: 15px;
+      }
+
+      // Стили для бокса левого меню интерфейса бота
+      .choosen-room-cont .room-submenu .box_leftmenu_style ul {
+        border: 1px solid RGBA(0,0,0,.1);
+        background-color: #fff;
+        border-radius: 2px;
+        padding-bottom: 7px !important;
+      }
+      .choosen-room-cont .room-submenu .box_leftmenu_style .separator {
+        padding: 0;
+        background-color: #ecf0f5;
+        height: 10px;
+      }
+      .choosen-room-cont .room-submenu .box_leftmenu_style ul {
+        padding: 7px 0 0px 0;
+      }
+      .choosen-room-cont .room-submenu .box_leftmenu_style li {
+        transition: color 0.3s ease-in-out;
+        list-style-type: none;
+        padding: 7px 10px 7px 10px;
+        color: RGBA(0,0,0,.5);
+        cursor: pointer;
+      }
+      .choosen-room-cont .room-submenu .box_leftmenu_style li:hover {
+        color: RGBA(0,0,0,8);
+      }
+      .choosen-room-cont .room-submenu .box_leftmenu_style .active {
+        color: RGBA(0,0,0,1);
+      }
+      .choosen-room-cont .room-submenu .box_leftmenu_style li span {
+        border-bottom: 1px dashed RGBA(0,0,0,.1);
+      }
+
+    //----------------//
+    // Правый столбец //
+    //----------------//
+
+      // Общие стили
+      .choosen-room-cont .room-content .content_in_content_box .header-note {
+        margin-bottom: 10px;
+      }
+      .choosen-room-cont .room-content .content_in_content_box .header-note span {
+        font-weight: bold;
+      }
+      .choosen-room-cont .room-content .content_in_content_box .empty-note {
+        padding-left: 25px;
+        padding-top: 15px;
+        font-style: italic;
+        color: RGBA(0,0,0,.3);
+        font-size: 1em;
+      }
+      .choosen-room-cont .room-content .box_back_style {
+        border: 1px solid RGBA(0,0,0,.1);
+        box-shadow: none;
+        margin-bottom: 15px;
+      }
+
+      // Стили правого столбца
+      .choosen-room-cont {
+        padding-left: 135px;
+        min-width: 400px;
+      }
+      .choosen-room-cont .content_in_content_box {
+        position: relative;
+        padding: 10px;
+      }
+      .choosen-room-cont .no_padding {
+        padding: 0;
+      }
+
+      // Контент-бокс правого столбца
+      .choosen-room-cont .content_box_wrapper {
+        min-height: 380px;
+      }
+      .choosen-room-cont .content_box_wrapper .content_box {
+        border: 1px solid RGBA(0,0,0,.1);
+        background-color: #fff;
+        border-radius: 2px;
+      }
+      .choosen-room-cont .content_box_wrapper .content_box .nav-tabs-custom {
+        border: 0;
+        box-shadow: none;
+      }
+
+      // Форма для редактирования полей комнаты
+      .choosen-room-cont .content_in_content_box .roomedit {
+        margin-left: 120px;
+      }
+
+  //----------------------------//
+  // Свойства поддокумента bots //
+  //----------------------------//
+
+    //-------//
+    // Общие //
+    //-------//
+
+      // Прочие
+      .choosen-room-cont .room-bots-cont {}
+      .choosen-room-cont .room-bots-cont .header-note {
+        font-weight: bold;
+      }
+
+      // Списки ботов
+      .choosen-room-cont .room-bots-cont .attached-bots-list {
+
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot {
+        margin: 0; margin-top: 10px;
+        height: 62px;
+        border: 1px solid RGBA(0,0,0,.1);
+        transition: box-shadow 0.2s ease-in-out;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot:hover {
+        box-shadow: 2px 2px 10px RGBA(0,0,0,.3);
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_avatar {
+        position: relative;
+        max-height: 60px;
+        max-width: 60px;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_avatar img {
+        width: 60px;
+        max-width: 60px;
+        height: 60px;
+        max-height: 60px;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_avatar .bots_id {
+        position: absolute; top: 0; left: 0;
+        width: 60px;
+        height:60px;
+        text-align: center;
+        line-height: 60px;
+        font-size: 1.5em;
+        color: white;
+        text-shadow:
+         -1px -1px 0 #000,
+          1px -1px 0 #000,
+          -1px 1px 0 #000,
+           1px 1px 0 #000;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info {
+        margin-left: 60px;
+        cursor: default;
+        height: 60px;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-nickname {
+        padding: 0 5px;
+        height: 40px;
+        line-height: 40px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 3px;
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals {
+        padding: 0 5px;
+        height: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals>div {
+        display: inline-block;
+        height: 20px;
+        line-height: 20px;
+        padding-right: 10px;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals>div:nth-child(1)>i {
+        color: RGBA(0,180,0,1);
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals>div:nth-child(2)>i {
+        color: RGBA(180,180,0,1);
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals>div:nth-child(3) {
+        float: right;
+        padding: 0;
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals>div:nth-child(3)>i {
+        color: RGBA(0,0,0,.2);
+      }
+      .choosen-room-cont .room-bots-cont .attached-bots-list .attached-bot .bots_info .bots-additionals>div:nth-child(3)>i:nth-child(4) {
+        color: RGBA(180,0,0,1);
+      }
+
+    //---------------//
+    // Левый столбец //
+    //---------------//
+    .choosen-room-cont .room-bots-cont .left-column-cont {
+      border-right: 1px solid RGBA(0,0,0,.2);
     }
 
-    // Блок "назад"
-    .choosen-room-cont .room-submenu .back_link {
-      transition: all 0.2s ease-in-out;
-      background-color: RGBA(255,255,255,1);
-      cursor: pointer;
-      text-align: center;
-      color: RGBA(0,0,0,.2);
-      padding: 5px 10px;
-      font-size: 16px;
-    }
-    .choosen-room-cont .room-submenu .back_link:hover {
-      color: RGBA(0,0,0,.6);
+
+    //----------------//
+    // Правый столбец //
+    //----------------//
+    .choosen-room-cont .room-bots-cont .right-column-cont {
+      border-left: 1px solid RGBA(0,0,0,.2);
+      margin-left: -1px;
     }
 
-    // Бокс со стрелкой "назад"
-    .choosen-room-cont .room-submenu .box_back_style {
-      border: 1px solid RGBA(0,0,0,.1);
-      box-shadow: none;
-      margin-bottom: 15px;
-    }
 
-    // Стили для бокса левого меню интерфейса бота
-    .choosen-room-cont .room-submenu .box_leftmenu_style ul {
-      border: 1px solid RGBA(0,0,0,.1);
-      background-color: #fff;
-      border-radius: 2px;
-      padding-bottom: 7px !important;
-    }
-    .choosen-room-cont .room-submenu .box_leftmenu_style .separator {
-      padding: 0;
-      background-color: #ecf0f5;
-      height: 10px;
-    }
-    .choosen-room-cont .room-submenu .box_leftmenu_style ul {
-      padding: 7px 0 0px 0;
-    }
-    .choosen-room-cont .room-submenu .box_leftmenu_style li {
-      transition: color 0.3s ease-in-out;
-      list-style-type: none;
-      padding: 7px 10px 7px 10px;
-      color: RGBA(0,0,0,.5);
-      cursor: pointer;
-    }
-    .choosen-room-cont .room-submenu .box_leftmenu_style li:hover {
-      color: RGBA(0,0,0,8);
-    }
-    .choosen-room-cont .room-submenu .box_leftmenu_style .active {
-      color: RGBA(0,0,0,1);
-    }
-    .choosen-room-cont .room-submenu .box_leftmenu_style li span {
-      border-bottom: 1px dashed RGBA(0,0,0,.1);
-    }
 
-  //----------------//
-  // Правый столбец //
-  //----------------//
 
-    // Общие стили
-    .choosen-room-cont .room-content .content_in_content_box .header-note {
-      margin-bottom: 10px;
-    }
-    .choosen-room-cont .room-content .content_in_content_box .header-note span {
-      font-weight: bold;
-    }
-    .choosen-room-cont .room-content .content_in_content_box .empty-note {
-      padding-left: 25px;
-      padding-top: 15px;
-      font-style: italic;
-      color: RGBA(0,0,0,.3);
-      font-size: 1em;
-    }
-    .choosen-room-cont .room-content .box_back_style {
-      border: 1px solid RGBA(0,0,0,.1);
-      box-shadow: none;
-      margin-bottom: 15px;
-    }
 
-    // Стили правого столбца
-    .choosen-room-cont {
-      padding-left: 135px;
-      min-width: 400px;
-    }
-    .choosen-room-cont .content_in_content_box {
-      position: relative;
-      padding: 10px;
-    }
-    .choosen-room-cont .no_padding {
-      padding: 0;
-    }
 
-    // Контент-бокс правого столбца
-    .choosen-room-cont .content_box_wrapper {
-      min-height: 380px;
-    }
-    .choosen-room-cont .content_box_wrapper .content_box {
-      border: 1px solid RGBA(0,0,0,.1);
-      background-color: #fff;
-      border-radius: 2px;
-    }
-    .choosen-room-cont .content_box_wrapper .content_box .nav-tabs-custom {
-      border: 0;
-      box-shadow: none;
-    }
 
-    // Форма для редактирования полей комнаты
-    .choosen-room-cont .content_in_content_box .roomedit {
-      margin-left: 120px;
-    }
+
+
+
+

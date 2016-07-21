@@ -814,9 +814,233 @@
         <?php /*------->
         <!-- 2] Bots -->
         <!---------*/ ?>
-        <div style="display: none" class="content_in_content_box" data-bind="visible: m.s1.selected_subdoc().name() == 'Bots'">
+        <div style="display: none" class="content_in_content_box room-bots-cont row" data-bind="visible: m.s1.selected_subdoc().name() == 'Bots'">
 
-          Bots
+          <?php /*--------------------------------------------->
+          <!-- Левый столбец (боты, прикреплённые к комнате) -->
+          <!-----------------------------------------------*/ ?>
+          <div class="col-md-6 col-sm-6 col-xs-6 left-column-cont">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="row">
+
+              <?php /* Текст заголовка -->
+              <!---------------------*/ ?>
+              <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <span class="header-note">Choosen bots</span>
+                <span data-bind="text: '- ' + m.s3.attached2selectedroom_bot_ids().length" style="font-size: 13px; color: rgb(204, 204, 204);"></span>
+              </div>
+
+            </div>
+
+            <?php /* Прикреплённые к комнате боты -->
+            <!----------------------------------*/ ?>
+            <div class="attached-bots-list" data-bind="foreach: m.s3.bots">
+
+              <?php /*--->
+              <!-- Бот -->
+              <!-----*/ ?>
+              <div class="attached-bot" data-bind="click: $root.f.s2.edit_attached_bot_list.bind($data, {action: 'detach'}), visible: $root.m.s3.notattached2selectedroom_bot_ids.indexOf(id()) != -1">
+
+                <?php /*------>
+                <!-- Аватар -->
+                <!--------*/ ?>
+                <div class="spanfix_left0 spanfix_width62 bots_avatar">
+
+                  <?php /*-------->
+                  <!-- Картинка -->
+                  <!----------*/ ?>
+                  <img data-bind="attr: {src: avatar_steam}">
+
+                  <?php /*------->
+                  <!-- ID бота -->
+                  <!---------*/ ?>
+                  <div class="bots_id">
+                    <span data-bind="text: id"></span>
+                  </div>
+
+                </div>
+
+                <?php /*---------->
+                <!-- Информация -->
+                <!------------*/ ?>
+                <div class="bots_info">
+
+                  <?php /*------------>
+                  <!-- Никнэйм бота -->
+                  <!--------------*/ ?>
+                  <div class="bots-nickname" data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}">
+                    <span data-bind="text: steam_name, attr: {title: steam_name}"></span>
+                  </div>
+
+                  <?php /*----------------->
+                  <!-- Информация о боте -->
+                  <!-------------------*/ ?>
+                  <div class="bots-additionals">
+
+                    <?php /*---------------------------->
+                    <!-- Количество вещей в инвентаре -->
+                    <!------------------------------*/ ?>
+                    <div title="How many items the bot has in it's inventory">
+                      <i class="fa fa-fw fa-cube"></i>
+                      <span data-bind="text: inventory_count"></span>
+                    </div>
+
+                    <?php /*------------------------------->
+                    <!-- В каком кол-ве игр задействован -->
+                    <!---------------------------------*/ ?>
+                    <div title="How many games the bot is involved in">
+                      <i class="fa fa-fw fa-gamepad"></i>
+                      <span data-bind="text: '1'"></span>
+                    </div>
+
+                    <?php /*--------------------------------->
+                    <!-- Какие торговые операции разрешены -->
+                    <!-----------------------------------*/ ?>
+                    <div title="What trade opeartions is allowed">
+
+                      <?php /*---------------------------------------------->
+                      <!-- Если разрешены входящие, и запрещены исходящие -->
+                      <!------------------------------------------------*/ ?>
+                      <i class="fa fa-fw fa-long-arrow-down" data-bind="visible: ison_incoming() && !ison_outcoming()"></i>
+
+                      <?php /*---------------------------------------------->
+                      <!-- Если разрешены исходящие, и запрещены входящие -->
+                      <!------------------------------------------------*/ ?>
+                      <i class="fa fa-fw fa-long-arrow-up" data-bind="visible: !ison_incoming() && ison_outcoming()"></i>
+
+                      <?php /*------------------>
+                      <!-- Если все разрешены -->
+                      <!--------------------*/ ?>
+                      <i class="fa fa-fw fa-arrows-v" data-bind="visible: ison_incoming() && ison_outcoming()"></i>
+
+                      <?php /*------------------------>
+                      <!-- Если ничего не разрешено -->
+                      <!--------------------------*/ ?>
+                      <i class="fa fa-fw fa-ban" data-bind="visible: !ison_incoming() && !ison_outcoming()"></i>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /*------------------------------------------------->
+          <!-- Правый столбец (боты, не прикреплённые к комнате) -->
+          <!---------------------------------------------------*/ ?>
+          <div class="col-md-6 col-sm-6 col-xs-6 right-column-cont">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div>
+              <span class="header-note">Not choosen bots</span>
+              <span data-bind="text: '- ' + m.s3.notattached2selectedroom_bot_ids().length" style="font-size: 13px; color: rgb(204, 204, 204);"></span>
+            </div>
+
+            <?php /* Не прикреплённые к комнате боты -->
+            <!-------------------------------------*/ ?>
+            <div class="attached-bots-list" data-bind="foreach: m.s3.bots">
+
+              <?php /*--->
+              <!-- Бот -->
+              <!-----*/ ?>
+              <div class="attached-bot" data-bind="click: $root.f.s2.edit_attached_bot_list.bind($data, {action: 'attach'}), visible: $root.m.s3.attached2selectedroom_bot_ids.indexOf(id()) != -1">
+
+                <?php /*------>
+                <!-- Аватар -->
+                <!--------*/ ?>
+                <div class="spanfix_left0 spanfix_width62 bots_avatar">
+
+                  <?php /*-------->
+                  <!-- Картинка -->
+                  <!----------*/ ?>
+                  <img data-bind="attr: {src: avatar_steam}">
+
+                  <?php /*------->
+                  <!-- ID бота -->
+                  <!---------*/ ?>
+                  <div class="bots_id">
+                    <span data-bind="text: id"></span>
+                  </div>
+
+                </div>
+
+                <?php /*---------->
+                <!-- Информация -->
+                <!------------*/ ?>
+                <div class="bots_info">
+
+                  <?php /*------------>
+                  <!-- Никнэйм бота -->
+                  <!--------------*/ ?>
+                  <div class="bots-nickname" data-bind="css: {green_background_soft: authorization, red_background_soft: !authorization()}">
+                    <span data-bind="text: steam_name, attr: {title: steam_name}"></span>
+                  </div>
+
+                  <?php /*----------------->
+                  <!-- Информация о боте -->
+                  <!-------------------*/ ?>
+                  <div class="bots-additionals">
+
+                    <?php /*---------------------------->
+                    <!-- Количество вещей в инвентаре -->
+                    <!------------------------------*/ ?>
+                    <div title="How many items the bot has in it's inventory">
+                      <i class="fa fa-fw fa-cube"></i>
+                      <span data-bind="text: inventory_count"></span>
+                    </div>
+
+                    <?php /*------------------------------->
+                    <!-- В каком кол-ве игр задействован -->
+                    <!---------------------------------*/ ?>
+                    <div title="How many games the bot is involved in">
+                      <i class="fa fa-fw fa-gamepad"></i>
+                      <span data-bind="text: '1'"></span>
+                    </div>
+
+                    <?php /*--------------------------------->
+                    <!-- Какие торговые операции разрешены -->
+                    <!-----------------------------------*/ ?>
+                    <div title="What trade opeartions is allowed">
+
+                      <?php /*---------------------------------------------->
+                      <!-- Если разрешены входящие, и запрещены исходящие -->
+                      <!------------------------------------------------*/ ?>
+                      <i class="fa fa-fw fa-long-arrow-down" data-bind="visible: ison_incoming() && !ison_outcoming()"></i>
+
+                      <?php /*---------------------------------------------->
+                      <!-- Если разрешены исходящие, и запрещены входящие -->
+                      <!------------------------------------------------*/ ?>
+                      <i class="fa fa-fw fa-long-arrow-up" data-bind="visible: !ison_incoming() && ison_outcoming()"></i>
+
+                      <?php /*------------------>
+                      <!-- Если все разрешены -->
+                      <!--------------------*/ ?>
+                      <i class="fa fa-fw fa-arrows-v" data-bind="visible: ison_incoming() && ison_outcoming()"></i>
+
+                      <?php /*------------------------>
+                      <!-- Если ничего не разрешено -->
+                      <!--------------------------*/ ?>
+                      <i class="fa fa-fw fa-ban" data-bind="visible: !ison_incoming() && !ison_outcoming()"></i>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
 
         </div>
 

@@ -13,6 +13,7 @@
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
  *    f.s0.update_rooms             | s0.2. Обновить модель комнат на основе переданных данных
+ *    f.s0.update_bots              | s0.3. Обновить модель ботов на основе переданных данных
  *    f.s0.update_all               | s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
@@ -26,7 +27,7 @@
  *    f.s2.show_rooms_interface     | s2.3. Открыть интерфейс кликнутой комнаты
  *    f.s2.reset_filters            | s2.4. Функция для сброса фильтров по списку ботов
  *    f.s2.edit                     | s2.5. Отредактировать комнату
- *
+ *    f.s2.edit_attached_bot_list   | s2.6. Отредактировать прикреплённый к выбранной комнате список ботов
  *
  */
 
@@ -155,6 +156,50 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+		//---------------------------------------------------------//
+		// s0.3. Обновить модель ботов на основе переданных данных //
+		//---------------------------------------------------------//
+		// - Пояснение
+		f.s0.update_bots = function(data) {
+
+			// 1. Обновить self.m.s3.bots
+
+				// 1.1. Очистить
+				self.m.s3.bots.removeAll();
+
+				// 1.2. Наполнить
+				for(var i=0; i<data.bots.length; i++) {
+
+					// 1.2.1. Сформировать объект для добавления
+					var obj = {};
+					for(var key in data.bots[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!data.bots[i].hasOwnProperty(key)) continue;
+
+						// 2] Добавим в obj свойство key
+						obj[key] = ko.observable(data.bots[i][key]);
+
+					}
+
+					// 1.2.2. Добавить св-во number
+					obj['number'] = ko.observable(i+1);
+
+					// 1.2.3. Добавить св-во selected
+					obj['selected'] = ko.observable(false);
+
+					// 1.2.4. Добавить этот объект в подготовленный массив
+					self.m.s3.bots.push(ko.observable(obj))
+
+				}
+
+			// 2. Обновить m.s3.bots_total
+			self.m.s3.bots_total(data.bots_total);
+
+
+		};
+
+
 		//------------------------------------------------------------------------//
 		// s0.x. Обновить всю фронтенд-модель документа свежими данными с сервера //
 		//------------------------------------------------------------------------//
@@ -191,9 +236,36 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 						}
 					});
-				}
+				},
 
-				// 1.2] Обновлялка инвентаря выбранного бота
+				// 1.1] Обновлялка ботов
+				bots: function(){
+					ajaxko(self, {
+						command: 	    "\\M8\\Commands\\C1_bots",
+						from: 		    "f.s0.update_all",
+						data: 		    {
+
+						},
+						prejob:       function(config, data, event){},
+						postjob:      function(data, params){
+
+							// Уменьшить счётчик ajax-запросов на 1
+							self.m.s0.ajax_counter(+self.m.s0.ajax_counter() - 1);
+
+						},
+						ok_0:         function(data, params){
+
+							// Обновить модель комнат на основе полученных данных
+							self.f.s0.update_bots(data.data);
+
+						},
+						callback:			function(){
+
+
+
+						}
+					});
+				}
 
 			};
 
@@ -631,6 +703,71 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			});
 
 	  };
+
+
+		//----------------------------------------------------------------------//
+		// s2.6. Отредактировать прикреплённый к выбранной комнате список ботов //
+		//----------------------------------------------------------------------//
+		f.s2.edit_attached_bot_list = function(parameters, data, event) {
+
+			// 1] Выяснить, какое действие требуется совершить
+
+				// Выяснить
+				var action = parameters.action;
+
+				// Если это не attach и не detach, сообщить и завершить
+				if(action != 'attach' && action != 'detach') {
+					notify({msg: "Action should be 'attach' or 'detach'", time: 5, fontcolor: 'RGB(200,50,50)'});
+					return;
+				}
+
+			// 2] Осуществить запрос к серверу
+			ajaxko(self, {
+			  command: 	    "\\M9\\Commands\\C4_edit_attached_bot_list",
+				from: 		    "f.s2.edit",
+			  data: 		    {
+					id_room:                            self.self.m.s2.edit.id(),
+					attached2selectedroom_bot_ids: 			self.m.s3.attached2selectedroom_bot_ids()
+				},
+			  prejob:       function(config, data, event){},
+			  postjob:      function(data, params){},
+			  ok_0:         function(data, params){
+
+					// 1] Сообщить, что пользователь был успешно отредактирован
+					notify({msg: 'The bot has been edited', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+					// 2] Выполнить update_all
+					self.f.s0.update_all([], 'f.s2.edit_attached_bot_list', '', '');
+
+				},
+			  ok_2:         function(data, params){
+
+					// 1] Сообщить об ошибке
+					notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+					console.log(data.data.errortext);
+
+					// 2] Выполнить update_all
+					self.f.s0.update_all([], 'f.s2.edit_attached_bot_list', '', '');
+
+				}
+			  //ajax_params:  {},
+			  //key: 			    "D1:1",
+				//from_ex: 	    [],
+			  //callback:     function(data, params){},
+			  //ok_1:         function(data, params){},
+			  //error:        function(){},
+			  //timeout:      function(){},
+			  //timeout_sec:  200,
+			  //url:          window.location.href,
+			  //ajax_method:  "post",
+			  //ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+			});
+
+		};
+
+
+
+
 
 
 return f; }};
