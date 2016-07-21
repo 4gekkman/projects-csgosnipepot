@@ -152,6 +152,9 @@ use Illuminate\Routing\Controller as BaseController,
      *    r4_defined           | Must be not undefined
      *    r4_true              | must be true (not 1 or '1', only true)
      *    r4_false             | must be false (not 0 or '0', only false)
+     *    r4_min:min           | number must be more or equal than min
+     *    r4_max:max           | number must be less or equal than max
+     *    r4_between:min,max   | number must be between min and max (inclusive)
      *  </pre>
      *
      * @param  string $values
