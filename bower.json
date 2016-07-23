@@ -2,7 +2,7 @@
   "name": "L10000",
   "dependencies": {
 		"4gekkman-bower-jslib1": "latest",
-		"font-awesome": "FortAwesome/Font-Awesome",
+		"Font-Awesome": "latest",
 		"ionicons": "latest",
 		"jquery": "~2.0",
 		"moment": "latest",
