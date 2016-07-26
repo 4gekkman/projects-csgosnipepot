@@ -14,8 +14,7 @@
 		"perfect-scrollbar": "latest",
 		"d3": "latest",
 		"4gekkman-bower-animsition": "latest",
-		"momentjs": "latest",
-		"material-design-icons": "latest"
+		"momentjs": "latest"
 	},
   "mains": {
     "css": [
