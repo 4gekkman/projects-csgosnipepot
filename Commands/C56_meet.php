@@ -196,7 +196,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         // 1.1. Получить аутентификационный кэш из сессии
         $auth_cache = session('auth_cache');
 
-        // 1.2. Если он не пуст, завершить работу функции
+        // 1.2. Если он не пуст и валиден, завершить работу функции
         if(!empty($auth_cache))
           return [
             "status"  => 0,

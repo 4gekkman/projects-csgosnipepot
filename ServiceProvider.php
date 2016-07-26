@@ -147,7 +147,8 @@
           '\M5\Console\T22_logout',
           '\M5\Console\T23_auth_clear_expired',
           '\M5\Console\T24_email_authcodes_clear',
-          '\M5\Console\T25_phone_authcodes_clear'
+          '\M5\Console\T25_phone_authcodes_clear',
+          '\M5\Console\T26_save_steam_tradeurl'
         ];
 
         // Регистрация команд в методе register
