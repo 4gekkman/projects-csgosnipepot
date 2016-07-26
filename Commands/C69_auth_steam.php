@@ -301,9 +301,10 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         $auth->save();
 
         // 10.6. Сфоромировать json с новыми аутентификационными данными
+        $user2auth_excepted = collect($user2auth)->except(['adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
         $json = [
           'auth'    => $auth,
-          'user'    => $user2auth,
+          'user'    => $user2auth_excepted,
           'is_anon' => 0
         ];
         $json = json_encode($json, JSON_UNESCAPED_UNICODE);
@@ -342,7 +343,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         'queue'     => 'auth',
         'data'      => [
           'status'  => 0,
-          'user'    => json_encode($user2auth->toArray(), JSON_UNESCAPED_UNICODE)
+          'user'    => json_encode($user2auth_excepted->toArray(), JSON_UNESCAPED_UNICODE)
         ]
       ]));
 
