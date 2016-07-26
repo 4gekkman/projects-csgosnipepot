@@ -197,15 +197,50 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         $auth_cache = session('auth_cache');
 
         // 1.2. Если он не пуст и валиден, завершить работу функции
-        if(!empty($auth_cache))
-          return [
-            "status"  => 0,
-            "data"    => ""
-          ];
+
+          // 1.2.1. Проверить, валиден ли кэш
+          $is_cache_valid = call_user_func(function() USE ($auth_cache) {
+
+            // 1] Провести валидацию строки $auth_cache
+            $validator = r4_validate(['auth_cache' => $auth_cache], [
+              "auth_cache"      => ["required", "json"],
+            ]); if($validator['status'] == -1)
+              return false;
+
+            // 2] Получить массив из $auth_cache
+            $auth_cache_arr = json_decode($auth_cache, true);
+
+            // 3] Если в $auth_cache_arr нет поля user, значит не валиден
+            if(!array_key_exists('user', $auth_cache_arr) || !array_key_exists('auth', $auth_cache_arr))
+              return false;
+
+            // 4] Провести валидацию $auth_cache_arr['user']
+            $validator = r4_validate($auth_cache_arr['user'], [
+              "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+            ]); if($validator['status'] == -1) {
+              throw new \Exception($validator['data']);
+            }
+
+            // 5] Проверить, существует ли в БД пользователь с таким ID
+            $user = \M5\Models\MD1_users::find($auth_cache_arr['user']['id']);
+            if(empty($user))
+              return false;
+
+            // n] Вернуть true
+            return true;
+
+          });
+
+          // 1.2.2. Если кэш валиден, завершить
+          if($is_cache_valid)
+            return [
+              "status"  => 0,
+              "data"    => ""
+            ];
 
       // 2. Получить аутентификационную куку
       $auth_cookie = Request::cookie('auth');
-      if(!empty($auth_cookie)) $auth_cookie = Crypt::decrypt($auth_cookie);
+      //if(!empty($auth_cookie)) $auth_cookie = Crypt::decrypt($auth_cookie);
 
       // 3. Провести валидацию аутентификационной куки
       // - Если она не пуста
@@ -232,7 +267,19 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           return false;
         }
 
-        // 3.4. Вернуть true (успешная валидация)
+        // 3.4. Получить массив из $auth_cache
+        $auth_cookie_arr = json_decode($auth_cookie, true);
+
+        // 3.5. Если в $auth_cache_arr нет поля user, значит не валиден
+        if(!array_key_exists('user', $auth_cookie_arr) || !array_key_exists('auth', $auth_cookie_arr))
+          return false;
+
+        // 3.6. Проверить, существует ли в БД пользователь с таким ID
+        $user = \M5\Models\MD1_users::find($auth_cookie_arr['user']['id']);
+        if(empty($user))
+          return false;
+
+        // 3.n. Вернуть true (успешная валидация)
         return true;
 
       });
@@ -255,33 +302,28 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         // 4.4. Проверить, валидна ли $auth_note
         $is_valid_auth_note = call_user_func(function() USE ($auth_cookie, $auth_cookie_arr, $auth_note, $auth_cookie_user_id) {
 
-          // 1] Удостовериться, что такой пользователь существует в БД, и это не анонимус
-          $user = \M5\Models\MD1_users::find($auth_cookie_user_id);
-          if(empty($user))
-            return false;
-
-          // 2] Если $auth_cookie_arr['is_anon'] == 1, вернуть 525600
+          // 1] Если $auth_cookie_arr['is_anon'] == 1, вернуть 525600
           if($auth_cookie_arr['is_anon'] == 1) return 525600;
 
-          // 3] Если $auth_note пуста, вернуть false
+          // 2] Если $auth_note пуста, вернуть false
           if(empty($auth_note)) return false;
 
-          // 4] Получить время жизни аутентификации для пользователя $auth_cookie_user_id в часах
+          // 3] Получить время жизни аутентификации для пользователя $auth_cookie_user_id в часах
           $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $auth_cookie_user_id]);
           if($lifetime['status'] != 0)
             throw new \Exception($lifetime['data']);
           $lifetime = $lifetime['data'];
 
-          // 5] Получить Carbon-объект с датой и временем создания $auth_note
+          // 4] Получить Carbon-объект с датой и временем создания $auth_note
           $created_at = $auth_note->created_at;
 
-          // 6] Получить Carbon-объект с текущими серверными датой и временем
+          // 5] Получить Carbon-объект с текущими серверными датой и временем
           $now = \Carbon\Carbon::now();
 
-          // 7] Получить разницу в минутах между $now и $created_at
+          // 6] Получить разницу в минутах между $now и $created_at
           $diff_in_min = $now->diffInMinutes($created_at);
 
-          // 8] Если эта разница больше/равна $lifetime*60, вернуть false
+          // 7] Если эта разница больше/равна $lifetime*60, вернуть false
           if($diff_in_min >= $lifetime*60)
             return false;
 

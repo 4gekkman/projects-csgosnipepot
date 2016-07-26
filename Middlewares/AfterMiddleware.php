@@ -66,7 +66,6 @@ class AfterMiddleware {
     // 1. Получить ответ
     $response = $next($request);
 
-
     // n. Передать ответ дальше
     return $response;
 
