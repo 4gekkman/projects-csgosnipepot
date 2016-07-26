@@ -255,32 +255,37 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         // 4.4. Проверить, валидна ли $auth_note
         $is_valid_auth_note = call_user_func(function() USE ($auth_cookie, $auth_cookie_arr, $auth_note, $auth_cookie_user_id) {
 
-          // 1] Если $auth_cookie_arr['is_anon'] == 1, вернуть 525600
+          // 1] Удостовериться, что такой пользователь существует в БД, и это не анонимус
+          $user = \M5\Models\MD1_users::find($auth_cookie_user_id);
+          if(empty($user))
+            return false;
+
+          // 2] Если $auth_cookie_arr['is_anon'] == 1, вернуть 525600
           if($auth_cookie_arr['is_anon'] == 1) return 525600;
 
-          // 2] Если $auth_note пуста, вернуть false
+          // 3] Если $auth_note пуста, вернуть false
           if(empty($auth_note)) return false;
 
-          // 3] Получить время жизни аутентификации для пользователя $auth_cookie_user_id в часах
+          // 4] Получить время жизни аутентификации для пользователя $auth_cookie_user_id в часах
           $lifetime = runcommand('\M5\Commands\C57_get_auth_limit', ['id_user' => $auth_cookie_user_id]);
           if($lifetime['status'] != 0)
             throw new \Exception($lifetime['data']);
           $lifetime = $lifetime['data'];
 
-          // 4] Получить Carbon-объект с датой и временем создания $auth_note
+          // 5] Получить Carbon-объект с датой и временем создания $auth_note
           $created_at = $auth_note->created_at;
 
-          // 5] Получить Carbon-объект с текущими серверными датой и временем
+          // 6] Получить Carbon-объект с текущими серверными датой и временем
           $now = \Carbon\Carbon::now();
 
-          // 6] Получить разницу в минутах между $now и $created_at
+          // 7] Получить разницу в минутах между $now и $created_at
           $diff_in_min = $now->diffInMinutes($created_at);
 
-          // 7] Если эта разница больше/равна $lifetime*60, вернуть false
+          // 8] Если эта разница больше/равна $lifetime*60, вернуть false
           if($diff_in_min >= $lifetime*60)
             return false;
 
-          // 8] Вернуть оставшееся время жизни $auth_note в минутах
+          // n] Вернуть оставшееся время жизни $auth_note в минутах
           return +$lifetime*60 - +$diff_in_min;
 
         });
