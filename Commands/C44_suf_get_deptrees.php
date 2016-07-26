@@ -242,7 +242,7 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
 
             // 2] Для каждого ключа применить $recursive
             // - Но только если его dependencies не пустой массив
-            if(count($value['dependencies']) != 0)
+            if(array_key_exists('dependencies', $value) && count($value['dependencies']) != 0)
               $recursive($value['dependencies'], $dest[$key]);
 
           }
@@ -306,8 +306,10 @@ class C44_suf_get_deptrees extends Job { // TODO: добавить "implements S
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/R5/data4bower/'.$packname)]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        if(!$this->storage->exists('mains.json'))
+
+        if(!$this->storage->exists('mains.json')) {
           throw new \Exception('Для bower-пакета '.$packname.' не найден файл mains.json в R5');
+        }
 
         // 4.3. Получить содержимое mains.json в формате php-массива
         $file = json_decode($this->storage->get('mains.json'), true);

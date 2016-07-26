@@ -330,15 +330,17 @@ class C45_suf_bower_automain extends Job { // TODO: добавить "implements
         });
 
         // 3.4. Если в $mains_from_bowerjson пусто
-        if(count($mains_from_bowerjson['css']) == 0 && count($mains_from_bowerjson['js']) == 0) {
+        if((!array_key_exists('css', $mains_from_bowerjson) || count($mains_from_bowerjson['css']) == 0) && (!array_key_exists('js', $mains_from_bowerjson) || count($mains_from_bowerjson['js']) == 0)) {
           $msg = "У bower-пакета ".$packname." в R5 в mains.json пусты массивы с css/js, команда C45_suf_bower_automain проводит автовставку данных из bower.json пакета... но данные не обнаружены, либо bower.json отсутствует у пакета, либо в нём нет поля main, либо в поле main нет путей к css/js файлам.";
           write2log($msg, []);
           \Log::info($msg, []);
         }
 
         // 3.5. Записать в $mains данные из $mains_from_bowerjson
-        $mains['mains']['css'] = $mains_from_bowerjson['css'];
-        $mains['mains']['js'] = $mains_from_bowerjson['js'];
+        if(array_key_exists('css', $mains_from_bowerjson))
+          $mains['mains']['css'] = $mains_from_bowerjson['css'];
+        if(array_key_exists('js', $mains_from_bowerjson))
+          $mains['mains']['js'] = $mains_from_bowerjson['js'];
 
         // 3.6. Заменить $mains для $packname
         config(['filesystems.default' => 'local']);

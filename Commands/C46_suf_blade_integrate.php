@@ -154,8 +154,8 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
         Log::info('Error: '.$index['data']);
         write2log('Error: '.$index['data']);
       }
-      $index = $index['data']['index_final'];
 
+      $index = $index['data']['index_final'];
       // 2. Получить массив ID всех D-пакетов
       $packages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
         $query->whereIn('name',['D']);
