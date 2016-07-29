@@ -119,7 +119,8 @@
         $commands = [
           '\M10\Console\T1_sync_rooms',
           '\M10\Console\T2_add_message_to_the_room',
-          '\M10\Console\T3_clientside_post_to_chat_room'
+          '\M10\Console\T3_clientside_post_to_chat_room',
+          '\M10\Console\T4_get_messages'
         ];
 
         // Регистрация команд в методе register

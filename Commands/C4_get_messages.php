@@ -7,14 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Post to the main chat room
+ *    - Get pointed number of messages from the specified room with the specified parameters
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        message
+ *        id_room       // ID комнаты, из которой надо извлечь сообщения
+ *        number        // Кол-во последних сообщений, которое надо извлечь (0=все)
+ *        active_only   // Извлекать только сообщения не заблокированных/забаненых пользователей (==1)
  *      ]
  *    ]
  *
@@ -40,15 +42,6 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
- *
- *  Куда постит сообщения эта команда
- *  ---------------------------------
- *    - В комнату с именем "main".
- *
- *  От чьего имени постит сообщения эта команда
- *  -------------------------------------------
- *    - От имени текущего аутентифицированного пользователя, который вызвал её через AJAX.
- *
  *
  */
 
@@ -110,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C3_clientside_post_to_chat_room extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C4_get_messages extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -145,48 +138,83 @@ class C3_clientside_post_to_chat_room extends Job { // TODO: добавить "i
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Выполнить C2_add_message_to_the_room от имени вызвавшего эту команду пользователя
+     *  2. Попробовать найти комнату с id_room
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------------------------------------------------------------------//
-    // Запостить новое сообщение в комнату с именем "main" от имени текущего аутентифицированного пользователя //
-    //---------------------------------------------------------------------------------------------------------//
+    //----------------------------------------------------------//
+    // Извлечь сообщения из указанной комнаты указанным образом //
+    //----------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "message"         => ["required", "string"],
+        "id_room"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "number"              => ["required", "regex:/^[0-9]+$/ui"],
+        "active_only"         => ["required", "regex:/^[01]{1}$/ui"],
       ]); if($validator['status'] == -1) {
-        throw new \Exception("There is no message.");
+        throw new \Exception($validator['data']);
       }
 
-      // 2. Получить комнату с именем "main"
-      $room = \M10\Models\MD1_rooms::where('name', 'main')->first();
+      // 2. Попробовать найти комнату с id_room
+      $room = \M10\Models\MD1_rooms::find($this->data['id_room']);
       if(empty($room))
-      if(empty($room))
-        throw new \Exception("Can't find the room with NAME = 'main'");
+        throw new \Exception("Can't find room with ID = ".$this->data['id_room']);
 
-      // 3. Выполнить C2_add_message_to_the_room от имени вызвавшего эту команду пользователя
-      $result = runcommand('\M10\Commands\C2_add_message_to_the_room', [
-        'id_room'       => $room->id,
-        'message'       => $this->data['message'],
-        'from_who_id'   => '0'
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception("An error occurred while adding post. You are probably was banned.");
+      // 3. Извлечь сообщения
+      $messages = call_user_func(function(){
+
+        // 3.1. Подготовить запрос
+        $query = \M10\Models\MD2_messages::query();
+
+        // 3.2. Искать записи, связанные с комнатой id_room
+        $query->whereHas('rooms', function($query){
+          $query->where('id', $this->data['id_room']);
+        });
+
+        // 3.3. Если нужны только сообщения не забаненных и не заблокированных пользователей
+        if($this->data['active_only']) {
+          $query->whereDoesntHave('rooms', function($query) {
+            $query->whereHas('m5_users_md2002');
+          })-orWhereDoesntHave;
+        }
+
+
+        // 3.3. Если number > 0, брать лишь number записей
+        if($this->data['number'] != 0) {
+          $query->take($this->data['number']);
+        }
+
+
+
+        // 3.2. Брать записи с конца
+        $query->orderBy('created_at', 'desc');
+
+        // 3.n. Получить результаты
+        $results = $query->get();
+
+        // 3.n. Вернуть результаты запроса
+        return $results;
+
+      });
+
+      write2log($messages, []);
+
+
+
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C3_clientside_post_to_chat_room from M-package M10 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C4_get_messages from M-package M10 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M10', 'C3_clientside_post_to_chat_room']);
+        write2log($errortext, ['M10', 'C4_get_messages']);
         return [
           "status"  => -2,
           "data"    => [
-            "errortext" => '',
+            "errortext" => $errortext,
             "errormsg" => $e->getMessage()
           ]
         ];

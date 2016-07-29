@@ -172,29 +172,90 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
       // 3. Получить модель пользователя, от имени которого надо запостить сообщение
       $user = call_user_func(function(){
 
-        // 3.1. Если from_who_id != 0
-        if($this->data['from_who_id'] != 0) {
+        // 3.1. Если from_who_id == 0
+        // - Т.Е. публиковать пост надо от имени текущего аутентиф.пользователя.
+        if($this->data['from_who_id'] == 0) {
 
           // 1] Получить из сессии аутентификационную информацию о пользователе
-          $auth = session('auth_cache');
+          $authdata = session('auth_cache');
 
-          // 2]
+          // 2] Извлечь из неё информацию об ID пользователя
+          $id_user = json_decode($authdata, true)['user']['id'];
 
+          // 3] Найти пользователя с $id_user
+          $user = \M5\Models\MD1_users::find($id_user);
+          if(empty($user))
+            throw new \Exception("Can't find user with ID = ".$id_user);
+
+          // 4] Вернуть $user
+          return $user;
 
         }
 
-        // 3.2. Если from_who_id == 0
+        // 3.2. Если from_who_id != 0
+        // - Т.Е. публиковать пост надо от имени пользователя с указанным ID.
         else {
 
-          // 1]
+          // 1] Найти пользователя с from_who_id
+          $user = \M5\Models\MD1_users::find($this->data['from_who_id']);
+          if(empty($user))
+            throw new \Exception("Can't find user with ID = ".$this->data['from_who_id']);
 
+          // 2] Вернуть $user
+          return $user;
 
         }
 
       });
 
+      // 4. Если пользователь $user заблокирован, возбудить исключение
+      if($user->is_blocked != 0)
+        throw new \Exception("The user with ID = ".$this->data['from_who_id'].' is blocked.');
 
+      // 5. Если пользователь $user забанен, возбудить исключение
+      foreach($room->m5_users_md2002() as $banned_user) {
 
+        if($banned_user->id == $user->id)
+          throw new \Exception("The user with ID = ".$this->data['from_who_id'].' is banned.');
+
+      }
+
+      // 6. Если в $room запрещено публиковать гостям, а $user гость, возбудить исключение
+      if($room->allow_guests != '1') {
+        if($user->isanonymous == '1') {
+          throw new \Exception("The user with ID = ".$this->data['from_who_id'].' is a guest, them not allowed in that room.');
+        }
+      }
+
+      // 7. Если размер сообщения превышен, возбудить исключение
+      if(mb_strlen($this->data['message']) > $room->max_msg_length)
+        throw new \Exception("The message is too long.");
+
+      // 8. Записать сообщение в базу данных
+
+        // 8.1. Создать новое сообщение
+        $new_message = new \M10\Models\MD2_messages();
+
+        // 8.2. Наполнить $new_message
+        $new_message->message = $this->data['message'];
+
+        // 8.3. Сохранить $new_message
+        $new_message->save();
+
+      // 9. Транслировать сообщение всем клиентам-подписчикам
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m10:chat_main'],
+        'queue'    => 'chat',
+        'data'     => [
+          'message' => [
+            'id'          => $new_message->id,
+            'steamname'   => $user->nickname,
+            'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
+            'level'       => '1',
+            'message'     => $new_message->message,
+          ]
+        ]
+      ]));
 
 
     DB::commit(); } catch(\Exception $e) {
