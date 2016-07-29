@@ -534,7 +534,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
         // 8] Подготовить и добавить в $result foreign-belongsToMany-связи
         call_user_func(function() USE (&$result, $foreign_rels) {
-          foreach($foreign_rels as $rel) {
+          foreach($foreign_rels as $pivot_table_name => $rel) {
 
             // 8.1] Проверить в $result существование ключей
             // - $rel[0]->REFERENCED_TABLE_NAME
@@ -663,9 +663,23 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
             // 8.4] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
 
               // 8.4.1] Определить имя связи
-              $relname = $modelname2;
-              $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
-              $relname = mb_strtolower($basename2) . '_' . $relname;
+              $relname = call_user_func(function() USE ($modelname2, $basename2, $result, $rel, $pivot_table_name) {
+
+                // 8.4.1.1] Определить имя связи в нормальных обстоятельствах
+                // - Когда между 2-мя таблицами из разных БД лишь 1-на траспакетная связь.
+                $relname = $modelname2;
+                $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
+                $relname = mb_strtolower($basename2) . '_' . $relname;
+
+                // 8.4.1.2] Проверить, нет ли уже в $result такой связи
+                // - Если есть, добавить к $relname название pivot-таблицы ($pivot_table_name)
+                if(array_key_exists($relname, $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME]))
+                  $relname = $relname . '_' . $pivot_table_name;
+
+                // 8.4.1.3] Вернуть результат
+                return $relname;
+
+              });
 
               // 8.4.2] Определить foreign_key
               $foreign_key = call_user_func(function() USE ($basename1, $rel){
