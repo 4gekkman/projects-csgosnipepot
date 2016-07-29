@@ -164,7 +164,7 @@ class C8_new_m_c extends Job { // TODO: добавить "implements ShouldQueue
       // 2. Провести валидацию входящих параметров
 
         // 1] $mpackid
-        if(!preg_match("/^[M]{1}[0-9]$/ui", $mpackid))
+        if(!preg_match("/^M[1-9]{1}[0-9]*$/ui", $mpackid))
           throw new \Exception("$mpackid is not valid (must match \"/^[M]{1}[0-9]*$/ui\")");
 
         // 2] $name

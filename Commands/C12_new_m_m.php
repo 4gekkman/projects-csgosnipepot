@@ -169,7 +169,7 @@ class C12_new_m_m extends Job { // TODO: добавить "implements ShouldQueu
       // 2. Провести валидацию входящих параметров
 
         // 1] $mpackid
-        if(!preg_match("/^[M]{1}[0-9]$/ui", $mpackid))
+        if(!preg_match("/^M[1-9]{1}[0-9]*$/ui", $mpackid))
           throw new \Exception("$mpackid is not valid (must match \"/^[M]{1}[0-9]*$/ui\")");
 
         // 2] $name
