@@ -56,21 +56,30 @@ return [
       //    [
       //      'room1' => [
       //        'description'     => 'The room1 description',   // Description of the room
-      //        'expire'          => '1440',                    // Message expiration time in minutes
-      //        'messages_limit'  => '10000'                    // Max number of messages to store
+      //        'expire'          => '1440',                    // Message expiration time in minutes (0 mean unlimited)
+      //        'messages_limit'  => '10000',                   // Max number of messages to store (0 mean unlimited)
+      //        'max_msg_length'  => '255',                     // Max message length (0 mean unlimited)
+      //        'allow_guests'    => '0',                       // Can guests post to the room, or not
+      //        'moderator_ids'   => [1,2,3]                    // Moderator user ids
       //      ],
       //      'room2' => [
       //        'description'     => 'The room1 description',   // Description of the room
-      //        'expire'          => '1440',                    // Message expiration time in minutes
-      //        'messages_limit'  => '10000'                    // Max number of messages to store
+      //        'expire'          => '1440',                    // Message expiration time in minutes (0 mean unlimited)
+      //        'messages_limit'  => '10000',                   // Max number of messages to store (0 mean unlimited)
+      //        'max_msg_length'  => '255',                     // Max message length (0 mean unlimited)
+      //        'allow_guests'    => '0',                       // Can guests post to the room, or not
+      //        'moderator_ids'   => [1,2,3]                    // Moderator user ids
       //      ]
       //    ]
       //
       'rooms' => [
         'main' => [
-          'description'     => 'The room1 description',   // Description of the room
-          'expire'          => '1440',                    // Message expiration time in minutes
-          'messages_limit'  => '10000'                    // Max number of messages to store
+          'description'     => 'The main room of the chat',
+          'expire'          => '1440',
+          'messages_limit'  => '10000',
+          'max_msg_length'  => '255',
+          'allow_guests'    => '0',
+          'moderator_ids'   => []
         ]
       ],
 

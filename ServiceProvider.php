@@ -107,7 +107,7 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-
+          '$schedule->command("m10:sync_rooms")->withoutOverlapping()->cron("*/10 * * * * *");',
         ];
 
       //----------------------------------------------------//
@@ -117,7 +117,9 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-          '\M10\Console\T1_sync_rooms'
+          '\M10\Console\T1_sync_rooms',
+          '\M10\Console\T2_add_message_to_the_room',
+          '\M10\Console\T3_clientside_post_to_chat_room'
         ];
 
         // Регистрация команд в методе register
