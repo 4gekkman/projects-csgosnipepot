@@ -148,7 +148,7 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
     //----------------------------------------------------------//
     // Извлечь сообщения из указанной комнаты указанным образом //
     //----------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
@@ -168,7 +168,7 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
       $messages = call_user_func(function(){
 
         // 3.1. Подготовить запрос
-        $query = \M10\Models\MD2_messages::query();
+        $query = \M10\Models\MD2_messages::with('m5_users');
 
         // 3.2. Искать записи, связанные с комнатой id_room
         $query->whereHas('rooms', function($query){
@@ -177,38 +177,58 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
 
         // 3.3. Если нужны только сообщения не забаненных и не заблокированных пользователей
         if($this->data['active_only']) {
-          $query->whereDoesntHave('rooms', function($query) {
-            $query->whereHas('m5_users_md2002');
-          })-orWhereDoesntHave;
+
+          $query->whereHas('rooms', function($query) {
+            $query->doesntHave('m5_users_md2002');
+          })->whereHas('m5_users', function($query){
+            $query->where('is_blocked',0);
+          });
+
         }
 
+        // 3.4. Исключить скрытые (hided) сообщения
+        $query->where('hided', 0);
 
-        // 3.3. Если number > 0, брать лишь number записей
+        // 3.5. Брать записи с конца
+        $query->orderBy('created_at', 'desc');
+
+        // 3.6. Если number > 0, брать лишь number записей
         if($this->data['number'] != 0) {
           $query->take($this->data['number']);
         }
 
-
-
-        // 3.2. Брать записи с конца
-        $query->orderBy('created_at', 'desc');
-
-        // 3.n. Получить результаты
-        $results = $query->get();
-
-        // 3.n. Вернуть результаты запроса
-        return $results;
+        // 3.7. Получить и вернуть результаты
+        return $query->get();
 
       });
 
-      write2log($messages, []);
+      // 4. Обработать $messages
+      // - Убрать из него поля m5_users и hided
+      // - Добавить поля: avatar, level, steamname
+      $messages = $messages->each(function($item, $key){
+
+        // 1] Добавить поля: avatar, level, steamname
+        $item->level      = '1';
+        $item->steamname  = $item->m5_users[0]['nickname'];
+        $item->avatar     = !empty($item->m5_users[0]['avatar_steam']) ? $item->m5_users[0]['avatar_steam'] : (!empty($item->m5_users[0]['avatar']) ? $item->m5_users[0]['avatar'] : 'http://placehold.it/34x34/ffffff');
+
+        // 2] Удалить m5_users и hided
+        unset($item->m5_users);
+        unset($item->hided);
+
+      });
+
+      // 5. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "messages" => $messages
+        ]
+      ];
 
 
-
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C4_get_messages from M-package M10 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M10', 'C4_get_messages']);
         return [

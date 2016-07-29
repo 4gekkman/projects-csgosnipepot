@@ -59,6 +59,7 @@ return [
       //        'expire'          => '1440',                    // Message expiration time in minutes (0 mean unlimited)
       //        'messages_limit'  => '10000',                   // Max number of messages to store (0 mean unlimited)
       //        'max_msg_length'  => '255',                     // Max message length (0 mean unlimited)
+      //        'max_messages'    => '500',                     // Max messages in client's chat
       //        'allow_guests'    => '0',                       // Can guests post to the room, or not
       //        'moderator_ids'   => [1,2,3]                    // Moderator user ids
       //      ],
@@ -67,6 +68,7 @@ return [
       //        'expire'          => '1440',                    // Message expiration time in minutes (0 mean unlimited)
       //        'messages_limit'  => '10000',                   // Max number of messages to store (0 mean unlimited)
       //        'max_msg_length'  => '255',                     // Max message length (0 mean unlimited)
+      //        'max_messages'    => '500',                     // Max messages in client's chat
       //        'allow_guests'    => '0',                       // Can guests post to the room, or not
       //        'moderator_ids'   => [1,2,3]                    // Moderator user ids
       //      ]
@@ -78,6 +80,7 @@ return [
           'expire'          => '1440',
           'messages_limit'  => '10000',
           'max_msg_length'  => '255',
+          'max_messages'    => '500',
           'allow_guests'    => '0',
           'moderator_ids'   => []
         ]

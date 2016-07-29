@@ -164,6 +164,7 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
           "*.expire"          => ["required", "regex:/^[0-9]+$/ui"],
           "*.messages_limit"  => ["required", "regex:/^[0-9]+$/ui"],
           "*.max_msg_length"  => ["required", "regex:/^[0-9]+$/ui"],
+          "*.max_messages"    => ["required", "regex:/^[0-9]+$/ui"],
           "*.allow_guests"    => ["required", "regex:/^[01]{1}$/ui"],
           "*.moderator_ids"   => ["r4_defined", "array"],
           "*.moderator_ids.*" => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],
@@ -200,6 +201,7 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
           $room2save->expire          = $room['expire'];
           $room2save->messages_limit  = $room['messages_limit'];
           $room2save->max_msg_length  = $room['max_msg_length'];
+          $room2save->max_messages    = $room['max_messages'];
           $room2save->allow_guests    = $room['allow_guests'];
 
           // 2.3] Назначить комнате модераторов
@@ -232,6 +234,7 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
           $room2save->expire          = $room['expire'];
           $room2save->messages_limit  = $room['messages_limit'];
           $room2save->max_msg_length  = $room['max_msg_length'];
+          $room2save->max_messages    = $room['max_messages'];
           $room2save->allow_guests    = $room['allow_guests'];
 
           // 3.3] Отвязать всех модераторов от комнаты
