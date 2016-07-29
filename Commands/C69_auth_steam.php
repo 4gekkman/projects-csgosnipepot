@@ -143,7 +143,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
      *  6. Сформировать json-строку из $full_profile_data
      *  7. Попробовать найти пользователя с такими ha_provider_name и ha_provider_uid
      *  8. Если пользователь не найден, создать нового пользователя
-     *  9. Если пользователь найден, обновить его аккаунт новыми данными
+     *  9. Если пользователь найден, восстановить и обновить его аккаунт новыми данными
      *  10. Аутентифицировать пользователя $user2auth
      *  11. Создать группу "Steam Users", если её ещё нет
      *  12. Добавить пользователя $user2auth в группу $steamusers
@@ -235,7 +235,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
       $full_profile_data_json = json_encode($full_profile_data, true);
 
       // 7. Попробовать найти пользователя с такими ha_provider_name и ha_provider_uid
-      $user2auth = \M5\Models\MD1_users::where('ha_provider_name', $full_profile_data['provider'])
+      $user2auth = \M5\Models\MD1_users::withTrashed()->where('ha_provider_name', $full_profile_data['provider'])
           ->where('ha_provider_uid', $full_profile_data['steamid'])
           ->first();
 
@@ -263,9 +263,10 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
 
       }
 
-      // 9. Если пользователь найден, обновить его аккаунт новыми данными
+      // 9. Если пользователь найден, восстановить и обновить его аккаунт новыми данными
       else {
 
+        $user2auth->restore();
         $user2auth->nickname          = $full_profile_data['personaname'];
         $user2auth->avatar_steam      = $full_profile_data['avatarfull'];
         $user2auth->ha_provider_data  = $full_profile_data_json;
