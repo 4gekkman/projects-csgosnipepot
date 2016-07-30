@@ -77,7 +77,7 @@ return [
       'rooms' => [
         'main' => [
           'description'     => 'The main room of the chat',
-          'expire'          => '1440',
+          'expire'          => '10080',
           'messages_limit'  => '10000',
           'max_msg_length'  => '255',
           'max_messages'    => '100',
