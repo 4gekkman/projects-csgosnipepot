@@ -139,7 +139,10 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
      *
      *  1. Провести валидацию входящих параметров
      *  2. Попробовать найти комнату с id_room
-     *
+     *  3. Извлечь сообщения
+     *  4. Обработать $messages
+     *  5. Реверсировать $messages
+     *  6. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -218,7 +221,10 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
 
       });
 
-      // 5. Вернуть результаты
+      // 5. Реверсировать $messages
+      $messages = $messages->reverse()->values();
+
+      // 6. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [

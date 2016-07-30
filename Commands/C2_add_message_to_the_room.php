@@ -145,6 +145,14 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
      *  1. Провести валидацию входящих параметров
      *  2. Попробовать найти комнату с id_room
      *  3. Получить модель пользователя, от имени которого надо запостить сообщение
+     *  4. Если пользователь $user заблокирован, возбудить исключение
+     *  5. Если пользователь $user забанен, возбудить исключение
+     *  6. Если в $room запрещено публиковать гостям, а $user гость, возбудить исключение
+     *  7. Если размер сообщения превышен, возбудить исключение
+     *  8. Записать сообщение в базу данных
+     *  9. Связать $new_message с $room
+     *  10. Связать $new_message с $user
+     *  11. Транслировать сообщение всем клиентам-подписчикам
      *
      *  N. Вернуть статус 0
      *
@@ -242,7 +250,15 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
         // 8.3. Сохранить $new_message
         $new_message->save();
 
-      // 9. Транслировать сообщение всем клиентам-подписчикам
+      // 9. Связать $new_message с $room
+      if(!$room->messages->contains($new_message->id))
+        $room->messages()->attach($new_message->id);
+
+      // 10. Связать $new_message с $user
+      if(!$user->m10_messages->contains($new_message->id))
+        $user->m10_messages()->attach($new_message->id);
+
+      // 11. Транслировать сообщение всем клиентам-подписчикам
       Event::fire(new \R2\Broadcast([
         'channels' => ['m10:chat_main'],
         'queue'    => 'chat',

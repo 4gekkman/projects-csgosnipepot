@@ -80,7 +80,7 @@ return [
           'expire'          => '1440',
           'messages_limit'  => '10000',
           'max_msg_length'  => '255',
-          'max_messages'    => '500',
+          'max_messages'    => '100',
           'allow_guests'    => '0',
           'moderator_ids'   => []
         ]
