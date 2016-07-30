@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Command for log out spec.user
+ *    - Count logged in Steam users
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C59_logout extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C71_count_logged_in_steam_users extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,96 +135,53 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
     /**
      * Оглавление
      *
-     *  1. Получить ID аутентификационной записи
-     *  2. Удалить аутентификационную запись с $id_auth
-     *  3. Забыть аутентификационный кэш в сессии
-     *  4. Забыть аутентификационную куку
-     *  5. Забыть куку "PHPSESSID", которую ставит HybridAuth
-     *  6. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+     *  1. Получить название групп Steam-пользователей и Steam-ботов из конфига M8
+     *  2. Подсчитать
+     *  3. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------------------------//
-    // Осуществить выход из системы для текущего пользователя //
-    //--------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //---------------------------------------------------------------------------------------------//
+    // Подсчитать количество Steam-пользователей, имеющих активную запись в таблице аутентификаций //
+    //---------------------------------------------------------------------------------------------//
+    $res = call_user_func(function() { try {
 
-      // 1. Получить ID аутентификационной записи
-      $id_auth = call_user_func(function(){
+      // 1. Получить название групп Steam-пользователей и Steam-ботов из конфига M8
 
-        // 1.1. Получить аутентификационный кэш, если пуст, вернуть 0
-        $auth_cache = session('auth_cache');
-        if(empty($auth_cache)) return 0;
+        // 1.1. Название группы Steam-пользователей
+        $group_steam_users = config("M8.group_steam_users");
+        if(empty($group_steam_users)) $group_steam_users = 'SteamUsers';
 
-        // 1.2. Расшифровать json из $auth_cache, если пуст, вернуть 0
-        $json = json_decode($auth_cache, true);
-        if(empty($json)) return 0;
+        // 1.2. Название группы Steam-ботов
+        $group_steam_bots = config("M8.group_steam_bots");
+        if(empty($group_steam_bots)) $group_steam_bots = 'SteamBots';
 
-        // 1.3. Если is_anon == 1, вернуть 0
-        if(!array_key_exists('is_anon', $json) || (empty($json['is_anon']) && $json['is_anon'] != 0) || $json['is_anon'] == 1) return 0;
+      // 2. Подсчитать
+      $number = \M5\Models\MD1_users::whereHas('groups', function($query) USE ($group_steam_users, $group_steam_bots){
 
-        // 1.4. Если ключа auth, и ключа auth.id нет, вернуть 0
-        if(!array_key_exists('auth', $json) || !array_key_exists('id', $json['auth'])) return 0;
-
-        // 1.5. Если $json['auth']['id'] не является валидным id, вернуть 0
-        $validator = r4_validate($json['auth'], [
-          "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        ]); if($validator['status'] == -1) {
-          return 0;
-        }
-
-        // 1.6. Вернуть id аутентификационной записи
-        return $json['auth']['id'];
-
-      });
-
-      // 2. Удалить аутентификационную запись с $id_auth, если $id_auth != 0
-      if($id_auth != 0) {
-        $auth = \M5\Models\MD8_auth::find($id_auth);
-        $auth->users()->detach();
-        if(!empty($auth)) $auth->delete();
-      }
-
-      // 3. Забыть аутентификационный кэш в сессии
-      Session::forget('auth_cache');
-
-      // 4. Забыть аутентификационную куку
-      Cookie::queue( Cookie::forget('auth') );
-
-      // 5. Забыть куку "PHPSESSID", которую ставит HybridAuth
-      Cookie::queue( Cookie::forget('PHPSESSID') );
-
-      // 6. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
-
-        // 6.1. Получить
-        $logged_in_steam_users = call_user_func(function(){
-
-          // 1] Получить
-          $result = runcommand('\M5\Commands\C71_count_logged_in_steam_users', []);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 2] Вернуть результат
-          return $result['data']['number'];
-
+        $query->where(function($query) USE ($group_steam_users, $group_steam_bots){
+          $query->where('name', $group_steam_users)
+            ->orWhere('name', $group_steam_bots);
         });
 
-        // 6.2. Послать
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m5:count_logged_in_steam_users'],
-          'queue'    => 'chat',
-          'data'     => [
-            'number' => $logged_in_steam_users
-          ]
-        ]));
+      })->whereHas('auth', function($query){
+        $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
+      })->count();
 
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C59_logout from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
+      // 3. Вернуть результат
+      return [
+        "status"  => 0,
+        "data"    => [
+          "number" => $number
+        ]
+      ];
+
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C71_count_logged_in_steam_users from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M5', 'C59_logout']);
+        write2log($errortext, ['M5', 'C71_count_logged_in_steam_users']);
         return [
           "status"  => -2,
           "data"    => [

@@ -148,6 +148,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
      *  11. Создать группу "Steam Users", если её ещё нет
      *  12. Добавить пользователя $user2auth в группу $steamusers
      *  13. Через websocket послать аутентиф.информацию по каналу websockets_channel
+     *  14. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
      *
      *  N. Вернуть статус 0
      *
@@ -347,6 +348,31 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           'user'    => json_encode($user2auth_excepted->toArray(), JSON_UNESCAPED_UNICODE)
         ]
       ]));
+
+      // 14. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+
+        // 14.1. Получить
+        $logged_in_steam_users = call_user_func(function(){
+
+          // 1] Получить
+          $result = runcommand('\M5\Commands\C71_count_logged_in_steam_users', []);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результат
+          return $result['data']['number'];
+
+        });
+
+        // 14.2. Послать
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m5:count_logged_in_steam_users'],
+          'queue'    => 'chat',
+          'data'     => [
+            'number' => $logged_in_steam_users
+          ]
+        ]));
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C69_auth_steam from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

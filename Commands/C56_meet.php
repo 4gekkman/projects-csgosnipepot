@@ -221,9 +221,12 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
               throw new \Exception($validator['data']);
             }
 
-            // 5] Проверить, существует ли в БД пользователь с таким ID
-            $user = \M5\Models\MD1_users::find($auth_cache_arr['user']['id']);
-            if(empty($user))
+            // 5] Проверить, существует ли в БД пользователь с таким ID, и с валидной аутентификационной записью
+            $user = \M5\Models\MD1_users::where('id', $auth_cache_arr['user']['id'])
+                ->whereHas('auth', function($query){
+                  $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
+                })->count();
+            if($user == 0)
               return false;
 
             // n] Вернуть true
@@ -275,8 +278,11 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           return false;
 
         // 3.6. Проверить, существует ли в БД пользователь с таким ID
-        $user = \M5\Models\MD1_users::find($auth_cookie_arr['user']['id']);
-        if(empty($user))
+        $user = \M5\Models\MD1_users::where('id', $auth_cookie_arr['user']['id'])
+            ->whereHas('auth', function($query){
+              $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
+            })->count();
+        if($user == 0)
           return false;
 
         // 3.n. Вернуть true (успешная валидация)

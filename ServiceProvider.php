@@ -107,13 +107,13 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m5:email_cleartable")->withoutOverlapping()->cron("*/15 * * * * *");',
-          '$schedule->command("m5:phone_cleartable")->withoutOverlapping()->cron("*/15 * * * * *");',
-          '$schedule->command("m5:delnotverifiedemail")->withoutOverlapping()->hourly();',
-          '$schedule->command("m5:delnotverifiedphone")->withoutOverlapping()->hourly();',
-          '$schedule->command("m5:auth_clear_expired")->withoutOverlapping()->daily();',
-          '$schedule->command("m5:email_authcodes_clear")->withoutOverlapping()->cron("*/15 * * * * *");',
-          '$schedule->command("m5:phone_authcodes_clear")->withoutOverlapping()->cron("*/15 * * * * *");',
+          '$schedule->command("m5:email_cleartable")->cron("*/15 * * * * *");',
+          '$schedule->command("m5:phone_cleartable")->cron("*/15 * * * * *");',
+          '$schedule->command("m5:delnotverifiedemail")->hourly();',
+          '$schedule->command("m5:delnotverifiedphone")->hourly();',
+          '$schedule->command("m5:auth_clear_expired")->daily();',
+          '$schedule->command("m5:email_authcodes_clear")->cron("*/15 * * * * *");',
+          '$schedule->command("m5:phone_authcodes_clear")->cron("*/15 * * * * *");',
         ];
 
       //----------------------------------------------------//
@@ -148,7 +148,8 @@
           '\M5\Console\T23_auth_clear_expired',
           '\M5\Console\T24_email_authcodes_clear',
           '\M5\Console\T25_phone_authcodes_clear',
-          '\M5\Console\T26_save_steam_tradeurl'
+          '\M5\Console\T26_save_steam_tradeurl',
+          '\M5\Console\T27_count_logged_in_steam_users'
         ];
 
         // Регистрация команд в методе register
