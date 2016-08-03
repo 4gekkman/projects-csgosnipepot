@@ -145,7 +145,8 @@
           '\M1\Console\T29_run_light',
           '\M1\Console\T30_github_check',
           '\M1\Console\T31_github_new',
-          '\M1\Console\T32_github_del'
+          '\M1\Console\T32_github_del',
+          '\M1\Console\T33_newcom'
         ];
 
         // Регистрация команд в методе register
