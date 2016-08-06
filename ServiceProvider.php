@@ -107,8 +107,8 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m10:sync_rooms")->cron("*/10 * * * * *");',
-          '$schedule->command("m10:clear_expired_or_extra_messages")->cron("0 0 * * * *");',
+          '$schedule->command("m10:sync_rooms")->cron("*/10*****");',
+          '$schedule->command("m10:clear_expired_or_extra_messages")->cron("00****");'
         ];
 
       //----------------------------------------------------//
