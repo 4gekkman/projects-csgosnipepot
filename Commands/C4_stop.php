@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Starter task
+ *    - Stop ticks
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C1_starter extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C4_stop extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -142,27 +142,20 @@ class C1_starter extends Job { // TODO: добавить "implements ShouldQueue
      *
      */
 
-    //----------------//
-    // Задача-стартёр //
-    //----------------//
-    $res = call_user_func(function() { try {
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      write2log('starter', []);
+      // ...
 
 
-
-      // n. Запустить цепочку тиков
-      $result = runcommand('\M11\Commands\C2_link', []);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
-
-
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_starter from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C4_stop from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M11', 'C1_starter']);
+        write2log($errortext, ['M11', 'C4_stop']);
         return [
           "status"  => -2,
           "data"    => [

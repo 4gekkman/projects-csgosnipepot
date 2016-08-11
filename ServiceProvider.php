@@ -117,8 +117,10 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-          '\M11\Console\T1_starter',
-          '\M11\Console\T2_link'
+          '\M11\Console\T1_start',
+          '\M11\Console\T2_link',
+          '\M11\Console\T3_tick',
+          '\M11\Console\T4_stop'
         ];
 
         // Регистрация команд в методе register

@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Starter task
+ *    - Stop ticks
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T1_starter extends Command
+class T4_stop extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T1_starter extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm11:starter';
+    protected $signature = 'm11:stop';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Starter task';
+    protected $description = 'Stop ticks';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -155,25 +155,19 @@ class T1_starter extends Command
     /**
      * Оглавление
      *
+     *  1. Положить в Redis значение 'off'
+     *
      *  1. Выполнить команду
      *  2. В случае неудачи, вывести текст ошибки
      *  3. В случае успеха, вывести соотв.сообщение
      *
      */
 
-    // 1. Выполнить команду
-    $result = runcommand('\M11\Commands\C1_starter', $this->argument());
+      // 1. Положить в Redis значение 'off'
+      Redis::set('M11.is_system_on', 'off');
 
-
-    // 2. В случае неудачи, вывести текст ошибки
-    if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']['errormsg']);
-      return;
-    }
-
-
-    // 3. В случае успеха, вывести соотв.сообщение
-    $this->info("Success");
+      // 2. В случае успеха, вывести соотв.сообщение
+      $this->info("Ticks has been successfully stopped.");
 
   }
 

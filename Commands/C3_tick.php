@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Link task
+ *    - Tick command
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C2_link extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C3_tick extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,112 +135,27 @@ class C2_link extends Job { // TODO: добавить "implements ShouldQueue" -
     /**
      * Оглавление
      *
-     *  1. Получить timestamp текущего серверного времени в мс
-     *  2. Прервать цепочку, если в конфиге цепочки отключены
-     *  3. Проверить значение M11.is_system_on в Redis
-     *  4. Сохранить в Redis информацию о текущем и предыдущем тиках
-     *  5. Послать в очередь "tick" задачу tick
-     *  6. Извлечь из конфига период тиков
-     *  7. Спустя $ticks_period_ms после $timestamp_ms выполнить C2_link
+     *  1. Возбудить событие m11:tick
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------//
-    // Задача-цепочка //
-    //----------------//
+    //--------------------------------------------------//
+    // Команда-тик, которая возбуждает событие m11:tick //
+    //--------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить timestamp текущего серверного времени в мс
-      $timestamp_ms = (int)round(microtime(true) * 1000);
-      //write2log($timestamp_ms, []);
+      // 1. Возбудить событие m11:tick
+      Event::fire(new \R2\Event([
+        'keys'  => ['m11:tick'],
+        'data'  => $this->data
+      ]));
 
-      // 2. Прервать цепочку, если в конфиге цепочки отключены
-
-        // 2.1. Извлечь из конфига значение is_system_on
-        // - По умолчанию считается, что система выключена.
-        $is_system_on = config("M11.is_system_on");
-        $is_system_on = !empty($is_system_on) ? $is_system_on : 'off';
-
-        // 2.2. Если $is_system_on == 'off', завершить
-        if($is_system_on == 'off') {
-           return [
-            "status"  => 0,
-            "data"    => ""
-          ];
-        }
-
-      // 3. Проверить значение M11.is_system_on в Redis
-      // - Если в нём записан '0', прервать цепочку.
-      $M11_is_system_onRedis = Redis::get('M11.is_system_on');
-      if(!empty($M11_is_system_onRedis)) {
-        if($M11_is_system_onRedis == 'off') return;
-      }
-
-      // 4. Сохранить в Redis информацию о текущем и предыдущем тиках
-      // - О предыдущем с ключём: "m11:previous_tick".
-      // - О текущем с ключём: "m11:current_tick".
-
-        // 3.1. Предыдущий тик
-        $previous_tick = Redis::get('m11:current_tick');
-        Redis::set('m11:previous_tick', $previous_tick);
-
-        // 3.2. Текущий тик
-        Redis::set('m11:current_tick', $timestamp_ms);
-
-      // 5. Послать в очередь "tick" задачу tick
-      $result = runcommand('\M11\Commands\C3_tick', [
-        "m11:current_tick" => $timestamp_ms
-      ], 0,
-      [
-        'on'        => true,
-        'delaysecs' => '',
-        'name'      => 'tick'
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
-
-      // 6. Извлечь из конфига период тиков
-      $ticks_period_ms = config("M11.ticks_period_ms");
-      $ticks_period_ms = !empty($ticks_period_ms) ? $ticks_period_ms : 100;
-
-      // 7. Спустя $ticks_period_ms после $timestamp_ms выполнить C2_link
-      $is_done = false;
-      $correction_ms = (int)round(microtime(true) * 1000) - $this->data['old_timestamp_ms'];
-      while($is_done == false) {
-
-        // 1] Если не прошло $ticks_period_ms после $timestamp_ms
-        // - Заснуть на 10 миллисекунд.
-        $cur_timestamp_ms = (int)round(microtime(true) * 1000);
-        if(gmp_cmp(+(+$cur_timestamp_ms - +$timestamp_ms), +$ticks_period_ms - $correction_ms) <= 0) {
-          usleep(10000);
-        }
-
-        // 2] Если прошло
-        else {
-
-          // 2.1] Пометить $is_done
-          $is_done = true;
-
-          // 2.2] Выполнить C2_link снова
-          $result = runcommand('\M11\Commands\C2_link', [
-            "old_timestamp_ms" => (int)round(microtime(true) * 1000)
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 2.3] Завершить цикл
-          break;
-
-        }
-
-      }
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C2_link from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C3_tick from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M11', 'C2_link']);
+        write2log($errortext, ['M11', 'C3_tick']);
         return [
           "status"  => -2,
           "data"    => [
