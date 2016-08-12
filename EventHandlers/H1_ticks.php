@@ -176,9 +176,13 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
     //--------------------//
     $res = call_user_func(function() USE ($event) { try { DB::beginTransaction();
 
-
-      write2log("M9.H1_ticks", []);
-
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m9:test'],
+        'queue'    => 'broadcastworkers',
+        'data'     => [
+          'secs' => (int)round(microtime(true) * 1000)
+        ]
+      ]));
 
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
