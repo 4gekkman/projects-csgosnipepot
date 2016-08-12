@@ -190,16 +190,8 @@ class C2_link extends Job { // TODO: добавить "implements ShouldQueue" -
         Redis::set('m11:current_tick', $timestamp_ms);
 
       // 5. Послать в очередь "tick" задачу tick
-      $result = runcommand('\M11\Commands\C3_tick', [
-        "m11:current_tick" => $timestamp_ms
-      ], 0,
-      [
-        'on'        => true,
-        'delaysecs' => '',
-        'name'      => 'tick'
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
+      $command = '\M11\Commands\C3_tick';
+      Queue::push(new $command([]), [], 'default');
 
       // 6. Извлечь из конфига период тиков
       $ticks_period_ms = config("M11.ticks_period_ms");

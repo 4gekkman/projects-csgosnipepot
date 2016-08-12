@@ -217,9 +217,7 @@ class C1_start extends Job { // TODO: добавить "implements ShouldQueue" 
 
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_starter from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        Log::info($errortext);
-        write2log($errortext, ['M11', 'C1_starter']);
+        $errortext = 'Invoking of command C1_start from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         return [
           "status"  => -2,
           "data"    => [

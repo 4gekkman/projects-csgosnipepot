@@ -146,11 +146,14 @@ class C3_tick extends Job { // TODO: добавить "implements ShouldQueue" -
     //--------------------------------------------------//
     $res = call_user_func(function() { try {
 
+      write2log((int)round(microtime(true) * 1000), []);
+
       // 1. Возбудить событие m11:tick
       Event::fire(new \R2\Event([
         'keys'  => ['m11:tick'],
         'data'  => $this->data
       ]));
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C3_tick from M-package M11 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
