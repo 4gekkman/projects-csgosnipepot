@@ -191,7 +191,7 @@ class C2_link extends Job { // TODO: добавить "implements ShouldQueue" -
 
       // 5. Послать в очередь "tick" задачу tick
       $command = '\M11\Commands\C3_tick';
-      Queue::push(new $command([]), [], 'default');
+      Queue::push(new $command([]), [], 'tick');
 
       // 6. Извлечь из конфига период тиков
       $ticks_period_ms = config("M11.ticks_period_ms");

@@ -146,8 +146,6 @@ class C3_tick extends Job { // TODO: добавить "implements ShouldQueue" -
     //--------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      write2log((int)round(microtime(true) * 1000), []);
-
       // 1. Возбудить событие m11:tick
       Event::fire(new \R2\Event([
         'keys'  => ['m11:tick'],
