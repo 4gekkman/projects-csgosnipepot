@@ -328,7 +328,7 @@ class T7_new extends Command
         }
 
         // 4] Спросить у пользователя, какое имя задать обработчику
-        $params['name'] = $this->ask("[NOT REQUIRED] Type name for the new console command in english", "handler");
+        $params['name'] = $this->ask("[NOT REQUIRED] Type name for the new event handler in english", "handler");
 
         // 5] Спросить у пользователя, какое описание задать обработчику
         $params['description'] = $this->ask("[NOT REQUIRED] Type description for the new console command in english", 0);
