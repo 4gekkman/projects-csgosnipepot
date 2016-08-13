@@ -167,7 +167,7 @@ class T4_stop extends Command
       Redis::set('M11.is_system_on', 'off');
 
       // 2. В случае успеха, вывести соотв.сообщение
-      $this->info("Ticks has been successfully stopped.");
+      $this->info("Ticks have been successfully stopped.");
 
   }
 
