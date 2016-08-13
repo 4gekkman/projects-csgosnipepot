@@ -218,9 +218,12 @@ class C2_link extends Job { // TODO: добавить "implements ShouldQueue" -
           // 2.2] Выполнить C2_link снова
           $result = runcommand('\M11\Commands\C2_link', [
             "old_timestamp_ms" => (int)round(microtime(true) * 1000)
+          ], 0,
+          [
+            'on'        => true,
+            'delaysecs' => '',
+            'name'      => 'link'
           ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
 
           // 2.3] Завершить цикл
           break;
