@@ -180,7 +180,7 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         'channels' => ['m9:test'],
         'queue'    => 'broadcastworkers',
         'data'     => [
-          'secs' => (int)round(microtime(true) * 1000)
+          'secs' => \Carbon\Carbon::now()->toDateTimeString()
         ]
       ]));
 
