@@ -208,7 +208,7 @@ class C1_start extends Job { // TODO: добавить "implements ShouldQueue" 
             [
               'on'        => true,
               'delaysecs' => '',
-              'name'      => 'tick'
+              'name'      => 'link'
             ]
           );
           if($result['status'] != 0)
