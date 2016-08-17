@@ -118,7 +118,8 @@
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
           '\M9\Console\T1_rooms',
-          '\M9\Console\T2_create_new_room'
+          '\M9\Console\T2_create_new_room',
+          '\M9\Console\T3_sync_round_statuses'
         ];
 
         // Регистрация команд в методе register

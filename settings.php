@@ -119,19 +119,62 @@ return [
           'weapon'
         ],
 
-    // 5.13] Размер комиссии сервиса в комнате в % от банка | Service fee in the room in % from bank
-    'fee_percents' => '10',
+      // 5.13] Размер комиссии сервиса в комнате в % от банка | Service fee in the room in % from bank
+      'fee_percents' => '10',
 
-    // 5.14] Включить ли механизм размена при выплате выигрышей | Should we turn on the change mechanism
-    'change' => 1,
+      // 5.14] Включить ли механизм размена при выплате выигрышей | Should we turn on the change mechanism
+      'change' => 1,
 
-    // 5.15] Включить ли механизм выплат выигрышей от имени 1-го бота | Should we turn on the mechanism of payout from 1 bot
-    'one_bot_payout' => 0,
+      // 5.15] Включить ли механизм выплат выигрышей от имени 1-го бота | Should we turn on the mechanism of payout from 1 bot
+      'one_bot_payout' => 0,
 
-    // 5.16] Лимит в минутах на то, чтобы победитель забрал выигрыш | Payout limit in minutes
-    'payout_limit_min' => '60'
+      // 5.16] Лимит в минутах на то, чтобы победитель забрал выигрыш | Payout limit in minutes
+      'payout_limit_min' => '60',
 
+    //--------------------------------------//
+    // 6] Доступные статусы игры "Лоттерея" //
+    //    Lottery game statuses             //
+    //--------------------------------------//
 
+      'lottery_game_statuses' => [
+
+        "0" => [
+          "id"          => "1",
+          "status"      => "Created",
+          "description" => "Начался новый раунд, но ещё никто не сделал ставку."
+        ],
+
+        "1" => [
+          "id"          => "2",
+          "status"      => "First bet",
+          "description" => "Сделана первая и единственная пока ставка за раунд."
+        ],
+
+        "2" => [
+          "id"          => "3",
+          "status"      => "Started",
+          "description" => "Сделана вторая ставка за раунд, начался обратный отсчёт таймера."
+        ],
+
+        "3" => [
+          "id"          => "4",
+          "status"      => "Pending",
+          "description" => "Время игры закончилось, или достигнут лимит вещей. Ожидание обработки сделанных ранее ставок."
+        ],
+
+        "4" => [
+          "id"          => "5",
+          "status"      => "Lottery",
+          "description" => "Визуальное проведение розыгрыша."
+        ],
+
+        "5" => [
+          "id"          => "6",
+          "status"      => "Winner",
+          "description" => "Демонстрация победителя розыгрыша и его выигрыша."
+        ],
+
+      ],
 
 
 ];

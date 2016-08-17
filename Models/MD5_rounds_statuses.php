@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD2_rounds extends Model {
+class MD5_rounds_statuses extends Model {
 
   /**
    *
@@ -49,11 +49,11 @@ class MD2_rounds extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm9.md2_rounds';
+  protected $table = 'm9.md5_rounds_statuses';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
-    public $timestamps = true;
+    public $timestamps = false;
 
     // 3] Вкл / Выкл (по умолч.) мягкое удаление //
     //-------------------------------------------//
@@ -67,10 +67,7 @@ class MD2_rounds extends Model {
   //------------------//
 
     // relationships start
-    public function wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md1000', 'id_round', 'id_win'); }
-    public function rounds_statuses() { return $this->belongsToMany('\M9\Models\MD5_rounds_statuses', 'm9.md1001', 'id_round', 'id_status'); }
-    public function rooms() { return $this->belongsTo('\M9\Models\MD1_rooms', 'id_room', 'id'); }
-    public function bets() { return $this->hasMany('\M9\Models\MD3_bets', 'id_round', 'id'); }
+    public function rounds() { return $this->belongsToMany('\M9\Models\MD2_rounds', 'm9.md1001', 'id_status', 'id_round'); }
     // relationships stop
 
 
