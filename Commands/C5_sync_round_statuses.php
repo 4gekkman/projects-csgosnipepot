@@ -179,6 +179,7 @@ class C5_sync_round_statuses extends Job { // TODO: добавить "implements
           $new = new \M9\Models\MD5_rounds_statuses();
 
           // 2] Наполнить $new
+          $new->id            = $status['id'];
           $new->status        = $status['status'];
           $new->description   = $status['description'];
 
