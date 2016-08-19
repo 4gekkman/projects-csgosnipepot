@@ -605,6 +605,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.is_on(data.is_on());
 			self.m.s2.edit.bet_accepting_mode(data.bet_accepting_mode());
 			self.m.s2.edit.name(data.name());
+			self.m.s2.edit.description(data.description());
 			self.m.s2.edit.room_round_duration_sec(data.room_round_duration_sec());
 			self.m.s2.edit.max_items_per_bet(data.max_items_per_bet());
 			self.m.s2.edit.max_items_per_round(data.max_items_per_round());
@@ -666,6 +667,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					is_on: 										self.m.s2.edit.is_on() == true ? 1 : 0,
 					bet_accepting_mode: 			self.m.s2.edit.bet_accepting_mode(),
 					name: 										self.m.s2.edit.name(),
+					description: 							self.m.s2.edit.description(),
 					room_round_duration_sec: 	self.m.s2.edit.room_round_duration_sec(),
 					max_items_per_bet: 				self.m.s2.edit.max_items_per_bet(),
 					max_items_per_round: 			self.m.s2.edit.max_items_per_round(),

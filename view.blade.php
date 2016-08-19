@@ -527,6 +527,15 @@
               </div>
             </div>
 
+            <?php /* 4] description -->
+            <!--------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Description</div>
+              <div class="col-sm-7">
+                <textarea class="form-control" rows="2" placeholder="Description of the room..." data-bind="textInput: m.s2.edit.description"></textarea>
+              </div>
+            </div>
+
           </div>
 
           <?php /*---------------------->

@@ -41,6 +41,7 @@
  *    s2.4. Модель фильтров списка комнат
  *    s2.5. Комнат всего
  *    s2.6. Модель создания новой комнаты
+ *    s2.7. Модель редактирования выбранной комнаты
  *   	s2.n. Индексы и вычисляемые значения
  *
  *  s3. Модель ботов
@@ -604,9 +605,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//------------//
 		self.m.s2.newroom.name = ko.observable('');
 
-	//----------------------------------//
-	// s2.7. Модель редактирования бота //
-	//----------------------------------//
+	//-----------------------------------------------//
+	// s2.7. Модель редактирования выбранной комнаты //
+	//-----------------------------------------------//
 	self.m.s2.edit = {};
 
 		// 1] Поля модели //
@@ -616,6 +617,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.is_on 												= ko.observable("");
 		self.m.s2.edit.bet_accepting_mode  					= ko.observable("");
 		self.m.s2.edit.name 												= ko.observable("");
+		self.m.s2.edit.description 									= ko.observable("");
 		self.m.s2.edit.room_round_duration_sec 			= ko.observable("");
 		self.m.s2.edit.max_items_per_bet 						= ko.observable("");
 		self.m.s2.edit.max_items_per_round 					= ko.observable("");
