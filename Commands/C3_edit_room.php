@@ -158,6 +158,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "is_on" 									  => ["required", "regex:/^[01]{1}$/ui"],
         "bet_accepting_mode"  		  => ["required", "in:roll,availability"],
         "name" 									    => ["required", "string"],
+        "description" 							=> ["r4_defined", "string"],
         "room_round_duration_sec"   => ["required", "regex:/^[0-9]+$/ui"],
         "max_items_per_bet" 			  => ["required", "regex:/^[0-9]+$/ui"],
         "max_items_per_round" 		  => ["required", "regex:/^[0-9]+$/ui"],
