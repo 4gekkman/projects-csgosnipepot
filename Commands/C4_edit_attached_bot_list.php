@@ -141,7 +141,6 @@ class C4_edit_attached_bot_list extends Job { // TODO: добавить "impleme
      *  3. Проверить, существует ли связь m8_bots в md1_rooms в m9
      *  4. Отвязать комнату $room от всех связей с ботами
      *
-     *
      *  N. Вернуть статус 0
      *
      */
