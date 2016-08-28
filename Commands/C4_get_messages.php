@@ -14,7 +14,7 @@
  *
  *    [
  *      "data" => [
- *        id_room       // ID комнаты, из которой надо извлечь сообщения
+ *        room_name     // Имя (уникальное) комнаты, из которой надо извлечь сообщения
  *        number        // Кол-во последних сообщений, которое надо извлечь (0=все)
  *        active_only   // Извлекать только сообщения не заблокированных/забаненых пользователей (==1)
  *      ]
@@ -138,7 +138,7 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти комнату с id_room
+     *  2. Попробовать найти комнату с room_name
      *  3. Извлечь сообщения
      *  4. Обработать $messages
      *  5. Реверсировать $messages
@@ -155,17 +155,34 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "id_room"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "room_name"           => ["required", "string"],
         "number"              => ["required", "regex:/^[0-9]+$/ui"],
         "active_only"         => ["required", "regex:/^[01]{1}$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Попробовать найти комнату с id_room
-      $room = \M10\Models\MD1_rooms::find($this->data['id_room']);
-      if(empty($room))
-        throw new \Exception("Can't find room with ID = ".$this->data['id_room']);
+      // 2. Попробовать найти комнату с room_name
+
+        // 2.1. Попробовать найти
+        $room = \M10\Models\MD1_rooms::where('name', $this->data['room_name'])->first();
+
+        // 2.2. Если найти не удалось, провести синхронизацию комнат с конфигом, и попробовать снова
+        if(empty($room)) {
+
+          // 1] Провести синхронизацию
+          $result = runcommand('\M10\Commands\C1_sync_rooms', []);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Попробовать найти $room повторно
+          $room = \M10\Models\MD1_rooms::where('name', $this->data['room_name'])->first();
+
+        }
+
+        // 2.3. Если и после синхронизации пусто, возбудить исключение
+        if(empty($room))
+          throw new \Exception("Can't find room with name = ".$this->data['room_name']);
 
       // 3. Извлечь сообщения
       $messages = call_user_func(function(){
@@ -173,9 +190,9 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
         // 3.1. Подготовить запрос
         $query = \M10\Models\MD2_messages::with('m5_users');
 
-        // 3.2. Искать записи, связанные с комнатой id_room
+        // 3.2. Искать записи, связанные с комнатой room_name
         $query->whereHas('rooms', function($query){
-          $query->where('id', $this->data['id_room']);
+          $query->where('name', $this->data['room_name']);
         });
 
         // 3.3. Если нужны только сообщения не забаненных и не заблокированных пользователей

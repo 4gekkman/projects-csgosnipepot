@@ -90,7 +90,7 @@ class T4_get_messages extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm10:get_messages {id_room} {number=0} {active_only=1}';
+    protected $signature = 'm10:get_messages {room_name} {number=0} {active_only=1}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
