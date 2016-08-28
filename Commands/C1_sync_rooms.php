@@ -183,7 +183,7 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
         $room_db->delete();
       }
 
-      // 3. Добавить/Восстановить-обносить в БД те комнаты, которые есть в $rooms
+      // 3. Добавить/Восстановить-обновить в БД те комнаты, которые есть в $rooms
       foreach($rooms as $name => $room) {
 
         // 1] Попробовать найти в БД комнату с именем $name
