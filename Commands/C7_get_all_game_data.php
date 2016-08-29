@@ -138,7 +138,6 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
      *  1. Получить коллекцию всех включенных комнат
      *  2. Получить куку пользователя с ID включенной комнаты
      *
-     *
      *  N. Вернуть статус 0
      *
      */
@@ -157,8 +156,24 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
       //          /       \
       //   Пользователи Пользователи
       //
-      $rooms = \M9\Models\MD1_rooms::with(['rounds.rounds_statuses', 'rounds.bets.users'])
-          ->where('is_on', 1)->get();
+
+        // 1.1. Попробовать извлечь коллекцию всех игровых данных
+        $rooms = \M9\Models\MD1_rooms::with(['rounds.rounds_statuses', 'rounds.bets.users'])
+            ->where('is_on', 1)->get();
+
+        // 1.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
+        if($rooms->count() == 0) {
+
+          // 1] Синхронизировать
+          $result = runcommand('\M9\Commands\C8_sync_rooms', []);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Попробовать снова извлечь $rooms
+          $rooms = \M9\Models\MD1_rooms::with(['rounds.rounds_statuses', 'rounds.bets.users'])
+              ->where('is_on', 1)->get();
+
+        }
 
       // 2. Получить куку пользователя с ID включенной комнаты
       $choosen_room_id = call_user_func(function() USE ($rooms) {
@@ -207,9 +222,8 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
       });
 
-      Log::info($rooms);
-
       // n. Вернуть результаты
+      DB::commit();
       return [
         "status"  => 0,
         "data"    => [

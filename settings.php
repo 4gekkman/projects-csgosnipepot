@@ -267,7 +267,7 @@ return [
 
         // Основные
         "bet_accepting_mode"      => "availability",
-        "name"                    => "Main",
+        "name"                    => "Premium",
         "description"             => "Bets from 10$",
         "description_full"        => "This is the \"premium\" room with minimum bet limit - from 10$.",
         "is_on"                   => 1,

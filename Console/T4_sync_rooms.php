@@ -161,20 +161,20 @@ class T4_sync_rooms extends Command
      *
      */
 
-//    // 1. Выполнить команду
-//    $result = runcommand('\M9\Commands\C1_command', $this->argument());
-//
-//
-//    // 2. В случае неудачи, вывести текст ошибки
-//    if($result['status'] != 0) {
-//      $this->error('Error: '.$result['data']['errormsg']);
-//      return;
-//    }
-//
-//
-//    // 3. В случае успеха, вывести соотв.сообщение
-//    $this->info("Success");
-//
+    // 1. Выполнить команду
+    $result = runcommand('\M9\Commands\C8_sync_rooms', $this->argument());
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']['errormsg']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
+
   }
 
 }
