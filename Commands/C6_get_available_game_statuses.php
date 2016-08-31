@@ -135,8 +135,10 @@ class C6_get_available_game_statuses extends Job { // TODO: добавить "im
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить из конфига M9 значение "lottery_game_statuses"
+     *  2. Получить из БД содержимое статусов раундов (кэшировать на 15 минут)
+     *  3. Если $lottery_game_statuses_db не содержит $lottery_game_statuses, дополнить
+     *  4. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -150,8 +152,10 @@ class C6_get_available_game_statuses extends Job { // TODO: добавить "im
       // 1. Получить из конфига M9 значение "lottery_game_statuses"
       $lottery_game_statuses = config("M9.lottery_game_statuses");
 
-      // 2. Получить из БД содержимое статусов раундов
-      $lottery_game_statuses_db = \M9\Models\MD5_rounds_statuses::get();
+      // 2. Получить из БД содержимое статусов раундов (кэшировать на 15 минут)
+      $lottery_game_statuses_db = Cache::remember('\M9\Models\MD5_rounds_statuses', 15, function() {
+        return \M9\Models\MD5_rounds_statuses::get();
+      });
 
       // 3. Если $lottery_game_statuses_db не содержит $lottery_game_statuses, дополнить
 
@@ -177,21 +181,28 @@ class C6_get_available_game_statuses extends Job { // TODO: добавить "im
 
         // 2] Если требуется дополнить таблицу статусов, сделать это
         if($need_update_statuses_data) {
+
+          // 2.1] Синхронизировать таблицу статусов
           $result = runcommand('\M9\Commands\C5_sync_round_statuses', []);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
+
+          // 2.2] Извлечь все статусы
           $lottery_game_statuses_db = \M9\Models\MD5_rounds_statuses::get();
+
+          // 2.3] Очистить кэш для ключа "\M9\Models\MD5_rounds_statuses"
+          Cache::forget('\M9\Models\MD5_rounds_statuses');
+
         }
 
       // 4. Вернуть результаты
+      DB::commit();
       return [
         "status"  => 0,
         "data"    => [
           "lottery_game_statuses_db" => $lottery_game_statuses_db
         ]
       ];
-
-
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C6_get_available_game_statuses from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

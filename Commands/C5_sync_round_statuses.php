@@ -135,8 +135,10 @@ class C5_sync_round_statuses extends Job { // TODO: добавить "implements
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить из конфига M9 значение "lottery_game_statuses"
+     *  2. Провести валидацию $lottery_game_statuses
+     *  3. Получить из БД содержимое статусов раундов в виде массива (кэшировать на 15 минут)
+     *  4. Пробежаться по массиву $lottery_game_statuses
      *
      *  N. Вернуть статус 0
      *
@@ -166,8 +168,10 @@ class C5_sync_round_statuses extends Job { // TODO: добавить "implements
           throw new \Exception($validator['data']);
         }
 
-      // 3. Получить из БД содержимое статусов раундов в виде массива
-      $lottery_game_statuses_db = \M9\Models\MD5_rounds_statuses::get()->toArray();
+      // 3. Получить из БД содержимое статусов раундов в виде массива (кэшировать на 15 минут)
+      $lottery_game_statuses_db = Cache::remember('\M9\Models\MD5_rounds_statuses', 15, function() {
+        return \M9\Models\MD5_rounds_statuses::get();
+      })->toArray();
 
       // 4. Пробежаться по массиву $lottery_game_statuses
       foreach($lottery_game_statuses as $status) {
