@@ -446,6 +446,24 @@ class C14_update_prices_csgofast extends Job { // TODO: добавить "implem
 
         });
 
+        // 12] Вычислить финальную цену для $item
+        call_user_func(function() USE ($item, $name) {
+
+          // 12.1] Получить финальную цену для вещи $name
+          $final_price_data = runcommand('\M8\Commands\C17_get_final_items_prices', [
+            "items" => [$name]
+          ]);
+          if($final_price_data['status'] != 0)
+            throw new \Exception($final_price_data['data']['errormsg']);
+          $final_price = $final_price_data['data']['prices'][$name]['price'];
+          $success = $final_price_data['data']['prices'][$name]['success'];
+
+          // 12.2] Записать финальную цену и "успешность" извлечения цены в $item
+          $item->price = $final_price;
+          $item->price_success = $success;
+
+        });
+
         // n] Сохранить $item в БД
         $item->save();
 

@@ -135,8 +135,8 @@ class C18_update_prices_all extends Job { // TODO: добавить "implements 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Обновить цены данными с csgofast
+     *  2. Обновить цены данными с steammarket
      *
      *  N. Вернуть статус 0
      *
@@ -147,8 +147,15 @@ class C18_update_prices_all extends Job { // TODO: добавить "implements 
     //----------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Обновить цены данными с csgofast
+      $result = runcommand('\M8\Commands\C14_update_prices_csgofast', []);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
-
+      // 2. Обновить цены данными с steammarket
+      $result = runcommand('\M8\Commands\C15_update_prices_steammarket', []);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C18_update_prices_all from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

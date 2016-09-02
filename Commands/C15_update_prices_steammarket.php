@@ -480,10 +480,10 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
       //
       foreach($steammarket_data_final as $steamdata) {
 
-        // 1] Попробовать найти запись с $name в MD2_items
+        // 1] Попробовать найти запись с $steamdata['name'] в MD2_items
         $item = \M8\Models\MD2_items::where('name','=',$steamdata['name'])->first();
 
-        // 2] Если $item не найдена, создать запись с таким $name
+        // 2] Если $item не найдена, создать запись с таким $steamdata['name']
         if(empty($item)) {
           $item = new \M8\Models\MD2_items();
           $item->name = $steamdata['name'];
@@ -559,7 +559,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         // 5] Определить, является ли $item кейсом
         call_user_func(function() USE ($item, $steamdata) {
 
-          // 5.1] Узнать, есть ли в $name соотв.ключевые слова
+          // 5.1] Узнать, есть ли в $steamdata['name'] соотв.ключевые слова
           // - Если нет, завершить определение, является ли $item кейсом, указав, что это не кейс
           if(!preg_match("/(Case$|Weapon Case|Winter Case|Summer Case)/ui", $steamdata['name'], $match)) {
             $item->is_case = 0;
@@ -573,7 +573,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         // 5] Определить, является ли $item ключём
         call_user_func(function() USE ($item, $steamdata) {
 
-          // 6.1] Узнать, есть ли в $name соотв.ключевые слова
+          // 6.1] Узнать, есть ли в $steamdata['name'] соотв.ключевые слова
           // - Если нет, завершить определение, является ли $item ключём, указав, что это не ключ
           if(!preg_match("/(Case Key|Capsule Key|Capsule .* Key|eSports Key)/ui", $steamdata['name'], $match)) {
             $item->is_key = 0;
@@ -587,7 +587,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         // 7] Определить, является ли $item StarTrak-вещью
         call_user_func(function() USE ($item, $steamdata) {
 
-          // 7.1] Узнать, есть ли в $name соотв.ключевые слова
+          // 7.1] Узнать, есть ли в $steamdata['name'] соотв.ключевые слова
           // - Если нет, завершить определение, является ли $item StarTrak-вещью, указав, что это не она
           if(!preg_match("/StatTrak/ui", $steamdata['name'], $match)) {
             $item->is_startrak = 0;
@@ -601,7 +601,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         // 8] Определить, является ли $item сувенирным набором
         call_user_func(function() USE ($item, $steamdata) {
 
-          // 8.1] Узнать, есть ли в $name соотв.ключевые слова
+          // 8.1] Узнать, есть ли в $steamdata['name'] соотв.ключевые слова
           // - Если нет, завершить определение, является ли $item сувенирным набором, указав, что это не она
           if(!preg_match("/Souvenir Package/ui", $steamdata['name'], $match)) {
             $item->is_souvenir_package = 0;
@@ -615,7 +615,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         // 9] Определить, является ли $item сувениром
         call_user_func(function() USE ($item, $steamdata) {
 
-          // 9.1] Узнать, есть ли в $name соотв.ключевые слова
+          // 9.1] Узнать, есть ли в $steamdata['name'] соотв.ключевые слова
           // - Если нет, завершить определение, является ли $item сувениром, указав, что это не он
           if(!preg_match("/^Souvenir/ui", $steamdata['name'], $match)) {
             $item->is_souvenir = 0;
@@ -629,7 +629,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         // 10] Определить, является ли $item ножом, и каким
         call_user_func(function() USE ($item, $steamdata, $all_knife_types) {
 
-          // 10.1] Узнать, есть ли в $name соотв.ключевые слова
+          // 10.1] Узнать, есть ли в $steamdata['name'] соотв.ключевые слова
           // - Если нет, завершить определение, является ли $item ножом, указав, что это не он
           if(!preg_match("/^★/ui", $steamdata['name'], $match)) {
             $item->is_knife = 0;
@@ -716,6 +716,24 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
         // 14] Сохранить ссылку на изображение $item
         $item->steammarket_image = $steamdata['image'];
+
+        // 15] Вычислить финальную цену для $item
+        call_user_func(function() USE ($item, $steamdata) {
+
+          // 15.1] Получить финальную цену для вещи $steamdata['name']
+          $final_price_data = runcommand('\M8\Commands\C17_get_final_items_prices', [
+            "items" => [$steamdata['name']]
+          ]);
+          if($final_price_data['status'] != 0)
+            throw new \Exception($final_price_data['data']['errormsg']);
+          $final_price = $final_price_data['data']['prices'][$steamdata['name']]['price'];
+          $success = $final_price_data['data']['prices'][$steamdata['name']]['success'];
+
+          // 15.2] Записать финальную цену в $item
+          $item->price = $final_price;
+          $item->price_success = $success;
+
+        });
 
         // n] Сохранить $item в БД
         $item->save();

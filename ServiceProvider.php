@@ -110,7 +110,7 @@
           '$schedule->command("m8:update_bots_inventory_count")->cron("*/10 * * * * *");',
           '$schedule->command("m8:update_bots_authorization_statuses")->cron("*/10 * * * * *");',
           '$schedule->command("m8:update_bots_apikeys")->hourly();',
-          '$schedule->command("m8:update_prices_all")->twiceDaily(1,13);'
+          '$schedule->command("m8:update_prices_all")->dailyAt("04:00");'
         ];
 
       //----------------------------------------------------//

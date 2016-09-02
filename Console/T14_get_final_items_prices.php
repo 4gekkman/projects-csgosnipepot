@@ -187,9 +187,9 @@ class T14_get_final_items_prices extends Command
     }
 
 
-    // 5. В случае успеха, вывести содержимое items
+    // 5. В случае успеха, вывести содержимое prices
     $this->info("Success");
-    //$this->info(json_encode($result['data']['items'], JSON_PRETTY_PRINT));
+    $this->info(json_encode($result['data']['prices'], JSON_PRETTY_PRINT));
 
   }
 
