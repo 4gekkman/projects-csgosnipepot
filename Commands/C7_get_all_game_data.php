@@ -162,6 +162,9 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           'rounds.rounds_statuses',
           'rounds.bets.m5_users' => function($query){
             $query->select('id', 'nickname', 'avatar_steam', 'ha_provider_uid');
+          },
+          'rounds.bets.m8_items' => function($query){
+            $query->select('name', 'price', 'price_success', 'steammarket_link', 'steammarket_image','is_case','is_key','is_startrak','is_souvenir_package','is_souvenir','is_knife','is_weapon');
           }
         ])->where('is_on', 1)->get();
 
