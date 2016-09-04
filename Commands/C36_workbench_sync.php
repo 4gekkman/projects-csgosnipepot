@@ -398,42 +398,113 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
             if(!array_key_exists($rel[1]->REFERENCED_TABLE_NAME, $result[$this->data['data']['packid']]))
               $result[$this->data['data']['packid']][$rel[1]->REFERENCED_TABLE_NAME] = [];
 
-            // 5.2] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+            //// 5.2] Подготовить массив имён доп.столбцов pivot-таблицы для добавления в withPivot связи
+            //
+            //  // 5.2.1] Получить список имён всех столбцов pivot-таблицы
+            //  $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".$this->data['data']['packid']."' AND TABLE_NAME = '".$rel[0]->TABLE_NAME."';");
+            //
+            //  write2log('pack = '.$this->data['data']['packid'], []);
+            //  write2log('name = '.$rel[0]->TABLE_NAME, []);
+            //  write2log($all_pivot_column_names, []);
 
-              // 5.2.1] Определить имя связи
+            // 5.3] Добавить связь для модели $rel[0]->REFERENCED_TABLE_NAME
+
+              // 5.3.1] Определить имя связи
               $relname = $rel[1]->REFERENCED_TABLE_NAME;
               $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
 
-              // 5.2.2] Определить имя связанной модели
+              // 5.3.2] Определить имя связанной модели
               $relmodel = $rel[1]->REFERENCED_TABLE_NAME;
               $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
 
-              // 5.2.3] Добавить связь
+              // 5.3.3] Подготовить массив имён доп.столбцов pivot-таблицы для добавления в withPivot связи
+              $withpivot = call_user_func(function() USE ($rel) {
+
+                // 1]Получить список имён всех столбцов pivot-таблицы
+                // - В формате:
+                //
+                // [
+                //   {
+                //     "COLUMN_NAME" => "ИМЯ1"
+                //   },
+                //   {
+                //     "COLUMN_NAME" => "ИМЯ2"
+                //   },
+                // ]
+                //
+                $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".mb_strtolower($this->data['data']['packid'])."' AND TABLE_NAME = '".mb_strtolower($rel[1]->TABLE_NAME)."'");
+
+                // 2] Получить просто массив имён без COLUMN_NAME
+                // - Отфильтровав все свойства, имеющие префикс "id_"
+                $result_arr = [];
+                foreach($all_pivot_column_names as $item) {
+                  if(preg_match("/^id_/", $item->COLUMN_NAME) == 0)
+                    array_push($result_arr, $item->COLUMN_NAME);
+                }
+
+                // 3] Вернуть $result_arr
+                return $result_arr;
+
+              });
+
+              // 5.3.4] Добавить связь
               $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[0]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel[1]->COLUMN_NAME,
-                "local_key"       => $rel[0]->COLUMN_NAME
+                "local_key"       => $rel[0]->COLUMN_NAME,
+                "withpivot"       => $withpivot
               ];
 
-            // 5.3] Добавить связь для модели $rel[1]->REFERENCED_TABLE_NAME
+            // 5.4] Добавить связь для модели $rel[1]->REFERENCED_TABLE_NAME
 
-              // 5.3.1] Определить имя связи
+              // 5.4.1] Определить имя связи
               $relname = $rel[0]->REFERENCED_TABLE_NAME;
               $relname = preg_replace("/^md[0-9]{1,3}_/ui", '', $relname);
 
-              // 5.3.2] Определить имя связанной модели
+              // 5.4.2] Определить имя связанной модели
               $relmodel = $rel[0]->REFERENCED_TABLE_NAME;
               $relmodel = preg_replace("/^md/u", 'MD', $relmodel);
 
-              // 5.3.3] Добавить связь
+              // 5.4.3] Подготовить массив имён доп.столбцов pivot-таблицы для добавления в withPivot связи
+              $withpivot = call_user_func(function() USE ($rel) {
+
+                // 1]Получить список имён всех столбцов pivot-таблицы
+                // - В формате:
+                //
+                // [
+                //   {
+                //     "COLUMN_NAME" => "ИМЯ1"
+                //   },
+                //   {
+                //     "COLUMN_NAME" => "ИМЯ2"
+                //   },
+                // ]
+                //
+                $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".mb_strtolower($this->data['data']['packid'])."' AND TABLE_NAME = '".mb_strtolower($rel[0]->TABLE_NAME)."'");
+
+                // 2] Получить просто массив имён без COLUMN_NAME
+                // - Отфильтровав все свойства, имеющие префикс "id_"
+                $result_arr = [];
+                foreach($all_pivot_column_names as $item) {
+                  if(preg_match("/^id_/", $item->COLUMN_NAME) == 0)
+                    array_push($result_arr, $item->COLUMN_NAME);
+                }
+
+                // 3] Вернуть $result_arr
+                return $result_arr;
+
+              });
+
+              // 5.4.4] Добавить связь
               $result[$this->data['data']['packid']][$rel[1]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[1]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($this->data['data']['packid'])."\\Models\\$relmodel",
                 "foreign_key"     => $rel[0]->COLUMN_NAME,
-                "local_key"       => $rel[1]->COLUMN_NAME
+                "local_key"       => $rel[1]->COLUMN_NAME,
+                "withpivot"       => $withpivot
               ];
 
           }
@@ -698,13 +769,44 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
               });
 
-              // 8.4.3] Добавить связь
+              // 8.4.3] Подготовить массив имён доп.столбцов pivot-таблицы для добавления в withPivot связи
+              $withpivot = call_user_func(function() USE ($rel) {
+
+                // 1]Получить список имён всех столбцов pivot-таблицы
+                // - В формате:
+                //
+                // [
+                //   {
+                //     "COLUMN_NAME" => "ИМЯ1"
+                //   },
+                //   {
+                //     "COLUMN_NAME" => "ИМЯ2"
+                //   },
+                // ]
+                //
+                $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".mb_strtolower($this->data['data']['packid'])."' AND TABLE_NAME = '".mb_strtolower($rel[0]->TABLE_NAME)."'");
+
+                // 2] Получить просто массив имён без COLUMN_NAME
+                // - Отфильтровав все свойства, имеющие префикс "id_"
+                $result_arr = [];
+                foreach($all_pivot_column_names as $item) {
+                  if(preg_match("/^id_/", $item->COLUMN_NAME) == 0)
+                    array_push($result_arr, $item->COLUMN_NAME);
+                }
+
+                // 3] Вернуть $result_arr
+                return $result_arr;
+
+              });
+
+              // 8.4.4] Добавить связь
               $result[$this->data['data']['packid']][$rel[0]->REFERENCED_TABLE_NAME][$relname] = [
                 "type"            => "belongsToMany",
                 "pivot"           => mb_strtolower($this->data['data']['packid']).".".$rel[0]->TABLE_NAME,
                 "related_model"   => "\\".mb_strtoupper($basename2)."\\Models\\$modelname2",
                 "foreign_key"     => $foreign_key,
-                "local_key"       => $rel[0]->COLUMN_NAME
+                "local_key"       => $rel[0]->COLUMN_NAME,
+                "withpivot"       => $withpivot
               ];
 
           }
@@ -919,13 +1021,44 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
 
                   });
 
-                  // 3.3.3] Добавить связь
+                  // 3.3.3] Подготовить массив имён доп.столбцов pivot-таблицы для добавления в withPivot связи
+                  $withpivot = call_user_func(function() USE ($rel) {
+
+                    // 1]Получить список имён всех столбцов pivot-таблицы
+                    // - В формате:
+                    //
+                    // [
+                    //   {
+                    //     "COLUMN_NAME" => "ИМЯ1"
+                    //   },
+                    //   {
+                    //     "COLUMN_NAME" => "ИМЯ2"
+                    //   },
+                    // ]
+                    //
+                    $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".mb_strtolower($this->data['data']['packid'])."' AND TABLE_NAME = '".mb_strtolower($rel[0]->TABLE_NAME)."'");
+
+                    // 2] Получить просто массив имён без COLUMN_NAME
+                    // - Отфильтровав все свойства, имеющие префикс "id_"
+                    $result_arr = [];
+                    foreach($all_pivot_column_names as $item) {
+                      if(preg_match("/^id_/", $item->COLUMN_NAME) == 0)
+                        array_push($result_arr, $item->COLUMN_NAME);
+                    }
+
+                    // 3] Вернуть $result_arr
+                    return $result_arr;
+
+                  });
+
+                  // 3.3.4] Добавить связь
                   $result[$this->data['data']['packid']][$tablename1][$relname] = [
                     "type"            => "belongsToMany",
                     "pivot"           => mb_strtolower($mpack).".".$rel[0]->TABLE_NAME,
                     "related_model"   => "\\".mb_strtoupper($mpack)."\\Models\\$modelname2",
                     "foreign_key"     => $rel[0]->COLUMN_NAME,
-                    "local_key"       => $local_key
+                    "local_key"       => $local_key,
+                    "withpivot"       => $withpivot
                   ];
 
               }
@@ -973,8 +1106,25 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
               // 2.1.1] Добавить пробелы
               $result = $result . '    ';
 
-              // 2.1.2] Добавить связь
-              $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\'); }';
+              // 2.1.2] Добавить связь и withpivot
+
+                // Добавить связь без withpivot и закрывающей фигурной скобки
+                $result = $result . 'public function '.$name.'() { return $this->belongsToMany(\''.$sets['related_model'].'\', \''.$sets['pivot'].'\', \''.$sets['local_key'].'\', \''.$sets['foreign_key'].'\')';
+
+                // Добавить withpivot, если это необходимо
+                $pivot_count = count($sets['withpivot']);
+                if($pivot_count > 0) {
+                  $result = $result . "->withPivot([";
+                  $count = 0;
+                  foreach($sets['withpivot'] as $column) {
+                    $count = +$count + 1;
+                    $result = $result . "'$column'" . ($count < $pivot_count ? ',' : '');
+                  }
+                  $result = $result . "])";
+                }
+
+                // Добавить закрывающую фигурную скобку
+                $result = $result . '; }';
 
               // 2.1.3] Добавить перенос строки
               $result = $result . PHP_EOL;
