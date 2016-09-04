@@ -67,7 +67,7 @@ class MD5_rounds_statuses extends Model {
   //------------------//
 
     // relationships start
-    public function rounds() { return $this->belongsToMany('\M9\Models\MD2_rounds', 'm9.md1001', 'id_status', 'id_round'); }
+    public function rounds() { return $this->belongsToMany('\M9\Models\MD2_rounds', 'm9.md1001', 'id_status', 'id_round')->withPivot(['started_at','ended_at','comment']); }
     // relationships stop
 
 

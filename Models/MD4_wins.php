@@ -70,7 +70,7 @@ class MD4_wins extends Model {
     public function rounds() { return $this->belongsToMany('\M9\Models\MD2_rounds', 'm9.md1000', 'id_win', 'id_round'); }
     public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm9.md2004', 'id_win', 'id_user'); }
     public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm9.md2005', 'id_win', 'id_bot'); }
-    public function m8_items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm9.md2006', 'id_win', 'id_item'); }
+    public function m8_items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm9.md2006', 'id_win', 'id_item')->withPivot(['price','assetid']); }
     // relationships stop
 
 
