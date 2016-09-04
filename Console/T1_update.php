@@ -166,7 +166,7 @@ class T1_update extends Command
 
     // 2. В случае неудачи, вывести текст ошибки
     if($result['status'] != 0) {
-      $this->error('Error: '.$result['data']);
+      $this->error('Error: '.$result['data']['errortext']);
       return;
     }
 

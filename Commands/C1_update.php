@@ -386,13 +386,16 @@ class C1_update extends Job { // TODO: добавить "implements ShouldQueue"
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_update from M-package M4 have ended with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C1_update from M-package M4 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M4', 'C1_update']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 
