@@ -14,7 +14,7 @@
  *
  *    [
  *      "data" => [
- *
+ *        rounds_limit          // Сколько последних раундов должно войти в результат по каждой комнате (0 - значит без ограничений)
  *      ]
  *    ]
  *
@@ -135,8 +135,9 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1. Получить коллекцию всех включенных комнат
-     *  2. Получить куку пользователя с ID включенной комнаты
+     *  1. Провести валидацию входящих параметров
+     *  2. Получить коллекцию всех включенных комнат
+     *  3. Получить куку пользователя с ID включенной комнаты
      *
      *  N. Вернуть статус 0
      *
@@ -147,7 +148,14 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
     //------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить коллекцию всех игровых данных
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
+        "rounds_limit"              => ["required", "regex:/^[0-9]+$/ui"]
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
+
+      // 2. Получить коллекцию всех игровых данных
       //				   Комната
       //				    /   \
       //				Раунд   Раунд
@@ -157,18 +165,22 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
       //   Пользователи Пользователи
       //
 
-        // 1.1. Попробовать извлечь коллекцию всех игровых данных
+        // 2.1. Попробовать извлечь коллекцию всех игровых данных
         $rooms = \M9\Models\MD1_rooms::with([
+          'rounds' => function($query) {
+            if($this->data['rounds_limit'] != 0)
+              $query->take($this->data['rounds_limit']);
+          },
           'rounds.rounds_statuses',
-          'rounds.bets.m5_users' => function($query){
+          'rounds.bets.m5_users' => function($query) {
             $query->select('id', 'nickname', 'avatar_steam', 'ha_provider_uid');
           },
-          'rounds.bets.m8_items' => function($query){
+          'rounds.bets.m8_items' => function($query) {
             $query->select('name', 'price', 'price_success', 'steammarket_link', 'steammarket_image','is_case','is_key','is_startrak','is_souvenir_package','is_souvenir','is_knife','is_weapon');
           }
         ])->where('is_on', 1)->get();
 
-        // 1.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
+        // 2.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
         if($rooms->count() == 0) {
 
           // 1] Синхронизировать
@@ -182,7 +194,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
         }
 
-      // 2. Получить куку пользователя с ID включенной комнаты
+      // 3. Получить куку пользователя с ID включенной комнаты
       $choosen_room_id = call_user_func(function() USE ($rooms) {
 
         // 1] Получить
