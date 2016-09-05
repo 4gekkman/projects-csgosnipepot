@@ -68,7 +68,7 @@ class MD3_bets extends Model {
 
     // relationships start
     public function rounds() { return $this->belongsTo('\M9\Models\MD2_rounds', 'id_round', 'id'); }
-    public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm9.md2000', 'id_bet', 'id_user'); }
+    public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm9.md2000', 'id_bet', 'id_user')->withPivot(['tickets_from','tickets_to']); }
     public function m8_items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm9.md2001', 'id_bet', 'id_item')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
     public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm9.md2002', 'id_bet', 'id_bot'); }
     // relationships stop

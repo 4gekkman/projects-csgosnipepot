@@ -169,7 +169,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
         $rooms = \M9\Models\MD1_rooms::with([
           'rounds' => function($query) {
             if($this->data['rounds_limit'] != 0)
-              $query->take($this->data['rounds_limit']);
+              $query->orderBy('id', 'desc')->take($this->data['rounds_limit']);
           },
           'rounds.rounds_statuses',
           'rounds.bets.m5_users' => function($query) {
