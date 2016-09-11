@@ -15,7 +15,7 @@
     "require": {
       "4gekkman/M1": "~1.0",
 			"riimu/kit-phpencoder": "2.*",
-			"hybridauth/hybridauth": ">=2.0"
+			"hybridauth/hybridauth": "2.7.0"
 		},
     "autoload": {
         "psr-4": {"M5\\": ""}
