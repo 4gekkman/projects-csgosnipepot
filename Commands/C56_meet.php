@@ -228,7 +228,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
                 })->count();
             if($user == 0)
               return false;
-write2log($user, []);
+
             // n] Вернуть true
             return true;
 
