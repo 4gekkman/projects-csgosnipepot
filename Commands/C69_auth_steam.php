@@ -173,22 +173,22 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
       }
 
       // 3. Получить первичные данные о пользователе через HybridAuth
-Log::info(1);
+
         // 3.1. Проверить, если класс Hybrid_Auth недоступен, вернуть ошибку
         if(!class_exists("Hybrid_Auth")) throw new \Exception("Hybrid_Auth class is not available");
-Log::info(2);
+
         // 3.2. Получить API-ключ от Steam из конфига M5
         $apikey = config("M5.steam_api_key");
         if(!$apikey || !is_string($apikey)) throw new \Exception("Steam api key is absent.");
-Log::info(3);
+
         // 3.3. Создать объект класса Hybrid_Auth
         $hybridauth = new \Hybrid_Auth($this->data['hybridauth_config']);
-Log::info(4);
+
         // 3.4. Попробовать аутентифицироваться через выбранного провайдера
         // - При заходе на контроллер через сайт это переадресует на сайт провайдера.
         // - При возврате запроса с сайта провайдера через HA Endpoint, это даст экземпляр провайдера.
         $adapter = $hybridauth->authenticate($this->data['provider']);
-Log::info(5);
+
       // 4. Получить полную информацию о пользователе
 
         // 4.1. Получить из сессии некоторую информацию о профиле пользователя
