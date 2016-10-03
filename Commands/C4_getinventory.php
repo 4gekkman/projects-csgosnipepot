@@ -215,168 +215,159 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           throw new \Exception($validator['data']);
         }
 
-      // 5. Провести обработку объектов в rgDescriptions
-      foreach($json_decoded['rgDescriptions'] as $key => &$description) {
+      // 5. Подготовить и наполнить массив items
+      $items = call_user_func(function() USE ($json_decoded) {
 
-        // 5.1. В каждый из объектов в rgDescriptions добавить доп.свойства
-        // - Взять их из rgInventory.
-        // - Искать соотв.объекты в оном по classid и instanceid.
-        // - Интересуют следующие доп.св-ва: assetid, amount
-        call_user_func(function() USE (&$description, $json_decoded, $key) {
+        // 5.1. Подготовить массив для результатов
+        $items = [];
 
-          // 1] Извлечь classid и instanceid для $description
-          $classid    = $description['classid'];
-          $instanceid = $description['instanceid'];
+        // 5.2. Наполнить items данными из rgInventory
+        foreach($json_decoded['rgInventory'] as $item) {
+          array_push($items, [
+            "assetid" => isset($item['id']) ? $item['id'] : "",
+            "classid" => isset($item['classid']) ? $item['classid'] : "",
+            "instanceid" => isset($item['instanceid']) ? $item['instanceid'] : ""
+          ]);
+        }
 
-          // 2] Получить assetid и amount из соотв.объекта в rgInventory
-          foreach($json_decoded['rgInventory'] as &$inv) {
+        // 5.3. Наполнить items данными из rgDescriptions
+        foreach($items as &$item) {
 
-            if($inv['classid'] == $classid && $inv['instanceid'] == $instanceid) {
-              $assetid = $inv['id'];
-              $amount = $inv['amount'];
-              break;
-            }
+          // 1] Получить ключ по шаблону "<classid>_<instanceid>" для $item
+          $key = $item['classid'] . '_' . $item['instanceid'];
 
+          // 2] По этому ключу получить из rgDescriptions описание для $item
+          $desc = $json_decoded['rgDescriptions'][$key];
+
+          // 3] Записать все св-ва из $desc в $item
+          foreach($desc as $key => $value) {
+            $item[$key] = $value;
           }
 
-          // 3] Добавить $assetid и $amount в $description
-          $description['assetid'] = isset($assetid) ? $assetid : "";
-          $description['amount'] = isset($amount) ? $amount : "";
+
+        }
+
+        // 5.4. Провести обработку каждой вещи в $items
+        foreach($items as $key => &$description) {
+
+          // 5.4.1. Вынести важную информацию из тегов на 1-й уровень массива
+          // - Если, конечно, индекс 'tags' присутствует
+          if(array_key_exists('tags', $description)) {
+            foreach($description['tags'] as $tag) {
+
+              // 1] Type
+              if($tag['category_name'] == "Type") {
+                $description['type'] = $tag['name'];
+              }
+
+              // 2] Weapon
+              if($tag['category_name'] == "Weapon") {
+                $description['weapon'] = $tag['name'];
+              }
+
+              // 3] Collection
+              if($tag['category_name'] == "Collection") {
+                $description['collection'] = $tag['name'];
+              }
+
+              // 4] Category
+              if($tag['category_name'] == "Category") {
+                $description['category'] = $tag['name'];
+              }
+
+              // 5] Quality
+              if($tag['category_name'] == "Quality") {
+                $description['quality'] = $tag['name'];
+                $description['quality_color'] = $tag['color'];
+              }
+
+              // 6] Exterior
+              if($tag['category_name'] == "Exterior") {
+                $description['exterior'] = $tag['name'];
+              }
+
+            }
+          } else {
+            $description['type'] = "";
+            $description['weapon'] = "";
+            $description['collection'] = "";
+            $description['category'] = "";
+            $description['quality'] = "";
+            $description['quality_color'] = "";
+            $description['exterior'] = "";
+          }
+
+          // 5.4.2. Сформировать полные URL для картинок
+
+            // 1] Получить сервер изображений steam
+            $steam_image_server = config('M8.steam_image_server') ?: 'https://steamcommunity-a.akamaihd.net/economy/image/';
+
+            // 2] Сформировать полный URL для icon_url
+            $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
+
+            // 3] Сформировать полный URL для icon_url_large
+            $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
+
+            // 4] Сформировать полный URL для icon_drag_url
+            $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
+
+          // 5.4. На случай глюков steam, добавить необходимые значения полям
+          if(!array_key_exists('tags', $description)) {
+            $description['background_color'] = "#fff";
+            $description['price'] = "0";
+          }
+
+        }
+
+        // 5.5. Добавить в $items цены вещей
+        call_user_func(function() USE (&$items) {
+
+          // 7.1. Пробежаться по $items и получить массив полей market_hash_name
+          $market_hash_names = call_user_func(function() USE ($items) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Наполнить $results
+            foreach($items as $item) {
+              if(array_key_exists('market_hash_name', $item))
+                array_push($results, $item['market_hash_name']);
+            }
+
+            // 3] Вернуть результаты
+            return $results;
+
+          });
+
+          // 7.2. Для каждого $market_hash_names получить цену
+          $prices = call_user_func(function() USE ($market_hash_names) {
+
+            // 1] Если $market_hash_names пуст, вернуть []
+            if(empty($market_hash_names)) return [];
+
+            // 2] Выполнить запрос цен
+            $result = runcommand('\M8\Commands\C17_get_final_items_prices', ['items' => $market_hash_names]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+            // 3] Вернуть результат
+            return $result['data']['prices'];
+
+          });
+
+          // 7.3. Добавить в $items доп.поля
+          // - Если $prices не пуст
+          foreach($items as &$item) {
+            if(array_key_exists('market_hash_name', $item) && !empty($prices)) {
+              $item['price']          = $prices[$item['market_hash_name']]['price'];
+              $item['price_success']  = $prices[$item['market_hash_name']]['success'];
+            }
+          }
 
         });
 
-        // 5.2. Вынести важную информацию из тегов на 1-й уровень массива
-        // - Если, конечно, индекс 'tags' присутствует
-        if(array_key_exists('tags', $description)) {
-          foreach($description['tags'] as $tag) {
-
-            // 1] Type
-            if($tag['category_name'] == "Type") {
-              $description['type'] = $tag['name'];
-            }
-
-            // 2] Weapon
-            if($tag['category_name'] == "Weapon") {
-              $description['weapon'] = $tag['name'];
-            }
-
-            // 3] Collection
-            if($tag['category_name'] == "Collection") {
-              $description['collection'] = $tag['name'];
-            }
-
-            // 4] Category
-            if($tag['category_name'] == "Category") {
-              $description['category'] = $tag['name'];
-            }
-
-            // 5] Quality
-            if($tag['category_name'] == "Quality") {
-              $description['quality'] = $tag['name'];
-              $description['quality_color'] = $tag['color'];
-            }
-
-            // 6] Exterior
-            if($tag['category_name'] == "Exterior") {
-              $description['exterior'] = $tag['name'];
-            }
-
-          }
-        } else {
-          $description['type'] = "";
-          $description['weapon'] = "";
-          $description['collection'] = "";
-          $description['category'] = "";
-          $description['quality'] = "";
-          $description['quality_color'] = "";
-          $description['exterior'] = "";
-        }
-
-        // 5.3. Сформировать полные URL для картинок
-
-          // 1] Получить сервер изображений steam
-          $steam_image_server = config('M8.steam_image_server') ?: 'https://steamcommunity-a.akamaihd.net/economy/image/';
-
-          // 2] Сформировать полный URL для icon_url
-          $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
-
-          // 3] Сформировать полный URL для icon_url_large
-          $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
-
-          // 4] Сформировать полный URL для icon_drag_url
-          $description['icon_drag_url'] = !empty($description['icon_drag_url']) ? $steam_image_server . '/' . $description['icon_drag_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
-
-        // 5.4. На случай глюков steam, добавить необходимые значения полям
-        if(!array_key_exists('tags', $description)) {
-          $description['background_color'] = "#fff";
-          $description['price'] = "0";
-        }
-
-
-      }
-
-      // 6. Преобразовать rgDescriptions в массив массивов
-      $rgDescriptions = call_user_func(function() USE ($json_decoded) {
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Наполнить $results
-        foreach($json_decoded['rgDescriptions'] as $description) {
-
-          array_push($results, $description);
-
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
-
-      // 7. Добавить в $rgDescriptions цены вещей
-      call_user_func(function() USE (&$rgDescriptions) {
-
-        // 7.1. Пробежаться по $rgDescriptions и получить массив полей market_hash_name
-        $market_hash_names = call_user_func(function() USE ($rgDescriptions) {
-
-          // 1] Подготовить массив для результатов
-          $results = [];
-
-          // 2] Наполнить $results
-          foreach($rgDescriptions as $item) {
-            if(array_key_exists('market_hash_name', $item))
-              array_push($results, $item['market_hash_name']);
-          }
-
-          // 3] Вернуть результаты
-          return $results;
-
-        });
-
-        // 7.2. Для каждого $market_hash_names получить цену
-        $prices = call_user_func(function() USE ($market_hash_names) {
-
-          // 1] Если $market_hash_names пуст, вернуть []
-          if(empty($market_hash_names)) return [];
-
-          // 2] Выполнить запрос цен
-          $result = runcommand('\M8\Commands\C17_get_final_items_prices', ['items' => $market_hash_names]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 3] Вернуть результат
-          return $result['data']['prices'];
-
-        });
-
-        // 7.3. Добавить в $rgDescriptions доп.поля
-        // - Если $prices не пуст
-        foreach($rgDescriptions as &$item) {
-          if(array_key_exists('market_hash_name', $item) && !empty($prices)) {
-            $item['price']          = $prices[$item['market_hash_name']]['price'];
-            $item['price_success']  = $prices[$item['market_hash_name']]['success'];
-          }
-        }
+        // 5.n. Вернуть результаты
+        return $items;
 
       });
 
@@ -384,8 +375,8 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
       return [
         "status"  => 0,
         "data"    => [
-          "rgDescriptions"  => $rgDescriptions,
-          "inventory_count" => count($rgDescriptions)
+          "rgDescriptions"  => $items,
+          "inventory_count" => count($items)
         ]
       ];
 
