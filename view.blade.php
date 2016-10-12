@@ -470,9 +470,9 @@
       </div>
     </div>
 
-    <?php /*----------------------------------->
-    <!-- 3.2.2. Контент-бокс интерфейса бота -->
-    <!-------------------------------------*/ ?>
+    <?php /*-------------------------------------->
+    <!-- 3.2.2. Контент-бокс интерфейса комнаты -->
+    <!----------------------------------------*/ ?>
     <div class="content_box_wrapper">
       <div class="content_box">
 
@@ -489,13 +489,13 @@
             <?php /* Заголовок -->
             <!---------------*/ ?>
             <div class="header-note">
-              <span>Basic properties</span>
+              <span>Базовые параметры</span>
             </div>
 
             <?php /* 1] name -->
             <!-------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">name</div>
+              <div class="col-sm-5 control-label">Название</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.name">
               </div>
@@ -504,7 +504,7 @@
             <?php /* 2] is_on -->
             <!--------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Is on</div>
+              <div class="col-sm-5 control-label">Включена ли</div>
               <div class="col-sm-7">
                 <div class="checkbox">
                   <label>
@@ -517,7 +517,7 @@
             <?php /* 3] allow_unstable_prices -->
             <!------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Allow unstable prices</div>
+              <div class="col-sm-5 control-label">Разрешить ли нестабильные цены</div>
               <div class="col-sm-7">
                 <div class="checkbox">
                   <label>
@@ -530,7 +530,7 @@
             <?php /* 4] description -->
             <!--------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Description</div>
+              <div class="col-sm-5 control-label">Описание</div>
               <div class="col-sm-7">
                 <textarea class="form-control" rows="2" placeholder="Description of the room..." data-bind="textInput: m.s2.edit.description"></textarea>
               </div>
@@ -546,13 +546,13 @@
             <?php /* Заголовок -->
             <!---------------*/ ?>
             <div class="header-note">
-              <span>Economy</span>
+              <span>Экономика</span>
             </div>
 
             <?php /* 1] one_bot_payout -->
             <!-----------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">One bot payout</div>
+              <div class="col-sm-5 control-label">Выплата выигрыша 1-им ботом</div>
               <div class="col-sm-7">
                 <div class="checkbox">
                   <label>
@@ -565,7 +565,7 @@
             <?php /* 2] payout_limit_min -->
             <!-------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Payout limit, min</div>
+              <div class="col-sm-5 control-label">Время на забор выигрыша, мин</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.payout_limit_min">
               </div>
@@ -574,7 +574,7 @@
             <?php /* 3] change -->
             <!---------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Change</div>
+              <div class="col-sm-5 control-label">Вкл/Выкл сдачу</div>
               <div class="col-sm-7">
                 <div class="checkbox">
                   <label>
@@ -587,7 +587,7 @@
             <?php /* 4] fee_percents -->
             <!---------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Fee, %</div>
+              <div class="col-sm-5 control-label">Комиссия сервиса, %</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.fee_percents">
               </div>
@@ -595,109 +595,100 @@
 
           </div>
 
-          <?php /*---------------------->
-          <!-- Экономические свойства -->
-          <!------------------------*/ ?>
+          <?php /*-------------------->
+          <!-- Лимиты и ограничения -->
+          <!----------------------*/ ?>
           <div class="form-horizontal">
 
             <?php /* Заголовок -->
             <!---------------*/ ?>
             <div class="header-note">
-              <span>Restrictions</span>
+              <span>Лимиты и ограничения</span>
             </div>
 
-            <?php /* 1] room_round_duration_sec -->
-            <!--------------------------------*/ ?>
+            <?php /* 1] room_round_duration_sec | Длительность раунда, сек -->
+            <!-----------------------------------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Round duration, sec</div>
+              <div class="col-sm-5 control-label">Длительность раунда, сек</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.room_round_duration_sec">
               </div>
             </div>
 
-            <?php /* 2] max_items_per_bet -->
-            <!--------------------------*/ ?>
+            <?php /* 2] min_bet | MIN ставка игрока, ¢ -->
+            <!---------------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Max items per bet</div>
-              <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_bet">
-              </div>
-            </div>
-
-            <?php /* 3] min_items_per_bet -->
-            <!--------------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-5 control-label">Min items per bet</div>
-              <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_items_per_bet">
-              </div>
-            </div>
-
-            <?php /* 4] max_items_per_round -->
-            <!----------------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-5 control-label">Max items per round</div>
-              <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_round">
-              </div>
-            </div>
-
-            <?php /* 5] min_items_per_round -->
-            <!----------------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-5 control-label">Min items per round</div>
-              <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_items_per_round">
-              </div>
-            </div>
-
-            <?php /* 6] min_bet -->
-            <!----------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-5 control-label">Min bet, ¢</div>
+              <div class="col-sm-5 control-label">MIN ставка игрока, ¢</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_bet">
               </div>
             </div>
 
-            <?php /* 7] max_bet -->
-            <!----------------*/ ?>
+            <?php /* 3] max_bet | MAX ставка игрока, ¢ -->
+            <!---------------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Max bet, ¢</div>
+              <div class="col-sm-5 control-label">MAX ставка игрока, ¢</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bet">
               </div>
             </div>
 
-            <?php /* 8] min_bet_round -->
-            <!----------------------*/ ?>
+            <?php /* 4] max_bets_per_round | MAX кол-во ставок игроком за раунд -->
+            <!----------------------------------------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Min bet per round, ¢</div>
+              <div class="col-sm-5 control-label">MAX кол-во ставок игроком за раунд</div>
               <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_bet_round">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bets_per_round">
               </div>
             </div>
 
-            <?php /* 9] max_bet_round -->
-            <!----------------------*/ ?>
+            <?php /* 5] max_round_jackpot | MAX банк раунда, ¢ -->
+            <!-----------------------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Max bet per round, ¢</div>
+              <div class="col-sm-5 control-label">MAX банк раунда, ¢</div>
               <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_bet_round">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_round_jackpot">
+              </div>
+            </div>
+
+            <?php /* 6] min_items_per_bet | MIN кол-во предметов в ставке -->
+            <!----------------------------------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">MIN кол-во предметов в ставке</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.min_items_per_bet">
+              </div>
+            </div>
+
+            <?php /* 7] max_items_per_bet | MAX кол-во предметов в ставке -->
+            <!----------------------------------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">MAX кол-во предметов в ставке</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_bet">
+              </div>
+            </div>
+
+            <?php /* 8] max_items_per_round | MAX кол-во предметов в раунде -->
+            <!------------------------------------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">MAX кол-во предметов в раунде</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_round">
               </div>
             </div>
 
           </div>
 
-          <?php /*---------------------->
-          <!-- Экономические свойства -->
-          <!------------------------*/ ?>
+          <?php /*------------------------->
+          <!-- Ограничения на типы вещей -->
+          <!---------------------------*/ ?>
           <div class="form-horizontal">
 
             <?php /* Заголовок -->
             <!---------------*/ ?>
             <div class="header-note">
-              <span>Allow only specified types</span>
+              <span>Ограничения на типы вещей</span>
             </div>
 
             <?php /* 1] Case -->

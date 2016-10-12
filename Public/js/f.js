@@ -608,6 +608,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.description(data.description());
 			self.m.s2.edit.room_round_duration_sec(data.room_round_duration_sec());
 			self.m.s2.edit.max_items_per_bet(data.max_items_per_bet());
+			self.m.s2.edit.max_bets_per_round(data.max_bets_per_round());
+			self.m.s2.edit.max_round_jackpot(data.max_round_jackpot());
 			self.m.s2.edit.max_items_per_round(data.max_items_per_round());
 			self.m.s2.edit.min_items_per_bet(data.min_items_per_bet());
 			self.m.s2.edit.min_items_per_round(data.min_items_per_round());
@@ -669,6 +671,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					name: 										self.m.s2.edit.name(),
 					description: 							self.m.s2.edit.description(),
 					room_round_duration_sec: 	self.m.s2.edit.room_round_duration_sec(),
+					max_bets_per_round: 			self.m.s2.edit.max_bets_per_round(),
+					max_round_jackpot: 				self.m.s2.edit.max_round_jackpot(),
 					max_items_per_bet: 				self.m.s2.edit.max_items_per_bet(),
 					max_items_per_round: 			self.m.s2.edit.max_items_per_round(),
 					min_items_per_bet: 				self.m.s2.edit.min_items_per_bet(),
