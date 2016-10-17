@@ -307,7 +307,8 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         $json = [
           'auth'    => $auth,
           'user'    => $user2auth_excepted,
-          'is_anon' => 0
+          'is_anon' => 0,
+          'marker'  => "C69 - 10.6"
         ];
         $json = json_encode($json, JSON_UNESCAPED_UNICODE);
         $json_encrypted = Crypt::encrypt($json);

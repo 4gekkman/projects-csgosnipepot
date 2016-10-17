@@ -136,10 +136,33 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
      * Оглавление
      *
      *  1. Проверить аутентификационный кэш из сессии
+     *    1.1. Получить аутентификационный кэш из сессии
+     *    1.2. Если он не пуст и валиден, завершить работу функции
+     *
      *  2. Получить аутентификационную куку
+     *
      *  3. Провести валидацию аутентификационной куки
+     *    3.1. Если кука пуста, значит она не валидна
+     *    3.2. Удостовериться, что кука содержит валидный json
+     *    3.3. Провести валидацию важного для meet содержимого этого json
+     *    3.4. Получить массив из $auth_cache
+     *    3.5. Если в $auth_cache_arr нет поля user, значит не валиден
+     *    3.6. Проверить, существует ли в БД пользователь с таким ID
+     *    3.n. Вернуть true (успешная валидация)
+     *
      *  4. Если аутентификационная кука не пуста и валидна
+     *    4.1. Декодировать json-строку с данными аутентиф.куки в массив
+     *    4.2. Извлечь ID пользователя и ID аутентиф.записи из $auth_cookie_arr
+     *    4.3. Попробовать найти валидную аутентиф.запись по данным из куки
+     *    4.4. Проверить, валидна ли $auth_note
+     *    4.5. Если $auth_note валидна
+     *    4.6. Если $auth_note не валидна, ничего не делать
+     *
      *  5. Если аутентификационная кука пуста, или её содержимое не валидно
+     *    5.1. Попробовать найти анонимного пользователя
+     *    5.2. Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
+     *    5.3. Записать пользователю новый аутентиф.кэш в сессию
+     *    5.4. Записать пользователю новую куку
      *
      *  N. Вернуть статус 0
      *
@@ -279,9 +302,9 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
 
         // 3.6. Проверить, существует ли в БД пользователь с таким ID
         $user = \M5\Models\MD1_users::where('id', $auth_cookie_arr['user']['id'])
-            ->whereHas('auth', function($query){
-              $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
-            })->count();
+          ->whereHas('auth', function($query){
+            $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
+          })->count();
         if($user == 0)
           return false;
 
@@ -363,7 +386,8 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             $json = [
               'auth'    => ["id" => 1],
               'user'    => $anon,
-              'is_anon' => 1
+              'is_anon' => 1,
+              'marker'  => "C56 - 4.5 - 1]"
             ];
             $json = json_encode($json, JSON_UNESCAPED_UNICODE);
             $json_encrypted = Crypt::encrypt($json);
@@ -387,7 +411,8 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             $json = [
               'auth'    => $auth_note,
               'user'    => $auth_cookie_user,
-              'is_anon' => 0
+              'is_anon' => 0,
+              'marker'  => "C56 - 4.5 - 2]"
             ];
             $json = json_encode($json, JSON_UNESCAPED_UNICODE);
             $json_encrypted = Crypt::encrypt($json);
@@ -405,7 +430,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
 
         }
 
-        // 4.6] Если $auth_note не валидна, ничего не делать
+        // 4.6. Если $auth_note не валидна, ничего не делать
         else {
 
         }
@@ -434,7 +459,8 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         $json = [
           'auth'    => ["id" => 1],
           'user'    => $anon,
-          'is_anon' => 1
+          'is_anon' => 1,
+          'marker'  => "C56 - 5.2"
         ];
         $json = json_encode($json, JSON_UNESCAPED_UNICODE);
         $json_encrypted = Crypt::encrypt($json);
