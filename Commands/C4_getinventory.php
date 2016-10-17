@@ -322,7 +322,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         // 5.5. Добавить в $items цены вещей
         call_user_func(function() USE (&$items) {
 
-          // 7.1. Пробежаться по $items и получить массив полей market_hash_name
+          // 5.5.1. Пробежаться по $items и получить массив полей market_hash_name
           $market_hash_names = call_user_func(function() USE ($items) {
 
             // 1] Подготовить массив для результатов
@@ -339,7 +339,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
           });
 
-          // 7.2. Для каждого $market_hash_names получить цену
+          // 5.5.2. Для каждого $market_hash_names получить цену
           $prices = call_user_func(function() USE ($market_hash_names) {
 
             // 1] Если $market_hash_names пуст, вернуть []
@@ -355,7 +355,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
           });
 
-          // 7.3. Добавить в $items доп.поля
+          // 5.5.3. Добавить в $items доп.поля
           // - Если $prices не пуст
           foreach($items as &$item) {
             if(array_key_exists('market_hash_name', $item) && !empty($prices)) {
