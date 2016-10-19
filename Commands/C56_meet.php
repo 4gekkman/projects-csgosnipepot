@@ -407,7 +407,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           if($auth_cookie_arr['is_anon'] == 0) {
 
             // 2.1] Подготовить json-строку (зашифрованную и нет) со свежими аутентификационными данными пользвоателя
-            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
+            $auth_cookie_user = collect(\M5\Models\MD1_users::find($auth_cookie_user_id))->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
             $json = [
               'auth'    => $auth_note,
               'user'    => $auth_cookie_user,

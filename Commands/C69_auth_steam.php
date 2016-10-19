@@ -303,7 +303,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         $auth->save();
 
         // 10.6. Сфоромировать json с новыми аутентификационными данными
-        $user2auth_excepted = collect($user2auth)->except(['adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
+        $user2auth_excepted = collect($user2auth)->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
         $json = [
           'auth'    => $auth,
           'user'    => $user2auth_excepted,
