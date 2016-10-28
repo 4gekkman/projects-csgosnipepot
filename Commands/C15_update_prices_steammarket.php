@@ -715,7 +715,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
         $item->steammarket_qty = $steamdata['qty'];
 
         // 14] Сохранить ссылку на изображение $item
-        $item->steammarket_image = $steamdata['image'];
+        $item->steammarket_image = $steamdata['image'] . '/360fx360f';
 
         // 15] Вычислить финальную цену для $item
         call_user_func(function() USE ($item, $steamdata) {
