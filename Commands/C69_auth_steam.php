@@ -214,10 +214,12 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           "steamid"       => $full_profile->response->players[0]->steamid,
           "personaname"   => $full_profile->response->players[0]->personaname ?: "",
           "profileurl"    => $full_profile->response->players[0]->profileurl ?: "",
-          "avatar"        => $full_profile->response->players[0]->avatar ?: "",
-          "avatarmedium"  => $full_profile->response->players[0]->avatarmedium ?: "",
-          "avatarfull"    => $full_profile->response->players[0]->avatarfull ?: "",
+          "avatar"        => $full_profile->response->players[0]->avatar ? preg_replace("/^https:/i", "http:", $full_profile->response->players[0]->avatar) : "",
+          "avatarmedium"  => $full_profile->response->players[0]->avatarmedium ? preg_replace("/^https:/i", "http:", $full_profile->response->players[0]->avatarmedium) : "",
+          "avatarfull"    => $full_profile->response->players[0]->avatarfull ? preg_replace("/^https:/i", "http:", $full_profile->response->players[0]->avatarfull) : "",
         ];
+
+      write2log($full_profile_data, []);
 
       // 5. Провести валидацию $full_profile_data
       $validator = r4_validate($full_profile_data, [
