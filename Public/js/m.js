@@ -643,6 +643,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.change 											= ko.observable("");
 		self.m.s2.edit.one_bot_payout 							= ko.observable("");
 		self.m.s2.edit.payout_limit_min 						= ko.observable("");
+		self.m.s2.edit.revolutions_per_lottery 			= ko.observable("");
+		self.m.s2.edit.lottery_duration_ms 					= ko.observable("");
 
 		// 2] Поле allow_only_types в виде json-строки //
 		//---------------------------------------------//

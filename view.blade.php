@@ -536,6 +536,24 @@
               </div>
             </div>
 
+            <?php /* 5] revolutions_per_lottery -->
+            <!--------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Кол-во целых оборотов колеса при розыгрыше</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.revolutions_per_lottery">
+              </div>
+            </div>
+
+            <?php /* 6] lottery_duration_ms -->
+            <!----------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Время на провередие розыгрыша, мс</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.lottery_duration_ms">
+              </div>
+            </div>
+
           </div>
 
           <?php /*---------------------->
