@@ -303,7 +303,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
             $steam_image_server = config('M8.steam_image_server') ?: 'http://steamcommunity-a.akamaihd.net/economy/image/';
 
             // 2] Сформировать полный URL для icon_url
-            $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . '/' . $description['icon_url'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
+            $description['icon_url'] = !empty($description['icon_url']) ? $steam_image_server . $description['icon_url'] . '/360fx360f' : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
 
             // 3] Сформировать полный URL для icon_url_large
             $description['icon_url_large'] = !empty($description['icon_url_large']) ? $steam_image_server . '/' . $description['icon_url_large'] : "https://placeholdit.imgix.net/~text?txtsize=50&txt=steam%20problems&w=300&h=300&txttrack=0";
