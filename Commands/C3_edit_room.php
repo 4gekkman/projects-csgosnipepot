@@ -176,6 +176,8 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "change" 				            => ["required", "regex:/^[01]{1}$/ui"],
         "one_bot_payout"            => ["required", "regex:/^[01]{1}$/ui"],
         "payout_limit_min"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "revolutions_per_lottery" 	=> ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "lottery_duration_ms" 			=> ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
       ]); if($validator['status'] == -1) {
 
