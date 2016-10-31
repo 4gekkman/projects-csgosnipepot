@@ -141,7 +141,10 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
      *  3. Произвести сверку вещей в inventory и items2bet
      *  4. Получить комнату, в которой игрок хочет сделать ставку, с помощью choosen_room_id
      *  5. Проверить типы вещей из $items2bet
-     *  6.
+     *  6. Сгенерировать случайный код безопасности
+     *  7. Определить, какой бот будет принимать ставку
+     *  8. Если не удалось определить бота, который должен принять ставку, вернуть ошибку
+     *  9. Отправить игроку торговое предложение
      *
      *  N. Вернуть статус 0
      *
@@ -246,6 +249,92 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           }
           return $result;
         });
+
+      // 7. Определить, какой бот будет принимать ставку
+      $bot2acceptbet = call_user_func(function() USE ($room) {
+
+        // 7.1. Получить выбранный режим приёма ставок в этой комнате
+        $bet_accepting_modes = $room->bet_accepting_modes[0];
+
+        // 7.2. Если выбран режим onebot_oneround_inturn_circled
+        if($bet_accepting_modes->mode == "onebot_oneround_inturn_circled") {
+
+          // 1] Получить предпоследний раунд для комнаты $room
+          $penultimate_round = call_user_func(function() USE ($room) {
+
+            // 1.1] Если предыдущего раунда нет, вернуть null
+            if(count($room->rounds) <= 1) return null;
+
+            // 1.2] Если есть, вернуть предыдущий раунд
+            else return $room->rounds[1];
+
+          });
+
+          // 2] Если $penultimate_round найден
+          $penultimate_round = null;
+          if($penultimate_round) {
+
+            // 3.1] Получить всех связанных с $room ботов
+            $bots = $room->m8_bots;
+
+            // 3.2] Если $bots пуст, вернуть null
+            if(count($bots) == 0) return null;
+
+            // 3.3] В противном случае
+            else {
+
+              // 3.3.1] Получить все ставки предыдущего раунда
+              $penultimate_round_bets = $penultimate_round->bets;
+
+              // 3.3.2] Если $penultimate_round_bets пуст, вернуть первого попавшегося бота комнаты
+              if(count($penultimate_round_bets) == 0) return $bots[0];
+
+              // 3.3.3] В противном случае, получить связанного с первой из ставок бота
+              $bets_bot = $penultimate_round_bets[0]->m8_bots;
+
+              // 3.3.4] Если $bets_bot пуст, вернуть первого попавшегося бота комнаты
+              if(count($bets_bot) == 0) return $bots[0];
+
+              // 3.3.5] Вернуть первого бота из $bets_bot
+              return $bets_bot[0];
+
+            }
+
+          }
+
+          // 3] Если $penultimate_round не найден
+          else {
+
+            // 3.1] Получить всех связанных с $room ботов
+            $bots = $room->m8_bots;
+
+            // 3.2] Если $bots пуст, вернуть null
+            if(count($bots) == 0) return null;
+
+            // 3.3] В противном случае, вернуть первого попавшегося бота
+            else return $bots[0];
+
+          }
+
+        }
+
+        // 7.3. Если выбран режим nbots_inturn_circled
+        if($bet_accepting_modes->mode == "nbots_inturn_circled") {
+
+        }
+
+      });
+
+      // 8. Если не удалось определить бота, который должен принять ставку, вернуть ошибку
+      if(empty($bot2acceptbet))
+        throw new \Exception("Не удалось найти в этой комнате бота, который мог бы принять твою ставку.");
+
+      // 9. Отправить игроку торговое предложение
+      // - С запросом тех предметов, которые он хочет поставить.
+      
+
+
+
 
 
 
