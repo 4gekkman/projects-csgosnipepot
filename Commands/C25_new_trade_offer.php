@@ -381,9 +381,9 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
         "status"  => 0,
         "data"    => [
           "tradeofferid"              => $json['tradeofferid'],
-          "needs_mobile_confirmation" => $json['needs_mobile_confirmation'],
-          "needs_email_confirmation"  => $json['needs_email_confirmation'],
-          "email_domain"              => $json['email_domain']
+          "needs_mobile_confirmation" => array_key_exists('needs_mobile_confirmation', $json) ? $json['needs_mobile_confirmation'] : "",
+          "needs_email_confirmation"  => array_key_exists('needs_email_confirmation', $json) ? $json['needs_email_confirmation'] : "",
+          "email_domain"              => array_key_exists('email_domain', $json) ? $json['email_domain'] : ""
         ]
       ];
 
