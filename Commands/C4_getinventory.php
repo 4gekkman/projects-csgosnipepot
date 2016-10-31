@@ -319,7 +319,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
         }
 
-        // 5.5. Добавить в $items цены вещей
+        // 5.5. Добавить в $items дополнительные поля
         call_user_func(function() USE (&$items) {
 
           // 5.5.1. Пробежаться по $items и получить массив полей market_hash_name
@@ -339,29 +339,62 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
           });
 
-          // 5.5.2. Для каждого $market_hash_names получить цену
-          $prices = call_user_func(function() USE ($market_hash_names) {
+          // 5.5.2. Добавить в каждый из $item его цену
 
-            // 1] Если $market_hash_names пуст, вернуть []
-            if(empty($market_hash_names)) return [];
+            // 5.5.2.1. Для каждого $market_hash_names получить цену
+            $prices = call_user_func(function() USE ($market_hash_names) {
 
-            // 2] Выполнить запрос цен
-            $result = runcommand('\M8\Commands\C17_get_final_items_prices', ['items' => $market_hash_names]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
+              // 1] Если $market_hash_names пуст, вернуть []
+              if(empty($market_hash_names)) return [];
 
-            // 3] Вернуть результат
-            return $result['data']['prices'];
+              // 2] Выполнить запрос цен
+              $result = runcommand('\M8\Commands\C17_get_final_items_prices', ['items' => $market_hash_names]);
+              if($result['status'] != 0)
+                throw new \Exception($result['data']['errormsg']);
 
-          });
+              // 3] Вернуть результат
+              return $result['data']['prices'];
 
-          // 5.5.3. Добавить в $items доп.поля
-          // - Если $prices не пуст
-          foreach($items as &$item) {
-            if(array_key_exists('market_hash_name', $item) && !empty($prices)) {
-              $item['price']          = $prices[$item['market_hash_name']]['price'];
-              $item['price_success']  = $prices[$item['market_hash_name']]['success'];
+            });
+
+            // 5.5.2.2. Добавить в $items доп.поля
+            // - Если $prices не пуст
+            foreach($items as &$item) {
+              if(array_key_exists('market_hash_name', $item) && !empty($prices)) {
+                $item['price']          = $prices[$item['market_hash_name']]['price'];
+                $item['price_success']  = $prices[$item['market_hash_name']]['success'];
+              }
             }
+
+          // 5.5.3. Добавить в каждый из $item его тип и стабильность
+          // Из набора: ["undefined","case","key","startrak","souvenir","souvenir packages","knife","weapon"]
+          foreach($items as &$item) {
+
+            // 1] Получить вещь с name == $item
+            $item_db = \M8\Models\MD2_items::where('name', $item['market_hash_name'])->first();
+
+            // 2] Добавить в каждый из $item показатель стабильности его цены
+            $item['is_price_unstable'] = $item_db->is_price_unstable;
+
+            // 3] Если клюс market_hash_name отсутствует в $item
+            if(!array_key_exists('market_hash_name', $item))
+              continue;
+
+            // 4] Если $item_db отсутствует, записать тип undefined
+            if(empty($item_db))
+              $item['itemtype'] = "undefined";
+
+            // 5] Если $item_db присутствует
+            else {
+              if($item_db->is_case == '1')              $item['itemtype'] = "case";
+              if($item_db->is_key == '1')               $item['itemtype'] = "key";
+              if($item_db->is_startrak == '1')          $item['itemtype'] = "startrak";
+              if($item_db->is_souvenir == '1')          $item['itemtype'] = "souvenir";
+              if($item_db->is_souvenir_package == '1')  $item['itemtype'] = "souvenir_package";
+              if($item_db->is_knife == '1')             $item['itemtype'] = "knife";
+              if($item_db->is_weapon == '1')            $item['itemtype'] = "weapon";
+            }
+
           }
 
         });
