@@ -28,6 +28,7 @@
  *    f.s2.reset_filters            | s2.4. Функция для сброса фильтров по списку ботов
  *    f.s2.edit                     | s2.5. Отредактировать комнату
  *    f.s2.edit_attached_bot_list   | s2.6. Отредактировать прикреплённый к выбранной комнате список ботов
+ *    f.s2.delete_room              | s2.7. Удалить указанную игровую комнату и все связанные с ней ресурсы
  *
  */
 
@@ -603,7 +604,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.id(data.id());
 
 			self.m.s2.edit.is_on(data.is_on());
-			self.m.s2.edit.bet_accepting_mode(data.bet_accepting_mode());
+			//self.m.s2.edit.bet_accepting_mode(data.bet_accepting_mode());
 			self.m.s2.edit.name(data.name());
 			self.m.s2.edit.description(data.description());
 			self.m.s2.edit.room_round_duration_sec(data.room_round_duration_sec());
@@ -669,7 +670,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					id: 											self.m.s2.edit.id(),
 
 					is_on: 										self.m.s2.edit.is_on() == true ? 1 : 0,
-					bet_accepting_mode: 			self.m.s2.edit.bet_accepting_mode(),
+					//bet_accepting_mode: 			self.m.s2.edit.bet_accepting_mode(),
 					name: 										self.m.s2.edit.name(),
 					description: 							self.m.s2.edit.description(),
 					room_round_duration_sec: 	self.m.s2.edit.room_round_duration_sec(),
@@ -797,7 +798,57 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+		//-----------------------------------------------------------------------//
+		// s2.7. Удалить указанную игровую комнату и все связанные с ней ресурсы //
+		//-----------------------------------------------------------------------//
+		f.s2.delete_room = function(data, event) {
 
+			// 1] Спросить, действительно ли требуется удалить комнату
+			var doyou = confirm("Ты действительно хочешь удалить эту комнату? Есличё, она не на совсем удалится, и можно будет восстановить. Так что не парься, чувак (или чувиха)!");
+
+			// 2] Если да, то послать соотв.ajax запрос с ID комнаты
+			if(doyou) {
+
+				ajaxko(self, {
+					command: 	    "\\M9\\Commands\\C10_delete_room",
+					from: 		    "f.s2.edit",
+					data: 		    {
+						id_room:                            self.m.s2.edit.id()
+					},
+					prejob:       function(config, data, event){},
+					postjob:      function(data, params){},
+					ok_0:         function(data, params){
+
+						// 1] Сообщить, что пользователь был успешно отредактирован
+						notify({msg: 'Комната была успешно удалена', time: 5, fontcolor: 'RGB(50,120,50)'});
+
+						// 2] Перезазгрузить страницу
+						location.reload();
+
+					},
+					ok_2:         function(data, params){
+
+						// 1] Сообщить об ошибке
+						notify({msg: data.data.errormsg, time: 10, fontcolor: 'RGB(200,50,50)'});
+						console.log(data.data.errortext);
+
+					}
+					//ajax_params:  {},
+					//key: 			    "D1:1",
+					//from_ex: 	    [],
+					//callback:     function(data, params){},
+					//ok_1:         function(data, params){},
+					//error:        function(){},
+					//timeout:      function(){},
+					//timeout_sec:  200,
+					//url:          window.location.href,
+					//ajax_method:  "post",
+					//ajax_headers: {"Content-Type": "application/json", "X-CSRF-TOKEN": server.csrf_token}
+				});
+
+			}
+
+		};
 
 
 

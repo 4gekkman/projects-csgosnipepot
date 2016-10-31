@@ -240,7 +240,7 @@
             <?php /*---------------------------->
             <!-- 3.1] По режиму приёма ставок -->
             <!------------------------------*/ ?>
-            <div class="filter-noselect">
+            <div style="display: none" class="filter-noselect">
 
               <?php /*--------->
               <!-- Заголовок -->
@@ -822,7 +822,7 @@
             <?php /* Удалить комнату -->
             <!---------------------*/ ?>
             <div style="margin-top: 10px;">
-              <button type="button" class="btn btn-block btn-danger" data-bind="click: ''">Delete room</button>
+              <button type="button" class="btn btn-block btn-danger" data-bind="click: f.s2.delete_room">Delete room</button>
             </div>
 
           </div>

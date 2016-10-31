@@ -544,14 +544,14 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			return ko.utils.arrayFilter(self.m.s2.rooms(), function(item){
 
 				// 1] Фильтрация по mode
-				if(item().bet_accepting_mode() == 'roll') {
-					if(self.m.s2.filterrooms.mode.roll() == false)
-						return false;
-				}
-				if(item().bet_accepting_mode() == 'availability') {
-					if(self.m.s2.filterrooms.mode.availability() == false)
-						return false;
-				}
+//				if(item().bet_accepting_mode() == 'roll') {
+//					if(self.m.s2.filterrooms.mode.roll() == false)
+//						return false;
+//				}
+//				if(item().bet_accepting_mode() == 'availability') {
+//					if(self.m.s2.filterrooms.mode.availability() == false)
+//						return false;
+//				}
 
 				// 2] Фильтрация по status
 				if(item().is_on() == 1) {
@@ -615,7 +615,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.id 													= ko.observable("");
 
 		self.m.s2.edit.is_on 												= ko.observable("");
-		self.m.s2.edit.bet_accepting_mode  					= ko.observable("");
+		//self.m.s2.edit.bet_accepting_mode  					= ko.observable("");
 		self.m.s2.edit.name 												= ko.observable("");
 		self.m.s2.edit.description 									= ko.observable("");
 		self.m.s2.edit.room_round_duration_sec 			= ko.observable("");
