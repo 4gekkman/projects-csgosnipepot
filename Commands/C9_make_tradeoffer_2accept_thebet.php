@@ -137,7 +137,11 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *
+     *  2. Получить инвентарь игрока с помощью players_steamid
+     *  3. Произвести сверку вещей в inventory и items2bet
+     *  4. Получить комнату, в которой игрок хочет сделать ставку, с помощью choosen_room_id
+     *  5. Проверить типы вещей из $items2bet
+     *  6.
      *
      *  N. Вернуть статус 0
      *
@@ -151,19 +155,98 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "players_steamid" => ["required", "regex:/^[0-9]+$/ui"],
-        "items2bet"       => ["required", "string"],
+        "items2bet"       => ["required", "array"],
+        "choosen_room_id" => ["required", "regex:/^[0-9]+$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception("Неверные входящие данные.");
       }
 
-      // 2.
+      // 2. Получить инвентарь игрока с помощью players_steamid
+      $inventory = runcommand('\M8\Commands\C4_getinventory', [
+        "steamid" => $this->data['players_steamid']
+      ]);
+      if($inventory['status'] != 0)
+        throw new \Exception("Не получается получить твой инвентарь. Зайди в свой аккаунт в Steam, в настройки приватности, и проверь, чтобы инвентарь был 'Public'.");
 
+      // 3. Произвести сверку вещей в inventory и items2bet
+      // - Все вещи из items2bet должны присутствовать в items2bet.
+      // - Сверка производится по параметру market_name.
+      // - При любом расхождении, завершить с ошибкой.
 
+        // 3.1. Получить массив market_name из inventory
+        $inventory_market_names = call_user_func(function() USE ($inventory) {
+          $results = [];
+          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+            array_push($results, $inventory['data']['rgDescriptions'][$i]['market_name']);
+          }
+          return $results;
+        });
 
+        // 3.2. Получить массив market_name из items2bet
+        $items2bet_market_names = call_user_func(function(){
+          $results = [];
+          for($i=0; $i<count($this->data['items2bet']); $i++) {
+            array_push($results, $this->data['items2bet'][$i]['market_name']);
+          }
+          return $results;
+        });
 
+        // 3.3. Проверить, чтобы 3.2 полностью был включён в 3.1
+        if(count(array_intersect($items2bet_market_names, $inventory_market_names)) == 0)
+          throw new \Exception("В твоём инвентаре в Steam сейчас нет указанных тобой вещей. Обнови свой инвентарь, и заново сформируй ставку.");
 
+      // 4. Получить комнату, в которой игрок хочет сделать ставку, с помощью choosen_room_id
+      $room = \M9\Models\MD1_rooms::find($this->data['choosen_room_id']);
+      if(!$room)
+        throw new \Exception("Бот не может найти в базе данных комнату, в которой ты пытаешься сделать ставку.");
 
-      write2log($this->data['items2bet'], []);
+      // 5. Проверить типы вещей из $items2bet
+      // - Если есть хотя бы 1 вещь запрещённого типа, завершить с ошибкой.
+
+        // 5.1. Получить список допустимых в $room типов вещей
+        $allow_only_types = json_decode($room->allow_only_types, JSON_UNESCAPED_UNICODE);
+
+        // 5.2. Проверить типы вещей из $items2bet
+        // - Но основываясь на данных из $inventory
+        call_user_func(function() USE ($inventory, $items2bet_market_names, $allow_only_types) {
+          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+            if(in_array($inventory['data']['rgDescriptions'][$i]['market_name'], $items2bet_market_names)) {
+              if(!in_array($inventory['data']['rgDescriptions'][$i]['itemtype'], $allow_only_types))
+                throw new \Exception("Одна из вещей, которые ты пытаешься поставить, имеет запрещённый в этой комнате тип. Вещь: ".$inventory['data']['rgDescriptions'][$i]['market_name'].". Тип: ".$inventory['data']['rgDescriptions'][$i]['itemtype'].".");
+            }
+          }
+        });
+
+      // 6. Сгенерировать случайный код безопасности
+      // - Он представляет из себя число определённой длины.
+      // - Длина указана в настройках соответствующей комнаты, в safecode_length.
+
+        // 6.1. Получить длину кода безопасности
+        $safecode_length = call_user_func(function() USE ($room) {
+
+          // 1] Получить длину кода безопасности
+          $safecode_length = $room->safecode_length;
+
+          // 2] Если $safecode_length пуста, или не числа, использовать '6'
+          $validator = r4_validate(['safecode_length' => $safecode_length], [
+            "safecode_length" => ["required", "regex:/^[0-9]+$/ui"],
+          ]); if($validator['status'] == -1)
+            $safecode_length = 6;
+
+          // 3] Вернуть результат
+          return $safecode_length;
+
+        });
+
+        // 6.2. Сгенерировать случайное $safecode_length-значное число
+        $safecode = call_user_func(function() USE ($safecode_length) {
+          $result = '';
+          for($i = 0; $i < $safecode_length; $i++) {
+            $result .= mt_rand(0, 9);
+          }
+          return $result;
+        });
+
 
 
     DB::commit(); } catch(\Exception $e) {
