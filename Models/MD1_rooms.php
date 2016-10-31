@@ -68,6 +68,7 @@ class MD1_rooms extends Model {
   //------------------//
 
     // relationships start
+    public function bet_accepting_modes() { return $this->belongsToMany('\M9\Models\MD7_bet_accepting_modes', 'm9.md1008', 'id_room', 'id_mode'); }
     public function rounds() { return $this->hasMany('\M9\Models\MD2_rounds', 'id_room', 'id'); }
     public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm9.md2003', 'id_room', 'id_bot'); }
     // relationships stop

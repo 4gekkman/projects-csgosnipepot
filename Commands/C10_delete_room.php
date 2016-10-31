@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Create a new game room
+ *    - Delete existing room
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        name
+ *
  *      ]
  *    ]
  *
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C2_create_new_room extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C10_delete_room extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,77 +136,34 @@ class C2_create_new_room extends Job { // TODO: добавить "implements Sho
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Проверить, нет ли уже комнаты с таким именем
-     *  3. Получить все параметры по умолчанию для новых комнат из конфига
-     *  4. Создать новую комнату с параметрами по умолчанию
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------//
-    // Создать новую игровую комнату с параметрами по умолчанию //
-    //----------------------------------------------------------//
+    //--------------------------------------------------------------------//
+    // Удалить существующую игровую комнату и все связанные с ней ресурсы //
+    //--------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "name"              => ["required", "string"],
+        "id_room"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Проверить, нет ли уже комнаты с таким именем
-      $room_check = \M9\Models\MD1_rooms::where('name', $this->data['name'])->first();
-      if(!empty($room_check))
-        throw new \Exception('There is a room with such name.');
+      // 2. Найти комнату с id_room и удалить её
+      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
+      if($room)
+        $room->delete();
 
-      // 3. Получить все параметры по умолчанию для новых комнат из конфига
-      $defaults = [];
-
-        // 1] Разрешить принимать в виде ставок только эти типы вещей
-
-          // 1.1] Разрешить принимать в виде ставок только эти типы вещей
-          $defaults['allow_only_types'] = config('M9.allow_only_types');
-          if(empty($defaults['allow_only_types'])) $defaults['allow_only_types'] = [
-            'case',
-            'key',
-            'startrak',
-            'souvenir packages',
-            'knife',
-            'weapon'
-          ];
-
-      // 4. Создать новую комнату с параметрами по умолчанию
-
-        // 4.1. Создать новую модель комнаты
-        $room = new \M9\Models\MD1_rooms();
-
-        // 4.2. Добавить allow_only_types
-        foreach($defaults as $key => $value) {
-          $room["allow_only_types"] = json_encode($defaults['allow_only_types'], JSON_UNESCAPED_UNICODE);
-        }
-
-        // 4.3. Добавить имя комнаты
-        $room['name'] = $this->data['name'];
-
-        // 4.4. Сохранить созданную модель
-        $room->save();
-        DB::commit();
-
-        // 4.5. Связать $room с режимом приёма ставок "onebot_oneround_inturn_circled"
-        DB::beginTransaction();
-        $bet_accepting_mode = \M9\Models\MD7_bet_accepting_modes::where('mode', 'onebot_oneround_inturn_circled')->first();
-        if(empty($bet_accepting_mode))
-          throw new \Exception('В таблице m9.md7_bet_accepting_modes не найден режим onebot_oneround_inturn_circled');
-        $room->bet_accepting_modes()->attach($bet_accepting_mode->id);
-        DB::commit();
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C2_create_new_room from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C10_delete_room from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C2_create_new_room']);
+        write2log($errortext, ['M9', 'C10_delete_room']);
         return [
           "status"  => -2,
           "data"    => [
