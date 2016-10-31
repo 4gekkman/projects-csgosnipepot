@@ -145,6 +145,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
      *  7. Определить, какой бот будет принимать ставку
      *  8. Если не удалось определить бота, который должен принять ставку, вернуть ошибку
      *  9. Отправить игроку торговое предложение
+     *  10. Записать необходимую информацию о ставке в БД
      *
      *  N. Вернуть статус 0
      *
@@ -223,6 +224,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       // 6. Сгенерировать случайный код безопасности
       // - Он представляет из себя число определённой длины.
       // - Длина указана в настройках соответствующей комнаты, в safecode_length.
+      // - У каждого кода безопасности есть свой срок годности.
 
         // 6.1. Получить длину кода безопасности
         $safecode_length = call_user_func(function() USE ($room) {
@@ -271,7 +273,6 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           });
 
           // 2] Если $penultimate_round найден
-          $penultimate_round = null;
           if($penultimate_round) {
 
             // 3.1] Получить всех связанных с $room ботов
@@ -331,8 +332,75 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       // 9. Отправить игроку торговое предложение
       // - С запросом тех предметов, которые он хочет поставить.
-      
+      call_user_func(function() USE ($inventory, $items2bet_market_names, $bot2acceptbet, $safecode){
 
+        // 1] Получить игрока, который хочет сделать ставку
+        $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
+        if(empty($user))
+          throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
+
+        // 2] Получить steam_tradeurl пользователя $user
+        $steam_tradeurl = $user->steam_tradeurl;
+        if(empty($steam_tradeurl))
+          throw new \Exception("Чтобы сделать ставку, сначала введи свой Steam Trade URL в настройках.");
+
+        // 3] Получить partner и token пользователя из его trade url
+        $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
+          "trade_url" => $steam_tradeurl
+        ]);
+        if($partner_and_token['status'] != 0)
+          throw new \Exception("Похоже, что ты ввёл неправильный Steam Trade URL в настройках. Перепроверь его.");
+        $partner = $partner_and_token['data']['partner'];
+        $token = $partner_and_token['data']['token'];
+
+        // 4] Подготовить массив assetid вещей, которые бот должен запросить
+        $assets2recieve = call_user_func(function() USE ($inventory, $items2bet_market_names) {
+
+          $results = [];
+          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+            if(in_array($inventory['data']['rgDescriptions'][$i]['market_name'], $items2bet_market_names)) {
+
+              array_push($results, $inventory['data']['rgDescriptions'][$i]['assetid']);
+
+            }
+          }
+          return $results;
+
+        });
+
+        // 5] Сформировать сообщение для торгового предложения
+        $tradeoffermessage = call_user_func(function() USE ($safecode) {
+          return "Safecode: ".$safecode;
+        });
+
+        // 6] Отправить пользователю торговое предложение
+        $result = runcommand('\M8\Commands\C25_new_trade_offer', [
+					"id_bot"                => $bot2acceptbet->id,
+					"steamid_partner"  			=> $this->data['players_steamid'],
+					"id_partner"            => $partner,
+					"token_partner"         => $token,
+					"dont_trade_with_gays"  => "1",
+					"assets2send"           => [],
+					"assets2recieve"        => $assets2recieve,
+					"tradeoffermessage"     => $tradeoffermessage
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception("Не удалось отправить торговое предложение.");
+        if(array_key_exists('data', $result) && array_key_exists('could_trade', $result['data']) && $result['data']['could_trade'] == 0)
+          throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
+
+        // 7] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
+        $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
+          "id_bot"                => $bot2acceptbet->id,
+          "need_to_ids"           => "0",
+          "just_fetch_info"       => "0"
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+      });
+
+      // 10. Записать необходимую информацию о ставке в БД
 
 
 
