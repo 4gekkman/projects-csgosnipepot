@@ -332,7 +332,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       // 9. Отправить игроку торговое предложение
       // - С запросом тех предметов, которые он хочет поставить.
-      call_user_func(function() USE ($inventory, $items2bet_market_names, $bot2acceptbet, $safecode){
+      $tradeofferid = call_user_func(function() USE ($inventory, $items2bet_market_names, $bot2acceptbet, $safecode){
 
         // 1] Получить игрока, который хочет сделать ставку
         $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
@@ -374,7 +374,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         });
 
         // 6] Отправить пользователю торговое предложение
-        $result = runcommand('\M8\Commands\C25_new_trade_offer', [
+        $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
 					"id_bot"                => $bot2acceptbet->id,
 					"steamid_partner"  			=> $this->data['players_steamid'],
 					"id_partner"            => $partner,
@@ -384,9 +384,9 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 					"assets2recieve"        => $assets2recieve,
 					"tradeoffermessage"     => $tradeoffermessage
         ]);
-        if($result['status'] != 0)
+        if($tradeoffer['status'] != 0)
           throw new \Exception("Не удалось отправить торговое предложение.");
-        if(array_key_exists('data', $result) && array_key_exists('could_trade', $result['data']) && $result['data']['could_trade'] == 0)
+        if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
           throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
 
         // 7] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
@@ -398,15 +398,29 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
+        // n] Вернуть ID торгового предложения
+        return $tradeoffer['data']['tradeofferid'];
+
       });
 
       // 10. Записать необходимую информацию о ставке в БД
 
 
 
+      // n. Сделать коммит
+      DB::commit();
+
+      // m. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "safecode"      => $safecode,
+          "tradeofferid"  => $tradeofferid
+        ]
+      ];
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C9_make_tradeoffer_2accept_thebet from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
