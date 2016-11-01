@@ -69,8 +69,8 @@ class MD2_rounds extends Model {
     // relationships start
     public function wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md1000', 'id_round', 'id_win'); }
     public function rounds_statuses() { return $this->belongsToMany('\M9\Models\MD5_rounds_statuses', 'm9.md1001', 'id_round', 'id_status')->withPivot(['started_at','ended_at','comment']); }
+    public function bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md1010', 'id_round', 'id_bet'); }
     public function rooms() { return $this->belongsTo('\M9\Models\MD1_rooms', 'id_room', 'id'); }
-    public function bets() { return $this->hasMany('\M9\Models\MD3_bets', 'id_round', 'id'); }
     // relationships stop
 
 
