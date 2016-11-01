@@ -146,7 +146,7 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
      *  N. Вернуть статус 0
      *
      */
-
+//$result = runcommand('\\M8\Commands\C22_get_tradeoffer_via', ["id_bot"=>"3", "id_tradeoffer"=>"1615339548"]);
     //----------------------------------------------//
     // Получить 1-но торговое предложение по его ID //
     //----------------------------------------------//

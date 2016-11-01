@@ -371,21 +371,44 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           foreach($items as &$item) {
 
             // 1] Получить вещь с name == $item
-            $item_db = \M8\Models\MD2_items::where('name', $item['market_hash_name'])->first();
+            $item_db = call_user_func(function() USE ($item) {
 
-            // 2] Добавить в каждый из $item показатель стабильности его цены
-            $item['is_price_unstable'] = $item_db->is_price_unstable;
+              // 1.1] Если ключ market_hash_name отсутствует в $item
+              if(!array_key_exists('market_hash_name', $item))
+                return null;
 
-            // 3] Если клюс market_hash_name отсутствует в $item
-            if(!array_key_exists('market_hash_name', $item))
-              continue;
+              // 1.2] Получить вещь с name == $item
+              $item_db = \M8\Models\MD2_items::where('name', $item['market_hash_name'])->first();
 
-            // 4] Если $item_db отсутствует, записать тип undefined
-            if(empty($item_db))
+              // 1.3] Если $item_db пуст, вернуть null
+              if(empty($item_db)) return null;
+
+              // 1.4] В противном случае, вернуть $item_db
+              else return $item_db;
+
+            });
+
+            // 2] Если $item_db пуст
+            if(empty($item_db)) {
+
+              // 2.1] Записать в $item is_price_unstable
+              $item['is_price_unstable'] = 0;
+
+              // 2.2] Записать в $item тип вещи
               $item['itemtype'] = "undefined";
 
-            // 5] Если $item_db присутствует
+              // 2.3] Перейти к следующей итерации
+              continue;
+
+            }
+
+            // 3] Если $item_db не пуст
             else {
+
+              // 3.1] Добавить в каждый из $item показатель стабильности его цены
+              $item['is_price_unstable'] = $item_db->is_price_unstable;
+
+              // 3.2] Добавить в $item его тип
               if($item_db->is_case == '1')              $item['itemtype'] = "case";
               if($item_db->is_key == '1')               $item['itemtype'] = "key";
               if($item_db->is_startrak == '1')          $item['itemtype'] = "startrak";
@@ -393,6 +416,10 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
               if($item_db->is_souvenir_package == '1')  $item['itemtype'] = "souvenir_package";
               if($item_db->is_knife == '1')             $item['itemtype'] = "knife";
               if($item_db->is_weapon == '1')            $item['itemtype'] = "weapon";
+
+              // 3.3] Перейти к следующей итерации
+              continue;
+
             }
 
           }
