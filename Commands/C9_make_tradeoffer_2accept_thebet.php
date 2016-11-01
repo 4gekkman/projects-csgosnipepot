@@ -357,12 +357,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         $assets2recieve = call_user_func(function() USE ($inventory, $items2bet_market_names) {
 
           $results = [];
-          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
-            if(in_array($inventory['data']['rgDescriptions'][$i]['market_name'], $items2bet_market_names)) {
-
-              array_push($results, $inventory['data']['rgDescriptions'][$i]['assetid']);
-
-            }
+          for($i=0; $i<count($this->data['items2bet']); $i++) {
+            array_push($results, $this->data['items2bet'][$i]['assetid']);
           }
           return $results;
 
