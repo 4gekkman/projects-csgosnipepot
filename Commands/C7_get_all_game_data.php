@@ -138,6 +138,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
      *  1. Провести валидацию входящих параметров
      *  2. Получить коллекцию всех включенных комнат
      *  3. Получить куку пользователя с ID включенной комнаты
+     *  4. Добавить доп.свойства всем ставкам всех комнат
      *
      *  N. Вернуть статус 0
      *
@@ -239,6 +240,145 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
         // 6] Вернуть результат
         return $choosen_room_id;
 
+      });
+
+      // 4. Добавить доп.свойства всем ставкам всех комнат
+      call_user_func(function() USE (&$rooms) {
+        for($i=0; $i<count($rooms); $i++) {
+          for($j=0; $j<count($rooms[$i]['rounds']); $j++) {
+
+            // 1] Добавить доп.свойство total_bet_amount
+            call_user_func(function() USE (&$rooms, &$bet, $i, $j) {
+              for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
+
+                // 1.1] Получить k-ую ставку в короткую переменную
+                $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
+
+                // 1.2] Добавить доп.свойство total_bet_amount
+
+                  // 1.2.1] Получить все связанные с $bet вещи
+                  $items = \M8\Models\MD2_items::with(['m9_bets'])
+                    ->whereHas('m9_bets', function($query) USE ($bet) {
+                      $query->where('id', $bet->id);
+                    })->get();
+
+                  // 1.2.2] Посчитать итоговую сумму поставленных вещей
+                  // - Используя значение item_price_at_bet_time из pivot-таблицы
+                  $total_bet_amount = call_user_func(function() USE ($items, $bet) {
+
+                    $result = 0;
+                    for($i=0; $i<count($items); $i++) {
+
+                      // 1.2.2.1] Получить ставку с id == $bet->id
+                      $bet_with_id = call_user_func(function() USE ($i, $items, $bet) {
+                        for($j=0; $j<count($items[$i]['m9_bets']); $j++) {
+                          if($items[$i]['m9_bets'][$j]->id == $bet->id)
+                            return $items[$i]['m9_bets'][$j];
+                        }
+                      });
+
+                      // 1.2.2.2] Вернуть результат
+                      $result = +$result + $bet_with_id['pivot']['item_price_at_bet_time'];
+
+                    }
+                    return $result;
+
+                  });
+
+                  // 1.2.3] Записать итоговую сумму в $bet
+                  $bet['total_bet_amount'] = $total_bet_amount;
+
+              }
+            });
+
+            // 2] Добавить доп.свойства final_bet_odds и final_bet_odds_human
+            call_user_func(function() USE (&$rooms, &$bet, $i, $j) {
+              for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
+
+                // 2.1] Получить k-ую ставку в короткую переменную
+                $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
+
+                // 2.2] Получить общую сумму ставок для j-го раунда
+                $bets_total_sum = call_user_func(function() USE ($rooms, $i, $j) {
+                  $result = 0;
+                  for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
+                    $result = +$result + $rooms[$i]['rounds'][$j]['bets'][$k]['total_bet_amount'];
+                  }
+                  return $result;
+                });
+
+                // 2.3] Получить шанс
+                $odds = $rooms[$i]['rounds'][$j]['bets'][$k]['total_bet_amount'] / $bets_total_sum;
+
+                // 2.4] Определить значение целой части
+                $the_whole_part = call_user_func(function() USE ($odds) {
+                  return [
+                    "value"   => (int) floor($odds),
+                    "length"  => count(str_split( (int) floor($odds*100) . '' ))
+                  ];
+                });
+
+                // 2.5] Если $the_whole_part['length'] == 2
+                if($the_whole_part['length'] == 2) {
+                  $bet['final_bet_odds'] = round($odds*pow(10,12));
+                }
+
+                // 2.6] Если $the_whole_part['length'] == 1
+                if($the_whole_part['length'] == 1) {
+                  $bet['final_bet_odds'] = round($odds*pow(10,11));
+                }
+
+                // 2.7] Если $the_whole_part['length'] == 0
+                if($the_whole_part['length'] == 0) {
+                  $bet['final_bet_odds'] = round($odds*pow(10,10));
+                }
+
+                // 2.8] Добавить final_bet_odds_human
+                call_user_func(function() USE (&$bet) {
+
+                  // 2.8.1] Определить размер final_bet_odds
+                  $length = count(str_split($bet['final_bet_odds'].'')).'';
+
+                  // 2.8.2] Определить результат
+                  switch($length) {
+                    case '12': $result = $bet['final_bet_odds']/pow(10,10); break;
+                    case '11': $result = $bet['final_bet_odds']/pow(10,10); break;
+                    case '10': $result = +('0.'.$bet['final_bet_odds']); break;         
+                    case '9':  $result = +('0.0'.$bet['final_bet_odds']); break;        
+                    case '8':  $result = +('0.00'.$bet['final_bet_odds']); break;       
+                    case '7':  $result = +('0.000'.$bet['final_bet_odds']); break;      
+                    case '6':  $result = +('0.0000'.$bet['final_bet_odds']); break;     
+                    case '5':  $result = +('0.00000'.$bet['final_bet_odds']); break;    
+                    case '4':  $result = +('0.000000'.$bet['final_bet_odds']); break;   
+                    case '3':  $result = +('0.0000000'.$bet['final_bet_odds']); break;  
+                    case '2':  $result = +('0.00000000'.$bet['final_bet_odds']); break; 
+                    case '1':  $result = +('0.000000000'.$bet['final_bet_odds']); break;
+                  }
+
+                  // 2.8.3] Записать результат в $bet
+                  $bet['final_bet_odds_human'] = $result;
+
+                });
+
+              }
+            });
+
+            // 3] Добавить доп.свойство bet_color_hex
+            call_user_func(function() USE (&$rooms, &$bet, $i, $j) {
+              for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
+
+                // 3.1] Получить k-ую ставку в короткую переменную
+                $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
+
+                // 3.2]
+
+
+
+              }
+            });
+
+          }
+        }
       });
 
       // n. Вернуть результаты
