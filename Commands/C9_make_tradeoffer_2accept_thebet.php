@@ -338,8 +338,21 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
 
       // 10. Проверить, нет ли уже у пользователя в этой комнате активного оффера
+      call_user_func(function() USE ($user) {
 
+        // 1] Получить коллекцию всех ставок пользователя $user со статусом "Active"
+        $active_bets = \M9\Models\MD3_bets::whereHas('m5_users', function($query){
+          $query->where('ha_provider_uid', $this->data['players_steamid']);
+        })->whereHas('bets_statuses', function($query){
+          $query->where('status', 'Active');
+        })->get();
 
+        // 2] Если $active_bets не пуста
+        // - Завершить с ошибкой.
+        if(count($active_bets) != 0)
+          throw new \Exception("Сначала прими или отмени предыдущее активное торговое предложение от бота.");
+
+      });
 
       // 11. Отправить игроку торговое предложение
       // - С запросом тех предметов, которые он хочет поставить.

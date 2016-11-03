@@ -229,6 +229,23 @@ return [
 
     ],
 
+    //-------------------------------//
+    // 8] Палитра цветов для игроков //
+    //    Color palette for players  //
+    //-------------------------------//
+    "palette" => [
+			"#BD5532",	//
+			"#E1B866",	//
+			"#373B44",	// http://www.colourlovers.com/palette/1083480/Between_The_Clouds
+			"#DEE1B6",	//
+			"#73C8A9",	//
+
+			"#805841",  //
+			"#DCF7F3",  //
+			"#FFD8D8",  // http://www.colourlovers.com/palette/211196/Vuittons_Breakfast
+			"#FFFCDD",  //
+			"#F5A2A2",  //
+    ],
 
 
 
