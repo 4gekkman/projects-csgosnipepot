@@ -156,7 +156,6 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
 
         "id"                        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "is_on" 									  => ["required", "regex:/^[01]{1}$/ui"],
-        "bet_accepting_mode"  		  => ["required", "in:roll,availability"],
         "name" 									    => ["required", "string"],
         "description" 							=> ["r4_defined", "string"],
         "room_round_duration_sec"   => ["required", "regex:/^[0-9]+$/ui"],
@@ -178,6 +177,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "payout_limit_min"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "revolutions_per_lottery" 	=> ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "lottery_duration_ms" 			=> ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "offers_timeout_sec" 			  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
       ]); if($validator['status'] == -1) {
 
