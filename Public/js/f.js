@@ -625,6 +625,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.payout_limit_min(data.payout_limit_min());
 			self.m.s2.edit.revolutions_per_lottery(data.revolutions_per_lottery());
 			self.m.s2.edit.lottery_duration_ms(data.lottery_duration_ms());
+			self.m.s2.edit.offers_timeout_sec(data.offers_timeout_sec());
 
 			// 2] Загрузить данные для allow_only_types
 			var allow_only_types = JSON.parse(data.allow_only_types());
@@ -691,7 +692,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					payout_limit_min: 				self.m.s2.edit.payout_limit_min(),
 					allow_only_types: 				self.m.s2.edit.allow_only_types_json(),
 					revolutions_per_lottery: 	self.m.s2.edit.revolutions_per_lottery(),
-					lottery_duration_ms: 			self.m.s2.edit.lottery_duration_ms()
+					lottery_duration_ms: 			self.m.s2.edit.lottery_duration_ms(),
+					offers_timeout_sec: 			self.m.s2.edit.offers_timeout_sec()
 
 				},
 			  prejob:       function(config, data, event){},

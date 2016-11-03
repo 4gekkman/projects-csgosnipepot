@@ -554,6 +554,15 @@
               </div>
             </div>
 
+            <?php /* 7] offers_timeout_min -->
+            <!---------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Таймаут офферов ботов игрокам, с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.offers_timeout_sec">
+              </div>
+            </div>
+
           </div>
 
           <?php /*---------------------->
