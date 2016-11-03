@@ -354,6 +354,28 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       });
 
+
+
+
+
+      // Для отладки окошка "Бот формирует оффер..."
+
+      return [
+        "status"  => 0,
+        "data"    => [
+          "safecode"      => $safecode,
+          "tradeofferid"  => 123
+        ]
+      ];
+
+
+
+
+
+
+
+
+
       // 11. Отправить игроку торговое предложение
       // - С запросом тех предметов, которые он хочет поставить.
       $tradeofferid = call_user_func(function() USE ($inventory, $items2bet_market_names, $bot2acceptbet, $safecode, $user){
@@ -433,18 +455,6 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         // - Не забыть указать item_price_at_bet_time и assetid_users.
         // - А вот assetid_bots пока не указывать.
 
-          // - Есть $this->data['items2bet']
-          // - Для каждого надо найти эквивалент в MD2_items
-          // - И связать с $newbet
-          // - При этом указав item_price_at_bet_time из $inventory
-
-          // - $inventory извлечён заранее
-          // - Извлекаем заранее из MD2_items коллекцию вещей, с которыми связывать
-          // - Пробегаем циклом $this->data['items2bet']
-          // - Находим в коллекции вещей из MD2_items соответствующую по market_name
-          // - Находим в $inventory соответствующую по market_name
-          // - Связывает $item с $newbet, указывая цену из $inventory
-
           // 3.1] Получить коллекцию вещей $items2bet_market_names из m8.md2_items
           $items = \M8\Models\MD2_items::whereIn('name', $items2bet_market_names)->get();
 
@@ -461,18 +471,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
             if(empty($item))
               throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
 
-            // 3.2.2] Находим в $inventory соответствующую $n-й по market_name
-            $item_inventory = call_user_func(function() USE ($inventory, $n) {
-              for($i=0; $i<count($inventory); $i++) {
-                if($inventory[$i]['market_name'] == $this->data['items2bet'][$n]['market_name'])
-                  return $inventory[$i];
-              }
-            });
-            if(empty($item_inventory))
-              throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
-
-            // 3.2.3] Связать $newbet с $item
-            $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item_inventory->price * 100)]);
+            // 3.2.2] Связать $newbet с $item
+            $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item->price * 100)]);
 
           }
 
