@@ -419,41 +419,86 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       });
 
       // 12. Записать необходимую информацию о ставке в БД
-      call_user_func(function() USE ($user, $items2bet_market_names, $bot2acceptbet, $room) {
+      call_user_func(function() USE ($user, $items2bet_market_names, $bot2acceptbet, $room, $inventory, $safecode) {
 
         // 1] Создать новую ставку md3_bets
-
+        $newbet = new \M9\Models\MD3_bets();
+        $newbet->save();
 
         // 2] Связать её с пользователем $user через md2000
         // - Но номера билетов пока не указывать.
+        $newbet->m5_users()->attach($user->id);
 
-
-        // 3] Связать $bet с вещами $items2bet_market_names в нашей базе через md2001
+        // 3] Связать $newbet с вещами $items2bet_market_names в нашей базе через md2001
         // - Не забыть указать item_price_at_bet_time и assetid_users.
         // - А вот assetid_bots пока не указывать.
 
+          // - Есть $this->data['items2bet']
+          // - Для каждого надо найти эквивалент в MD2_items
+          // - И связать с $newbet
+          // - При этом указав item_price_at_bet_time из $inventory
 
-        // 4] Связать $bet с ботом $bot2acceptbet
+          // - $inventory извлечён заранее
+          // - Извлекаем заранее из MD2_items коллекцию вещей, с которыми связывать
+          // - Пробегаем циклом $this->data['items2bet']
+          // - Находим в коллекции вещей из MD2_items соответствующую по market_name
+          // - Находим в $inventory соответствующую по market_name
+          // - Связывает $item с $newbet, указывая цену из $inventory
 
+          // 3.1] Получить коллекцию вещей $items2bet_market_names из m8.md2_items
+          $items = \M8\Models\MD2_items::whereIn('name', $items2bet_market_names)->get();
 
-        // 5] Связать $bet с $room
+          // 3.2] Пробежимся циклом по $this->data['items2bet']
+          for($n=0; $n<count($this->data['items2bet']); $n++) {
 
+            // 3.2.1] Находим в коллекции вещей из MD2_items соответствующую $n-й по market_name
+            $item = call_user_func(function() USE ($items, $n) {
+              for($i=0; $i<count($items); $i++) {
+                if($items[$i]['name'] == $this->data['items2bet'][$n]['market_name'])
+                  return $items[$i];
+              }
+            });
+            if(empty($item))
+              throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
 
-        // 6] Записать код безопасности $safecode в md6_savecodes
+            // 3.2.2] Находим в $inventory соответствующую $n-й по market_name
+            $item_inventory = call_user_func(function() USE ($inventory, $n) {
+              for($i=0; $i<count($inventory); $i++) {
+                if($inventory[$i]['market_name'] == $this->data['items2bet'][$n]['market_name'])
+                  return $inventory[$i];
+              }
+            });
+            if(empty($item_inventory))
+              throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
 
+            // 3.2.3] Связать $newbet с $item
+            $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item_inventory->price * 100)]);
 
-        // 7] Связать $safecode и $bet через md1007
+          }
 
+        // 4] Связать $newbet с ботом $bot2acceptbet
+        $newbet->m8_bots()->attach($bot2acceptbet->id);
 
-        // 8] Связать $bet со статусом "Active" в md8_bets_statuses
+        // 5] Связать $newbet с $room
+        $newbet->rooms()->attach($room->id);
 
+        // 6] Записать код безопасности $safecode в md6_safecodes
+        $newsafecode = new \M9\Models\MD6_safecodes();
+        $newsafecode->code = $safecode;
+        $newsafecode->save();
 
+        // 7] Связать $safecode и $newbet через md1007
+        $newbet->safecodes()->attach($newsafecode->id);
 
+        // 8] Связать $newbet со статусом "Active" в md8_bets_statuses
+
+          // 8.1] Получить статус "Active" из md8_bets_statuses
+          $status = \M9\Models\MD8_bets_statuses::find(2);
+
+          // 8.2] Связать $newbet с $status
+          $newbet->bets_statuses()->attach($status->id);
 
       });
-
-
-
 
       // n. Сделать коммит
       DB::commit();

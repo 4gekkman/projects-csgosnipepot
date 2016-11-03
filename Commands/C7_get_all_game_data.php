@@ -244,6 +244,11 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
       // 4. Добавить доп.свойства всем ставкам всех комнат
       call_user_func(function() USE (&$rooms) {
+
+        // 4.1. Получить палитру цветов для игроков
+        $palette = config('M9.palette');
+
+        // 4.2. Добавить доп.свойства
         for($i=0; $i<count($rooms); $i++) {
           for($j=0; $j<count($rooms[$i]['rounds']); $j++) {
 
@@ -364,15 +369,58 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
             });
 
             // 3] Добавить доп.свойство bet_color_hex
-            call_user_func(function() USE (&$rooms, &$bet, $i, $j) {
+            call_user_func(function() USE (&$rooms, &$bet, $i, $j, $palette) {
               for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
 
                 // 3.1] Получить k-ую ставку в короткую переменную
                 $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
 
-                // 3.2]
+                // 3.2] Вычислить, ставил ли уже этот пользователь ранее
+                // - Если ставил, то получить ссылку на старую ставку.
+                $previous_bet = call_user_func(function() USE ($rooms, $i, $j, $k){
 
+                   for($m=0; $m<count($rooms[$i]['rounds'][$j]['bets']); $m++) {
+                     if($rooms[$i]['rounds'][$j]['bets'][$k]['m5_users'][0]['id'] == $rooms[$i]['rounds'][$j]['bets'][$m]['m5_users'][0]['id'] && $m != $k)
+                       return $rooms[$i]['rounds'][$j]['bets'][$m];
+                   }
 
+                });
+
+                // 3.3] Если не ставил
+                if(empty($previous_bet)) {
+
+                  // 3.3.1] Вычислить цвет пользователя в текущем раунде
+                  $color = call_user_func(function() USE ($palette, $k) {
+
+                    // 1) Если в палитре есть цвет с индексом $k
+                    if($k < count($palette))
+                      return $palette[$k];
+
+                    // 2) Если же нет, то взять один из цветов палитры
+                    else {
+
+                      // Размер палитры
+                      $l = +count($palette);
+
+                      // Вернуть результат
+                      return $palette[(int)(round(+$l * floor(+$k / +$l)))];
+
+                    }
+
+                  });
+
+                  // 3.3.2] Записать bet_color_hex
+                  $bet['bet_color_hex'] = $color;
+
+                }
+
+                // 3.4] Если это не первая ставка пользователя в этом раунде
+                else {
+
+                  // 3.4.1] Перезаписать bet_color_hex тем же значением
+                  $bet['bet_color_hex'] = $previous_bet['bet_color_hex'];
+
+                }
 
               }
             });
