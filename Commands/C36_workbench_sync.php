@@ -1022,7 +1022,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                   });
 
                   // 3.3.3] Подготовить массив имён доп.столбцов pivot-таблицы для добавления в withPivot связи
-                  $withpivot = call_user_func(function() USE ($rel) {
+                  $withpivot = call_user_func(function() USE ($rel, $mpack) {
 
                     // 1]Получить список имён всех столбцов pivot-таблицы
                     // - В формате:
@@ -1036,7 +1036,7 @@ class C36_workbench_sync extends Job { // TODO: добавить "implements Sho
                     //   },
                     // ]
                     //
-                    $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".mb_strtolower($this->data['data']['packid'])."' AND TABLE_NAME = '".mb_strtolower($rel[0]->TABLE_NAME)."'");
+                    $all_pivot_column_names = DB::select("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '".mb_strtolower($mpack)."' AND TABLE_NAME = '".mb_strtolower($rel[0]->TABLE_NAME)."'");
 
                     // 2] Получить просто массив имён без COLUMN_NAME
                     // - Отфильтровав все свойства, имеющие префикс "id_"
