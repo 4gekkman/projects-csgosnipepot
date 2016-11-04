@@ -67,7 +67,7 @@ class MD3_bets extends Model {
   //------------------//
 
     // relationships start
-    public function safecodes() { return $this->belongsToMany('\M9\Models\MD6_safecodes', 'm9.md1007', 'id_savecode', 'id_bet')->withPivot(['expired_at']); }
+    public function safecodes() { return $this->belongsToMany('\M9\Models\MD6_safecodes', 'm9.md1007', 'id_savecode', 'id_bet'); }
     public function rooms() { return $this->belongsToMany('\M9\Models\MD1_rooms', 'm9.md1009', 'id_bet', 'id_room'); }
     public function rounds() { return $this->belongsToMany('\M9\Models\MD2_rounds', 'm9.md1010', 'id_bet', 'id_round'); }
     public function bets_statuses() { return $this->belongsToMany('\M9\Models\MD8_bets_statuses', 'm9.md1011', 'id_bet', 'id_status')->withPivot(['expired_at']); }

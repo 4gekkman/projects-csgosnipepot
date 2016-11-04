@@ -136,7 +136,11 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      * Оглавление
      *
      *  1. Если кэш отсутствует, наполнить.
-     *
+     *  2. Проверка срока годности активных ставок
+     *  3. Оповещение игроков о секундах до истечения их активных офферов
+     *  4. Отслеживание изменения статуса активных офферов
+     *  5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
+     *  6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
      *
      *  N. Вернуть статус 0
      *
@@ -154,8 +158,8 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         // - Ставки со статусом "Active"
         call_user_func(function(){
 
-          $cache = Cache::get('processing:bets:active');
-          if(!Cache::has('processing:bets:active') || empty($cache)) {
+          $cache = json_decode(Cache::get('processing:bets:active'), true);
+          if(!Cache::has('processing:bets:active') || empty($cache) || count($cache) == 0) {
 
             // 1.1] Получить все ставки со статусом Active
             // - Включая все их связи.
@@ -166,7 +170,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               ->get();
 
             // 1.2] Записать JSON с $active_bets в кэш
-            Cache::forever('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE));
+            Cache::put('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
           }
 
@@ -176,10 +180,10 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         // - Ставки со статусом "Accepted"
         call_user_func(function(){
 
-          $cache = Cache::get('processing:bets:accepted');
-          if(!Cache::has('processing:bets:accepted') || empty($cache)) {
+          $cache = json_decode(Cache::get('processing:bets:accepted'), true);
+          if(!Cache::has('processing:bets:accepted') || empty($cache) || count($cache) == 0) {
 
-            // 1.1] Получить все ставки со статусом Active
+            // 2.1] Получить все ставки со статусом Active
             // - Включая все их связи.
             $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
               ->whereHas('bets_statuses', function($query){
@@ -187,8 +191,8 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               })
               ->get();
 
-            // 1.2] Записать JSON с $active_bets в кэш
-            Cache::forever('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE));
+            // 2.2] Записать JSON с $accepted_bets в кэш
+            Cache::put('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
           }
 
@@ -198,11 +202,32 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         // - Все включенные комнаты
         call_user_func(function(){
 
-          $cache = Cache::get('processing:rooms');
-          if(!Cache::has('processing:rooms') || empty($cache)) {
+          $cache = json_decode(Cache::get('processing:rooms'), true);
+          if(!Cache::has('processing:rooms') || empty($cache) || count($cache) == 0) {
 
-            // 3.1]
+            // 3.1] Получить все включенные комнаты
+            // - Включая все их связи.
+            // - Но не со всеми раундами, а лишь с текущим.
+            // - И вместе со всеми связанными данными текущего раунда.
+            $rooms = \M9\Models\MD1_rooms::with(["m8_bots", "bet_accepting_modes",
+                "rounds" => function($query) {
+                  $query->take(1);
+                },
+                "bets",
+                "rounds.bets",
+                "rounds.bets.m8_bots",
+                "rounds.bets.m8_items",
+                "rounds.bets.m5_users",
+                "rounds.bets.safecodes",
+                "rounds.bets.rooms",
+                "rounds.bets.rounds",
+                "rounds.bets.bets_statuses"
+              ])
+              ->where('is_on', 1)
+              ->get();
 
+            // 3.2] Записать JSON с $rooms в кэш
+            Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
           }
 
@@ -211,7 +236,30 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
       });
 
+      // 2. Проверка срока годности активных ставок
+      call_user_func(function(){
 
+      });
+
+      // 3. Оповещение игроков о секундах до истечения их активных офферов
+      call_user_func(function(){
+
+      });
+
+      // 4. Отслеживание изменения статуса активных офферов
+      call_user_func(function(){
+
+      });
+
+      // 5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
+      call_user_func(function(){
+
+      });
+
+      // 6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
+      call_user_func(function(){
+
+      });
 
 
     DB::commit(); } catch(\Exception $e) {

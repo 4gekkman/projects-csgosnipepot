@@ -356,27 +356,6 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       });
 
-
-
-
-
-      return [
-        "status"  => 0,
-        "data"    => [
-          "safecode"        => $safecode,
-          "tradeofferid"    => "123",
-          "current_or_next" => "в текущий раунд",
-          "expire_in_secs"  => ""
-        ]
-      ];
-
-
-
-
-
-
-
-
       // 11. Отправить игроку торговое предложение
       // - С запросом тех предметов, которые он хочет поставить.
       $tradeofferid = call_user_func(function() USE ($inventory, $items2bet_market_names, $bot2acceptbet, $safecode, $user){
@@ -520,8 +499,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         "data"    => [
           "safecode"        => $safecode,
           "tradeofferid"    => $tradeofferid,
-          "current_or_next" => "",
-          "expire_in_secs"  => ""
+          "current_or_next" => "в текущий раунд",
+          "expire_in_secs"  => $room->offers_timeout_sec
         ]
       ];
 
