@@ -338,11 +338,13 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
 
       // 10. Проверить, нет ли уже у пользователя в этой комнате активного оффера
-      call_user_func(function() USE ($user) {
+      call_user_func(function() USE ($user, $room) {
 
         // 1] Получить коллекцию всех ставок пользователя $user со статусом "Active"
         $active_bets = \M9\Models\MD3_bets::whereHas('m5_users', function($query){
           $query->where('ha_provider_uid', $this->data['players_steamid']);
+        })->whereHas('rooms', function($query) USE ($room) {
+          $query->where('id', $room->id);
         })->whereHas('bets_statuses', function($query){
           $query->where('status', 'Active');
         })->get();
@@ -358,18 +360,15 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
 
 
-      // Для отладки окошка "Бот формирует оффер..."
-
       return [
         "status"  => 0,
         "data"    => [
-          "safecode"      => $safecode,
-          "tradeofferid"  => 123,
+          "safecode"        => $safecode,
+          "tradeofferid"    => "123",
           "current_or_next" => "в текущий раунд",
-          "expire_in_secs"  => "27"
+          "expire_in_secs"  => ""
         ]
       ];
-
 
 
 
@@ -473,8 +472,18 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
             if(empty($item))
               throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
 
-            // 3.2.2] Связать $newbet с $item
-            $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item->price * 100)]);
+            // 3.2.2] Находим в $inventory соответствующую $n-й по market_name
+            $item_inventory = call_user_func(function() USE ($inventory, $n) {
+              for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+                if($inventory['data']['rgDescriptions'][$i]['market_name'] == $this->data['items2bet'][$n]['market_name'])
+                  return $inventory['data']['rgDescriptions'][$i];
+              }
+            });
+            if(empty($item_inventory))
+              throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
+
+            // 3.2.3] Связать $newbet с $item
+            $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100), 'assetid_users' => $item_inventory['assetid']]);
 
           }
 
@@ -511,8 +520,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         "data"    => [
           "safecode"        => $safecode,
           "tradeofferid"    => $tradeofferid,
-          "current_or_next" => "в текущий раунд",
-          "expire_in_secs"  => "27"
+          "current_or_next" => "",
+          "expire_in_secs"  => ""
         ]
       ];
 
