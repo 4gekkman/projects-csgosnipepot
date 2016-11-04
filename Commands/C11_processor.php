@@ -135,7 +135,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Если кэш отсутствует, наполнить.
      *
      *
      *  N. Вернуть статус 0
@@ -147,8 +147,71 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     //------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Если кэш отсутствует, наполнить.
+      call_user_func(function(){
 
-      write2log(123, []);
+        // 1] processing:bets:active
+        // - Ставки со статусом "Active"
+        call_user_func(function(){
+
+          $cache = Cache::get('processing:bets:active');
+          if(!Cache::has('processing:bets:active') || empty($cache)) {
+
+            // 1.1] Получить все ставки со статусом Active
+            // - Включая все их связи.
+            $active_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+              ->whereHas('bets_statuses', function($query){
+                $query->where('status', 'Active');
+              })
+              ->get();
+
+            // 1.2] Записать JSON с $active_bets в кэш
+            Cache::forever('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE));
+
+          }
+
+        });
+
+        // 2] processing:bets:accepted
+        // - Ставки со статусом "Accepted"
+        call_user_func(function(){
+
+          $cache = Cache::get('processing:bets:accepted');
+          if(!Cache::has('processing:bets:accepted') || empty($cache)) {
+
+            // 1.1] Получить все ставки со статусом Active
+            // - Включая все их связи.
+            $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+              ->whereHas('bets_statuses', function($query){
+                $query->where('status', 'Accepted');
+              })
+              ->get();
+
+            // 1.2] Записать JSON с $active_bets в кэш
+            Cache::forever('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE));
+
+          }
+
+        });
+
+        // 3] processing:rooms
+        // - Все включенные комнаты
+        call_user_func(function(){
+
+          $cache = Cache::get('processing:rooms');
+          if(!Cache::has('processing:rooms') || empty($cache)) {
+
+            // 3.1]
+
+
+          }
+
+        });
+
+
+      });
+
+
 
 
     DB::commit(); } catch(\Exception $e) {

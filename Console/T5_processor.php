@@ -162,7 +162,7 @@ class T5_processor extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M9\Commands\C11_processor', $this->argument());
+    $result = runcommand('\M9\Commands\C11_processor', $this->argument(), 0, $queue = ['on'=>true, 'name'=>'processor_main']);
 
 
     // 2. В случае неудачи, вывести текст ошибки
