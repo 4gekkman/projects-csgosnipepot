@@ -120,7 +120,8 @@
           '\M9\Console\T1_rooms',
           '\M9\Console\T2_create_new_room',
           '\M9\Console\T3_sync_round_statuses',
-          '\M9\Console\T4_sync_rooms'
+          '\M9\Console\T4_sync_rooms',
+          '\M9\Console\T5_processor'
         ];
 
         // Регистрация команд в методе register

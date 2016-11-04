@@ -364,7 +364,9 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         "status"  => 0,
         "data"    => [
           "safecode"      => $safecode,
-          "tradeofferid"  => 123
+          "tradeofferid"  => 123,
+          "current_or_next" => "в текущий раунд",
+          "expire_in_secs"  => "27"
         ]
       ];
 
@@ -507,8 +509,10 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       return [
         "status"  => 0,
         "data"    => [
-          "safecode"      => $safecode,
-          "tradeofferid"  => $tradeofferid
+          "safecode"        => $safecode,
+          "tradeofferid"    => $tradeofferid,
+          "current_or_next" => "в текущий раунд",
+          "expire_in_secs"  => "27"
         ]
       ];
 
