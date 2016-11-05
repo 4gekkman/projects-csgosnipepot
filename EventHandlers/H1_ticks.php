@@ -171,13 +171,13 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
       ];
     }
 
-    //--------------------//
-    // 1.  //
-    //--------------------//
+    //-------------------------//
+    // Отлавливать тики из M11 //
+    //-------------------------//
     $res = call_user_func(function() USE ($event) { try { DB::beginTransaction();
 
       Event::fire(new \R2\Broadcast([
-        'channels' => ['m9:test'],
+        'channels' => ['m9:servertime'],
         'queue'    => 'broadcastworkers',
         'data'     => [
           'secs' => \Carbon\Carbon::now()->toDateTimeString()

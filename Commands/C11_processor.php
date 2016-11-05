@@ -260,15 +260,48 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
           // - Если оффер истёк, вернуть 0.
           $secs = call_user_func(function() USE ($bet) {
 
+            // 1) Получить expired_at
+            $expired_at = \Carbon\Carbon::parse($bet['bets_statuses'][0]['pivot']['expired_at']);
 
-            
-            write2log(\Carbon\Carbon::now()->toDateTimeString());
-            write2log($bet['bets_statuses'][0]['pivot']['expired_at'], []);
+            // 2) Получить текущее серверное время
+            $now = \Carbon\Carbon::now();
+
+            // 3) Вычислить, что больше, $expired_at или $now
+            $is_expired_gt_than_now = $expired_at->gt($now);
+
+            // 4) Вычесть $now из $expired_at, и получить разницу в секундах
+            $sec = $expired_at->diffInSeconds($now);
+
+            // 5) Если оффер уже истёк, вернуть 0
+            if($is_expired_gt_than_now == false) return 0;
+
+            // 6) Иначе, вернуть $sec
+            else return $sec;
 
           });
 
-        }
+          // 2.2] Транслировать владельцу $bet значение $secs
+          Event::fire(new \R2\Broadcast([
+            'channels' => ['m9:private:'.$bet['m5_users'][0]['id']],
+            'queue'    => 'm9_lottery_broadcasting',
+            'data'     => [
+              'task' => 'tradeoffer_expire_secs',
+              'data' => [
+                'id_room' => $bet['rooms'][0]['id'],
+                'secs'    => $secs
+              ]
+            ]
+          ]));
 
+//      Event::fire(new \R2\Broadcast([
+//        'channels' => ['m9:servertime'],
+//        'queue'    => 'broadcastworkers',
+//        'data'     => [
+//          'secs' => \Carbon\Carbon::now()->toDateTimeString()
+//        ]
+//      ]));
+
+        }
 
       });
 
