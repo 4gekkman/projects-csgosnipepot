@@ -250,6 +250,26 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       // 3. Оповещение игроков о секундах до истечения их активных офферов
       call_user_func(function(){
 
+        // 1] Получить активные ставки из кэша
+        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
+
+        // 2] Оповестить владельцев офферов по частным каналам
+        foreach($bets_active as $bet) {
+
+          // 2.1] Вычислить, сколько секунд осталось до истечения оффера $bet
+          // - Если оффер истёк, вернуть 0.
+          $secs = call_user_func(function() USE ($bet) {
+
+
+            
+            write2log(\Carbon\Carbon::now()->toDateTimeString());
+            write2log($bet['bets_statuses'][0]['pivot']['expired_at'], []);
+
+          });
+
+        }
+
+
       });
 
       // 4. Отслеживание изменения статуса активных офферов

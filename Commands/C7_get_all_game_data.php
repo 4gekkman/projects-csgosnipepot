@@ -447,13 +447,13 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           $user = json_decode(session('auth_cache'), true);
 
           // 1.3] Если имеем дела с анонимным пользователем
-          if($user['user']['is_anon'] == 1) {
+          if($user['is_anon'] == 1) {
 
             // Пробежимся по всем комнатам
             for($i=0; $i<count($rooms); $i++) {
 
               // Записать 1 во всех комнатах
-              $rooms[$i]['processing:bets:active'] = 1;
+              $rooms[$i]['is_some_active_bets'] = 1;
 
             }
 
@@ -469,7 +469,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
             for($i=0; $i<count($rooms); $i++) {
 
               // Записать 0 во всех комнатах
-              $rooms[$i]['processing:bets:active'] = 0;
+              $rooms[$i]['is_some_active_bets'] = 0;
 
             }
 
@@ -485,8 +485,25 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
             for($i=0; $i<count($rooms); $i++) {
 
               // 1.3.1] Определить, есть ли в комнате $rooms[$i] активные офферы
-              // - Для текущего пользователя: session('auth_cache')
-              
+              // - Для текущего пользователя $user['user']['id']
+              $is_any_active_offers = call_user_func(function() USE ($user, $cache, $rooms, $i) {
+
+                // Если активные ставки есть в $i-й комнате, вернуть 1
+                foreach($cache as $activebet) {
+
+                  // Если $activebet находится $i-й комнате, вернуть 1
+                  if($activebet['rooms']['0']['id'] == $rooms[$i]['id'])
+                    return 1;
+
+                }
+
+                // В противном случае, вернуть 0
+                return 0;
+
+              });
+
+              // 1.3.2] Записать результат
+              $rooms[$i]['is_some_active_bets'] = $is_any_active_offers;
 
             }
 

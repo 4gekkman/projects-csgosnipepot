@@ -161,21 +161,34 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
         throw new \Exception($validator['data']);
       }
 
-      // 2. Отменить торговое предложение с tradeofferid
-      $result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
+      // 2. Проверить текущий статус торгового предложения с tradeofferid
+      $current_status = runcommand('\M8\Commands\C22_get_tradeoffer_via_api', [
         "id_bot"        => $this->data['id_bot'],
         "id_tradeoffer" => $this->data['tradeofferid']
       ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
+      if($current_status['status'] != 0)
+        throw new \Exception($current_status['data']['errormsg']);
 
-      // 3. Если успешно удалось отменить ТП в Steam
-      if($result['status'] == 0) {
+      // 3. Отменить торговое предложение с tradeofferid
+      // - Если такое торговое предложение вообще существует.
+      if(count($current_status['data']['tradeoffer']['response']) != 0) {
+        $result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
+          "id_bot"        => $this->data['id_bot'],
+          "id_tradeoffer" => $this->data['tradeofferid']
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+      }
+
+      // 4. Если успешно удалось отменить ТП в Steam
+      // - Или если такого ТП уже не существует в Steam.
+      if((!empty($result) && $result['status'] == 0) || count($current_status['data']['tradeoffer']['response']) == 0) {
 
         // 1] Получить ставку с betid и tradeofferid
-        $bet = \M9\Models\MD3_bets::where('id', $this->data['betid'])
+        $bet = \M9\Models\MD3_bets::with(['bets_statuses'])
+            ->where('id', $this->data['betid'])
             ->where('tradeofferid', $this->data['tradeofferid'])
-            ->get();
+            ->first();
         if(empty($bet))
           throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);
 

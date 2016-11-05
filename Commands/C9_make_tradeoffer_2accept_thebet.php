@@ -488,7 +488,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
           // 8.2] Связать $newbet с $status
           // - Не забыв указать expired_at
-          $newbet->bets_statuses()->attach($status->id, ['expired_at'=>\Carbon\Carbon::now()->addSeconds($room->lottery_duration_ms)->toDateTimeString()]);
+          $newbet->bets_statuses()->attach($status->id, ['expired_at'=>\Carbon\Carbon::now()->addSeconds((int)round($room->lottery_duration_ms/1000))->toDateTimeString()]);
 
       });
 
