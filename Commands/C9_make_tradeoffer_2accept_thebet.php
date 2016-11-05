@@ -421,10 +421,11 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       });
 
       // 12. Записать необходимую информацию о ставке в БД
-      call_user_func(function() USE ($user, $items2bet_market_names, $bot2acceptbet, $room, $inventory, $safecode) {
+      call_user_func(function() USE ($user, $items2bet_market_names, $bot2acceptbet, $room, $inventory, $safecode, $tradeofferid) {
 
         // 1] Создать новую ставку md3_bets
         $newbet = new \M9\Models\MD3_bets();
+        $newbet->tradeofferid = $tradeofferid;
         $newbet->save();
 
         // 2] Связать её с пользователем $user через md2000
@@ -486,7 +487,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           $status = \M9\Models\MD8_bets_statuses::find(2);
 
           // 8.2] Связать $newbet с $status
-          $newbet->bets_statuses()->attach($status->id);
+          // - Не забыв указать expired_at
+          $newbet->bets_statuses()->attach($status->id, ['expired_at'=>\Carbon\Carbon::now()->addSeconds($room->lottery_duration_ms)->toDateTimeString()]);
 
       });
 
