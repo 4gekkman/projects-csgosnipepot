@@ -137,7 +137,8 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
      * Оглавление
      *
      *  1. Принять и проверить входящие данные
-     *
+     *  2. Отменить торговое предложение с tradeofferid
+     *  3. Если успешно удалось отменить ТП в Steam
      *
      *  N. Вернуть статус 0
      *
@@ -152,7 +153,9 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
       $validator = r4_validate($this->data, [
 
         "betid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_bot"        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
 
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
@@ -173,11 +176,46 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
         $bet = \M9\Models\MD3_bets::where('id', $this->data['betid'])
             ->where('tradeofferid', $this->data['tradeofferid'])
             ->get();
+        if(empty($bet))
+          throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);
 
-        // 1] Отвязать ставку от статуса Active
+        // 2] Получить статусы Active и Canceled
+        $status_active = \M9\Models\MD8_bets_statuses::where('status', 'Active')->first();
+        $status_canceled = \M9\Models\MD8_bets_statuses::where('status', 'Canceled')->first();
+        if(empty($status_active) || empty($status_canceled))
+          throw new \Exception('Не удалось найти статусы Active или Canceled в m9.md8_bets_statuses');
 
+        // 3] Отвязать ставку от статуса Active
+        $bet->bets_statuses()->detach($status_active->id);
 
-        // 2]
+        // 4] Привязать ставку к статусу Canceled
+        $bet->bets_statuses()->attach($status_canceled->id);
+
+        // 5] Обновить кэш
+
+          // 5.1] processing:bets:active
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "cache2update" => ["processing:bets:active"]
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 5.2] processing:rooms
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "cache2update" => ["processing:bets:accepted"]
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+        // 6] Сообщить игроку $this->data['id_user'], что его ставка истекла
+        // - Через websocket, по частном каналу
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:private:'.$this->data['id_user']],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'tradeoffer_cancel'
+          ]
+        ]));
 
       }
 

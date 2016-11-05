@@ -139,6 +139,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
      *  2. Получить коллекцию всех включенных комнат
      *  3. Получить куку пользователя с ID включенной комнаты
      *  4. Добавить доп.свойства всем ставкам всех комнат
+     *  5. Добавить доп.свойства всем комнат
      *
      *  N. Вернуть статус 0
      *
@@ -429,6 +430,75 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
         }
       });
 
+      // 5. Добавить доп.свойства всем комнат
+      call_user_func(function() USE (&$rooms) {
+
+        // 1] Добавить свойство is_some_active_bets
+        // - Означающее, есть ли на данный момент у данного
+        //   пользователя, в данной комнате, хотя бы 1 ставка
+        //   со статусом Active.
+        // - Эти данные извлекаются из кэша по ключу: "processing:bets:active"
+        call_user_func(function() USE (&$rooms) {
+
+          // 1.1] Получить кэш
+          $cache = json_decode(Cache::get('processing:bets:active'), true);
+
+          // 1.2] Получить информацию о пользователе
+          $user = json_decode(session('auth_cache'), true);
+
+          // 1.3] Если имеем дела с анонимным пользователем
+          if($user['user']['is_anon'] == 1) {
+
+            // Пробежимся по всем комнатам
+            for($i=0; $i<count($rooms); $i++) {
+
+              // Записать 1 во всех комнатах
+              $rooms[$i]['processing:bets:active'] = 1;
+
+            }
+
+            // Завершить
+            return;
+
+          }
+
+          // 1.4] Если кэша нет
+          if(empty($cache)) {
+
+            // Пробежимся по всем комнатам
+            for($i=0; $i<count($rooms); $i++) {
+
+              // Записать 0 во всех комнатах
+              $rooms[$i]['processing:bets:active'] = 0;
+
+            }
+
+            // Завершить
+            return;
+
+          }
+
+          // 1.5] Если кэш есть
+          else {
+
+            // Пробежимся по всем комнатам
+            for($i=0; $i<count($rooms); $i++) {
+
+              // 1.3.1] Определить, есть ли в комнате $rooms[$i] активные офферы
+              // - Для текущего пользователя: session('auth_cache')
+              
+
+            }
+
+            // Завершить
+            return;
+
+          }
+
+        });
+
+      });
+
       // n. Вернуть результаты
       DB::commit();
       return [
@@ -438,7 +508,6 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           "rooms"           => $rooms
         ]
       ];
-
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C7_get_all_game_data from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
