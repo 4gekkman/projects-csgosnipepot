@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        id_bot,
+ *        id_tradeoffer
  *      ]
  *    ]
  *
