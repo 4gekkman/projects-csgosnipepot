@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The game processor, fires at every game tick, every second
+ *    - Tracking of all active offers within processing process
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C11_processor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C14_active_offers_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,195 +135,155 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     /**
      * Оглавление
      *
-     *  1. Если кэш отсутствует, наполнить.
-     *  2. Проверка срока годности активных ставок
-     *  3. Оповещение игроков о секундах до истечения их активных офферов
-     *  4. Отслеживание изменения статуса активных офферов
-     *  5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
-     *  6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
+     *  1. Получить активные ставки из кэша
+     *  2. Получить из $bets_active неповторяющийся список всех ботов, имеющих активные офферы
+     *  3. Для каждого из $bots_ids получить список активных офферов
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------------//
-    // The game processor, fires at every game tick, every second //
-    //------------------------------------------------------------//
+    //-----------------------------------------------------------------------------------//
+    // Отслеживание изменения статусов всех активных офферов в процессе процессинга игры //
+    //-----------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Если кэш отсутствует, наполнить.
-      call_user_func(function(){
+      // 1. Получить активные ставки из кэша
+      $bets_active = json_decode(Cache::get('processing:bets:active'), true);
 
-        // 1] processing:bets:active
-        // - Ставки со статусом "Active"
-        call_user_func(function(){
+      // 2. Получить из $bets_active неповторяющийся список ID всех ботов, имеющих активные офферы
+      $bots_ids = call_user_func(function() USE ($bets_active) {
 
-          $cache = json_decode(Cache::get('processing:bets:active'), true);
-          if(!Cache::has('processing:bets:active') || empty($cache) || count($cache) == 0) {
-
-            $result = runcommand('\M9\Commands\C13_update_cache', [
-              "cache2update" => ["processing:bets:active"]
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
-
-          }
-
-
-        });
-
-        // 2] processing:bets:accepted
-        // - Ставки со статусом "Accepted"
-        call_user_func(function(){
-
-          $cache = json_decode(Cache::get('processing:bets:accepted'), true);
-          if(!Cache::has('processing:bets:accepted') || empty($cache) || count($cache) == 0) {
-
-            $result = runcommand('\M9\Commands\C13_update_cache', [
-              "cache2update" => ["processing:bets:accepted"]
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
-
-          }
-
-        });
-
-        // 3] processing:rooms
-        // - Все включенные комнаты
-        call_user_func(function(){
-
-          $cache = json_decode(Cache::get('processing:rooms'), true);
-          if(!Cache::has('processing:rooms') || empty($cache) || count($cache) == 0) {
-
-            $result = runcommand('\M9\Commands\C13_update_cache', [
-              "cache2update" => ["processing:rooms"]
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
-
-          }
-
-        });
-
+        $bots_ids = [];
+        for($i=0; $i<count($bets_active); $i++) {
+          $id = $bets_active[$i]['m8_bots'][0]['id'];
+          if(!in_array($id, $bots_ids))
+            array_push($bots_ids, $id);
+        }
+        return $bots_ids;
 
       });
 
-      // 2. Проверка срока годности активных ставок
-//      call_user_func(function(){
-//
-//        // 1] Получить активные ставки из кэша
-//        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
-//
-//        // 2] Отменить те активные ставки, срок годности которых уже вышел
-//        foreach($bets_active as $bet) {
-//
-//          // 2.1] Получить статус ставки $bet
-//          $status = $bet['bets_statuses'][0];
-//
-//          // 2.2] Получить дату и время истечения ставки
-//          $expired_at = $status['pivot']['expired_at'];
-//
-//          // 2.3] Определить, истёк ли срок годности ставки
-//          $is_expired = call_user_func(function() USE ($expired_at) {
-//
-//            return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
-//
-//          });
-//
-//          // 2.4] Если ставка истекла, отменить её
-//          if($is_expired == true) {
-//
-//            runcommand('\M9\Commands\C12_cancel_the_active_bet', [
-//              "betid"        => $bet['id'],
-//              "tradeofferid" => $bet['tradeofferid'],
-//              "id_bot"       => $bet['m8_bots'][0]['id'],
-//              "id_user"      => $bet['m5_users'][0]['id'],
-//              "id_room"      => $bet['rooms'][0]['id'],
-//            ], 0, ['on'=>true, 'name'=>'processor_hard']);
-//
-//          }
-//
-//        }
-//
-//      });
+      // 3. Для каждого из $bots_ids получить список активных офферов
+      $bots_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
 
-      // 3. Оповещение игроков о секундах до истечения их активных офферов
-      call_user_func(function(){
+        // 1] Подготовить массив для результата
+        $result = [];
 
-        // 1] Получить активные ставки из кэша
-        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
+        // 2] Наполнить $result
+        for($i=0; $i<count($bots_ids); $i++) {
 
-        // 2] Оповестить владельцев офферов по частным каналам
-        foreach($bets_active as $bet) {
+          // 2.1] Получить ID i-го бота
+          $id_bot = $bots_ids[$i];
 
-          // 2.1] Вычислить, сколько секунд осталось до истечения оффера $bet
-          // - Если оффер истёк, вернуть 0.
-          $secs = call_user_func(function() USE ($bet) {
+          // 2.2] Попробовать получить активные исходящие офферы $id_bot через API
+          // - Что означают коды:
+          //
+          //    -3    // Не удалось получить ответ от Steam
+          //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+          //    0     // Успех, найденный оффер доступен по ключу offer
+          //
+          $offers_api = call_user_func(function() USE ($id_bot) {
 
-            // 1) Получить expired_at
-            $expired_at = \Carbon\Carbon::parse($bet['bets_statuses'][0]['pivot']['expired_at']);
+            // 2.2.1] Получить все активные офферы бота $id_bot через API
+            $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>$id_bot,"activeonly"=>1]);
 
-            // 2) Получить текущее серверное время
-            $now = \Carbon\Carbon::now();
+            // 2.2.2] Если получить ответ от Steam не удалось
+            if($offers['status'] != 0)
+              return [
+                "code"   => -3,
+                "offers"  => ""
+              ];
 
-            // 3) Вычислить, что больше, $expired_at или $now
-            $is_expired_gt_than_now = $expired_at->gt($now);
+            // 2.2.3] Если trade_offers_sent отсутствуют в ответе
+            if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
+              return [
+                "code"   => -2,
+                "offers"  => ""
+              ];
 
-            // 4) Вычесть $now из $expired_at, и получить разницу в секундах
-            $sec = $expired_at->diffInSeconds($now);
-
-            // 5) Если оффер уже истёк, вернуть 0
-            if($is_expired_gt_than_now == false) return 0;
-
-            // 6) Иначе, вернуть $sec
-            else return $sec;
+            // 2.2.4] Вернуть offers
+            return [
+              "code"    => 0,
+              "offers"  => $offers
+            ];
 
           });
 
-          // 2.2] Транслировать владельцу $bet значение $secs
-          Event::fire(new \R2\Broadcast([
-            'channels' => ['m9:private:'.$bet['m5_users'][0]['id']],
-            'queue'    => 'm9_lottery_broadcasting',
-            'data'     => [
-              'task' => 'tradeoffer_expire_secs',
-              'data' => [
-                'id_room' => $bet['rooms'][0]['id'],
-                'secs'    => $secs
-              ]
-            ]
-          ]));
+          // 2.3] Если $offers_api['code'] == 0
+          // - Записать данные в $result и перейти к следующей итерации
+          if($offers_api['code'] == 0) {
+            $result[$id_bot] = $offers_api['offers'];
+            continue;
+          }
+
+          // 2.4] Если $offers_api['code'] != 0
+          // - Попробовать получить активные исходящие офферы $id_bot через HTTP
+          // - Что означают коды:
+          //
+          //    -3    // Не удалось получить ответ от Steam
+          //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+          //    0     // Успех, найденный оффер доступен по ключу offer
+          //
+          $offers_http = call_user_func(function() USE ($id_bot) {
+
+            // 2.4.1] Получить все активные офферы бота $id_bot через HTTP
+            $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>3]);
+
+            // 2.4.2] Если получить ответ от Steam не удалось
+            if($offers['status'] != 0)
+              return [
+                "code"   => -3,
+                "offers"  => ""
+              ];
+
+            // 2.4.3] Если trade_offers_sent отсутствуют в ответе
+            if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
+              return [
+                "code"   => -2,
+                "offers"  => ""
+              ];
+
+            // 2.2.4] Вернуть offers
+            return [
+              "code"    => 0,
+              "offers"  => $offers
+            ];
+
+          });
+
+          // 2.5] Если $offers_http['code'] == 0
+          // - Записать данные в $result и перейти к следующей итерации
+          if($offers_http['code'] == 0) {
+            $result[$id_bot] = $offers_http['offers'];
+            continue;
+          }
 
         }
 
-      });
-
-      // 4. Отслеживание изменения статуса активных офферов
-      call_user_func(function(){
-
-        // 4.1. Добавить в очередь processor_hard соотв.команду
-        runcommand('\M9\Commands\C14_active_offers_tracking', [
-
-        ], 0, ['on'=>true, 'name'=>'smallbroadcast']);
+        // 3] Вернуть результат
+        return $result;
 
       });
 
-      // 5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
-      call_user_func(function(){
+      // 4. Получить список ID офферов с изменившимся статусом
+      $offers_with_changed_status_ids = call_user_func(function() USE ($bots_active_offers_by_id, $bets_active) {
+
+
+        
+
 
       });
 
-      // 6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
-      call_user_func(function(){
 
-      });
+
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C14_active_offers_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C11_processor']);
+        write2log($errortext, ['M9', 'C14_active_offers_tracking']);
         return [
           "status"  => -2,
           "data"    => [
