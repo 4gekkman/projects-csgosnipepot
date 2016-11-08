@@ -188,7 +188,7 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
         $tradeoffers = call_user_func(function() USE ($bot, $params){
 
           // 1] Осуществить запрос
-          $result = runcommand('\M8\Commands\C6_bot_request_steam', [
+          $offer = runcommand('\M8\Commands\C6_bot_request_steam', [
             "id_bot"          => $bot->id,
             "method"          => "GET",
             "url"             => "https://api.steampowered.com/IEconService/GetTradeOffer/v1",
@@ -196,14 +196,14 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
             "data"            => $params,
             "ref"             => ""
           ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
+          if($offer['status'] != 0)
+            throw new \Exception($offer['data']['errormsg']);
 
           // 2] Вернуть результаты (guzzle response)
-          return $result['data']['response'];
+          return $offer['data']['response'];
 
         });
-
+write2log(json_decode($tradeoffers->getBody(), true), []);
         // 5.2. Если код ответа не 200, сообщить и завершить
         if($tradeoffers->getStatusCode() != 200)
           throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
