@@ -218,9 +218,7 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
 
         // 5.4. Получить из $tradeoffers строку с HTML из ответа
         $json = json_decode($tradeoffers->getBody(), true);
-
-      write2log($json['response'], []);
-
+Log::info($json);
       // 6. Вернуть результаты
       return [
         "status"  => 0,
