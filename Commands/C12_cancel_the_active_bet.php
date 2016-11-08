@@ -162,7 +162,7 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
         throw new \Exception($validator['data']);
       }
 
-      // 2. Попробовать получить оффер с tradeofferid из Steam через API
+      // 2. Попробовать получить оффер с tradeofferid из Steam через HTTP
       // - Что означают коды:
       //
       //    -3    // Не удалось получить ответ от Steam
@@ -172,10 +172,10 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
       //
       // $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>3,"activeonly"=>1]);
       // $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
-      $offer_api = call_user_func(function(){
+      $offers_http = call_user_func(function(){
 
         // 1] Получить все активные офферы бота id_bot
-        $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>3,"activeonly"=>1]);
+        $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
 
         // 2] Если получить ответ от Steam не удалось
         if($offers['status'] != 0)
@@ -210,9 +210,9 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
 
       });
 
-      // 3. Если $offer_api не найден, или его статус не "Active"
+      // 3. Если $offers_http не найден, или его статус не "Active"
       // - Отменить его.
-      if($offer_api['code'] != 0 || $offer_api['offer']['trade_offer_state'] != 2) {
+      if($offers_http['code'] != 0 || $offers_http['offer']['trade_offer_state'] == 2) {
         $cancel_result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
           "id_bot"        => $this->data['id_bot'],
           "id_tradeoffer" => $this->data['tradeofferid']
@@ -222,8 +222,8 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
       }
 
       // 4. Если успешно удалось отменить ТП в Steam
-      // - Или если такого ТП уже не существует в Steam.
-      if(!empty($cancel_result) && $cancel_result['status'] == 0) {
+      // - Или если оффер уже не активен
+      if((!empty($cancel_result) && $cancel_result['status'] == 0) || ($offers_http['code'] != 0 || $offers_http['offer']['trade_offer_state'] != 2)) {
 
         // 1] Получить ставку с betid и tradeofferid
         $bet = \M9\Models\MD3_bets::with(['bets_statuses'])
