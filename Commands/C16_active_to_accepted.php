@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Cancel the active trade offer that was sent by the bot in steam, and also in DB
+ *    - Convert the active trade offer to accepted
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        betid,
- *        tradeofferid
+ *
  *      ]
  *    ]
  *
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C12_cancel_the_active_bet extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C16_active_to_accepted extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,111 +135,82 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1. Принять и проверить входящие данные
-     *  2. Отменить торговое предложение с tradeofferid
-     *  3. Если успешно удалось отменить ТП в Steam
+     *  1. Получить и проверить входящие данные
+     *  2. Получить ставку с betid и tradeofferid
+     *  3. Получить статусы Active и Accepted
+     *  4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------------------------------------------------------------------------------------------//
-    // Отменить торговое предложение, которое было отправлено ботом игроку, в Steam, а также в базе данных //
-    //-----------------------------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------//
+    // Сконвертировать оффер со статусом Active в оффер со статусом Accepted в БД //
+    //----------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять и проверить входящие данные
+      // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
 
-        "betid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_bot"        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_room"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        "betid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
       ]); if($validator['status'] == -1) {
+
         throw new \Exception($validator['data']);
-      }
-
-      // 2. Попробовать получить оффер с tradeofferid из Steam через HTTP
-      // - Что означают коды:
-      //
-      //    -3    // Не удалось получить ответ от Steam
-      //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
-      //    -1    // Среди отправленных офферов не удалось найти оффер с tradeofferid
-      //    0     // Успех, найденный оффер доступен по ключу offer
-      //
-      // $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>3,"activeonly"=>1]);
-      // $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
-      $offers_http = call_user_func(function(){
-
-        // 1] Получить все активные офферы бота id_bot
-        $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
-
-        // 2] Если получить ответ от Steam не удалось
-        if($offers['status'] != 0)
-          return [
-            "code"   => -3,
-            "offer"  => ""
-          ];
-
-        // 3] Если trade_offers_sent отсутствуют в ответе
-        if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
-          return [
-            "code"   => -2,
-            "offer"  => ""
-          ];
-
-        // 4] Найти среди $offers оффер с tradeofferid
-
-          // 4.1] Попробовать найти
-          for($i=0; $i<count($offers['data']['tradeoffers']['trade_offers_sent']); $i++) {
-            if($offers['data']['tradeoffers']['trade_offers_sent'][$i]['tradeofferid'] == $this->data['tradeofferid'])
-              return [
-                "code"  => 0,
-                "offer" => $offers['data']['tradeoffers']['trade_offers_sent'][$i]
-              ];
-          }
-
-          // 4.2] Если найти не удалось
-          return [
-            "code"  => -1,
-            "offer" => ""
-          ];
-
-      });
-
-      // 3. Если $offers_http не найден, или его статус "Active"
-      // - Отменить его.
-      if($offers_http['code'] != 0 || $offers_http['offer']['trade_offer_state'] == 2) {
-        $cancel_result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
-          "id_bot"        => $this->data['id_bot'],
-          "id_tradeoffer" => $this->data['tradeofferid']
-        ]);
-      }
-
-      // 4. Если успешно удалось отменить ТП в Steam
-      // - Или если оффер уже не активен
-      if((!empty($cancel_result) && $cancel_result['status'] == 0) || ($offers_http['code'] != 0 || $offers_http['offer']['trade_offer_state'] != 2)) {
-
-        $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
-          "betid"             => $this->data['betid'],
-          "tradeofferid"      => $this->data['tradeofferid'],
-          "another_status_id" => 6,
-          "id_user"           => $this->data['id_user'],
-          "id_room"           => $this->data['id_room'],
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
 
       }
+
+      // 2. Получить ставку с betid и tradeofferid
+      $bet = \M9\Models\MD3_bets::with(['bets_statuses'])
+          ->where('id', $this->data['betid'])
+          ->where('tradeofferid', $this->data['tradeofferid'])
+          ->first();
+      if(empty($bet))
+        throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);
+
+      // 3. Получить статусы Active и Accepted
+      $status_active = \M9\Models\MD8_bets_statuses::where('status', 'Active')->first();
+      $status_accepted = \M9\Models\MD8_bets_statuses::where('status', 'Accepted')->first();
+      if(empty($status_active) || empty($status_accepted))
+        throw new \Exception('Не удалось найти статусы Active или Accepted в m9.md8_bets_statuses');
+
+      // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
+      $bet->bets_statuses()->detach($status_active->id);
+      $bet->bets_statuses()->attach($status_accepted->id);
+
+      // 5. Отвязать ставку от комнаты, убрав запись из md1009
+
+
+
+
+
+
+
+
+      // 5. Записать assetid_bots в md2001
+      // - Это assetid принятых ботом в виде ставки скинов.
+
+
+      // 6. Связать ставку с текущим раундом через md1010
+      // -
+
+
+      // 7. Добавить tickets_from / tickets_to в md2000
+      // -
+
+
+
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C12_cancel_the_active_bet from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C12_cancel_the_active_bet']);
+        write2log($errortext, ['M9', 'C16_active_to_accepted']);
         return [
           "status"  => -2,
           "data"    => [

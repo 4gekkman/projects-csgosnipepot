@@ -164,8 +164,8 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
       });
 
-      // 3. Для каждого из $bots_ids получить список активных офферов
-      $bots_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
+      // 3. Для каждого из $bots_ids получить список НЕ активных send offers через HTTP
+      $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
 
         // 1] Подготовить массив для результата
         $result = [];
@@ -183,42 +183,41 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
           //    0     // Успех, найденный оффер доступен по ключу offer
           //
-          $offers_api = call_user_func(function() USE ($id_bot) {
-
-            // 2.2.1] Получить все исходящие (в т.ч. не активные) офферы бота $id_bot через API
-            $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>$id_bot,"activeonly"=>1]);
-
-            // 2.2.2] Если получить ответ от Steam не удалось
-            if($offers['status'] != 0)
-              return [
-                "code"   => -3,
-                "offers"  => ""
-              ];
-
-            // 2.2.3] Если trade_offers_sent отсутствуют в ответе
-            if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
-              return [
-                "code"   => -2,
-                "offers"  => ""
-              ];
-
-            // 2.2.4] Вернуть offers
-            return [
-              "code"    => 0,
-              "offers"  => $offers
-            ];
-
-          });
+          //$offers_api = call_user_func(function() USE ($id_bot) {
+          //
+          //  // 2.2.1] Получить все исходящие (в т.ч. не активные) офферы бота $id_bot через API
+          //  $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>$id_bot,"activeonly"=>1]);
+          //
+          //  // 2.2.2] Если получить ответ от Steam не удалось
+          //  if($offers['status'] != 0)
+          //    return [
+          //      "code"   => -3,
+          //      "offers"  => ""
+          //    ];
+          //
+          //  // 2.2.3] Если trade_offers_sent отсутствуют в ответе
+          //  if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
+          //    return [
+          //      "code"   => -2,
+          //      "offers"  => ""
+          //    ];
+          //
+          //  // 2.2.4] Вернуть offers
+          //  return [
+          //    "code"    => 0,
+          //    "offers"  => $offers
+          //  ];
+          //
+          //});
 
           // 2.3] Если $offers_api['code'] == 0
           // - Записать данные в $result и перейти к следующей итерации
-          if($offers_api['code'] == 0) {
-            $result[$id_bot] = $offers_api['offers'];
-            continue;
-          }
+          //if($offers_api['code'] == 0) {
+          //  $result[$id_bot] = $offers_api['offers'];
+          //  continue;
+          //}
 
-          // 2.4] Если $offers_api['code'] != 0
-          // - Попробовать получить активные исходящие офферы $id_bot через HTTP
+          // 2.4] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
           // - Что означают коды:
           //
           //    -3    // Не удалось получить ответ от Steam
@@ -228,7 +227,7 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           $offers_http = call_user_func(function() USE ($id_bot) {
 
             // 2.4.1] Получить все активные офферы бота $id_bot через HTTP
-            $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>3]);
+            $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>4]);
 
             // 2.4.2] Если получить ответ от Steam не удалось
             if($offers['status'] != 0)
@@ -266,18 +265,9 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
       });
 
-      // 4. Получить список ID офферов с изменившимся статусом
-      // - Результат должен быть в формате:
-      //
-      //  [
-      //    [
-      //      tradeofferid    | ID активного оффера, у которого изменился статус
-      //      id_status_old   | Старый статус оффера (число)
-      //      id_status_new   | Новый статус оффера (число, м.б. пустой строкой)
-      //    ]
-      //  ]
-      //
-      $offers_with_changed_status_ids = call_user_func(function() USE ($bots_active_offers_by_id, $bets_active) {
+      // 4. Попробовать найти бывшие активные ($bets_active) офферы
+      // - Среди ныне не активных ($bots_not_active_offers_by_id) офферов.
+      $bets_ex_active = call_user_func(function() USE ($bets_active, $bots_not_active_offers_by_id) {
 
         // 1] Подготовить массив для результатов
         $result = [];
@@ -291,10 +281,10 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           // 2.2] Получить ID бота, которому принадлежит $i-ая ставка
           $id_bot = $bets_active[$i]['m8_bots'][0]['id'];
 
-          // 2.3] Получить все активные офферы, принадлежащие $id_bot
-          $id_bot_offers = array_key_exists($id_bot, $bots_active_offers_by_id) ? $bots_active_offers_by_id[$id_bot] : [];
+          // 2.3] Получить все НЕ активные офферы, принадлежащие $id_bot
+          $id_bot_offers = array_key_exists($id_bot, $bots_not_active_offers_by_id) ? $bots_not_active_offers_by_id[$id_bot] : [];
 
-          // 2.4] Найти и получить оффер с $id_offer_i из $id_bot_offers
+          // 2.4] Попробовать найти оффер с $id_offer_i в $id_bot_offers
           $id_bot_offer = call_user_func(function() USE ($id_bot_offers, $id_offer_i) {
 
             // 2.4.1] Если $id_bot_offers пуст, вернуть пустую строку
@@ -317,11 +307,10 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           $id_offer_i_status = $bets_active[$i]['bets_statuses'][0]['pivot']['id_status'];
           $id_bot_offer_status = !empty($id_bot_offer) ? $id_bot_offer['trade_offer_state'] : '';
 
-          // 2.6] Если они отличаются
-          // - То добавить ID оффера $id_bot_offer в $result.
-          // - А вместе с ID добавить и id нового статуса.
-          if($id_offer_i_status != $id_bot_offer_status)
+          // 2.6] Добавить новую запись в $results, если $id_bot_offer найден
+          if(!empty($id_bot_offer))
             array_push($result, [
+              "tradeoffer"    => $bets_active[$i],
               "tradeofferid"  => $id_offer_i,
               "id_status_old" => $id_offer_i_status,
               "id_status_new" => $id_bot_offer_status
@@ -334,12 +323,146 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
       });
 
+      // 5. Пробежаться по каждому офферу в $bets_ex_active
+      // - И в зависимости от того "Accepted" он, или отличается, предпринять ряд действий.
+      call_user_func(function() USE ($bets_ex_active) {
+        for($i=0; $i<count($bets_ex_active); $i++) {
+
+          // 1] Получить нужные данные в короткие переменные
+          $tradeoffer     = $bets_ex_active[$i]['tradeoffer'];
+            $betid          = $tradeoffer['id'];
+            $tradeofferid   = $bets_ex_active[$i]['tradeofferid'];
+            $id_status_new  = $bets_ex_active[$i]['id_status_new'];
+            $id_user        = $tradeoffer['m5_users'][0]['id'];
+            $id_room        = $tradeoffer['rooms'][0]['id'];
+
+          // 2] Если статус оффера изменился на Accepted
+          if($id_status_new == 3) {
+
+            $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+              "betid"             => $betid,
+              "tradeofferid"      => $tradeofferid,
+              "id_user"           => $id_user,
+              "id_room"           => $id_room,
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+          }
+
+          // 3] Если статус оффера изменился НЕ на Accepted
+          else {
+
+            $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
+              "betid"             => $betid,
+              "tradeofferid"      => $tradeofferid,
+              "another_status_id" => $id_status_new,
+              "id_user"           => $id_user,
+              "id_room"           => $id_room,
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+          }
+
+        }
+      });
+
+
+
+
+      // - Попробовать найти бывшие активные ($bets_active) офферы
+      //   среди ныне не активных ($bots_bot_active_offers_by_id) офферов.
+      // - Получить список ссылок (в $bets_active) на эти офферы.
+      // - Для каждого оффера также выяснить его нынешний статус.
+      // - Далее, в зависимости от того "Accepted" он, или отличается,
+      //   предпринять ряд действий.
+
+      // - Возможно, некоторые участки процесса работы с оффером
+      //   в БД понадобится вынести в отдельные 2 команды.
 
 
 
 
 
-      write2log($offers_with_changed_status_ids, []);
+
+
+
+
+      // 4. Получить список ID офферов с изменившимся статусом
+      // - Результат должен быть в формате:
+      //
+      //  [
+      //    [
+      //      tradeofferid    | ID активного оффера, у которого изменился статус
+      //      id_status_old   | Старый статус оффера (число)
+      //      id_status_new   | Новый статус оффера (число, м.б. пустой строкой)
+      //    ]
+      //  ]
+      //
+//      $offers_with_changed_status_ids = call_user_func(function() USE ($bots_active_offers_by_id, $bets_active) {
+//
+//        // 1] Подготовить массив для результатов
+//        $result = [];
+//
+//        // 2] Наполнить $result
+//        for($i=0; $i<count($bets_active); $i++) {
+//
+//          // 2.1] Получить ID $i-го оффера
+//          $id_offer_i = $bets_active[$i]['tradeofferid'];
+//
+//          // 2.2] Получить ID бота, которому принадлежит $i-ая ставка
+//          $id_bot = $bets_active[$i]['m8_bots'][0]['id'];
+//
+//          // 2.3] Получить все активные офферы, принадлежащие $id_bot
+//          $id_bot_offers = array_key_exists($id_bot, $bots_active_offers_by_id) ? $bots_active_offers_by_id[$id_bot] : [];
+//
+//          // 2.4] Найти и получить оффер с $id_offer_i из $id_bot_offers
+//          $id_bot_offer = call_user_func(function() USE ($id_bot_offers, $id_offer_i) {
+//
+//            // 2.4.1] Если $id_bot_offers пуст, вернуть пустую строку
+//            if(empty($id_bot_offers) || count($id_bot_offers) == 0) return '';
+//
+//            // 2.4.2] Иначе, искать
+//            for($j=0; $j<count($id_bot_offers['data']['tradeoffers']['trade_offers_sent']); $j++) {
+//
+//              if($id_bot_offers['data']['tradeoffers']['trade_offers_sent'][$j]['tradeofferid'] == $id_offer_i)
+//                return $id_bot_offers['data']['tradeoffers']['trade_offers_sent'][$j];
+//
+//            }
+//
+//            // 2.4.3] Вернуть пустую строку
+//            return '';
+//
+//          });
+//
+//          // 2.5] Получить статусы этих 2-х офферов
+//          $id_offer_i_status = $bets_active[$i]['bets_statuses'][0]['pivot']['id_status'];
+//          $id_bot_offer_status = !empty($id_bot_offer) ? $id_bot_offer['trade_offer_state'] : '';
+//
+//          // 2.6] Если они отличаются
+//          // - То добавить ID оффера $id_bot_offer в $result.
+//          // - А вместе с ID добавить и id нового статуса.
+//          if($id_offer_i_status != $id_bot_offer_status)
+//            array_push($result, [
+//              "tradeofferid"  => $id_offer_i,
+//              "id_status_old" => $id_offer_i_status,
+//              "id_status_new" => $id_bot_offer_status
+//            ]);
+//
+//        }
+//
+//        // 3] Вернуть $result
+//        return $result;
+//
+//      });
+
+
+
+
+
+
+      //write2log($offers_with_changed_status_ids, []);
 
 
 

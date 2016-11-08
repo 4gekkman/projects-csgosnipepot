@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *        ["cache2update_1","cache2update_2",...]
+ *        all           | True/False, если true, то обновить весь кэш
+ *        cache2update  | Массив ключей кэша, который надо обновить (нужен, только если all не указано)
  *      ]
  *    ]
  *
@@ -136,8 +137,11 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
      * Оглавление
      *
      *  1. Принять и проверить входящие данные
-     *  2. Обновить кэш, который указан в cache2update
-     *    2.1.
+     *  2. Если all не передано, задать ей значение по умолчанию false
+     *  3. Обновить кэш, который указан в cache2update
+     *    3.1. processing:bets:active
+     *    3.2. processing:bets:accepted
+     *    3.3. processing:rooms
      *
      *  N. Вернуть статус 0
      *
@@ -150,15 +154,20 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
       // 1. Принять и проверить входящие данные
       $validator = r4_validate($this->data, [
-        "cache2update"    => ["r4_defined", "array"],
+        "all"             => ["boolean"],
+        "cache2update"    => ["required_without:all", "array"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Обновить кэш, который указан в cache2update
+      // 2. Если all не передано, задать ей значение по умолчанию false
+      if(!in_array('all', $this->data))
+        $this->data['all'] = false;
 
-        // 2.1. processing:bets:active
-        if(in_array("processing:bets:active", $this->data['cache2update']) == true) {
+      // 3. Обновить кэш, который указан в cache2update
+
+        // 3.1. processing:bets:active
+        if(in_array("processing:bets:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
           call_user_func(function(){
 
             // 1] Получить все ставки со статусом Active
@@ -175,8 +184,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
           });
         }
 
-        // 2.2. processing:bets:accepted
-        if(in_array("processing:bets:accepted", $this->data['cache2update']) == true) {
+        // 3.2. processing:bets:accepted
+        if(in_array("processing:bets:accepted", $this->data['cache2update']) == true || $this->data['all'] == true) {
           call_user_func(function(){
 
             // 1] Получить все ставки со статусом Active
@@ -193,8 +202,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
           });
         }
 
-        // 2.3. processing:rooms
-        if(in_array("processing:rooms", $this->data['cache2update']) == true) {
+        // 3.3. processing:rooms
+        if(in_array("processing:rooms", $this->data['cache2update']) == true || $this->data['all'] == true) {
           call_user_func(function(){
 
             // 1] Получить все включенные комнаты
