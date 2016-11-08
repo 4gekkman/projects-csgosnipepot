@@ -238,7 +238,8 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               "betid"        => $bet['id'],
               "tradeofferid" => $bet['tradeofferid'],
               "id_bot"       => $bet['m8_bots'][0]['id'],
-              "id_user"      => $bet['m5_users'][0]['id']
+              "id_user"      => $bet['m5_users'][0]['id'],
+              "id_room"      => $bet['rooms'][0]['id'],
             ], 0, ['on'=>true, 'name'=>'processor_hard']);
 
           }
@@ -292,14 +293,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               ]
             ]
           ]));
-
-//      Event::fire(new \R2\Broadcast([
-//        'channels' => ['m9:servertime'],
-//        'queue'    => 'broadcastworkers',
-//        'data'     => [
-//          'secs' => \Carbon\Carbon::now()->toDateTimeString()
-//        ]
-//      ]));
 
         }
 

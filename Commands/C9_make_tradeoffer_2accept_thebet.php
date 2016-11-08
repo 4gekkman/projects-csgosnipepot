@@ -492,8 +492,31 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       });
 
-      // n. Сделать коммит
+      // 13. Сделать коммит
       DB::commit();
+
+      // 14. Обновить кэш
+
+        // 1] processing:bets:active
+        $result = runcommand('\M9\Commands\C13_update_cache', [
+          "cache2update" => ["processing:bets:active"]
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // 2] processing:bets:accepted
+        $result = runcommand('\M9\Commands\C13_update_cache', [
+          "cache2update" => ["processing:bets:accepted"]
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // 3] processing:rooms
+        $result = runcommand('\M9\Commands\C13_update_cache', [
+          "cache2update" => ["processing:rooms"]
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
 
       // m. Вернуть результаты
       return [

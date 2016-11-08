@@ -155,34 +155,75 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
         "betid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_bot"        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
 
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Проверить текущий статус торгового предложения с tradeofferid
-      $current_status = runcommand('\M8\Commands\C22_get_tradeoffer_via_api', [
-        "id_bot"        => $this->data['id_bot'],
-        "id_tradeoffer" => $this->data['tradeofferid']
-      ]);
-      if($current_status['status'] != 0)
-        throw new \Exception($current_status['data']['errormsg']);
+      // 2. Попробовать получить оффер с tradeofferid из Steam через API
+      // - Что означают коды:
+      //
+      //    -3    // Не удалось получить ответ от Steam
+      //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+      //    -1    // Среди отправленных офферов не удалось найти оффер с tradeofferid
+      //    0     // Успех, найденный оффер доступен по ключу offer
+      //
+      // $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>3,"activeonly"=>1]);
+      // $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
+      $offer_api = call_user_func(function(){
 
-      // 3. Отменить торговое предложение с tradeofferid
-      // - Если такое торговое предложение вообще существует.
-      if(count($current_status['data']['tradeoffer']['response']) != 0) {
-        $result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
+        // 1] Получить все активные офферы бота id_bot
+        $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>3,"activeonly"=>1]);
+
+        // 2] Если получить ответ от Steam не удалось
+        if($offers['status'] != 0)
+          return [
+            "code"   => -3,
+            "offer"  => ""
+          ];
+
+        // 3] Если trade_offers_sent отсутствуют в ответе
+        if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
+          return [
+            "code"   => -2,
+            "offer"  => ""
+          ];
+
+        // 4] Найти среди $offers оффер с tradeofferid
+
+          // 4.1] Попробовать найти
+          for($i=0; $i<count($offers['data']['tradeoffers']['trade_offers_sent']); $i++) {
+            if($offers['data']['tradeoffers']['trade_offers_sent'][$i]['tradeofferid'] == $this->data['tradeofferid'])
+              return [
+                "code"  => 0,
+                "offer" => $offers['data']['tradeoffers']['trade_offers_sent'][$i]
+              ];
+          }
+
+          // 4.2] Если найти не удалось
+          return [
+            "code"  => -1,
+            "offer" => ""
+          ];
+
+      });
+
+      // 3. Если $offer_api не найден, или его статус не "Active"
+      // - Отменить его.
+      if($offer_api['code'] != 0 || $offer_api['offer']['trade_offer_state'] != 2) {
+        $cancel_result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
           "id_bot"        => $this->data['id_bot'],
           "id_tradeoffer" => $this->data['tradeofferid']
         ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        if($cancel_result['status'] != 0)
+          throw new \Exception($cancel_result['data']['errormsg']);
       }
 
       // 4. Если успешно удалось отменить ТП в Steam
       // - Или если такого ТП уже не существует в Steam.
-      if((!empty($result) && $result['status'] == 0) || count($current_status['data']['tradeoffer']['response']) == 0) {
+      if(!empty($cancel_result) && $cancel_result['status'] == 0) {
 
         // 1] Получить ставку с betid и tradeofferid
         $bet = \M9\Models\MD3_bets::with(['bets_statuses'])
@@ -213,9 +254,16 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 5.2] processing:rooms
+          // 5.2] processing:bets:accepted
           $result = runcommand('\M9\Commands\C13_update_cache', [
             "cache2update" => ["processing:bets:accepted"]
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 5.3] processing:rooms
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "cache2update" => ["processing:rooms"]
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
@@ -226,7 +274,10 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
           'channels' => ['m9:private:'.$this->data['id_user']],
           'queue'    => 'm9_lottery_broadcasting',
           'data'     => [
-            'task' => 'tradeoffer_cancel'
+            'task' => 'tradeoffer_cancel',
+            'data' => [
+              'id_room' => $this->data['id_room']
+            ]
           ]
         ]));
 
