@@ -203,7 +203,7 @@ class C22_get_tradeoffer_via_api extends Job { // TODO: добавить "implem
           return $offer['data']['response'];
 
         });
-write2log(json_decode($tradeoffers->getBody(), true), []);
+
         // 5.2. Если код ответа не 200, сообщить и завершить
         if($tradeoffers->getStatusCode() != 200)
           throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
