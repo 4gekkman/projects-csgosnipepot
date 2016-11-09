@@ -140,12 +140,13 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
      *  3. Получить статусы Active и Accepted
      *  4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
      *  5. Записать assetid_bots в md2001
-     *  6. Записать assetid_bots в md2001
-     *  7. Добавить tickets_from / tickets_to в md2000
-     *  8. Отвязать ставку от комнаты, убрав запись из md1009
-     *  9. Сделать commit
-     *  10. Обновить весь кэш
-     *  11. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+     *  6. Получить комнату id_room
+     *  7. Получить последний раунд, связанный с комнатой $room
+     *  8. Получить значение (число) статуса последнего раунда
+     *  9. Если $lastround_status найден, и <= 3
+     *  10. Сделать commit
+     *  11. Обновить весь кэш
+     *  12. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
      *
      *  N. Вернуть статус 0
      *
@@ -237,34 +238,129 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       });
 
-      // 6. Связать ставку с текущим раундом через md1010
-      // - Но только если в комнате id_room статус последнего раунда <= 3
+      // 6. Получить комнату id_room
+      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
+      if(empty($room))
+        throw new \Exception('Комната с ID == '.$this->data['id_room'].' не найдена.');
 
+      // 7. Получить последний раунд, связанный с комнатой $room
+      $lastround = \M9\Models\MD2_rounds::with(['rounds_statuses'])
+      ->whereHas('rooms', function($query){
+        $query->where('id', $this->data['id_room']);
+      })->orderBy('id', 'desc')->first();
 
+      // 8. Получить значение (число) статуса последнего раунда
+      $lastround_status = call_user_func(function() USE ($lastround) {
 
-      // 7. Добавить tickets_from / tickets_to в md2000
-      // - Но только если в 6 ставка была связана с текущим раундом.
-      // - Добавлять билеты:
-      //  • Исходя из того, что 1 цент == 1 билет.
-      //  • И исходя из уже связанных с раундом ставок.
+        // 1] Если $lastround пуст
+        if(empty($lastround))
+          return [
+            'status'  => '',
+            'success' => false
+          ];
 
+        // 2] Получить статус
+        $status = $lastround['rounds_statuses'][count($lastround['rounds_statuses']) - 1]['pivot']['id_status'];
 
+        // 3] Если $lastround и $status не пусты, а $status - число
+        if(!empty($lastround) && !empty($status) && is_numeric($status))
+          return [
+            'status'  => $status,
+            'success' => true
+          ];
 
-      // 8. Отвязать ставку от комнаты, убрав запись из md1009
-      // - Но только если в 6 ставка была связана с текущим раундом.
-//      $bet->rooms()->detach($this->data['id_room']);
+        // 4] Вернуть результат по умолчанию
+        return [
+          'status'  => '',
+          'success' => false
+        ];
 
+      });
 
-      // 9. Сделать commit
+      // 9. Если $lastround_status найден, и <= 3
+      if(!empty($lastround) && $lastround_status['success'] == true && $lastround_status['status'] <= 3) {
+
+        // 9.1. Добавить tickets_from / tickets_to в md2000
+        // - Добавлять билеты:
+        //  • Исходя из того, что 1 цент == 1 билет.
+        //  • И исходя из уже связанных с раундом ставок.
+        call_user_func(function() USE ($lastround, $bet) {
+
+          // 1] Вычислить число первого билета для новой ставки
+          // - Это последний билет последней ставки раунда $lastround комнате id_room + 1
+          $first_ticket_number = call_user_func(function() USE ($lastround) {
+
+            // 1.1] Получить последнюю ставку, связанную с раундом $lastround
+            $lastround_last_bet = \M9\Models\MD3_bets::with(['m5_users'])
+                ->whereHas('rounds', function($query) USE ($lastround) {
+                  $query->where('id', $lastround['id']);
+                })
+                ->orderBy('id', 'desc')
+                ->first();
+
+            // 1.2] Если $lastround_last_bet не найден, вернуть 0
+            if(empty($lastround_last_bet)) return 0;
+
+            // 1.3] Если найден, вернуть его tickets_to
+            return +$lastround_last_bet['m5_users'][0]['pivot']['tickets_to']+1;
+
+          });
+
+          // 2] Вычислить сумму ставки $bet в центах
+          $bet_sum_cents = call_user_func(function() USE ($bet) {
+
+            $result = 0;
+            foreach($bet['m8_items'] as $item) {
+              $result = +$result + +$item['price'];
+            }
+            return round($result*100);
+
+          });
+
+          // 3] Вычислить tickets_from и tickets_to для $bet
+          $tickets = call_user_func(function() USE ($first_ticket_number, $bet_sum_cents){
+
+            return [
+              "tickets_from"  => $first_ticket_number,
+              "tickets_to"    => +$first_ticket_number + +$bet_sum_cents - 1
+            ];
+
+          });
+
+          // 4] Добавить tickets_from / tickets_to в md2000
+          $bet->m5_users()->updateExistingPivot($this->data['id_user'], ["tickets_from" => $tickets["tickets_from"], "tickets_to" => $tickets["tickets_to"]]);
+
+        });
+
+        // 9.2. Связать ставку с текущим раундом через md1010
+        //$bet->rounds()->attach($lastround->id);
+
+        // 9.3. Отвязать ставку от комнаты, убрав запись из md1009
+        //$bet->rooms()->detach($this->data['id_room']);
+
+      }
+
+      // 10. Сделать commit
       //DB::commit();
 
+      // 11. Обновить весь кэш
+      $result = runcommand('\M9\Commands\C13_update_cache', [
+        "all" => true
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
-      // 10. Обновить весь кэш
-
-
-      // 11. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
-
-
+      // 12. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m9:public'],
+        'queue'    => 'm9_lottery_broadcasting',
+        'data'     => [
+          'task' => 'fresh_game_data',
+          'data' => [
+            'rooms' => Cache::get('processing:rooms')
+          ]
+        ]
+      ]));
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
