@@ -137,7 +137,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
      * Оглавление
      *
      *  1. Принять и проверить входящие данные
-     *  2. Если all не передано, задать ей значение по умолчанию false
+     *  2. Назначить значения по умолчанию
      *  3. Обновить кэш, который указан в cache2update
      *    3.1. processing:bets:active
      *    3.2. processing:bets:accepted
@@ -160,9 +160,15 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
         throw new \Exception($validator['data']);
       }
 
-      // 2. Если all не передано, задать ей значение по умолчанию false
-      if(!in_array('all', $this->data))
-        $this->data['all'] = false;
+      // 2. Назначить значения по умолчанию
+
+        // 2.1. Если all не передано, задать ей значение по умолчанию false
+        if(!array_key_exists('all', $this->data))
+          $this->data['all'] = false;
+
+        // 2.2. Если cache2update, назначить пустой массив
+        if(!array_key_exists('cache2update', $this->data))
+          $this->data['cache2update'] = [];
 
       // 3. Обновить кэш, который указан в cache2update
 

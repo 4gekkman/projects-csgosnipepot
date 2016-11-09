@@ -139,7 +139,13 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
      *  2. Получить ставку с betid и tradeofferid
      *  3. Получить статусы Active и Accepted
      *  4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
-     *
+     *  5. Записать assetid_bots в md2001
+     *  6. Записать assetid_bots в md2001
+     *  7. Добавить tickets_from / tickets_to в md2000
+     *  8. Отвязать ставку от комнаты, убрав запись из md1009
+     *  9. Сделать commit
+     *  10. Обновить весь кэш
+     *  11. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
      *
      *  N. Вернуть статус 0
      *
@@ -165,7 +171,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       }
 
       // 2. Получить ставку с betid и tradeofferid
-      $bet = \M9\Models\MD3_bets::with(['bets_statuses'])
+      $bet = \M9\Models\MD3_bets::with(['bets_statuses', 'm8_items', 'm8_bots'])
           ->where('id', $this->data['betid'])
           ->where('tradeofferid', $this->data['tradeofferid'])
           ->first();
@@ -178,31 +184,85 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       if(empty($status_active) || empty($status_accepted))
         throw new \Exception('Не удалось найти статусы Active или Accepted в m9.md8_bets_statuses');
 
-      // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
-      $bet->bets_statuses()->detach($status_active->id);
-      $bet->bets_statuses()->attach($status_accepted->id);
-
-      // 5. Отвязать ставку от комнаты, убрав запись из md1009
-
-
-
-
-
-
-
-
+//      // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
+//      $bet->bets_statuses()->detach($status_active->id);
+//      $bet->bets_statuses()->attach($status_accepted->id);
+//
       // 5. Записать assetid_bots в md2001
       // - Это assetid принятых ботом в виде ставки скинов.
+      call_user_func(function() USE (&$bet) {
 
+        // 1] Получить список всех связанных с $bet скинов
+        $bet_items = $bet->m8_items;
+
+        // 2] Получить Steam ID бота, связанного с $bet
+        $bet_bot_steamid = $bet->m8_bots[0]['steamid'];
+
+        // 3] Получить инвентарь бота, связанного с $bet
+        $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
+          "steamid" => $bet_bot_steamid
+        ]);
+        if($bet_bot_inventory['status'] != 0)
+          throw new \Exception($bet_bot_inventory['data']['errormsg']);
+
+        // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
+        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory){
+
+          // 4.1] Подготовить массив для assetid
+          // - Уже найденных в $bet_bot_inventory скинов.
+          $assetids_found = [];
+
+          // 4.2] Пробежаться по каждому скину в $bet_items
+          foreach($bet_items as &$item) {
+
+            // 4.2.1] Найти соответствие для $item в $bet_bot_inventory
+            // - По "name" ($item) и "market_hash_name" ($bet_bot_inventory)
+            // - И записать найденный assetid в $item;
+            call_user_func(function() USE (&$bet_items, &$bet, &$item, &$assetids_found, $bet_bot_inventory) {
+              foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
+                if($item_in_inventory['market_hash_name'] == $item['name']) {
+                  if(!in_array($item_in_inventory['assetid'],$assetids_found)) {
+                    array_push($assetids_found, $item_in_inventory['assetid']);
+                    $bet->m8_items()->updateExistingPivot($item['id'], ["assetid_bots" => $item_in_inventory['assetid']]);
+                    break;
+                  }
+                }
+              }
+            });
+
+          }
+
+        });
+
+
+      });
 
       // 6. Связать ставку с текущим раундом через md1010
-      // -
+      // - Но только если в комнате id_room статус последнего раунда <= 3
+
 
 
       // 7. Добавить tickets_from / tickets_to в md2000
-      // -
+      // - Но только если в 6 ставка была связана с текущим раундом.
+      // - Добавлять билеты:
+      //  • Исходя из того, что 1 цент == 1 билет.
+      //  • И исходя из уже связанных с раундом ставок.
 
 
+
+      // 8. Отвязать ставку от комнаты, убрав запись из md1009
+      // - Но только если в 6 ставка была связана с текущим раундом.
+//      $bet->rooms()->detach($this->data['id_room']);
+
+
+      // 9. Сделать commit
+      //DB::commit();
+
+
+      // 10. Обновить весь кэш
+
+
+      // 11. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
 
 
 
