@@ -136,9 +136,9 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      * Оглавление
      *
      *  1. Если кэш отсутствует, наполнить.
-     *  2. Проверка срока годности активных ставок
-     *  3. Оповещение игроков о секундах до истечения их активных офферов
-     *  4. Отслеживание изменения статуса активных офферов
+     *  2. Отслеживание изменения статуса активных офферов
+     *  3. Проверка срока годности активных ставок
+     *  4. Оповещение игроков о секундах до истечения их активных офферов
      *  5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
      *  6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
      *
@@ -209,46 +209,55 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
       });
 
-      // 2. Проверка срока годности активных ставок
-//      call_user_func(function(){
-//
-//        // 1] Получить активные ставки из кэша
-//        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
-//
-//        // 2] Отменить те активные ставки, срок годности которых уже вышел
-//        foreach($bets_active as $bet) {
-//
-//          // 2.1] Получить статус ставки $bet
-//          $status = $bet['bets_statuses'][0];
-//
-//          // 2.2] Получить дату и время истечения ставки
-//          $expired_at = $status['pivot']['expired_at'];
-//
-//          // 2.3] Определить, истёк ли срок годности ставки
-//          $is_expired = call_user_func(function() USE ($expired_at) {
-//
-//            return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
-//
-//          });
-//
-//          // 2.4] Если ставка истекла, отменить её
-//          if($is_expired == true) {
-//
-//            runcommand('\M9\Commands\C12_cancel_the_active_bet', [
-//              "betid"        => $bet['id'],
-//              "tradeofferid" => $bet['tradeofferid'],
-//              "id_bot"       => $bet['m8_bots'][0]['id'],
-//              "id_user"      => $bet['m5_users'][0]['id'],
-//              "id_room"      => $bet['rooms'][0]['id'],
-//            ], 0, ['on'=>true, 'name'=>'processor_hard']);
-//
-//          }
-//
-//        }
-//
-//      });
+      // 2. Отслеживание изменения статуса активных офферов
+      call_user_func(function(){
 
-      // 3. Оповещение игроков о секундах до истечения их активных офферов
+        // 2.1. Добавить в очередь processor_hard соотв.команду
+        runcommand('\M9\Commands\C14_active_offers_tracking', [],
+            0, ['on'=>true, 'name'=>'processor_hard']);
+
+      });
+
+      // 3. Проверка срока годности активных ставок
+      call_user_func(function(){
+
+        // 1] Получить активные ставки из кэша
+        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
+
+        // 2] Отменить те активные ставки, срок годности которых уже вышел
+        foreach($bets_active as $bet) {
+
+          // 2.1] Получить статус ставки $bet
+          $status = $bet['bets_statuses'][0];
+
+          // 2.2] Получить дату и время истечения ставки
+          $expired_at = $status['pivot']['expired_at'];
+
+          // 2.3] Определить, истёк ли срок годности ставки
+          $is_expired = call_user_func(function() USE ($expired_at) {
+
+            return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
+
+          });
+
+          // 2.4] Если ставка истекла, отменить её
+          if($is_expired == true) {
+
+            runcommand('\M9\Commands\C12_cancel_the_active_bet', [
+              "betid"        => $bet['id'],
+              "tradeofferid" => $bet['tradeofferid'],
+              "id_bot"       => $bet['m8_bots'][0]['id'],
+              "id_user"      => $bet['m5_users'][0]['id'],
+              "id_room"      => $bet['rooms'][0]['id'],
+            ], 0, ['on'=>true, 'name'=>'processor_hard']);
+
+          }
+
+        }
+
+      });
+
+      // 4. Оповещение игроков о секундах до истечения их активных офферов
       call_user_func(function(){
 
         // 1] Получить активные ставки из кэша
@@ -295,16 +304,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
           ]));
 
         }
-
-      });
-
-      // 4. Отслеживание изменения статуса активных офферов
-      call_user_func(function(){
-
-        // 4.1. Добавить в очередь processor_hard соотв.команду
-        runcommand('\M9\Commands\C14_active_offers_tracking', [
-
-        ], 0, ['on'=>true, 'name'=>'smallbroadcast']);
 
       });
 

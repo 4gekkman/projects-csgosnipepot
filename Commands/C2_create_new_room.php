@@ -202,6 +202,14 @@ class C2_create_new_room extends Job { // TODO: добавить "implements Sho
         $room->bet_accepting_modes()->attach($bet_accepting_mode->id);
         DB::commit();
 
+      // 5. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "room" => $room
+        ]
+      ];
+
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C2_create_new_room from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();

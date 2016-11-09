@@ -185,10 +185,10 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       if(empty($status_active) || empty($status_accepted))
         throw new \Exception('Не удалось найти статусы Active или Accepted в m9.md8_bets_statuses');
 
-//      // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
-//      $bet->bets_statuses()->detach($status_active->id);
-//      $bet->bets_statuses()->attach($status_accepted->id);
-//
+      // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
+      $bet->bets_statuses()->detach($status_active->id);
+      $bet->bets_statuses()->attach($status_accepted->id);
+
       // 5. Записать assetid_bots в md2001
       // - Это assetid принятых ботом в виде ставки скинов.
       call_user_func(function() USE (&$bet) {
@@ -333,15 +333,15 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         });
 
         // 9.2. Связать ставку с текущим раундом через md1010
-        //$bet->rounds()->attach($lastround->id);
+        $bet->rounds()->attach($lastround->id);
 
         // 9.3. Отвязать ставку от комнаты, убрав запись из md1009
-        //$bet->rooms()->detach($this->data['id_room']);
+        $bet->rooms()->detach($this->data['id_room']);
 
       }
 
       // 10. Сделать commit
-      //DB::commit();
+      DB::commit();
 
       // 11. Обновить весь кэш
       $result = runcommand('\M9\Commands\C13_update_cache', [
@@ -362,7 +362,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         ]
       ]));
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
