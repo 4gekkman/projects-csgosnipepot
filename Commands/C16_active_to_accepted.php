@@ -338,29 +338,44 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         // 9.3. Отвязать ставку от комнаты, убрав запись из md1009
         $bet->rooms()->detach($this->data['id_room']);
 
+        // 9.4. Сделать commit
+        DB::commit();
+
+        // 9.5. Обновить весь кэш
+        $result = runcommand('\M9\Commands\C13_update_cache', [
+          "all" => true
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // 9.6. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:public'],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'fresh_game_data',
+            'data' => [
+              'rooms' => Cache::get('processing:rooms')
+            ]
+          ]
+        ]));
+
       }
 
-      // 10. Сделать commit
-      DB::commit();
+      // 10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
+      else {
 
-      // 11. Обновить весь кэш
-      $result = runcommand('\M9\Commands\C13_update_cache', [
-        "all" => true
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
+        // 10.1. Сделать commit
+        DB::commit();
 
-      // 12. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
-      Event::fire(new \R2\Broadcast([
-        'channels' => ['m9:public'],
-        'queue'    => 'm9_lottery_broadcasting',
-        'data'     => [
-          'task' => 'fresh_game_data',
-          'data' => [
-            'rooms' => Cache::get('processing:rooms')
-          ]
-        ]
-      ]));
+        // 10.2. Обновить весь кэш
+        $result = runcommand('\M9\Commands\C13_update_cache', [
+          "all" => true
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+      }
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

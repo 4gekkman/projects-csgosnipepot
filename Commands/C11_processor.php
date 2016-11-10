@@ -310,6 +310,10 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       // 5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
       call_user_func(function(){
 
+        // 5.1. Добавить в очередь processor_hard соотв.команду
+        runcommand('\M9\Commands\C18_round_statuses_tracking', [],
+            0, ['on'=>true, 'name'=>'smallbroadcast']); // processor_hard
+
       });
 
       // 6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате

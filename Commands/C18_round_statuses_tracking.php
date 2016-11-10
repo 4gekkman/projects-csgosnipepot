@@ -7,15 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Cache updating for game processing
+ *    - Provides tracking and updating the status of all rounds
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        all           | True/False, если true, то обновить весь кэш
- *        cache2update  | Массив ключей кэша, который надо обновить (нужен, только если all не указано)
+ *
  *      ]
  *    ]
  *
@@ -102,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C13_update_cache extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C18_round_statuses_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -136,116 +135,27 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
     /**
      * Оглавление
      *
-     *  1. Принять и проверить входящие данные
-     *  2. Назначить значения по умолчанию
-     *  3. Обновить кэш, который указан в cache2update
-     *    3.1. processing:bets:active
-     *    3.2. processing:bets:accepted
-     *    3.3. processing:rooms
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------------//
-    // Обновляет указанный кэш в рамках процессинга игры //
-    //---------------------------------------------------//
+    //-------------------------------------//
+    // 1.  //
+    //-------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять и проверить входящие данные
-      $validator = r4_validate($this->data, [
-        "all"             => ["boolean"],
-        "cache2update"    => ["required_without:all", "array"],
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
 
-      // 2. Назначить значения по умолчанию
-
-        // 2.1. Если all не передано, задать ей значение по умолчанию false
-        if(!array_key_exists('all', $this->data))
-          $this->data['all'] = false;
-
-        // 2.2. Если cache2update, назначить пустой массив
-        if(!array_key_exists('cache2update', $this->data))
-          $this->data['cache2update'] = [];
-
-      // 3. Обновить кэш, который указан в cache2update
-
-        // 3.1. processing:bets:active
-        if(in_array("processing:bets:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
-          call_user_func(function(){
-
-            // 1] Получить все ставки со статусом Active
-            // - Включая все их связи.
-            $active_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
-              ->whereHas('bets_statuses', function($query){
-                $query->where('status', 'Active');
-              })
-              ->get();
-
-            // 2] Записать JSON с $active_bets в кэш
-            Cache::put('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
-
-          });
-        }
-
-        // 3.2. processing:bets:accepted
-        if(in_array("processing:bets:accepted", $this->data['cache2update']) == true || $this->data['all'] == true) {
-          call_user_func(function(){
-
-            // 1] Получить все ставки со статусом Accepted
-            // - Включая все их связи.
-            $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
-              ->whereHas('bets_statuses', function($query){
-                $query->where('status', 'Accepted');
-              })
-              ->get();
-
-            // 2] Записать JSON с $accepted_bets в кэш
-            Cache::put('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
-
-          });
-        }
-
-        // 3.3. processing:rooms
-        if(in_array("processing:rooms", $this->data['cache2update']) == true || $this->data['all'] == true) {
-          call_user_func(function(){
-
-            // 1] Получить все включенные комнаты
-            // - Включая все их связи.
-            // - Но не со всеми раундами, а лишь с текущим.
-            // - И вместе со всеми связанными данными текущего раунда.
-            $rooms = \M9\Models\MD1_rooms::with(["m8_bots", "bet_accepting_modes",
-                "rounds" => function($query) {
-                  $query->take(1);
-                },
-                "bets",
-                "rounds.rounds_statuses",
-                "rounds.bets",
-                "rounds.bets.m8_bots",
-                "rounds.bets.m8_items",
-                "rounds.bets.m5_users",
-                "rounds.bets.safecodes",
-                "rounds.bets.rooms",
-                "rounds.bets.rounds",
-                "rounds.bets.bets_statuses"
-              ])
-              ->where('is_on', 1)
-              ->get();
-
-            // 2] Записать JSON с $rooms в кэш
-            Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
-
-          });
-        }
+      // ...
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C13_update_cache from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C18_round_statuses_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C13_update_cache']);
+        write2log($errortext, ['M9', 'C18_round_statuses_tracking']);
         return [
           "status"  => -2,
           "data"    => [
