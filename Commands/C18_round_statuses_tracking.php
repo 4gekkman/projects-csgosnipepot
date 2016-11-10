@@ -135,23 +135,48 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить все игровые данные из кэша
      *
+     *
+     *  n. Сделать commit
+     *  m. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------------------------------------------------------------------------//
+    // Отслеживать и обновлять статус всех не-finished-раундов, транслировать свежие игровые данные, если надо //
+    //---------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить все игровые данные из кэша
+      $rooms = json_decode(Cache::get('processing:rooms'), true);
 
-      // ...
+
+      //write2log($rooms, []);
 
 
-    DB::commit(); } catch(\Exception $e) {
+
+      // Не отправлять данные через публичный канал, если итоговый статус раунда <= 3.
+
+      // Обновлять кэш только в случае необходимости
+
+      // В результатах (is_cache_was_updated) возвращать, был ли обновлён кэш
+
+
+      // n. Сделать commit
+      DB::commit();
+
+      // m. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "is_cache_was_updated" => false
+        ]
+      ];
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C18_round_statuses_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

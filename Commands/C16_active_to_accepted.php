@@ -144,9 +144,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
      *  7. Получить последний раунд, связанный с комнатой $room
      *  8. Получить значение (число) статуса последнего раунда
      *  9. Если $lastround_status найден, и <= 3
-     *  10. Сделать commit
-     *  11. Обновить весь кэш
-     *  12. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+     *  10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
      *
      *  N. Вернуть статус 0
      *
@@ -341,14 +339,27 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         // 9.4. Сделать commit
         DB::commit();
 
-        // 9.5. Обновить весь кэш
-        $result = runcommand('\M9\Commands\C13_update_cache', [
-          "all" => true
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        // 9.5. Выполнить C18_round_statuses_tracking
+        // - Что позволит в случае необходимости обновить статус раунда.
+        // - Но при этом, C18 не будет отправлять данные игры через
+        //   публичный канал, если итоговый статус <= 3.
+        $status_tracking = runcommand('\M9\Commands\C18_round_statuses_tracking', []);
+        if($status_tracking['status'] != 0)
+          throw new \Exception($status_tracking['data']['errormsg']);
 
-        // 9.6. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+        // 9.6. Обновить весь кэш
+        // - Но только, если он не был обновлён в C18.
+        // - А там он обновляется только лишь при изменении статуса
+        //   любого из раундов, любой из комнат.
+        if($status_tracking['data']['is_cache_was_updated'] == false) {
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "all" => true
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+        }
+
+        // 9.7. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:public'],
           'queue'    => 'm9_lottery_broadcasting',
@@ -363,6 +374,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       }
 
       // 10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
+      // - Отложить эту ставку до нового раунда.
       else {
 
         // 10.1. Сделать commit
