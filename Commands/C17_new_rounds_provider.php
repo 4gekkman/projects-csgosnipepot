@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The game processor, fires at every game tick, every second
+ *    - Enforces not finishd round at any time
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C11_processor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C17_new_rounds_provider extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,198 +135,80 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     /**
      * Оглавление
      *
-     *  1. Если кэш отсутствует, наполнить.
-     *  2. Отслеживание изменения статуса активных офферов
-     *  3. Проверка срока годности активных ставок
-     *  4. Оповещение игроков о секундах до истечения их активных офферов
-     *  5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
-     *  6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
+     *  1. Получить из кэша все включенные комнаты
+     *  2. Пробежаться по всем $rooms, проверяя статус последнего раунда
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------------//
-    // The game processor, fires at every game tick, every second //
-    //------------------------------------------------------------//
+    //---------------------------------------------------------------------//
+    // Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате //
+    //---------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Если кэш отсутствует, наполнить.
-      call_user_func(function(){
+      // 1. Получить из кэша все включенные комнаты
+      $rooms = json_decode(Cache::get('processing:rooms'), true);
 
-        // 1] processing:bets:active
-        // - Ставки со статусом "Active"
-        call_user_func(function(){
+      // 2. Пробежаться по всем $rooms, проверяя статус последнего раунда
+      foreach($rooms as $room) {
 
-          $cache = json_decode(Cache::get('processing:bets:active'), true);
-          if(!Cache::has('processing:bets:active') || empty($cache) || count($cache) == 0) {
+        // 2.1. Если раундов нет, или статус последнего Finished
+        // - Создать новый раунд
+        if(count($room['rounds']) == 0 || $room['rounds'][0]['rounds_statuses'][count($room['rounds'][0]['rounds_statuses']) - 1]['status'] == 'Finished') {
 
-            $result = runcommand('\M9\Commands\C13_update_cache', [
-              "cache2update" => ["processing:bets:active"]
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
+          // 1] Создать и сохранить новый раунд
+          $newround = call_user_func(function() USE($room) {
 
-          }
+            // 1.1] Создать
+            $newround = new \M9\Models\MD2_rounds();
 
+            // 1.2] Связать $newround с $room
+            $newround->id_room = $room['id'];
 
-        });
+            // 1.3] Подготовить случайное число от 0 до 1
+            // - Обеспечив квинтильен вариантов (10^18)
+            $key = random_int(1,pow(10,18))/pow(10,18);
 
-        // 2] processing:bets:accepted
-        // - Ставки со статусом "Accepted"
-        call_user_func(function(){
+            // 1.4] Получить sha512-хэш для $key
+            $key_hash = md5(hash('sha512', $key));
 
-          $cache = json_decode(Cache::get('processing:bets:accepted'), true);
-          if(!Cache::has('processing:bets:accepted') || empty($cache) || count($cache) == 0) {
+            // 1.5] Записать $key и $key_hash в $newround
+            $newround->key        = $key;
+            $newround->key_hash   = $key_hash;
 
-            $result = runcommand('\M9\Commands\C13_update_cache', [
-              "cache2update" => ["processing:bets:accepted"]
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
+            // 1.6] Сохранить $newround
+            $newround->save();
 
-          }
-
-        });
-
-        // 3] processing:rooms
-        // - Все включенные комнаты
-        call_user_func(function(){
-
-          $cache = json_decode(Cache::get('processing:rooms'), true);
-          if(!Cache::has('processing:rooms') || empty($cache) || count($cache) == 0) {
-
-            $result = runcommand('\M9\Commands\C13_update_cache', [
-              "cache2update" => ["processing:rooms"]
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
-
-          }
-
-        });
-
-
-      });
-
-      // 2. Отслеживание изменения статуса активных офферов
-      call_user_func(function(){
-
-        // 2.1. Добавить в очередь processor_hard соотв.команду
-        runcommand('\M9\Commands\C14_active_offers_tracking', [],
-            0, ['on'=>true, 'name'=>'processor_hard']);
-
-      });
-
-      // 3. Проверка срока годности активных ставок
-      call_user_func(function(){
-
-        // 1] Получить активные ставки из кэша
-        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
-
-        // 2] Отменить те активные ставки, срок годности которых уже вышел
-        foreach($bets_active as $bet) {
-
-          // 2.1] Получить статус ставки $bet
-          $status = $bet['bets_statuses'][0];
-
-          // 2.2] Получить дату и время истечения ставки
-          $expired_at = $status['pivot']['expired_at'];
-
-          // 2.3] Определить, истёк ли срок годности ставки
-          $is_expired = call_user_func(function() USE ($expired_at) {
-
-            return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
+            // 1.n] Вернуть $newround
 
           });
 
-          // 2.4] Если ставка истекла, отменить её
-          if($is_expired == true) {
+          // 2] Связать $newround со статусом Created
+          call_user_func(function() USE($newround) {
 
-            runcommand('\M9\Commands\C12_cancel_the_active_bet', [
-              "betid"        => $bet['id'],
-              "tradeofferid" => $bet['tradeofferid'],
-              "id_bot"       => $bet['m8_bots'][0]['id'],
-              "id_user"      => $bet['m5_users'][0]['id'],
-              "id_room"      => $bet['rooms'][0]['id'],
-            ], 0, ['on'=>true, 'name'=>'processor_hard']);
 
-          }
-
-        }
-
-      });
-
-      // 4. Оповещение игроков о секундах до истечения их активных офферов
-      call_user_func(function(){
-
-        // 1] Получить активные ставки из кэша
-        $bets_active = json_decode(Cache::get('processing:bets:active'), true);
-
-        // 2] Оповестить владельцев офферов по частным каналам
-        foreach($bets_active as $bet) {
-
-          // 2.1] Вычислить, сколько секунд осталось до истечения оффера $bet
-          // - Если оффер истёк, вернуть 0.
-          $secs = call_user_func(function() USE ($bet) {
-
-            // 1) Получить expired_at
-            $expired_at = \Carbon\Carbon::parse($bet['bets_statuses'][0]['pivot']['expired_at']);
-
-            // 2) Получить текущее серверное время
-            $now = \Carbon\Carbon::now();
-
-            // 3) Вычислить, что больше, $expired_at или $now
-            $is_expired_gt_than_now = $expired_at->gt($now);
-
-            // 4) Вычесть $now из $expired_at, и получить разницу в секундах
-            $sec = $expired_at->diffInSeconds($now);
-
-            // 5) Если оффер уже истёк, вернуть 0
-            if($is_expired_gt_than_now == false) return 0;
-
-            // 6) Иначе, вернуть $sec
-            else return $sec;
 
           });
 
-          // 2.2] Транслировать владельцу $bet значение $secs
-          Event::fire(new \R2\Broadcast([
-            'channels' => ['m9:private:'.$bet['m5_users'][0]['id']],
-            'queue'    => 'm9_lottery_broadcasting',
-            'data'     => [
-              'task' => 'tradeoffer_expire_secs',
-              'data' => [
-                'id_room' => $bet['rooms'][0]['id'],
-                'secs'    => $secs
-              ]
-            ]
-          ]));
+          // 3] Связать с $newround все Accepted-ставки
+          // - Не связанные с другими раундами.
+          // - Но связанные с комнатой $room.
+          call_user_func(function() USE ($newround) {
+
+          });
 
         }
 
-      });
+      }
 
-      // 5. Отслеживание изменения статусов текущих раундов всех вкл.комнат
-      call_user_func(function(){
-
-      });
-
-      // 6. Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате
-      call_user_func(function(){
-
-        // 6.1. Добавить в очередь processor_hard соотв.команду
-        runcommand('\M9\Commands\C17_new_rounds_provider', [],
-            0, ['on'=>true, 'name'=>'smallbroadcast']); // processor_hard
-
-      });
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C17_new_rounds_provider from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C11_processor']);
+        write2log($errortext, ['M9', 'C17_new_rounds_provider']);
         return [
           "status"  => -2,
           "data"    => [
