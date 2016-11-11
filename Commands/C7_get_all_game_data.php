@@ -168,10 +168,10 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
       //
 
         // 2.1. Извлечь коллекцию всех игровых данных из кэша
-        $rooms = collect(json_decode(Cache::get('processing:rooms'), true));
+        $rooms = json_decode(Cache::get('processing:rooms'), true);
 
         // 2.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
-        if($rooms->count() == 0) {
+        if(count($rooms) == 0) {
 
           // 1] Синхронизировать
           $result = runcommand('\M9\Commands\C8_sync_rooms', []);
@@ -180,7 +180,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
           // 2] Попробовать снова извлечь $rooms
           $rooms = \M9\Models\MD1_rooms::with(['rounds.rounds_statuses', 'rounds.bets.m5_users'])
-              ->where('is_on', 1)->get();
+              ->where('is_on', 1)->get()->toArray();
 
         }
 
@@ -192,22 +192,22 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
         // 2] Если $choosen_room пуста, а $rooms не пуста
         // - Добавить в неё ID первой из $rooms.
-        if(empty($choosen_room_id) && !$rooms->count() !== 0) {
-          $choosen_room_id = $rooms->first()['id'];
+        if(empty($choosen_room_id) && count($rooms) !== 0) {
+          $choosen_room_id = collect($rooms)->first()['id'];
         }
 
         // 3] Если $choosen_room_id нет в $rooms
-        if(!in_array($choosen_room_id, $rooms->pluck(['id'])->toArray())) {
+        if(!in_array($choosen_room_id, collect($rooms)->pluck(['id'])->toArray())) {
 
           // 3.1] Если $rooms не пуста
           // - Добавить в $choosen_room_id ID первой из $rooms
-          if($rooms->count() !== 0) {
-            $choosen_room_id = $rooms->first()['id'];
+          if(count($rooms) !== 0) {
+            $choosen_room_id = collect($rooms)->first()['id'];
           }
 
           // 3.2] Если $rooms пуста
           // - Добавить в $choosen_room_id число 0
-          if($rooms->count() === 0) {
+          if(count($rooms) === 0) {
             $choosen_room_id = 0;
           }
 
@@ -215,7 +215,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
         // 4] Если $choosen_room пуста, и $rooms пуста
         // - Сделать её 0
-        if(empty($choosen_room_id) && $rooms->count() === 0) {
+        if(empty($choosen_room_id) && count($rooms) === 0) {
           $choosen_room_id = 0;
         }
 
@@ -242,18 +242,18 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           for($j=0; $j<count($rooms[$i]['rounds']); $j++) {
 
             // 1] Добавить доп.свойство total_bet_amount
-            call_user_func(function() USE (&$rooms, &$bet, $i, $j) {
+            call_user_func(function() USE (&$rooms, $i, $j) {
               for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
 
                 // 1.1] Получить k-ую ставку в короткую переменную
-                $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
+                $bet = &$rooms[$i]['rounds'][$j]['bets'][$k];
 
                 // 1.2] Добавить доп.свойство total_bet_amount
 
                   // 1.2.1] Получить все связанные с $bet вещи
                   $items = \M8\Models\MD2_items::with(['m9_bets'])
                     ->whereHas('m9_bets', function($query) USE ($bet) {
-                      $query->where('id', $bet->id);
+                      $query->where('id', $bet['id']);
                     })->get();
 
                   // 1.2.2] Посчитать итоговую сумму поставленных вещей
@@ -266,7 +266,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
                       // 1.2.2.1] Получить ставку с id == $bet->id
                       $bet_with_id = call_user_func(function() USE ($i, $items, $bet) {
                         for($j=0; $j<count($items[$i]['m9_bets']); $j++) {
-                          if($items[$i]['m9_bets'][$j]->id == $bet->id)
+                          if($items[$i]['m9_bets'][$j]->id == $bet['id'])
                             return $items[$i]['m9_bets'][$j];
                         }
                       });
@@ -290,7 +290,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
               for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
 
                 // 2.1] Получить k-ую ставку в короткую переменную
-                $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
+                $bet = &$rooms[$i]['rounds'][$j]['bets'][$k];
 
                 // 2.2] Получить общую сумму ставок для j-го раунда
                 $bets_total_sum = call_user_func(function() USE ($rooms, $i, $j) {
@@ -312,29 +312,35 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
                   ];
                 });
 
-                // 2.5] Если $the_whole_part['length'] == 2
+                // 2.5] Если $the_whole_part['length'] == 3
+                if($the_whole_part['length'] == 3) {
+                  $bet['final_bet_odds'] = $odds*pow(10,12);
+                }
+
+                // 2.6] Если $the_whole_part['length'] == 2
                 if($the_whole_part['length'] == 2) {
                   $bet['final_bet_odds'] = round($odds*pow(10,12));
                 }
 
-                // 2.6] Если $the_whole_part['length'] == 1
+                // 2.7] Если $the_whole_part['length'] == 1
                 if($the_whole_part['length'] == 1) {
                   $bet['final_bet_odds'] = round($odds*pow(10,11));
                 }
 
-                // 2.7] Если $the_whole_part['length'] == 0
+                // 2.8] Если $the_whole_part['length'] == 0
                 if($the_whole_part['length'] == 0) {
                   $bet['final_bet_odds'] = round($odds*pow(10,10));
                 }
 
-                // 2.8] Добавить final_bet_odds_human
+                // 2.9] Добавить final_bet_odds_human
                 call_user_func(function() USE (&$bet) {
 
-                  // 2.8.1] Определить размер final_bet_odds
+                  // 2.9.1] Определить размер final_bet_odds
                   $length = count(str_split($bet['final_bet_odds'].'')).'';
 
-                  // 2.8.2] Определить результат
+                  // 2.9.2] Определить результат
                   switch($length) {
+                    case '13': $result = $bet['final_bet_odds']/pow(10,10); break;
                     case '12': $result = $bet['final_bet_odds']/pow(10,10); break;
                     case '11': $result = $bet['final_bet_odds']/pow(10,10); break;
                     case '10': $result = +('0.'.$bet['final_bet_odds']); break;         
@@ -349,7 +355,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
                     case '1':  $result = +('0.000000000'.$bet['final_bet_odds']); break;
                   }
 
-                  // 2.8.3] Записать результат в $bet
+                  // 2.9.3] Записать результат в $bet
                   $bet['final_bet_odds_human'] = $result;
 
                 });
@@ -362,14 +368,19 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
               for($k=0; $k<count($rooms[$i]['rounds'][$j]['bets']); $k++) {
 
                 // 3.1] Получить k-ую ставку в короткую переменную
-                $bet = $rooms[$i]['rounds'][$j]['bets'][$k];
+                $bet = &$rooms[$i]['rounds'][$j]['bets'][$k];
 
                 // 3.2] Вычислить, ставил ли уже этот пользователь ранее
                 // - Если ставил, то получить ссылку на старую ставку.
                 $previous_bet = call_user_func(function() USE ($rooms, $i, $j, $k){
 
                    for($m=0; $m<count($rooms[$i]['rounds'][$j]['bets']); $m++) {
-                     if($rooms[$i]['rounds'][$j]['bets'][$k]['m5_users'][0]['id'] == $rooms[$i]['rounds'][$j]['bets'][$m]['m5_users'][0]['id'] && $m != $k)
+
+                     if(
+                       $rooms[$i]['rounds'][$j]['bets'][$k]['m5_users'][0]['id'] == $rooms[$i]['rounds'][$j]['bets'][$m]['m5_users'][0]['id'] &&
+                       $m != $k &&
+                       $rooms[$i]['rounds'][$j]['bets'][$k]['id'] > $rooms[$i]['rounds'][$j]['bets'][$m]['id']
+                     )
                        return $rooms[$i]['rounds'][$j]['bets'][$m];
                    }
 
@@ -420,7 +431,6 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
       // 5. Добавить доп.свойства всем комнат
       // - Сначала преобразовав коллекцию $rooms в массив
-      $rooms = $rooms->toArray();
       call_user_func(function() USE (&$rooms) {
 
         // 1] Добавить свойство is_some_active_bets

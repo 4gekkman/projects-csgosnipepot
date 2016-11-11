@@ -371,6 +371,18 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
           ]
         ]));
 
+        // 9.8. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:private:'.$this->data['id_user']],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'tradeoffer_cancel',
+            'data' => [
+              'id_room' => $this->data['id_room']
+            ]
+          ]
+        ]));
+
       }
 
       // 10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
@@ -386,6 +398,18 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
+
+        // 10.3. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:private:'.$this->data['id_user']],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'tradeoffer_cancel',
+            'data' => [
+              'id_room' => $this->data['id_room']
+            ]
+          ]
+        ]));
 
       }
 
