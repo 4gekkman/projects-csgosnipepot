@@ -211,8 +211,12 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
           'token'     => $this->data['token_partner']
         ]);
 
-        // 4.2. Если торговать нельзя, завершить
-        if($result['status'] != 0 || $result['data']['could_trade'] == 0) {
+        // 4.2. Если возникла ошибка
+        if($result['status'] != 0)
+          throw new \Exception("Не удалось проверить escrow.");
+
+        // 4.3. Если торговать нельзя, завершить
+        if($result['data']['could_trade'] == 0) {
 
           return [
             "status"  => 0,
