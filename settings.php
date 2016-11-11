@@ -127,14 +127,14 @@ return [
     "rooms" => [
 
       "Light" => [
-        "name"                    => "Light",
+        "name"                    => "для бомжей",
         "description"             => "Bets from 0.03¢",
         "description_full"        => "It's the \"light\" room with the lowest minimum bet limit - from 0.03¢.",
         "is_on"                   => 1,
       ],
 
       "Main" => [
-        "name"                    => "Main",
+        "name"                    => "основная",
         "description"             => "Bets from 1$",
         "description_full"        => "It's the \"main\" room with minimum bet limit - from 1$.",
         "is_on"                   => 1,

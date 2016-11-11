@@ -391,20 +391,26 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         });
 
         // 5] Отправить пользователю торговое предложение
-        $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
-					"id_bot"                => $bot2acceptbet->id,
-					"steamid_partner"  			=> $this->data['players_steamid'],
-					"id_partner"            => $partner,
-					"token_partner"         => $token,
-					"dont_trade_with_gays"  => "1",
-					"assets2send"           => [],
-					"assets2recieve"        => $assets2recieve,
-					"tradeoffermessage"     => $tradeoffermessage
-        ]);
-        if($tradeoffer['status'] != 0)
-          throw new \Exception("Не удалось отправить торговое предложение.");
-        if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
-          throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
+
+          // 5.1] Отправить
+          $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
+            "id_bot"                => $bot2acceptbet->id,
+            "steamid_partner"  			=> $this->data['players_steamid'],
+            "id_partner"            => $partner,
+            "token_partner"         => $token,
+            "dont_trade_with_gays"  => "1",
+            "assets2send"           => [],
+            "assets2recieve"        => $assets2recieve,
+            "tradeoffermessage"     => $tradeoffermessage
+          ]);
+
+          // 5.2] Если возникла ошибка
+          if($tradeoffer['status'] != 0)
+            throw new \Exception("Не удалось отправить торговое предложение. Возможно, проблемы с ботом, или Steam тормозит.");
+
+          // 5.3] Если с этим пользователем нельзя торговать из-за escrow
+          if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
+            throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
 
         // 6] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
