@@ -256,6 +256,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
               ->where('is_on', 1)
               ->get();
 
+            Log::info(json_decode($rooms, true));
+
             // 3] Записать JSON с $rooms в кэш
             Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
 

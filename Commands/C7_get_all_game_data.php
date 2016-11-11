@@ -167,20 +167,8 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
       //   Пользователи Пользователи
       //
 
-        // 2.1. Попробовать извлечь коллекцию всех игровых данных
-        $rooms = \M9\Models\MD1_rooms::with([
-          'rounds' => function($query) {
-            if($this->data['rounds_limit'] != 0)
-              $query->orderBy('id', 'desc')->take($this->data['rounds_limit']);
-          },
-          'rounds.rounds_statuses',
-          'rounds.bets.m5_users' => function($query) {
-            $query->select('id', 'nickname', 'avatar_steam', 'ha_provider_uid');
-          },
-          'rounds.bets.m8_items' => function($query) {
-            $query->select('name', 'price', 'price_success', 'steammarket_link', 'steammarket_image','is_case','is_key','is_startrak','is_souvenir_package','is_souvenir','is_knife','is_weapon');
-          }
-        ])->where('is_on', 1)->get();
+        // 2.1. Извлечь коллекцию всех игровых данных из кэша
+        $rooms = collect(json_decode(Cache::get('processing:rooms'), true));
 
         // 2.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
         if($rooms->count() == 0) {
@@ -205,7 +193,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
         // 2] Если $choosen_room пуста, а $rooms не пуста
         // - Добавить в неё ID первой из $rooms.
         if(empty($choosen_room_id) && !$rooms->count() !== 0) {
-          $choosen_room_id = $rooms->first()->id;
+          $choosen_room_id = $rooms->first()['id'];
         }
 
         // 3] Если $choosen_room_id нет в $rooms
@@ -214,7 +202,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           // 3.1] Если $rooms не пуста
           // - Добавить в $choosen_room_id ID первой из $rooms
           if($rooms->count() !== 0) {
-            $choosen_room_id = $rooms->first()->id;
+            $choosen_room_id = $rooms->first()['id'];
           }
 
           // 3.2] Если $rooms пуста
@@ -431,6 +419,8 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
       });
 
       // 5. Добавить доп.свойства всем комнат
+      // - Сначала преобразовав коллекцию $rooms в массив
+      $rooms = $rooms->toArray();
       call_user_func(function() USE (&$rooms) {
 
         // 1] Добавить свойство is_some_active_bets
