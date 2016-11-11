@@ -212,13 +212,35 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
         if(in_array("processing:rooms", $this->data['cache2update']) == true || $this->data['all'] == true) {
           call_user_func(function(){
 
-            // 1] Получить все включенные комнаты
+            // 1] Получить массив ID последних раундов каждой комнаты
+            $all_rooms_last_round_ids = call_user_func(function(){
+
+              // 1.1] Подготовить массив для результата
+              $result = [];
+
+              // 1.2] Получить коллекцию всех комнат
+              $rooms = \M9\Models\MD1_rooms::get();
+
+              // 1.3] Наполнить $result
+              foreach($rooms as $room) {
+                $lastround = \M9\Models\MD2_rounds::whereHas('rooms', function($queue) USE ($room) {
+                  $queue->where('id', $room['id']);
+                })->orderBy('id', 'desc')->first();
+                array_push($result, $lastround['id']);
+              }
+
+              // 1.n] Вернуть $result
+              return $result;
+
+            });
+
+            // 2] Получить все включенные комнаты
             // - Включая все их связи.
             // - Но не со всеми раундами, а лишь с текущим.
             // - И вместе со всеми связанными данными текущего раунда.
             $rooms = \M9\Models\MD1_rooms::with(["m8_bots", "bet_accepting_modes",
-                "rounds" => function($query) {
-                  $query->take(1);
+                "rounds" => function($query) USE ($all_rooms_last_round_ids) {
+                  $query->whereIn('id', $all_rooms_last_round_ids);
                 },
                 "bets",
                 "rounds.rounds_statuses",
@@ -234,7 +256,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
               ->where('is_on', 1)
               ->get();
 
-            // 2] Записать JSON с $rooms в кэш
+            // 3] Записать JSON с $rooms в кэш
             Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
           });
