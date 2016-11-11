@@ -139,7 +139,8 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
      *  2. Получить из $bets_active неповторяющийся список всех ботов, имеющих активные офферы
      *  3. Для каждого из $bots_ids получить список активных офферов
      *  4. Попробовать найти бывшие активные ($bets_active) офферы
-     *  5. Пробежаться по каждому офферу в $bets_ex_active
+     *  5. Сделать commit
+     *  6. Пробежаться по каждому офферу в $bets_ex_active
      *
      *  N. Вернуть статус 0
      *
@@ -325,7 +326,10 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
       });
 
-      // 5. Пробежаться по каждому офферу в $bets_ex_active
+      // 5. Сделать commit
+      DB::commit();
+
+      // 6. Пробежаться по каждому офферу в $bets_ex_active
       // - И в зависимости от того "Accepted" он, или отличается, предпринять ряд действий.
       call_user_func(function() USE ($bets_ex_active) {
         for($i=0; $i<count($bets_ex_active); $i++) {

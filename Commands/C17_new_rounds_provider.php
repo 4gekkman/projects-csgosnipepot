@@ -147,7 +147,7 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
     //---------------------------------------------------------------------//
     // Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате //
     //---------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить из кэша все включенные комнаты
       $rooms = json_decode(Cache::get('processing:rooms'), true);
@@ -163,44 +163,47 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
         // - Создать новый раунд
         if(count($room['rounds']) == 0 || $room['rounds'][0]['rounds_statuses'][count($room['rounds'][0]['rounds_statuses']) - 1]['status'] == 'Finished') {
 
-          // 1] Записать true в маячёк
+          // 1] Начать транзакцию
+          DB::beginTransaction();
+
+          // 2] Записать true в маячёк
           $should_cache_update_and_translate = true;
 
-          // 2] Создать и сохранить новый раунд
+          // 3] Создать и сохранить новый раунд
           $newround = call_user_func(function() USE($room) {
 
-            // 2.1] Создать
+            // 3.1] Создать
             $newround = new \M9\Models\MD2_rounds();
 
-            // 2.2] Связать $newround с $room
+            // 3.2] Связать $newround с $room
             $newround->id_room = $room['id'];
 
-            // 2.3] Подготовить случайное число от 0 до 1
+            // 3.3] Подготовить случайное число от 0 до 1
             // - Обеспечив квинтильен вариантов (10^18)
             $key = random_int(1,pow(10,18))/pow(10,18);
 
-            // 2.4] Получить sha512-хэш для $key
+            // 3.4] Получить sha512-хэш для $key
             $key_hash = md5(hash('sha512', $key));
 
-            // 2.5] Записать $key и $key_hash в $newround
+            // 3.5] Записать $key и $key_hash в $newround
             $newround->key        = $key;
             $newround->key_hash   = $key_hash;
 
-            // 2.6] Сохранить $newround
+            // 3.6] Сохранить $newround
             $newround->save();
 
-            // 2.n] Вернуть $newround
+            // 3.n] Вернуть $newround
             return $newround;
 
           });
 
-          // 3] Связать $newround со статусом Created
+          // 4] Связать $newround со статусом Created
           call_user_func(function() USE(&$newround) {
 
-            // 3.1] Связать, и не забыть указать дату/время started_at
+            // 4.1] Связать, и не забыть указать дату/время started_at
             $newround->rounds_statuses()->attach(1);
 
-            // 3.2] Указать дату/время started_at
+            // 4.2] Указать дату/время started_at
             $newround->rounds_statuses()->updateExistingPivot(1, [
               'started_at' => \Carbon\Carbon::now()->toDateTimeString(),
               'comment' => 'Автоматически созданный командой m9.C17 новый раунд'
@@ -208,15 +211,15 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
 
           });
 
-          // 4] Связать с $newround все Accepted-ставки
+          // 5] Связать с $newround все Accepted-ставки
           // - Не связанные с другими раундами.
           // - Но связанные с комнатой $room.
           call_user_func(function() USE (&$newround, $room) {
 
-            // 4.1] Получить все accepted-ставки
+            // 5.1] Получить все accepted-ставки
             $bets_accepted = json_decode(Cache::get('processing:bets:accepted'), true);
 
-            // 4.2] Отфильтровать из $bets_accepted неподходящие ставки
+            // 5.2] Отфильтровать из $bets_accepted неподходящие ставки
             // - Которые уже связаны с любым другим раундом, кроме $newround
             // - Которые не связаны с комнатой $room
             $bets_accepted_filtered = array_filter($bets_accepted, function($value, $key){
@@ -227,7 +230,7 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
 
           });
 
-          // 5] Сделать commit
+          // 6] Сделать commit
           DB::commit();
 
         }
@@ -244,14 +247,19 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // 4.2. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+        // 4.2. Получить свежие игровые данные
+        $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
+        if($allgamedata['status'] != 0)
+          throw new \Exception($allgamedata['data']['errormsg']);
+
+        // 4.3. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:public'],
           'queue'    => 'm9_lottery_broadcasting',
           'data'     => [
             'task' => 'fresh_game_data',
             'data' => [
-              'rooms' => Cache::get('processing:rooms')
+              'rooms' => $allgamedata['data']['rooms']
             ]
           ]
         ]));

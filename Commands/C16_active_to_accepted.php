@@ -359,17 +359,28 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             throw new \Exception($result['data']['errormsg']);
         }
 
-        // 9.7. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:public'],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'fresh_game_data',
-            'data' => [
-              'rooms' => Cache::get('processing:rooms')
+        // 9.7. Транслировать через публичный канал свежие игровые данные
+        // - Но только, если они не были уже транслированы в C18
+        if($status_tracking['data']['is_cache_was_updated'] == false) {
+
+          // 1] Получить свежие игровые данные
+          $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
+          if($allgamedata['status'] != 0)
+            throw new \Exception($allgamedata['data']['errormsg']);
+
+          // 2] Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+          Event::fire(new \R2\Broadcast([
+            'channels' => ['m9:public'],
+            'queue'    => 'm9_lottery_broadcasting',
+            'data'     => [
+              'task' => 'fresh_game_data',
+              'data' => [
+                'rooms' => $allgamedata['data']['rooms']
+              ]
             ]
-          ]
-        ]));
+          ]));
+
+        }
 
         // 9.8. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
         Event::fire(new \R2\Broadcast([

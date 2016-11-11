@@ -139,9 +139,10 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
      *  2. Подготовить маячёк (изменился ли статус любого раунда)
      *  3. Пробежаться по $rooms, если надо поменять статусы последних раундов
      *  4. Обновить весь кэш, если статус любого раунда был изменён
-     *  5.
+     *  5. Сделать commit
+     *  6. Получить свежие игровые данные
+     *  7. Транслировать свежие игровые данные через публичный канал
      *
-     *  n. Сделать commit
      *  m. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -246,6 +247,26 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
           });
 
+          // 15] Количество сделавших accepted-ставки пользователей
+          $result['users_with_accepted_bets_count'] = call_user_func(function() USE ($result) {
+
+            // 15.1] Подготовить переменную для результата и массив для найденных id пользователей, сделавших ставку
+            $count = 0;
+            $users_with_accepted_bets_ids = [];
+
+            // 15.2] Подсчитать
+            foreach($result['lastround']['bets'] as $bet) {
+              if(!in_array($bet['m5_users'][0]['id'], $users_with_accepted_bets_ids)) {
+                array_push($users_with_accepted_bets_ids, $bet['m5_users'][0]['id']);
+                $count = +$count + 1;
+              }
+            }
+
+            // 15.n] Вернуть результат
+            return $count;
+
+          });
+
           // n] Вернуть $result
           return $result;
 
@@ -287,9 +308,9 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           // 3] Started
           $is_started = call_user_func(function() USE ($params) {
 
-            // 3.1] Есть ли 2 или более accepted-ставок
+            // 3.1] Есть ли 2 или более accepted-ставок, и ставки сделали >= 2 разных пользователей
             $is2more_accepted_bets = call_user_func(function() USE ($params) {
-              if($params['bets_accepted_count'] >= 2) return true;
+              if($params['bets_accepted_count'] >= 2 && $params['users_with_accepted_bets_count'] >= 2) return true;
               return false;
             });
 
@@ -456,7 +477,15 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           throw new \Exception($result['data']['errormsg']);
       }
 
-      // 5. Транслировать свежие игровые данные через публичный канал
+      // 5. Сделать commit
+      DB::commit();
+
+      // 6. Получить свежие игровые данные
+      $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
+      if($allgamedata['status'] != 0)
+        throw new \Exception($allgamedata['data']['errormsg']);
+
+      // 7. Транслировать свежие игровые данные через публичный канал
       // - Если статус любого раунда был изменён
       if($is_any_round_status_was_changed == true) {
         Event::fire(new \R2\Broadcast([
@@ -465,14 +494,11 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           'data'     => [
             'task' => 'fresh_game_data',
             'data' => [
-              'rooms' => Cache::get('processing:rooms')
+              'rooms' => $allgamedata['data']['rooms']
             ]
           ]
         ]));
       }
-
-      // n. Сделать commit
-      DB::commit();
 
       // m. Вернуть результаты
       return [

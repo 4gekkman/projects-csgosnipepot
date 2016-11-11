@@ -250,7 +250,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                 "rounds.bets.m5_users",
                 "rounds.bets.safecodes",
                 "rounds.bets.rooms",
-                "rounds.bets.rounds",
+                //"rounds.bets.rounds",
                 "rounds.bets.bets_statuses"
               ])
               ->where('is_on', 1)

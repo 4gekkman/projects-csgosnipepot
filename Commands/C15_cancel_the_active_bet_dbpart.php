@@ -145,7 +145,8 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
      *  4. Отвязать ставку от статуса $status_active
      *  5. Привязать ставку к статусу $another_status
      *  6. Обновить весь кэш
-     *  7. Сообщить игроку $this->data['id_user'], что его ставка истекла
+     *  7. Сделать commit
+     *  8. Сообщить игроку $this->data['id_user'], что его ставка истекла
      *
      *  N. Вернуть статус 0
      *
@@ -198,7 +199,10 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 7. Сообщить игроку $this->data['id_user'], что его ставка истекла
+      // 7. Сделать commit
+      DB::commit();
+
+      // 8. Сообщить игроку $this->data['id_user'], что его ставка истекла
       // - Через websocket, по частном каналу
       Event::fire(new \R2\Broadcast([
         'channels' => ['m9:private:'.$this->data['id_user']],
