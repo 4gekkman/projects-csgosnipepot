@@ -136,7 +136,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
      * Оглавление
      *
      *  1. Получить все игровые данные из кэша
-     *
+     *  2. Пробежаться по $rooms
+     *    2.1.
      *
      *  n. Сделать commit
      *  m. Вернуть результаты
@@ -153,6 +154,171 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
       // 1. Получить все игровые данные из кэша
       $rooms = json_decode(Cache::get('processing:rooms'), true);
 
+      // 2. Пробежаться по $rooms
+      foreach($rooms as $room) {
+
+        // 2.1. Получить набор параметров, необходимых для трекинга статуса
+        $params = call_user_func(function() USE ($room) {
+
+          // 1] Подготовить массив для результата
+          $result = [];
+
+          // 2] Получить из $room последний раунд
+          $result['lastround'] = $room['rounds'][count($room['rounds']) - 1];
+
+          // 3] Получить pivot-таблицу lastround актуального статуса
+          $result['pivot'] = $result['lastround']['rounds_statuses'][count($result['lastround']['rounds_statuses']) - 1]['pivot'];
+
+          // 4] Получить статус последнего раунда (цифру)
+          $result['status'] = $result['pivot']['id_status'];
+
+          // 5] Получить дату/время установки этого статуса в формате Carbon
+          $result['started_at'] = \Carbon\Carbon::parse($result['pivot']['started_at']);
+
+          // 6] Получить продолжительность в секундах статусов Started, Pending, Lottery, Winner
+          $result['duration'] = [];
+          $result['duration']['started']  = $room['room_round_duration_sec'];
+          $result['duration']['pending']  = "5";
+          $result['duration']['lottery']  = round($room['lottery_duration_ms']/1000);
+          $result['duration']['winner']   = "5";
+
+          // 7] Получить ограничение на кол-во вещей в $room
+          $result['max_items_per_round'] = $room['max_items_per_round'];
+
+          // 8] Получить кол-во поставленных вещей
+          $result['items_count'] = call_user_func(function() USE ($result) {
+
+            // 8.1] Подготовить переменную для результата
+            $count = 0;
+
+            // 8.2] Пробежатсья по ставкам последнего раунда
+            foreach($result['lastround']['bets'] as $bet) {
+              $count = +$count + +count($bet['m8_items']);
+            }
+
+            // 8.n] Вернуть результат
+            return $count;
+
+          });
+
+          // 9] Получить кол-во accepted-ставок, связанных с lastround
+          $result['bets_accepted_count'] = count($result['lastround']['bets']);
+
+          // 10] Текущее серверное время
+          $result['current_server_time'] = \Carbon\Carbon::now();
+
+          // n] Вернуть $result
+          return $result;
+
+        });
+
+        // 2.2. Вычислить подходящий статус для $room в текущем состоянии
+        $suitable_room_status = call_user_func(function() USE ($params) {
+
+          // 1] Created
+          $is_created = call_user_func(function() USE ($params) {
+
+            // 1.1] Если нет ни 1-й accepted-ставки, вернуть true
+            if($params['bets_accepted_count'] == 0) return true;
+
+            // 1.2] Иначе, вернуть false
+            return false;
+
+          });
+          if($is_created == true) return "Created";
+
+          // 2] First bet
+          $is_first_bet = call_user_func(function() USE ($params) {
+
+            // 2.1] Если есть ровно 1-на accepted-ставка, вернуть true
+            if($params['bets_accepted_count'] == 1) return true;
+
+            // 2.2] Иначе, вернуть false
+            return false;
+
+          });
+          if($is_first_bet == true) return "First bet";
+
+          // 3] Started
+          $is_started = call_user_func(function() USE ($params) {
+
+            // 3.1] Есть ли 2 или более accepted-ставок
+            $is2more_accepted_bets = call_user_func(function() USE ($params) {
+              if($params['bets_accepted_count'] >= 2) return true;
+              return false;
+            });
+
+            // 3.2] Является ли текущий статус раунда равным 3
+            $is_current_status_started = $params['status'] == 3 ? true : false;
+
+            // 3.3] Не истекло ли ещё время раунда
+            $is_round_time_is_not_expired = call_user_func(function() USE ($params) {
+
+
+              // $params['duration']['started']->gt($params['current_server_time'])
+            });
+
+            // 3.4] Не достигнут ли лимит по вещам
+            $is_skins_amount_limit_reached = call_user_func(function() USE ($params) {
+
+
+
+            });
+
+            // 3.n] Вернуть результат
+            if($is2more_accepted_bets == true && ())
+
+          });
+          if($is_started == true) return "Started";
+
+          // 4] Pending
+          $is_pending = call_user_func(function() USE ($params) {
+
+
+
+          });
+          if($is_pending == true) return "Pending";
+
+          // 5] Lottery
+          $is_lottery = call_user_func(function() USE ($params) {
+
+
+
+          });
+          if($is_lottery == true) return "Lottery";
+
+          // 6] Winner
+          $is_winner = call_user_func(function() USE ($params) {
+
+
+
+          });
+          if($is_winner == true) return "Winner";
+
+          // 7] Finished
+          $is_finished = call_user_func(function() USE ($params) {
+
+
+
+          });
+          if($is_finished == true) return "Finished";
+
+          // n] Вернуть значение, означающее, что статус вычислить не удалось
+          return "Undefined";
+
+        });
+
+        write2log($suitable_room_status, []);
+
+
+
+      }
+
+
+
+
+
+
 
       //write2log($rooms, []);
 
@@ -163,6 +329,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
       // Обновлять кэш только в случае необходимости
 
       // В результатах (is_cache_was_updated) возвращать, был ли обновлён кэш
+
+      // Переключение статуса возможно только "вперёд", и невозможно "назад"
 
 
       // n. Сделать commit

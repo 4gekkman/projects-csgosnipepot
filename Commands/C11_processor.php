@@ -169,7 +169,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
           }
 
-
         });
 
         // 2] processing:bets:accepted
