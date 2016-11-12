@@ -202,8 +202,8 @@ class C46_suf_blade_integrate extends Job { // TODO: добавить "implement
 
           // 2] Добавить следующие 2 строки, чтобы бороться с багом в Browser-sync
           // - Из-за которого во 2-м запросе getHost прописывается порт 80 почему-то
-          $result = $result . '  <script attr1="\Request::getHost();" attr2="\Request::getHost();"></script>' . PHP_EOL;
-          $result = $result . '  <script attr1="\Request::getHost();" attr2="\Request::getHost();"></script>' . PHP_EOL;
+          // $result = $result . '  <script attr1="\Request::getHost();" attr2="\Request::getHost();"></script>' . PHP_EOL;
+          // $result = $result . '  <script attr1="\Request::getHost();" attr2="\Request::getHost();"></script>' . PHP_EOL;
 
           // 3] Добавить пути к CSS-файлам
           collect($index[$package]['js'])->each(function($path) USE (&$result, $package) {
