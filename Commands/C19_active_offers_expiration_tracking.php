@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The game processor, fires at every game tick, every second
+ *    - Active offers expiration tracking
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C11_processor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C19_active_offers_expiration_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -133,68 +133,59 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
   {
 
     /**
-     * Примечания
-     *
-     *  ▪ Сама команда C11_processor на каждом тике добавляется в очередь "processor_main".
-     *  ▪ Все команды выполняются по очереди в "processor_hard".
-     *  ▪ Обе очереди обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
-     *
      * Оглавление
      *
-     *  C13_update_cache                            | 1. Обновить весь кэш, но для каждого, только если он отсутствует
-     *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
-     *  C19_active_offers_expiration_tracking       | 3. Отслеживать срок годности активных ставок
-     *  C20_notify_users_about_offers_time2deadline | 4. Оповещать игроков о секундах до истечения их активных офферов
-     *  C18_round_statuses_tracking                 | 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-     *  C17_new_rounds_provider                     | 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+     *  1. Получить активные ставки из кэша
+     *  2. Отменить те активные ставки, срок годности которых уже вышел
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------------//
-    // The game processor, fires at every game tick, every second //
-    //------------------------------------------------------------//
-    $res = call_user_func(function() { try {
+    //-------------------------------------------------------------//
+    // Отслеживание и удаление истёкших активных исходящих офферов //
+    //-------------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-      $result = runcommand('\M9\Commands\C13_update_cache', [
-        "all"   => true,
-        "force" => false
-      ], 0, ['on'=>true, 'name'=>'processor_hard']);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
+      // 1. Получить активные ставки из кэша
+      $bets_active = json_decode(Cache::get('processing:bets:active'), true);
 
+      // 2. Отменить те активные ставки, срок годности которых уже вышел
+      foreach($bets_active as $bet) {
 
-      // 2. Отслеживать изменения статусов активных офферов
-      runcommand('\M9\Commands\C14_active_offers_tracking', [],
-          0, ['on'=>true, 'name'=>'processor_hard']);
+        // 2.1. Получить статус ставки $bet
+        $status = $bet['bets_statuses'][0];
 
+        // 2.2. Получить дату и время истечения ставки
+        $expired_at = $status['pivot']['expired_at'];
 
-      // 3. Отслеживать срок годности активных ставок
-      runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
-          0, ['on'=>true, 'name'=>'processor_hard']);
+        // 2.3. Определить, истёк ли срок годности ставки
+        $is_expired = call_user_func(function() USE ($expired_at) {
 
+          return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
 
-      // 4. Оповещать игроков о секундах до истечения их активных офферов
-      runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
-          0, ['on'=>true, 'name'=>'processor_hard']);
+        });
 
+        // 2.4. Если ставка истекла, отменить её
+        if($is_expired == true) {
 
-      // 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-      runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-          0, ['on'=>true, 'name'=>'processor_hard']); // smallbroadcast
+          runcommand('\M9\Commands\C12_cancel_the_active_bet', [
+            "betid"        => $bet['id'],
+            "tradeofferid" => $bet['tradeofferid'],
+            "id_bot"       => $bet['m8_bots'][0]['id'],
+            "id_user"      => $bet['m5_users'][0]['id'],
+            "id_room"      => $bet['rooms'][0]['id'],
+          ], 0, ['on'=>true, 'name'=>'processor_hard']);
 
+        }
 
-      // 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-      runcommand('\M9\Commands\C17_new_rounds_provider', [],
-          0, ['on'=>true, 'name'=>'processor_hard']); // smallbroadcast
+      }
 
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C19_active_offers_expiration_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C11_processor']);
+        write2log($errortext, ['M9', 'C19_active_offers_expiration_tracking']);
         return [
           "status"  => -2,
           "data"    => [

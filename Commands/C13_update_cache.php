@@ -16,6 +16,7 @@
  *      "data" => [
  *        all           | True/False, если true, то обновить весь кэш
  *        cache2update  | Массив ключей кэша, который надо обновить (нужен, только если all не указано)
+ *        force         | (по умолчанию, == true) Обновлять кэш, даже если он присутствует
  *      ]
  *    ]
  *
@@ -156,6 +157,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
       $validator = r4_validate($this->data, [
         "all"             => ["boolean"],
         "cache2update"    => ["required_without:all", "array"],
+        "force"           => ["boolean"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -166,101 +168,148 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
         if(!array_key_exists('all', $this->data))
           $this->data['all'] = false;
 
-        // 2.2. Если cache2update, назначить пустой массив
+        // 2.2. Если cache2update не передан, назначить пустой массив
         if(!array_key_exists('cache2update', $this->data))
           $this->data['cache2update'] = [];
+
+        // 2.3. Если force отсутствует, назначить true
+        if(!array_key_exists('force', $this->data))
+          $this->data['force'] = true;
+
 
       // 3. Обновить кэш, который указан в cache2update
 
         // 3.1. processing:bets:active
-        if(in_array("processing:bets:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
-          call_user_func(function(){
 
-            // 1] Получить все ставки со статусом Active
-            // - Включая все их связи.
-            $active_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
-              ->whereHas('bets_statuses', function($query){
-                $query->where('status', 'Active');
-              })
-              ->get();
+          // 3.1.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:bets:active'), true);
 
-            // 2] Записать JSON с $active_bets в кэш
-            Cache::put('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+          // 3.1.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:bets:active') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
 
-          });
-        }
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:bets:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
+
+                // 1] Получить все ставки со статусом Active
+                // - Включая все их связи.
+                $active_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+                  ->whereHas('bets_statuses', function($query){
+                    $query->where('status', 'Active');
+                  })
+                  ->get();
+
+                // 2] Записать JSON с $active_bets в кэш
+                Cache::put('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+              });
+            }
+
+          }
 
         // 3.2. processing:bets:accepted
-        if(in_array("processing:bets:accepted", $this->data['cache2update']) == true || $this->data['all'] == true) {
-          call_user_func(function(){
 
-            // 1] Получить все ставки со статусом Accepted
-            // - Включая все их связи.
-            $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
-              ->whereHas('bets_statuses', function($query){
-                $query->where('status', 'Accepted');
-              })
-              ->get();
+          // 3.2.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:bets:accepted'), true);
 
-            // 2] Записать JSON с $accepted_bets в кэш
-            Cache::put('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+          // 3.2.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:bets:accepted') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
 
-          });
-        }
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:bets:accepted", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
+
+                // 1] Получить все ставки со статусом Accepted
+                // - Включая все их связи.
+                $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+                  ->whereHas('bets_statuses', function($query){
+                    $query->where('status', 'Accepted');
+                  })
+                  ->get();
+
+                // 2] Записать JSON с $accepted_bets в кэш
+                Cache::put('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+              });
+            }
+
+          }
 
         // 3.3. processing:rooms
-        if(in_array("processing:rooms", $this->data['cache2update']) == true || $this->data['all'] == true) {
-          call_user_func(function(){
 
-            // 1] Получить массив ID последних раундов каждой комнаты
-            $all_rooms_last_round_ids = call_user_func(function(){
+          // 3.3.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:rooms'), true);
 
-              // 1.1] Подготовить массив для результата
-              $result = [];
+          // 3.3.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:rooms') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
 
-              // 1.2] Получить коллекцию всех комнат
-              $rooms = \M9\Models\MD1_rooms::get();
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:rooms", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
 
-              // 1.3] Наполнить $result
-              foreach($rooms as $room) {
-                $lastround = \M9\Models\MD2_rounds::whereHas('rooms', function($queue) USE ($room) {
-                  $queue->where('id', $room['id']);
-                })->orderBy('id', 'desc')->first();
-                array_push($result, $lastround['id']);
-              }
+                // 1] Получить массив ID последних раундов каждой комнаты
+                $all_rooms_last_round_ids = call_user_func(function(){
 
-              // 1.n] Вернуть $result
-              return $result;
+                  // 1.1] Подготовить массив для результата
+                  $result = [];
 
-            });
+                  // 1.2] Получить коллекцию всех комнат
+                  $rooms = \M9\Models\MD1_rooms::get();
 
-            // 2] Получить все включенные комнаты
-            // - Включая все их связи.
-            // - Но не со всеми раундами, а лишь с текущим.
-            // - И вместе со всеми связанными данными текущего раунда.
-            $rooms = \M9\Models\MD1_rooms::with(["m8_bots", "bet_accepting_modes",
-                "rounds" => function($query) USE ($all_rooms_last_round_ids) {
-                  $query->whereIn('id', $all_rooms_last_round_ids);
-                },
-                "bets",
-                "rounds.rounds_statuses",
-                "rounds.bets",
-                "rounds.bets.m8_bots",
-                "rounds.bets.m8_items",
-                "rounds.bets.m5_users",
-                "rounds.bets.safecodes",
-                "rounds.bets.rooms",
-                //"rounds.bets.rounds",
-                "rounds.bets.bets_statuses"
-              ])
-              ->where('is_on', 1)
-              ->get();
+                  // 1.3] Наполнить $result
+                  foreach($rooms as $room) {
+                    $lastround = \M9\Models\MD2_rounds::whereHas('rooms', function($queue) USE ($room) {
+                      $queue->where('id', $room['id']);
+                    })->orderBy('id', 'desc')->first();
+                    array_push($result, $lastround['id']);
+                  }
 
-            // 3] Записать JSON с $rooms в кэш
-            Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
+                  // 1.n] Вернуть $result
+                  return $result;
 
-          });
-        }
+                });
+
+                // 2] Получить все включенные комнаты
+                // - Включая все их связи.
+                // - Но не со всеми раундами, а лишь с текущим.
+                // - И вместе со всеми связанными данными текущего раунда.
+                $rooms = \M9\Models\MD1_rooms::with(["m8_bots", "bet_accepting_modes",
+                    "rounds" => function($query) USE ($all_rooms_last_round_ids) {
+                      $query->whereIn('id', $all_rooms_last_round_ids);
+                    },
+                    "bets",
+                    "rounds.rounds_statuses",
+                    "rounds.bets",
+                    "rounds.bets.m8_bots",
+                    "rounds.bets.m8_items",
+                    "rounds.bets.m5_users",
+                    "rounds.bets.safecodes",
+                    "rounds.bets.rooms",
+                    //"rounds.bets.rounds",
+                    "rounds.bets.bets_statuses"
+                  ])
+                  ->where('is_on', 1)
+                  ->get();
+
+                // 3] Записать JSON с $rooms в кэш
+                Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+              });
+            }
+
+          }
 
 
     DB::commit(); } catch(\Exception $e) {
