@@ -141,17 +141,17 @@ for(var assetsnum=0; assetsnum<sources["assets"].length; assetsnum++) {
 
 		// styles
 		for(var i=0; i<sources['styles'].length; i++) {
-			gulp.watch(sources['styles'][i], {usePolling: true}, function(callback){ return module.exports['styles_'+this.index](this.index, callback); }.bind({"index": i}));
+			gulp.watch(sources['styles'][i], {usePolling: false}, function(callback){ return module.exports['styles_'+this.index](this.index, callback); }.bind({"index": i}));
 		}
 
 		// javascript
 		for(var i=0; i<sources['javascript'].length; i++) {
-			gulp.watch(sources['javascript'][i], {usePolling: true}, function(callback){ return module.exports['javascript_'+this.index](this.index, callback); }.bind({"index": i}));
+			gulp.watch(sources['javascript'][i], {usePolling: false}, function(callback){ return module.exports['javascript_'+this.index](this.index, callback); }.bind({"index": i}));
 		}
 
 		// assets
 		for(var i=0; i<sources['assets'].length; i++) {
-			gulp.watch(sources['assets'][i], {usePolling: true}, function(callback){ return module.exports['assets_'+this.index](this.index, callback); }.bind({"index": i}));
+			gulp.watch(sources['assets'][i], {usePolling: false}, function(callback){ return module.exports['assets_'+this.index](this.index, callback); }.bind({"index": i}));
 		}
 
 	});
@@ -171,22 +171,22 @@ for(var assetsnum=0; assetsnum<sources["assets"].length; assetsnum++) {
 
 			// styles
 			for(var i=0; i<dests['styles'].length; i++) {
-				browserSync.watch(dests['styles'][i], {usePolling: true}).on('change', browserSync.reload);
+				browserSync.watch(dests['styles'][i], {usePolling: false}).on('change', browserSync.reload);
 			}
 
 			// javascript
 			for(var i=0; i<dests['javascript'].length; i++) {
-				browserSync.watch(dests['javascript'][i], {usePolling: true}).on('change', browserSync.reload);
+				browserSync.watch(dests['javascript'][i], {usePolling: false}).on('change', browserSync.reload);
 			}
 
 			// assets
 			for(var i=0; i<dests['assets'].length; i++) {
-				browserSync.watch(dests['assets'][i], {usePolling: true}).on('change', browserSync.reload);
+				browserSync.watch(dests['assets'][i], {usePolling: false}).on('change', browserSync.reload);
 			}
 
 			// php
 			for(var i=0; i<dests['php'].length; i++) {
-				browserSync.watch(dests['php'][i], {usePolling: true}).on('change', browserSync.reload);
+				browserSync.watch(dests['php'][i], {usePolling: false}).on('change', browserSync.reload);
 			}
 
 	});
