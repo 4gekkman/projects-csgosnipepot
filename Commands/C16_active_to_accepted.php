@@ -339,25 +339,23 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         // 9.4. Сделать commit
         DB::commit();
 
-        // 9.5. Выполнить C18_round_statuses_tracking
+        // 9.5. Обновить весь кэш
+        // - Но только, если он не был обновлён в C18.
+        // - А там он обновляется только лишь при изменении статуса
+        //   любого из раундов, любой из комнат.
+        $result = runcommand('\M9\Commands\C13_update_cache', [
+          "all" => true
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // 9.6. Выполнить C18_round_statuses_tracking
         // - Что позволит в случае необходимости обновить статус раунда.
         // - Но при этом, C18 не будет отправлять данные игры через
         //   публичный канал, если итоговый статус <= 3.
         $status_tracking = runcommand('\M9\Commands\C18_round_statuses_tracking', []);
         if($status_tracking['status'] != 0)
           throw new \Exception($status_tracking['data']['errormsg']);
-
-        // 9.6. Обновить весь кэш
-        // - Но только, если он не был обновлён в C18.
-        // - А там он обновляется только лишь при изменении статуса
-        //   любого из раундов, любой из комнат.
-        if($status_tracking['data']['is_cache_was_updated'] == false) {
-          $result = runcommand('\M9\Commands\C13_update_cache', [
-            "all" => true
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-        }
 
         // 9.7. Транслировать через публичный канал свежие игровые данные
         // - Но только, если они не были уже транслированы в C18

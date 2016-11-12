@@ -136,10 +136,12 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      * Примечания
      *
      *  ▪ Сама команда C11_processor на каждом тике добавляется в очередь "processor_main".
-     *  ▪ Все команды выполняются по очереди в "processor_hard".
+     *  ▪ Все команды выполняются по очереди либо в "processor_hard" (продакшн), либо в smallbroadcast (отладка)
      *  ▪ Обе очереди обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
      *
      * Оглавление
+     *
+     *  A. Подготовить имя очереди, которая будет обрабатывать команды
      *
      *  C13_update_cache                            | 1. Обновить весь кэш, но для каждого, только если он отсутствует
      *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
@@ -157,38 +159,46 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     //------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
+      // A. Подготовить имя очереди, которая будет обрабатывать команды
+      $queues = [
+        "prod"  => "processor_hard",   // Продакшн
+        "dev"   => "smallbroadcast"    // Отладка
+      ];
+      $queue = $queues['dev'];
+
+
       // 1. Обновить весь кэш, но для каждого, только если он отсутствует
       $result = runcommand('\M9\Commands\C13_update_cache', [
         "all"   => true,
         "force" => false
-      ], 0, ['on'=>true, 'name'=>'processor_hard']);
+      ], 0, ['on'=>true, 'name'=>$queue]);
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
 
       // 2. Отслеживать изменения статусов активных офферов
       runcommand('\M9\Commands\C14_active_offers_tracking', [],
-          0, ['on'=>true, 'name'=>'processor_hard']);
+          0, ['on'=>true, 'name'=>$queue]);
 
 
       // 3. Отслеживать срок годности активных ставок
       runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
-          0, ['on'=>true, 'name'=>'processor_hard']);
+          0, ['on'=>true, 'name'=>$queue]);
 
 
       // 4. Оповещать игроков о секундах до истечения их активных офферов
       runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
-          0, ['on'=>true, 'name'=>'processor_hard']);
+          0, ['on'=>true, 'name'=>$queue]);
 
 
       // 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
       runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-          0, ['on'=>true, 'name'=>'processor_hard']); // smallbroadcast
+          0, ['on'=>true, 'name'=>$queue]);
 
 
       // 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
       runcommand('\M9\Commands\C17_new_rounds_provider', [],
-          0, ['on'=>true, 'name'=>'processor_hard']); // smallbroadcast
+          0, ['on'=>true, 'name'=>$queue]);
 
 
     } catch(\Exception $e) {
