@@ -149,7 +149,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     //------------------------------------------------------------//
     // The game processor, fires at every game tick, every second //
     //------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Если кэш отсутствует, наполнить.
       call_user_func(function(){
@@ -311,7 +311,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
         // 5.1. Добавить в очередь processor_hard соотв.команду
         runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-            0, ['on'=>true, 'name'=>'smallbroadcast']); // processor_hard
+            0, ['on'=>true, 'name'=>'processor_hard']); // smallbroadcast
 
       });
 
@@ -320,14 +320,13 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
         // 6.1. Добавить в очередь processor_hard соотв.команду
         runcommand('\M9\Commands\C17_new_rounds_provider', [],
-            0, ['on'=>true, 'name'=>'smallbroadcast']); // processor_hard
+            0, ['on'=>true, 'name'=>'processor_hard']); // smallbroadcast
 
       });
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M9', 'C11_processor']);
         return [
