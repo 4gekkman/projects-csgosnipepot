@@ -188,9 +188,9 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           // 7] Получить продолжительность в секундах статусов Started, Pending, Lottery, Winner
           $result['duration'] = [];
           $result['duration']['started']  = $room['room_round_duration_sec'];
-          $result['duration']['pending']  = "5";
+          $result['duration']['pending']  = (int)$room['pending_duration_s'];
           $result['duration']['lottery']  = round($room['lottery_duration_ms']/1000);
-          $result['duration']['winner']   = "5";
+          $result['duration']['winner']   = (int)$room['winner_duration_s'];
 
           // 8] Получить ограничение на кол-во вещей в $room
           $result['max_items_per_round'] = $room['max_items_per_round'];
