@@ -548,13 +548,31 @@
             <?php /* 6] lottery_duration_ms -->
             <!----------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Время на провередие розыгрыша, мс</div>
+              <div class="col-sm-5 control-label">Время жизни состояния Lottery, мс</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.lottery_duration_ms">
               </div>
             </div>
 
-            <?php /* 7] offers_timeout_min -->
+            <?php /* 7] pending_duration_s -->
+            <!---------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Время жизни состояния Pending, с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.pending_duration_s">
+              </div>
+            </div>
+
+            <?php /* 8] winner_duration_s -->
+            <!--------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Время жизни состояния Winner, с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.winner_duration_s">
+              </div>
+            </div>
+
+            <?php /* 9] offers_timeout_min -->
             <!---------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Таймаут офферов ботов игрокам, с</div>
