@@ -150,6 +150,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *  C20_notify_users_about_offers_time2deadline | 4. Оповещать игроков о секундах до истечения их активных офферов
      *  C18_round_statuses_tracking                 | 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
      *  C17_new_rounds_provider                     | 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+     *  C21_deffered_bets_tracking                  | 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
      *
      *  N. Вернуть статус 0
      *
@@ -165,7 +166,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         "prod"  => "processor_hard",   // Продакшн
         "dev"   => "smallbroadcast"    // Отладка
       ];
-      $queue = $queues['prod'];
+      $queue = $queues['dev'];
 
 
       // Б. Если $queue не пуста, завершить
@@ -209,6 +210,11 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
       // 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
       runcommand('\M9\Commands\C17_new_rounds_provider', [],
+          0, ['on'=>true, 'name'=>$queue]);
+
+
+      // 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+      runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
           0, ['on'=>true, 'name'=>$queue]);
 
 

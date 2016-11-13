@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Enforces not finishd round at any time
+ *    - Track all deffered bets
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C17_new_rounds_provider extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C21_deffered_bets_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -138,16 +138,16 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
      *  1. Получить из кэша все включенные комнаты
      *  2. Подготовить маячёк
      *  3. Пробежаться по всем $rooms, проверяя статус последнего раунда
-     *  4. Если маячёк true, обновить кэш и транслировать свежие данные
+     *  4. Сделать commit
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------------------------------//
-    // Обеспечение наличия свежего-не-finished раунда в каждой вкл.комнате //
-    //---------------------------------------------------------------------//
-    $res = call_user_func(function() { try {
+    //----------------------------------------------------------------//
+    // Отслеживать судьбу всех перенесённых на следующий раунд ставок //
+    //----------------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить из кэша все включенные комнаты
       $rooms = json_decode(Cache::get('processing:rooms'), true);
@@ -159,81 +159,124 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
       // 3. Пробежаться по всем $rooms, проверяя статус последнего раунда
       foreach($rooms as $room) {
 
-        // 3.1. Если раундов нет, или статус последнего Finished
-        // - Создать новый раунд
-        if(count($room['rounds']) == 0 || $room['rounds'][0]['rounds_statuses'][count($room['rounds'][0]['rounds_statuses']) - 1]['status'] == 'Finished') {
+        // 3.1. Получить статус последнего раунда
 
-          // 1] Начать транзакцию
-          DB::beginTransaction();
+          // 1] Получить последний раунд комнаты $room
+          $lastround = count($room['rounds']) ? $room['rounds'][0] : "";
 
-          // 2] Записать true в маячёк
+          // 2] Если $lastround не найден, перейти к следующей итерации
+          if(empty($lastround)) continue;
+
+          // 3] Получить статус $lastround
+          $lastround_status_id = $lastround['rounds_statuses'][count($lastround['rounds_statuses']) - 1]['pivot']['id_status'];
+
+          // 4] Если $lastround_status_id > 3, перейти к следующей итерации
+          if($lastround_status_id > 3) continue;
+
+        // 3.2. Получить все accepted-ставки
+        $bets_accepted = json_decode(Cache::get('processing:bets:accepted'), true);
+
+        // 3.3. Отфильтровать из $bets_accepted неподходящие ставки
+        // - Которые уже связаны с любым другим раундом
+        // - Которые не связаны с комнатой $room
+        $bets_accepted_filtered = array_values(array_filter($bets_accepted, function($value, $key) USE ($room) {
+
+          // 1) Если ставка связана с любым другим раундом, вернуть false
+          if(count($value['rounds']) > 0) return false;
+
+          // 2) Если ставка не связана с комнатой $room, вернуть false
+          if(count($value['rooms']) == 0 || $value['rooms'][0]['id'] != $room['id']) return false;
+
+          // n) Иначе, вернуть true
+          return true;
+
+        }, ARRAY_FILTER_USE_BOTH));
+
+        // 3.4. Если $bets_accepted_filtered не пуст, добавить true в метку
+        if(count($bets_accepted_filtered) > 0)
           $should_cache_update_and_translate = true;
 
-          // 3] Создать и сохранить новый раунд
-          $newround = call_user_func(function() USE($room) {
+        // 3.5. Вычислить диапазоны билетов для каждой ставки в $bets_accepted_filtered
+        for($i=0; $i<count($bets_accepted_filtered); $i++) {
 
-            // 3.1] Создать
-            $newround = new \M9\Models\MD2_rounds();
+          // 1] Вычислить сумму $i-й ставки в центах
+          $bet_sum_cents = call_user_func(function() USE ($bets_accepted_filtered, $i) {
 
-            // 3.2] Связать $newround с $room
-            $newround->id_room = $room['id'];
-
-            // 3.3] Подготовить случайное число от 0 до 1
-            // - Обеспечив квинтильен вариантов (10^18)
-            $key = random_int(1,pow(10,18))/pow(10,18);
-
-            // 3.4] Получить sha512-хэш для $key
-            $key_hash = md5(hash('sha512', $key));
-
-            // 3.5] Записать $key и $key_hash в $newround
-            $newround->key        = $key;
-            $newround->key_hash   = $key_hash;
-
-            // 3.6] Сохранить $newround
-            $newround->save();
-
-            // 3.n] Вернуть $newround
-            return $newround;
+            $result = 0;
+            foreach($bets_accepted_filtered[$i]['m8_items'] as $item) {
+              $result = +$result + +$item['price'];
+            }
+            return round($result*100);
 
           });
 
-          // 4] Связать $newround со статусом Created
-          call_user_func(function() USE(&$newround) {
+          // 2] Если $i = 0, то:
+          // - tickets_from == 0
+          // - tickets_to == +$bet_sum_cents - 1
+          if($i == 0) {
+            $bets_accepted_filtered[$i]['tickets_from'] = 0;
+            $bets_accepted_filtered[$i]['tickets_to'] = (int)(+$bet_sum_cents - 1);
+          }
 
-            // 4.1] Связать, и не забыть указать дату/время started_at
-            $newround->rounds_statuses()->attach(1);
+          // 3] Если $i > 0, то
+          if($i > 0) {
+            $bets_accepted_filtered[$i]['tickets_from'] = (int)(+$bets_accepted_filtered[+$i-1]['tickets_to'] + 1);
+            $bets_accepted_filtered[$i]['tickets_to'] = (int)(+$bets_accepted_filtered[$i]['tickets_from'] + +$bet_sum_cents - 1);
+          }
 
-            // 4.2] Указать дату/время started_at
-            $newround->rounds_statuses()->updateExistingPivot(1, [
-              'started_at' => \Carbon\Carbon::now()->toDateTimeString(),
-              'comment' => 'Автоматически созданный командой m9.C17 новый раунд'
-            ]);
+        }
 
-          });
+        // 3.6. Если $bets_accepted_filtered не пуст, получить модель $lastround
+        if(count($bets_accepted_filtered) > 0) {
+          $lastround_model = \M9\Models\MD2_rounds::where('id', $lastround['id'])
+              ->first();
+          if(empty($lastround_model))
+            throw new \Exception('Не удалось найти модель раунда с id = '.$lastround['id'].' в БД.');
+        }
 
-          // 5] Сделать commit
-          DB::commit();
+        // 3.7. Связать $lastround_model с каждой ставкой из $bets_accepted_filtered
+        // - И добавить значения tickets_from и tickets_to
+        foreach($bets_accepted_filtered as $bet2attach) {
+
+          // 1] Получить ставку $bet2attach из БД
+          $bet = \M9\Models\MD3_bets::find($bet2attach['id']);
+          if(empty($bet))
+            throw new \Error('Не удалось найти ставку с ID = '.$bet2attach['id'].' в БД.');
+
+          // 2] Связать $lastround_model с $bet
+          if(!$lastround_model->bets->contains($bet2attach['id']))
+            $lastround_model->bets()->attach($bet2attach['id']);
+
+          // 3] Отвязать $bet от $room
+          if($bet->rooms->contains($room['id']))
+            $bet->rooms()->detach($room['id']);
+
+          // 4] Добавить tickets_from / tickets_to в md2000
+          $bet->m5_users()->updateExistingPivot($bet2attach['m5_users'][0]['id'], ["tickets_from" => $bet2attach["tickets_from"], "tickets_to" => $bet2attach["tickets_to"]]);
 
         }
 
       }
 
-      // 4. Если маячёк true, обновить кэш и транслировать свежие данные
+      // 4. Сделать commit
+      DB::commit();
+
+      // 5.  Если маячёк true, обновить кэш и транслировать свежие данные
       if($should_cache_update_and_translate == true) {
 
-        // 4.1. Обновить весь кэш
+        // 5.1. Обновить весь кэш
         $result = runcommand('\M9\Commands\C13_update_cache', [
           "all" => true
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // 4.2. Получить свежие игровые данные
+        // 5.2. Получить свежие игровые данные
         $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
         if($allgamedata['status'] != 0)
           throw new \Exception($allgamedata['data']['errormsg']);
 
-        // 4.3. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+        // 5.3. Сообщить всем игрокам через публичный канал websockets свежие игровые данные
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:public'],
           'queue'    => 'm9_lottery_broadcasting',
@@ -249,10 +292,10 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C17_new_rounds_provider from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C21_deffered_bets_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C17_new_rounds_provider']);
+        write2log($errortext, ['M9', 'C21_deffered_bets_tracking']);
         return [
           "status"  => -2,
           "data"    => [
