@@ -184,336 +184,232 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         throw new \Exception('Не удалось найти статусы Active или Accepted в m9.md8_bets_statuses');
 
       // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
-      $bet->bets_statuses()->detach($status_active->id);
-      $bet->bets_statuses()->attach($status_accepted->id);
+//      $bet->bets_statuses()->detach($status_active->id);
+//      $bet->bets_statuses()->attach($status_accepted->id);
 
       // 5. Записать assetid_bots в md2001
       // - Это assetid принятых ботом в виде ставки скинов.
-      call_user_func(function() USE (&$bet) {
+//      call_user_func(function() USE (&$bet) {
+//
+//        // 1] Получить список всех связанных с $bet скинов
+//        $bet_items = $bet->m8_items;
+//
+//        // 2] Получить Steam ID бота, связанного с $bet
+//        $bet_bot_steamid = $bet->m8_bots[0]['steamid'];
+//
+//        // 3] Получить инвентарь бота, связанного с $bet
+//        $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
+//          "steamid" => $bet_bot_steamid
+//        ]);
+//        if($bet_bot_inventory['status'] != 0)
+//          throw new \Exception($bet_bot_inventory['data']['errormsg']);
+//
+//        // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
+//        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory){
+//
+//          // 4.1] Подготовить массив для assetid
+//          // - Уже найденных в $bet_bot_inventory скинов.
+//          $assetids_found = [];
+//
+//          // 4.2] Пробежаться по каждому скину в $bet_items
+//          foreach($bet_items as &$item) {
+//
+//            // 4.2.1] Найти соответствие для $item в $bet_bot_inventory
+//            // - По "name" ($item) и "market_hash_name" ($bet_bot_inventory)
+//            // - И записать найденный assetid в $item;
+//            call_user_func(function() USE (&$bet_items, &$bet, &$item, &$assetids_found, $bet_bot_inventory) {
+//              foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
+//                if($item_in_inventory['market_hash_name'] == $item['name']) {
+//                  if(!in_array($item_in_inventory['assetid'],$assetids_found)) {
+//                    array_push($assetids_found, $item_in_inventory['assetid']);
+//                    $bet->m8_items()->updateExistingPivot($item['id'], ["assetid_bots" => $item_in_inventory['assetid']]);
+//                    break;
+//                  }
+//                }
+//              }
+//            });
+//
+//          }
+//
+//        });
+//
+//
+//      });
 
-        // 1] Получить список всех связанных с $bet скинов
-        $bet_items = $bet->m8_items;
-
-        // 2] Получить Steam ID бота, связанного с $bet
-        $bet_bot_steamid = $bet->m8_bots[0]['steamid'];
-
-        // 3] Получить инвентарь бота, связанного с $bet
-        $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
-          "steamid" => $bet_bot_steamid
-        ]);
-        if($bet_bot_inventory['status'] != 0)
-          throw new \Exception($bet_bot_inventory['data']['errormsg']);
-
-        // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
-        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory){
-
-          // 4.1] Подготовить массив для assetid
-          // - Уже найденных в $bet_bot_inventory скинов.
-          $assetids_found = [];
-
-          // 4.2] Пробежаться по каждому скину в $bet_items
-          foreach($bet_items as &$item) {
-
-            // 4.2.1] Найти соответствие для $item в $bet_bot_inventory
-            // - По "name" ($item) и "market_hash_name" ($bet_bot_inventory)
-            // - И записать найденный assetid в $item;
-            call_user_func(function() USE (&$bet_items, &$bet, &$item, &$assetids_found, $bet_bot_inventory) {
-              foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
-                if($item_in_inventory['market_hash_name'] == $item['name']) {
-                  if(!in_array($item_in_inventory['assetid'],$assetids_found)) {
-                    array_push($assetids_found, $item_in_inventory['assetid']);
-                    $bet->m8_items()->updateExistingPivot($item['id'], ["assetid_bots" => $item_in_inventory['assetid']]);
-                    break;
-                  }
-                }
-              }
-            });
-
-          }
-
-        });
-
-
-      });
-
-      // 6. Вычислить, попадает ли ставка $bet в текущий раунд
-      // - Попадает, если выполняются следующие условия:
+      // 6. Вычислить, можно ли разместить ещё одну ставку в посл.раунд комнаты id_room
+      // - Можно, если выполняются следующие условия:
       //
       //    • Текущий раунд существует
       //    • Текущий статус раунда <= 3
       //    • Без учета ставки, не превышен лимит по сумме банка.
       //    • Без учета ставки, не первышен лимит по кол-ву вещей.
       //
-      $result = runcommand('\M9\Commands\C22_if_thebet_suitable_for_cur_round', [
-        "id_room" => $this->data['id_room'],
-        ""
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
+      $canwe_makeabet = call_user_func(function(){
 
-
-
-
-
-
-
-      // 6. Получить комнату id_room
-      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
-      if(empty($room))
-        throw new \Exception('Комната с ID == '.$this->data['id_room'].' не найдена.');
-
-      // 7. Получить последний раунд, связанный с комнатой $room
-      $lastround = \M9\Models\MD2_rounds::with(['rounds_statuses'])
-      ->whereHas('rooms', function($query){
-        $query->where('id', $this->data['id_room']);
-      })->orderBy('id', 'desc')->first();
-
-      // 8. Получить значение (число) статуса последнего раунда
-      $lastround_status = call_user_func(function() USE ($lastround) {
-
-        // 1] Если $lastround пуст
-        if(empty($lastround))
-          return [
-            'status'  => '',
-            'success' => false
-          ];
-
-        // 2] Получить статус
-        $status = $lastround['rounds_statuses'][count($lastround['rounds_statuses']) - 1]['pivot']['id_status'];
-
-        // 3] Если $lastround и $status не пусты, а $status - число
-        if(!empty($lastround) && !empty($status) && is_numeric($status))
-          return [
-            'status'  => $status,
-            'success' => true
-          ];
-
-        // 4] Вернуть результат по умолчанию
-        return [
-          'status'  => '',
-          'success' => false
-        ];
-
-      });
-
-
-
-
-      // 9. Получить все лимиты комнаты $room
-      $room_limits = call_user_func(function() USE ($room) {
-
-        return [
-          // TODO
-        ];
-
-      });
-
-      // 10. Вычислить текущие параметры банка для $lastround
-      $bank = call_user_func(function() USE ($lastround) {
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Вычислить текущую сумму банка
-        $results['sum'] = call_user_func(function(){
-          $result = 0;
-          // TODO
-          return $result;
-        });
-
-        // 3] Вычислить текущее вол-ко вещей в банке
-        $results['count'] = call_user_func(function(){
-          $result = 0;
-          // TODO
-          return $result;
-        });
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
-
-      // 11. Определить, превышен ли уже в текущем раунде лимит по сумме/вещам
-      $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Превышен ли лимит по сумме
-        $results['by_sum'] = call_user_func(function() USE ($room_limits, $bank) {
-          $result = false;
-          // TODO
-          return $result;
-        });
-
-        // 3] Превышен ли лимит по вещам
-        $results['by_items'] = call_user_func(function() USE ($room_limits, $bank) {
-          $result = false;
-          // TODO
-          return $result;
-        });
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
-
-
-
-
-
-
-      // 9. Принять ставку в текущий раунд, если
-      // - Если $lastround_status найден
-      // - Если $lastround_status <= 3
-      // - Если на данный момент ещё не превышены лимиты банка по сумме/вещам
-      if(!empty($lastround) && $lastround_status['success'] == true && $lastround_status['status'] <= 3) {
-
-        // 9.1. Добавить tickets_from / tickets_to в md2000
-        // - Добавлять билеты:
-        //  • Исходя из того, что 1 цент == 1 билет.
-        //  • И исходя из уже связанных с раундом ставок.
-        call_user_func(function() USE ($lastround, $bet) {
-
-          // 1] Вычислить число первого билета для новой ставки
-          // - Это последний билет последней ставки раунда $lastround комнате id_room + 1
-          $first_ticket_number = call_user_func(function() USE ($lastround) {
-
-            // 1.1] Получить последнюю ставку, связанную с раундом $lastround
-            $lastround_last_bet = \M9\Models\MD3_bets::with(['m5_users'])
-                ->whereHas('rounds', function($query) USE ($lastround) {
-                  $query->where('id', $lastround['id']);
-                })
-                ->orderBy('id', 'desc')
-                ->first();
-
-            // 1.2] Если $lastround_last_bet не найден, вернуть 0
-            if(empty($lastround_last_bet)) return 0;
-
-            // 1.3] Если найден, вернуть его tickets_to
-            return +$lastround_last_bet['m5_users'][0]['pivot']['tickets_to']+1;
-
-          });
-
-          // 2] Вычислить сумму ставки $bet в центах
-          $bet_sum_cents = call_user_func(function() USE ($bet) {
-
-            $result = 0;
-            foreach($bet['m8_items'] as $item) {
-              $result = +$result + +$item['price'];
-            }
-            return round($result*100);
-
-          });
-
-          // 3] Вычислить tickets_from и tickets_to для $bet
-          $tickets = call_user_func(function() USE ($first_ticket_number, $bet_sum_cents){
-
-            return [
-              "tickets_from"  => $first_ticket_number,
-              "tickets_to"    => +$first_ticket_number + +$bet_sum_cents - 1
-            ];
-
-          });
-
-          // 4] Добавить tickets_from / tickets_to в md2000
-          $bet->m5_users()->updateExistingPivot($this->data['id_user'], ["tickets_from" => $tickets["tickets_from"], "tickets_to" => $tickets["tickets_to"]]);
-
-        });
-
-        // 9.2. Связать ставку с текущим раундом через md1010
-        $bet->rounds()->attach($lastround->id);
-
-        // 9.3. Отвязать ставку от комнаты, убрав запись из md1009
-        $bet->rooms()->detach($this->data['id_room']);
-
-        // 9.4. Сделать commit
-        DB::commit();
-
-        // 9.5. Обновить весь кэш
-        // - Но только, если он не был обновлён в C18.
-        // - А там он обновляется только лишь при изменении статуса
-        //   любого из раундов, любой из комнат.
-        $result = runcommand('\M9\Commands\C13_update_cache', [
-          "all" => true
+        $result = runcommand('\M9\Commands\C22_canwe_makeabet_intheroom_now', [
+          "id_room" => $this->data['id_room']
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
+        return $result['data']['result'];
 
-        // 9.6. Выполнить C18_round_statuses_tracking
-        // - Что позволит в случае необходимости обновить статус раунда.
-        // - Но при этом, C18 не будет отправлять данные игры через
-        //   публичный канал, если итоговый статус <= 3.
-        $status_tracking = runcommand('\M9\Commands\C18_round_statuses_tracking', []);
-        if($status_tracking['status'] != 0)
-          throw new \Exception($status_tracking['data']['errormsg']);
+      });
 
-        // 9.7. Транслировать через публичный канал свежие игровые данные
-        // - Но только, если они не были уже транслированы в C18
-        if($status_tracking['data']['is_cache_was_updated'] == false) {
 
-          // 1] Получить свежие игровые данные
-          $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
-          if($allgamedata['status'] != 0)
-            throw new \Exception($allgamedata['data']['errormsg']);
 
-          // 2] Сообщить всем игрокам через публичный канал websockets свежие игровые данные
-          Event::fire(new \R2\Broadcast([
-            'channels' => ['m9:public'],
-            'queue'    => 'm9_lottery_broadcasting',
-            'data'     => [
-              'task' => 'fresh_game_data',
-              'data' => [
-                'rooms' => $allgamedata['data']['rooms']
-              ]
-            ]
-          ]));
 
-        }
 
-        // 9.8. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:private:'.$this->data['id_user']],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'tradeoffer_cancel',
-            'data' => [
-              'id_room' => $this->data['id_room']
-            ]
-          ]
-        ]));
+//      // 9. Принять ставку в текущий раунд, если
+//      // - Если $lastround_status найден
+//      // - Если $lastround_status <= 3
+//      // - Если на данный момент ещё не превышены лимиты банка по сумме/вещам
+//      if(!empty($lastround) && $lastround_status['success'] == true && $lastround_status['status'] <= 3) {
+//
+//        // 9.1. Добавить tickets_from / tickets_to в md2000
+//        // - Добавлять билеты:
+//        //  • Исходя из того, что 1 цент == 1 билет.
+//        //  • И исходя из уже связанных с раундом ставок.
+//        call_user_func(function() USE ($lastround, $bet) {
+//
+//          // 1] Вычислить число первого билета для новой ставки
+//          // - Это последний билет последней ставки раунда $lastround комнате id_room + 1
+//          $first_ticket_number = call_user_func(function() USE ($lastround) {
+//
+//            // 1.1] Получить последнюю ставку, связанную с раундом $lastround
+//            $lastround_last_bet = \M9\Models\MD3_bets::with(['m5_users'])
+//                ->whereHas('rounds', function($query) USE ($lastround) {
+//                  $query->where('id', $lastround['id']);
+//                })
+//                ->orderBy('id', 'desc')
+//                ->first();
+//
+//            // 1.2] Если $lastround_last_bet не найден, вернуть 0
+//            if(empty($lastround_last_bet)) return 0;
+//
+//            // 1.3] Если найден, вернуть его tickets_to
+//            return +$lastround_last_bet['m5_users'][0]['pivot']['tickets_to']+1;
+//
+//          });
+//
+//          // 2] Вычислить сумму ставки $bet в центах
+//          $bet_sum_cents = call_user_func(function() USE ($bet) {
+//
+//            $result = 0;
+//            foreach($bet['m8_items'] as $item) {
+//              $result = +$result + +$item['price'];
+//            }
+//            return round($result*100);
+//
+//          });
+//
+//          // 3] Вычислить tickets_from и tickets_to для $bet
+//          $tickets = call_user_func(function() USE ($first_ticket_number, $bet_sum_cents){
+//
+//            return [
+//              "tickets_from"  => $first_ticket_number,
+//              "tickets_to"    => +$first_ticket_number + +$bet_sum_cents - 1
+//            ];
+//
+//          });
+//
+//          // 4] Добавить tickets_from / tickets_to в md2000
+//          $bet->m5_users()->updateExistingPivot($this->data['id_user'], ["tickets_from" => $tickets["tickets_from"], "tickets_to" => $tickets["tickets_to"]]);
+//
+//        });
+//
+//        // 9.2. Связать ставку с текущим раундом через md1010
+//        $bet->rounds()->attach($lastround->id);
+//
+//        // 9.3. Отвязать ставку от комнаты, убрав запись из md1009
+//        $bet->rooms()->detach($this->data['id_room']);
+//
+//        // 9.4. Сделать commit
+//        DB::commit();
+//
+//        // 9.5. Обновить весь кэш
+//        // - Но только, если он не был обновлён в C18.
+//        // - А там он обновляется только лишь при изменении статуса
+//        //   любого из раундов, любой из комнат.
+//        $result = runcommand('\M9\Commands\C13_update_cache', [
+//          "all" => true
+//        ]);
+//        if($result['status'] != 0)
+//          throw new \Exception($result['data']['errormsg']);
+//
+//        // 9.6. Выполнить C18_round_statuses_tracking
+//        // - Что позволит в случае необходимости обновить статус раунда.
+//        // - Но при этом, C18 не будет отправлять данные игры через
+//        //   публичный канал, если итоговый статус <= 3.
+//        $status_tracking = runcommand('\M9\Commands\C18_round_statuses_tracking', []);
+//        if($status_tracking['status'] != 0)
+//          throw new \Exception($status_tracking['data']['errormsg']);
+//
+//        // 9.7. Транслировать через публичный канал свежие игровые данные
+//        // - Но только, если они не были уже транслированы в C18
+//        if($status_tracking['data']['is_cache_was_updated'] == false) {
+//
+//          // 1] Получить свежие игровые данные
+//          $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
+//          if($allgamedata['status'] != 0)
+//            throw new \Exception($allgamedata['data']['errormsg']);
+//
+//          // 2] Сообщить всем игрокам через публичный канал websockets свежие игровые данные
+//          Event::fire(new \R2\Broadcast([
+//            'channels' => ['m9:public'],
+//            'queue'    => 'm9_lottery_broadcasting',
+//            'data'     => [
+//              'task' => 'fresh_game_data',
+//              'data' => [
+//                'rooms' => $allgamedata['data']['rooms']
+//              ]
+//            ]
+//          ]));
+//
+//        }
+//
+//        // 9.8. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
+//        Event::fire(new \R2\Broadcast([
+//          'channels' => ['m9:private:'.$this->data['id_user']],
+//          'queue'    => 'm9_lottery_broadcasting',
+//          'data'     => [
+//            'task' => 'tradeoffer_cancel',
+//            'data' => [
+//              'id_room' => $this->data['id_room']
+//            ]
+//          ]
+//        ]));
+//
+//      }
+//
+//      // 10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
+//      // - Отложить попытку принять эту ставку до нового раунда.
+//      else {
+//
+//        // 10.1. Сделать commit
+//        DB::commit();
+//
+//        // 10.2. Обновить весь кэш
+//        $result = runcommand('\M9\Commands\C13_update_cache', [
+//          "all" => true
+//        ]);
+//        if($result['status'] != 0)
+//          throw new \Exception($result['data']['errormsg']);
+//
+//        // 10.3. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
+//        Event::fire(new \R2\Broadcast([
+//          'channels' => ['m9:private:'.$this->data['id_user']],
+//          'queue'    => 'm9_lottery_broadcasting',
+//          'data'     => [
+//            'task' => 'tradeoffer_cancel',
+//            'data' => [
+//              'id_room' => $this->data['id_room']
+//            ]
+//          ]
+//        ]));
+//
+//      }
 
-      }
-
-      // 10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
-      // - Отложить попытку принять эту ставку до нового раунда.
-      else {
-
-        // 10.1. Сделать commit
-        DB::commit();
-
-        // 10.2. Обновить весь кэш
-        $result = runcommand('\M9\Commands\C13_update_cache', [
-          "all" => true
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
-
-        // 10.3. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:private:'.$this->data['id_user']],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'tradeoffer_cancel',
-            'data' => [
-              'id_room' => $this->data['id_room']
-            ]
-          ]
-        ]));
-
-      }
-
-    } catch(\Exception $e) {
+    DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

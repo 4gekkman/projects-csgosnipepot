@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - The game processor, fires at every game tick, every second
+ *    - Can we make a bet in the room now, or not
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id_room
  *      ]
  *    ]
  *
@@ -40,6 +40,16 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
+ *
+ *
+ *  Можно, если выполняются следующие условия
+ *  -----------------------------------------
+ *
+ *    • Текущий раунд в комнате id_room существует
+ *    • Текущий статус раунда <= 3
+ *    • Без учета ставки, не превышен лимит по сумме банка.
+ *    • Без учета ставки, не первышен лимит по кол-ву вещей.
+ *
  *
  */
 
@@ -101,7 +111,7 @@
 //---------//
 // Команда //
 //---------//
-class C11_processor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -133,95 +143,211 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
   {
 
     /**
-     * Примечания
-     *
-     *  ▪ Сама команда C11_processor на каждом тике добавляется в очередь "processor_main".
-     *  ▪ Все команды выполняются по очереди либо в "processor_hard" (продакшн), либо в smallbroadcast (отладка)
-     *  ▪ Обе очереди обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
-     *
      * Оглавление
      *
-     *  А. Подготовить имя очереди, которая будет обрабатывать команды
-     *  Б. Если $queue не пуста, завершить
+     *  1. Получить и проверить входящие данные
+     *  2. Получить комнату id_room
+     *  3. Получить последний раунд, связанный с комнатой $room
+     *  4. Получить значение (число) статуса последнего раунда
+     *  5. Получить все лимиты комнаты $room
+     *  6. Вычислить текущие параметры банка для $lastround
      *
-     *  C13_update_cache                            | 1. Обновить весь кэш, но для каждого, только если он отсутствует
-     *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
-     *  C19_active_offers_expiration_tracking       | 3. Отслеживать срок годности активных ставок
-     *  C20_notify_users_about_offers_time2deadline | 4. Оповещать игроков о секундах до истечения их активных офферов
-     *  C18_round_statuses_tracking                 | 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-     *  C17_new_rounds_provider                     | 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-     *  C21_deffered_bets_tracking                  | 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+     *  n. вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------------//
-    // The game processor, fires at every game tick, every second //
-    //------------------------------------------------------------//
+    //-------------------------------------------------------------------//
+    // Можно ли сделать ещё одну ставку в текущем раунде комнаты id_room //
+    //-------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // А. Подготовить имя очереди, которая будет обрабатывать команды
-      $queues = [
-        "prod"  => "processor_hard",   // Продакшн
-        "dev"   => "smallbroadcast"    // Отладка
+      // 1. Получить и проверить входящие данные
+      $validator = r4_validate($this->data, [
+
+        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Получить из кэша текущее состояние игры
+      $rooms = json_decode(Cache::get('processing:rooms'), true);
+
+
+      write2log($rooms, []);
+
+
+
+
+//      // 2. Получить комнату id_room
+//      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
+//      if(empty($room))
+//        throw new \Exception('Комната с ID == '.$this->data['id_room'].' не найдена.');
+//
+//      // 3. Получить последний раунд, связанный с комнатой $room
+//      $lastround = \M9\Models\MD2_rounds::with([
+//        "bets",
+//        "bets.m8_bots",
+//        "bets.m8_items",
+//        "bets.m5_users",
+//        "bets.safecodes",
+//        "bets.rooms",
+//        "bets.bets_statuses",
+//        "rounds_statuses"
+//      ])->whereHas('rooms', function($query){
+//        $query->where('id', $this->data['id_room']);
+//      })->orderBy('id', 'desc')->first();
+//
+//      // 4. Получить значение (число) статуса последнего раунда
+//      $lastround_status = call_user_func(function() USE ($lastround) {
+//
+//        // 1] Если $lastround пуст
+//        if(empty($lastround))
+//          return [
+//            'status'  => '',
+//            'success' => false
+//          ];
+//
+//        // 2] Получить статус
+//        $status = $lastround['rounds_statuses'][count($lastround['rounds_statuses']) - 1]['pivot']['id_status'];
+//
+//        // 3] Если $lastround и $status не пусты, а $status - число
+//        if(!empty($lastround) && !empty($status) && is_numeric($status))
+//          return [
+//            'status'  => $status,
+//            'success' => true
+//          ];
+//
+//        // 4] Вернуть результат по умолчанию
+//        return [
+//          'status'  => '',
+//          'success' => false
+//        ];
+//
+//      });
+//
+//      // 5. Получить все лимиты комнаты $room
+//      $room_limits = call_user_func(function() USE ($room) {
+//
+//        return [
+//          "max_items_per_round" => $room['max_items_per_round'],  // MAX кол-во предметов в раунде
+//          "max_round_jackpot"   => $room['max_round_jackpot'],    // MAX банк раунда в центах
+//          "max_bets_per_round"  => $room['max_bets_per_round'],   // MAX кол-во ставок игроком за раунд
+//        ];
+//
+//      });
+//
+//      // 6. Вычислить текущие параметры банка для $lastround
+//      $bank = call_user_func(function() USE ($lastround) {
+//
+//        // 1] Подготовить массив для результатов
+//        $results = [];
+//
+//        // 2] Вычислить текущую сумму банка
+//        $results['sum'] = call_user_func(function(){
+//          $result = 0;
+//          // TODO
+//          return $result;
+//        });
+//
+//        // 3] Вычислить текущее вол-ко вещей в банке
+//        $results['count'] = call_user_func(function(){
+//          $result = 0;
+//          // TODO
+//          return $result;
+//        });
+//
+//        // n] Вернуть результаты
+//        return $results;
+//
+//      });
+
+
+
+
+
+
+
+
+
+
+      // n. вернуть результат
+      return [
+        "status"  => 0,
+        "data"    => [
+          "result"            => "true",
+          //"room"              => $room,
+          //"lastround"         => $lastround,
+          //"lastround_status"  => $lastround_status,
+        ]
       ];
-      $queue = $queues['dev'];
 
 
-      // Б. Если $queue не пуста, завершить
-      // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
-      $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      if($queue_count > 0)
-        return [
-          "status"  => 0,
-          "data"    => ""
-        ];
 
 
-      // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-      $result = runcommand('\M9\Commands\C13_update_cache', [
-        "all"   => true,
-        "force" => false
-      ], 0, ['on'=>true, 'name'=>$queue]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
 
 
-      // 2. Отслеживать изменения статусов активных офферов
-      runcommand('\M9\Commands\C14_active_offers_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+//      // 10. Вычислить текущие параметры банка для $lastround
+//      $bank = call_user_func(function() USE ($lastround) {
+//
+//        // 1] Подготовить массив для результатов
+//        $results = [];
+//
+//        // 2] Вычислить текущую сумму банка
+//        $results['sum'] = call_user_func(function(){
+//          $result = 0;
+//          // TODO
+//          return $result;
+//        });
+//
+//        // 3] Вычислить текущее вол-ко вещей в банке
+//        $results['count'] = call_user_func(function(){
+//          $result = 0;
+//          // TODO
+//          return $result;
+//        });
+//
+//        // n] Вернуть результаты
+//        return $results;
+//
+//      });
+//
+//      // 11. Определить, превышен ли уже в текущем раунде лимит по сумме/вещам
+//      $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
+//
+//        // 1] Подготовить массив для результатов
+//        $results = [];
+//
+//        // 2] Превышен ли лимит по сумме
+//        $results['by_sum'] = call_user_func(function() USE ($room_limits, $bank) {
+//          $result = false;
+//          // TODO
+//          return $result;
+//        });
+//
+//        // 3] Превышен ли лимит по вещам
+//        $results['by_items'] = call_user_func(function() USE ($room_limits, $bank) {
+//          $result = false;
+//          // TODO
+//          return $result;
+//        });
+//
+//        // n] Вернуть результаты
+//        return $results;
+//
+//      });
 
 
-//      // 3. Отслеживать срок годности активных ставок
-//      runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
-//          0, ['on'=>true, 'name'=>$queue]);
-//
-//
-//      // 4. Оповещать игроков о секундах до истечения их активных офферов
-//      runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
-//          0, ['on'=>true, 'name'=>$queue]);
-//
-//
-//      // 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-//      runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-//          0, ['on'=>true, 'name'=>$queue]);
-//
-//
-//      // 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-//      runcommand('\M9\Commands\C17_new_rounds_provider', [],
-//          0, ['on'=>true, 'name'=>$queue]);
-//
-//
-//      // 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-//      runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
-//          0, ['on'=>true, 'name'=>$queue]);
 
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C22_canwe_makeabet_intheroom_now from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C11_processor']);
+        write2log($errortext, ['M9', 'C22_canwe_makeabet_intheroom_now']);
         return [
           "status"  => -2,
           "data"    => [
