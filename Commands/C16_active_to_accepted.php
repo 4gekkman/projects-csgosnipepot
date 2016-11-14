@@ -236,6 +236,27 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       });
 
+      // 6. Вычислить, попадает ли ставка $bet в текущий раунд
+      // - Попадает, если выполняются следующие условия:
+      //
+      //    • Текущий раунд существует
+      //    • Текущий статус раунда <= 3
+      //    • Без учета ставки, не превышен лимит по сумме банка.
+      //    • Без учета ставки, не первышен лимит по кол-ву вещей.
+      //
+      $result = runcommand('\M9\Commands\C22_if_thebet_suitable_for_cur_round', [
+        "id_room" => $this->data['id_room'],
+        ""
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+
+
+
+
+
+
       // 6. Получить комнату id_room
       $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
       if(empty($room))
@@ -275,7 +296,77 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       });
 
-      // 9. Если $lastround_status найден, и <= 3
+
+
+
+      // 9. Получить все лимиты комнаты $room
+      $room_limits = call_user_func(function() USE ($room) {
+
+        return [
+          // TODO
+        ];
+
+      });
+
+      // 10. Вычислить текущие параметры банка для $lastround
+      $bank = call_user_func(function() USE ($lastround) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Вычислить текущую сумму банка
+        $results['sum'] = call_user_func(function(){
+          $result = 0;
+          // TODO
+          return $result;
+        });
+
+        // 3] Вычислить текущее вол-ко вещей в банке
+        $results['count'] = call_user_func(function(){
+          $result = 0;
+          // TODO
+          return $result;
+        });
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 11. Определить, превышен ли уже в текущем раунде лимит по сумме/вещам
+      $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Превышен ли лимит по сумме
+        $results['by_sum'] = call_user_func(function() USE ($room_limits, $bank) {
+          $result = false;
+          // TODO
+          return $result;
+        });
+
+        // 3] Превышен ли лимит по вещам
+        $results['by_items'] = call_user_func(function() USE ($room_limits, $bank) {
+          $result = false;
+          // TODO
+          return $result;
+        });
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+
+
+
+
+
+      // 9. Принять ставку в текущий раунд, если
+      // - Если $lastround_status найден
+      // - Если $lastround_status <= 3
+      // - Если на данный момент ещё не превышены лимиты банка по сумме/вещам
       if(!empty($lastround) && $lastround_status['success'] == true && $lastround_status['status'] <= 3) {
 
         // 9.1. Добавить tickets_from / tickets_to в md2000
@@ -395,7 +486,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       }
 
       // 10. В ином случае (если сейчас нет раунда, куда прикрепить эту ставку)
-      // - Отложить эту ставку до нового раунда.
+      // - Отложить попытку принять эту ставку до нового раунда.
       else {
 
         // 10.1. Сделать commit
