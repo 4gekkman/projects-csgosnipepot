@@ -374,6 +374,26 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           ]
         ]));
 
+      // 15. Сохранить аватар пользователя
+      // - В папку public/public/M5/steam_avatars/<id пользователя>.jpg
+      // - Формат .jpg, имя - id пользователя
+      call_user_func(function() USE ($user2auth) {
+
+        // 1] Получить экземпляр fs
+        $fs = r1_fs("");
+
+        // 2] Создать каталог (если не существует) public/public/M5/steam_avatars
+        if(!$fs->exists('public/public/M5/steam_avatars'))
+          $fs->makeDirectory('public/public/M5/steam_avatars');
+
+        // 3] Получить изображение в файл
+        $image = \Intervention\Image\ImageManagerStatic::make($user2auth->avatar_steam);
+
+        // 4] Сохранить изображение
+        $image->save(public_path('public/M5/steam_avatars/'.$user2auth->id.'.jpg'), 100);
+
+      });
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C69_auth_steam from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
