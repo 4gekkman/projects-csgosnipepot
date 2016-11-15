@@ -15,6 +15,7 @@
  *    [
  *      "data" => [
  *        id_room
+ *        id_user
  *      ]
  *    ]
  *
@@ -49,7 +50,7 @@
  *    • Текущий статус раунда <= 3
  *    • Без учета ставки, не превышен лимит по сумме банка.
  *    • Без учета ставки, не первышен лимит по кол-ву вещей.
- *
+ *    • Без учета ставки, не первышен лимит по кол-ву ставок для этого пользователя.
  *
  */
 
@@ -146,12 +147,14 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
      * Оглавление
      *
      *  1. Получить и проверить входящие данные
-     *  2. Получить комнату id_room
-     *  3. Получить последний раунд, связанный с комнатой $room
-     *  4. Получить значение (число) статуса последнего раунда
-     *  5. Получить все лимиты комнаты $room
-     *  6. Вычислить текущие параметры банка для $lastround
-     *
+     *  2. Получить из кэша текущее состояние игры
+     *  3. Получить из $rooms комнату с id_room
+     *  4. Получить последний раунд, связанный с комнатой $room
+     *  5. Получить значение (число) статуса последнего раунда
+     *  6. Получить все лимиты комнаты $room
+     *  7. Вычислить текущие параметры банка для $lastround
+     *  8. Определить, не превышены ли уже лимиты в этом раунде
+     *  9. Сформулировать итоговый вердикт, можем ли мы в этом раунде принять ставку от этого пользователя
      *  n. вернуть результат
      *
      *  N. Вернуть статус 0
@@ -167,6 +170,7 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
       $validator = r4_validate($this->data, [
 
         "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
       ]); if($validator['status'] == -1) {
 
@@ -177,172 +181,195 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
       // 2. Получить из кэша текущее состояние игры
       $rooms = json_decode(Cache::get('processing:rooms'), true);
 
+      // 3. Получить из $rooms комнату с id_room
+      $room = call_user_func(function() USE ($rooms) {
 
-      write2log($rooms, []);
+        foreach($rooms as $room) {
+          if($room['id'] == $this->data['id_room'])
+            return $room;
+        }
 
+      });
+      if(empty($room))
+        throw new \Exception("Не удалось найти в кэше processing:rooms комнату с ID = ".$this->data['id_room']);
 
+      // 4. Получить последний раунд, связанный с комнатой $room
+      $lastround = count($room['rounds']) >= 0 ? $room['rounds']['0'] : "";
+      if(empty($lastround)) {
+        return [
+          "status"  => 0,
+          "data"    => [
+            "verdict" => false
+          ]
+        ];
+      }
 
+      // 5. Получить значение (число) статуса последнего раунда
+      $lastround_status = call_user_func(function() USE ($lastround) {
 
-//      // 2. Получить комнату id_room
-//      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
-//      if(empty($room))
-//        throw new \Exception('Комната с ID == '.$this->data['id_room'].' не найдена.');
-//
-//      // 3. Получить последний раунд, связанный с комнатой $room
-//      $lastround = \M9\Models\MD2_rounds::with([
-//        "bets",
-//        "bets.m8_bots",
-//        "bets.m8_items",
-//        "bets.m5_users",
-//        "bets.safecodes",
-//        "bets.rooms",
-//        "bets.bets_statuses",
-//        "rounds_statuses"
-//      ])->whereHas('rooms', function($query){
-//        $query->where('id', $this->data['id_room']);
-//      })->orderBy('id', 'desc')->first();
-//
-//      // 4. Получить значение (число) статуса последнего раунда
-//      $lastround_status = call_user_func(function() USE ($lastround) {
-//
-//        // 1] Если $lastround пуст
-//        if(empty($lastround))
-//          return [
-//            'status'  => '',
-//            'success' => false
-//          ];
-//
-//        // 2] Получить статус
-//        $status = $lastround['rounds_statuses'][count($lastround['rounds_statuses']) - 1]['pivot']['id_status'];
-//
-//        // 3] Если $lastround и $status не пусты, а $status - число
-//        if(!empty($lastround) && !empty($status) && is_numeric($status))
-//          return [
-//            'status'  => $status,
-//            'success' => true
-//          ];
-//
-//        // 4] Вернуть результат по умолчанию
-//        return [
-//          'status'  => '',
-//          'success' => false
-//        ];
-//
-//      });
-//
-//      // 5. Получить все лимиты комнаты $room
-//      $room_limits = call_user_func(function() USE ($room) {
-//
-//        return [
-//          "max_items_per_round" => $room['max_items_per_round'],  // MAX кол-во предметов в раунде
-//          "max_round_jackpot"   => $room['max_round_jackpot'],    // MAX банк раунда в центах
-//          "max_bets_per_round"  => $room['max_bets_per_round'],   // MAX кол-во ставок игроком за раунд
-//        ];
-//
-//      });
-//
-//      // 6. Вычислить текущие параметры банка для $lastround
-//      $bank = call_user_func(function() USE ($lastround) {
-//
-//        // 1] Подготовить массив для результатов
-//        $results = [];
-//
-//        // 2] Вычислить текущую сумму банка
-//        $results['sum'] = call_user_func(function(){
-//          $result = 0;
-//          // TODO
-//          return $result;
-//        });
-//
-//        // 3] Вычислить текущее вол-ко вещей в банке
-//        $results['count'] = call_user_func(function(){
-//          $result = 0;
-//          // TODO
-//          return $result;
-//        });
-//
-//        // n] Вернуть результаты
-//        return $results;
-//
-//      });
+        // 1] Если $lastround пуст
+        if(empty($lastround))
+          return [
+            'status'  => '',
+            'success' => false
+          ];
 
+        // 2] Получить статус
+        $status = $lastround['rounds_statuses'][count($lastround['rounds_statuses']) - 1]['pivot']['id_status'];
 
+        // 3] Если $lastround и $status не пусты, а $status - число
+        if(!empty($lastround) && !empty($status) && is_numeric($status))
+          return [
+            'status'  => $status,
+            'success' => true
+          ];
 
+        // 4] Вернуть результат по умолчанию
+        return [
+          'status'  => '',
+          'success' => false
+        ];
 
+      });
+      if(empty($lastround_status) || $lastround_status['success'] == false || $lastround_status['status'] > 3) {
+        return [
+          "status"  => 0,
+          "data"    => [
+            "verdict" => false
+          ]
+        ];
+      }
 
+      // 6. Получить все лимиты комнаты $room
+      $room_limits = call_user_func(function() USE ($room) {
 
+        return [
+          "max_items_per_round" => $room['max_items_per_round'],  // MAX кол-во предметов в раунде
+          "max_round_jackpot"   => $room['max_round_jackpot'],    // MAX банк раунда в центах
+          "max_bets_per_round"  => $room['max_bets_per_round'],   // MAX кол-во ставок игроком за раунд
+        ];
 
+      });
 
+      // 7. Вычислить текущие параметры банка для $lastround
+      $bank = call_user_func(function() USE ($lastround) {
 
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Вычислить текущую сумму банка
+        $results['sum'] = call_user_func(function() USE ($lastround) {
+          $result = 0;
+          foreach($lastround['bets'] as $bet) {
+            foreach($bet['m8_items'] as $item) {
+              $result = +$result + +$item['price'];
+            }
+          }
+          return round($result*100);
+        });
+
+        // 3] Вычислить текущее вол-ко вещей в банке
+        $results['count'] = call_user_func(function() USE ($lastround) {
+          $result = 0;
+          foreach($lastround['bets'] as $bet) {
+            foreach($bet['m8_items'] as $item) {
+              $result = +$result + 1;
+            }
+          }
+          return $result;
+        });
+
+        // 4] Вычислить кол-во ставок пользователя id_user в банке
+        $results['user_bets_count'] = call_user_func(function() USE ($lastround) {
+          $result = 0;
+          foreach($lastround['bets'] as $bet) {
+            if($bet['m5_users'][0]['id'] == $this->data['id_user'])
+              $result = +$result + 1;
+          }
+          return $result;
+        });
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 8. Определить, не превышены ли уже лимиты в этом раунде
+      $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Превышен ли лимит по сумме
+        $results['by_sum'] = call_user_func(function() USE ($room_limits, $bank) {
+
+          // Если ограничений нет (значение 0), вернуть false
+          if($room_limits['max_round_jackpot'] <= 0)
+            return false;
+
+          // Если лимит превышен, вернуть true
+          if(intval($bank['sum']) >= intval($room_limits['max_round_jackpot']))
+            return true;
+
+          // Вернуть false (по умолчанию)
+          return false;
+
+        });
+
+        // 3] Превышен ли лимит по вещам
+        $results['by_items'] = call_user_func(function() USE ($room_limits, $bank) {
+
+          // Если ограничений нет (значение 0), вернуть false
+          if($room_limits['max_items_per_round'] <= 0)
+            return false;
+
+          // Если лимит превышен, вернуть true
+          if(intval($bank['count']) >= intval($room_limits['max_items_per_round']))
+            return true;
+
+          // Вернуть false (по умолчанию)
+          return false;
+
+        });
+
+        // 4] Достигнут ли лимит по кол-ву ставок для пользователя id_user
+        $results['by_bets_count'] = call_user_func(function() USE ($room_limits, $bank) {
+
+          // Если ограничений нет (значение 0), вернуть false
+          if($room_limits['max_bets_per_round'] <= 0)
+            return false;
+
+          // Если лимит превышен, вернуть true
+          if(intval($bank['user_bets_count']) >= intval($room_limits['max_bets_per_round']))
+            return true;
+
+          // Вернуть false (по умолчанию)
+          return false;
+
+        });
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 9. Сформулировать итоговый вердикт, можем ли мы в этом раунде принять ставку от этого пользователя
+      $verdict = call_user_func(function() USE ($is_limits_exceeded) {
+        foreach($is_limits_exceeded as $is_exceeded) {
+          if($is_exceeded == true) return false;
+        }
+        return true;
+      });
 
       // n. вернуть результат
       return [
         "status"  => 0,
         "data"    => [
-          "result"            => "true",
-          //"room"              => $room,
-          //"lastround"         => $lastround,
-          //"lastround_status"  => $lastround_status,
+          "verdict"             => $verdict,
+          "lastround"           => $lastround,
+          "is_limits_exceeded"  => $is_limits_exceeded
         ]
       ];
-
-
-
-
-
-
-//      // 10. Вычислить текущие параметры банка для $lastround
-//      $bank = call_user_func(function() USE ($lastround) {
-//
-//        // 1] Подготовить массив для результатов
-//        $results = [];
-//
-//        // 2] Вычислить текущую сумму банка
-//        $results['sum'] = call_user_func(function(){
-//          $result = 0;
-//          // TODO
-//          return $result;
-//        });
-//
-//        // 3] Вычислить текущее вол-ко вещей в банке
-//        $results['count'] = call_user_func(function(){
-//          $result = 0;
-//          // TODO
-//          return $result;
-//        });
-//
-//        // n] Вернуть результаты
-//        return $results;
-//
-//      });
-//
-//      // 11. Определить, превышен ли уже в текущем раунде лимит по сумме/вещам
-//      $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
-//
-//        // 1] Подготовить массив для результатов
-//        $results = [];
-//
-//        // 2] Превышен ли лимит по сумме
-//        $results['by_sum'] = call_user_func(function() USE ($room_limits, $bank) {
-//          $result = false;
-//          // TODO
-//          return $result;
-//        });
-//
-//        // 3] Превышен ли лимит по вещам
-//        $results['by_items'] = call_user_func(function() USE ($room_limits, $bank) {
-//          $result = false;
-//          // TODO
-//          return $result;
-//        });
-//
-//        // n] Вернуть результаты
-//        return $results;
-//
-//      });
-
-
-
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C22_canwe_makeabet_intheroom_now from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
