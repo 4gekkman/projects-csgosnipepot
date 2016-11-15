@@ -192,11 +192,7 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
 
         }, ARRAY_FILTER_USE_BOTH));
 
-        // 3.4. Если $bets_accepted_filtered не пуст, добавить true в метку
-        if(count($bets_accepted_filtered) > 0)
-          $should_cache_update_and_translate = true;
-
-        // 3.5. Вычислить диапазоны билетов для каждой ставки в $bets_accepted_filtered
+        // 3.4. Вычислить диапазоны билетов для каждой ставки в $bets_accepted_filtered
         for($i=0; $i<count($bets_accepted_filtered); $i++) {
 
           // 1] Вычислить сумму $i-й ставки в центах
@@ -226,34 +222,51 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
 
         }
 
-        // 3.6. Если $bets_accepted_filtered не пуст, получить модель $lastround
+        // 3.5. Если это возможно, добавить в раунд отложенную ставку одного из пользователей
         if(count($bets_accepted_filtered) > 0) {
-          $lastround_model = \M9\Models\MD2_rounds::where('id', $lastround['id'])
-              ->first();
-          if(empty($lastround_model))
-            throw new \Exception('Не удалось найти модель раунда с id = '.$lastround['id'].' в БД.');
-        }
+          foreach($bets_accepted_filtered as $bet2attach) {
 
-        // 3.7. Связать $lastround_model с каждой ставкой из $bets_accepted_filtered
-        // - И добавить значения tickets_from и tickets_to
-        foreach($bets_accepted_filtered as $bet2attach) {
+            // 1] Проверить, может ли этот пользователь добавить ставку в $lastround
+            $canwe_makeabet = call_user_func(function() USE ($room, $bet2attach) {
 
-          // 1] Получить ставку $bet2attach из БД
-          $bet = \M9\Models\MD3_bets::find($bet2attach['id']);
-          if(empty($bet))
-            throw new \Error('Не удалось найти ставку с ID = '.$bet2attach['id'].' в БД.');
+              $result = runcommand('\M9\Commands\C22_canwe_makeabet_intheroom_now', [
+                "id_room" => $room['id'],
+                "id_user" => $bet2attach['m5_users'][0]['id']
+              ]);
+              if($result['status'] != 0)
+                throw new \Exception($result['data']['errormsg']);
+              return $result['data'];
 
-          // 2] Связать $lastround_model с $bet
-          if(!$lastround_model->bets->contains($bet2attach['id']))
-            $lastround_model->bets()->attach($bet2attach['id']);
+            });
 
-          // 3] Отвязать $bet от $room
-          if($bet->rooms->contains($room['id']))
-            $bet->rooms()->detach($room['id']);
+            // 2] Если может
+            if($canwe_makeabet['verdict'] == true) {
 
-          // 4] Добавить tickets_from / tickets_to в md2000
-          $bet->m5_users()->updateExistingPivot($bet2attach['m5_users'][0]['id'], ["tickets_from" => $bet2attach["tickets_from"], "tickets_to" => $bet2attach["tickets_to"]]);
+              // 2.1] Сделать метку
+              $should_cache_update_and_translate = true;
 
+              // 2.2] Получить ставку $bet2attach из БД
+              $bet = \M9\Models\MD3_bets::find($bet2attach['id']);
+              if(empty($bet))
+                throw new \Error('Не удалось найти ставку с ID = '.$bet2attach['id'].' в БД.');
+
+              // 2.3] Связать $bet с $lastround
+              if(!$bet->rounds->contains($lastround['id']))
+                $bet->rounds()->attach($lastround['id']);
+
+              // 2.4] Отвязать $bet от $room
+              if($bet->rooms->contains($room['id']))
+                $bet->rooms()->detach($room['id']);
+
+              // 2.5] Добавить tickets_from / tickets_to в md2000
+              $bet->m5_users()->updateExistingPivot($bet2attach['m5_users'][0]['id'], ["tickets_from" => $bet2attach["tickets_from"], "tickets_to" => $bet2attach["tickets_to"]]);
+
+              // 2.6] Завершить цикл (т.к. мы работаем только с 1-й ставкой)
+              break;
+
+            }
+
+          }
         }
 
       }
@@ -262,7 +275,7 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
       DB::commit();
 
       // 5.  Если маячёк true, обновить кэш и транслировать свежие данные
-      if($should_cache_update_and_translate == true) {
+      if($should_cache_update_and_translate == true ) {
 
         // 5.1. Обновить весь кэш
         $result = runcommand('\M9\Commands\C13_update_cache', [

@@ -146,8 +146,12 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
      *  8. Если не удалось определить бота, который должен принять ставку, вернуть ошибку
      *  9. Получить игрока, который хочет сделать ставку
      *  10. Проверить, нет ли уже у пользователя в этой комнате активного оффера
-     *  11. Отправить игроку торговое предложение
-     *  12. Записать необходимую информацию о ставке в БД
+     *  11. Произвести проверку ставки на соответствие лимитам комнаты $room
+     *  12. Отправить игроку торговое предложение
+     *  13. Записать необходимую информацию о ставке в БД
+     *  14. Сделать коммит
+     *  15. Обновить весь кэш
+     *  m. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -356,7 +360,94 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       });
 
-      // 11. Отправить игроку торговое предложение
+      // 11. Произвести проверку ставки на соответствие лимитам комнаты $room
+      call_user_func(function() USE ($room, $inventory) {
+
+        // 1] Получить последний раунд в комнате $room
+        // - И удостовериться, что он существует
+        $lastround = count($room->rounds) > 0 ? $room->rounds[0] : '';
+        if(empty($lastround))
+          throw new \Exception("Нельзя сделать ставку, поскольку в этой комнате нет ни одного активного раунда.");
+
+        // 2] Получить все необходимые лимиты комнаты $room
+        $room_limits = call_user_func(function() USE ($room) {
+
+          return [
+            "min_items_per_bet" => $room['min_items_per_bet'],  // MIN кол-во предметов в ставке
+            "max_items_per_bet" => $room['max_items_per_bet'],  // MAX кол-во предметов в ставке
+            "min_bet"           => $room['min_bet'],            // MIN ставка игрока
+            "max_bet"           => $room['max_bet'],            // MAX ставка игрока
+          ];
+
+        });
+
+        // 3] Вычислить общую сумму ставки в центах, и кол-во вещей в ставке
+
+          // Сумма в центах
+          $sum = call_user_func(function() USE ($lastround, $inventory) {
+            $result = 0;
+            for($n=0; $n<count($this->data['items2bet']); $n++) {
+              $item_inventory = call_user_func(function() USE ($inventory, $n) {
+                for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+                  if($inventory['data']['rgDescriptions'][$i]['market_name'] == $this->data['items2bet'][$n]['market_name'])
+                    return $inventory['data']['rgDescriptions'][$i];
+                }
+              });
+              if(empty($item_inventory))
+                throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
+              $result = +$result + +$item_inventory['price'];
+            }
+            return round($result*100);
+          });
+
+          // Кол-во вещей
+          $count = call_user_func(function() USE ($lastround, $inventory) {
+            $result = 0;
+            for($n=0; $n<count($this->data['items2bet']); $n++) {
+              $item_inventory = call_user_func(function() USE ($inventory, $n) {
+                for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+                  if($inventory['data']['rgDescriptions'][$i]['market_name'] == $this->data['items2bet'][$n]['market_name'])
+                    return $inventory['data']['rgDescriptions'][$i];
+                }
+              });
+              if(empty($item_inventory))
+                throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
+              $result = $result = +$result + 1;
+            }
+            return $result;
+          });
+
+        // 3] Проверить, соответствует ли $sum лимитам из $room_limits
+
+          // min_bet
+          if($room_limits['min_bet'] != 0) {
+            if($sum < $room_limits['min_bet'])
+              throw new \Exception('Минимальная сумма ставки в этой комнате: '.$room_limits['min_bet'].' ¢.');
+          }
+
+          // max_bet
+          if($room_limits['max_bet'] != 0) {
+            if($sum > $room_limits['max_bet'])
+              throw new \Exception('Максимальная сумма ставки в этой комнате: '.$room_limits['max_bet'].' ¢.');
+          }
+
+        // 4] Проверить, соответствует ли $count лимитам из $room_limits
+
+          // min_items_per_bet
+          if($room_limits['min_items_per_bet'] != 0) {
+            if($count < $room_limits['min_items_per_bet'])
+              throw new \Exception('В этой комнате можно ставить минимум '.$room_limits['min_items_per_bet'].' вещей за 1-ну ставку.');
+          }
+
+          // max_items_per_bet
+          if($room_limits['max_items_per_bet'] != 0) {
+            if($count > $room_limits['max_items_per_bet'])
+              throw new \Exception('В этой комнате можно ставить максимум '.$room_limits['max_items_per_bet'].' вещей за 1-ну ставку.');
+          }
+
+      });
+
+      // 12. Отправить игроку торговое предложение
       // - С запросом тех предметов, которые он хочет поставить.
       $tradeofferid = call_user_func(function() USE ($inventory, $items2bet_market_names, $bot2acceptbet, $safecode, $user){
 
@@ -426,7 +517,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       });
 
-      // 12. Записать необходимую информацию о ставке в БД
+      // 13. Записать необходимую информацию о ставке в БД
       call_user_func(function() USE ($user, $items2bet_market_names, $bot2acceptbet, $room, $inventory, $safecode, $tradeofferid) {
 
         // 1] Создать новую ставку md3_bets
@@ -498,31 +589,15 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       });
 
-      // 13. Сделать коммит
+      // 14. Сделать коммит
       DB::commit();
 
-      // 14. Обновить кэш
-
-        // 1] processing:bets:active
-        $result = runcommand('\M9\Commands\C13_update_cache', [
-          "cache2update" => ["processing:bets:active"]
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
-
-        // 2] processing:bets:accepted
-        $result = runcommand('\M9\Commands\C13_update_cache', [
-          "cache2update" => ["processing:bets:accepted"]
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
-
-        // 3] processing:rooms
-        $result = runcommand('\M9\Commands\C13_update_cache', [
-          "cache2update" => ["processing:rooms"]
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+      // 15. Обновить весь кэш
+      $result = runcommand('\M9\Commands\C13_update_cache', [
+        "all" => true
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
       // m. Вернуть результаты
       return [

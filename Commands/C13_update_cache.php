@@ -303,13 +303,33 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                   ->where('is_on', 1)
                   ->get();
 
-                // 3] Записать JSON с $rooms в кэш
+                // 3] Добавить для каждой комнаты в $rooms текущий размер очереди ставок
+                call_user_func(function() USE (&$rooms) {
+                  foreach($rooms as &$room) {
+
+                    // 3.1] Подсчитать кол-во офферов в очереди
+                    $count = \M9\Models\MD3_bets::whereHas('rooms', function($query) USE ($room) {
+                      $query->where('id',$room->id);
+                    })->whereHas('bets_statuses', function($query){
+                      $query->where('status', 'Accepted');
+                    })->doesntHave('rounds')
+                      ->count();
+
+                    // 3.2] Записать в $room
+                    $room->queue_offers_count = $count;
+
+                  }
+                });
+
+                // 4] Записать JSON с $rooms в кэш
                 Cache::put('processing:rooms', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
               });
             }
 
           }
+
+
 
 
     DB::commit(); } catch(\Exception $e) {

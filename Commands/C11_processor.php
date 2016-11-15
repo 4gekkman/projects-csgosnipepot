@@ -148,9 +148,9 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
      *  C19_active_offers_expiration_tracking       | 3. Отслеживать срок годности активных ставок
      *  C20_notify_users_about_offers_time2deadline | 4. Оповещать игроков о секундах до истечения их активных офферов
-     *  C18_round_statuses_tracking                 | 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-     *  C17_new_rounds_provider                     | 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-     *  C21_deffered_bets_tracking                  | 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+     *  C21_deffered_bets_tracking                  | 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+     *  C18_round_statuses_tracking                 | 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
+     *  C17_new_rounds_provider                     | 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
      *
      *  N. Вернуть статус 0
      *
@@ -203,18 +203,18 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
           0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 5. Отслеживать изменение статусов текущих раундов всех вкл.комнат
+      // 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+      runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
+          0, ['on'=>true, 'name'=>$queue]);
+
+
+      // 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
       runcommand('\M9\Commands\C18_round_statuses_tracking', [],
           0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 6. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+      // 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
       runcommand('\M9\Commands\C17_new_rounds_provider', [],
-          0, ['on'=>true, 'name'=>$queue]);
-
-
-      // 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-      runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
           0, ['on'=>true, 'name'=>$queue]);
 
 
