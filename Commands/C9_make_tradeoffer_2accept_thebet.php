@@ -173,7 +173,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
       // 2. Получить инвентарь игрока с помощью players_steamid
       $inventory = runcommand('\M8\Commands\C4_getinventory', [
-        "steamid" => $this->data['players_steamid']
+        "steamid" => $this->data['players_steamid'],
+        "force"   => true
       ]);
       if($inventory['status'] != 0)
         throw new \Exception("Не получается получить твой инвентарь. Зайди в свой аккаунт в Steam, в настройки приватности, и проверь, чтобы инвентарь был 'Public'.");
@@ -181,18 +182,14 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       // 3. Произвести сверку вещей в inventory и items2bet
       // - Все вещи из items2bet должны присутствовать в items2bet.
       // - Сверка производится по параметру market_name.
-      // - При любом расхождении, завершить с ошибкой.
+      // - При любом расхождении:
+      //
+      //    • Принудительно обновить инвентарь пользователя players_steamid
+      //      в комнате choosen_room_id, и транслировать его по частному каналу websockets.
+      //    • Завершить с ошибкой.
+      //
 
-        // 3.1. Получить массив market_name из inventory
-        $inventory_market_names = call_user_func(function() USE ($inventory) {
-          $results = [];
-          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
-            array_push($results, $inventory['data']['rgDescriptions'][$i]['market_name']);
-          }
-          return $results;
-        });
-
-        // 3.2. Получить массив market_name из items2bet
+        // 3.1. Получить массив market_name из items2bet
         $items2bet_market_names = call_user_func(function(){
           $results = [];
           for($i=0; $i<count($this->data['items2bet']); $i++) {
@@ -201,9 +198,53 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           return $results;
         });
 
-        // 3.3. Проверить, чтобы 3.2 полностью был включён в 3.1
-        if(count(array_intersect($items2bet_market_names, $inventory_market_names)) == 0)
-          throw new \Exception("В твоём инвентаре в Steam сейчас нет указанных тобой вещей. Обнови свой инвентарь, и заново сформируй ставку.");
+        // 3.2. Получить массив assetid_classid_instanceid из inventory
+        $inventory_aci = call_user_func(function() USE ($inventory) {
+          $results = [];
+          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+            $item = $inventory['data']['rgDescriptions'][$i];
+            array_push($results, $item['assetid'] . "_" . $item['classid'] . "_" . $item['instanceid']);
+          }
+          return $results;
+        });
+
+        // 3.3. Получить массив assetid_classid_instanceid из items2bet
+        $items2bet_aci = call_user_func(function(){
+          $results = [];
+          for($i=0; $i<count($this->data['items2bet']); $i++) {
+            $item = $this->data['items2bet'][$i];
+            array_push($results, $item['assetid'] . "_" . $item['classid'] . "_" . $item['instanceid']);
+          }
+          return $results;
+        });
+
+        // 3.3. Проверить, чтобы 3.2 полностью был включён в 3.3
+        if(count(array_intersect($items2bet_aci, $inventory_aci)) != count($items2bet_aci)) {
+
+          // 1] Получить ID текущего пользователя из сессии
+          $id_user = json_decode(session('auth_cache'), true)['user']['id'];
+
+          // 2] Принудительно обновить инвентарь пользователя players_steamid в комнате choosen_room_id
+          // - И транслировать его по частному каналу websockets.
+          call_user_func(function() USE ($inventory, $id_user) {
+
+            Event::fire(new \R2\Broadcast([
+              'channels' => ['m9:private:'.$id_user],
+              'queue'    => 'm9_lottery_broadcasting',
+              'data'     => [
+                'task' => 'update_inventory',
+                'data' => [
+                  'inventory' => $inventory
+                ]
+              ]
+            ]));
+
+          });
+
+          // 3] Завершить с ошибкой
+          throw new \Exception("В твоём инвентаре в Steam не оказалось указанных тобой вещей. Твой инвентарь был автоматически обновлён.");
+
+        }
 
       // 4. Получить комнату, в которой игрок хочет сделать ставку, с помощью choosen_room_id
       $room = \M9\Models\MD1_rooms::find($this->data['choosen_room_id']);
