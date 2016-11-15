@@ -186,7 +186,6 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         // 2.1. Если force == false и кэш существует, взять его из кэш
         $cache = json_decode(Cache::get("inventory:".$this->data['steamid']), true);
         if($this->data['force'] == false && !empty($cache)) {
-          Log::info($cache);
           return $cache['rgDescriptions'];
         }
 
