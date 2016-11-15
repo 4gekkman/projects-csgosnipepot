@@ -140,7 +140,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
      *  1. Принять и проверить входящие данные
      *  2. Назначить значения по умолчанию
      *  3. Обновить кэш, который указан в cache2update
-     *    3.1. processing:bets:active
+     *    3.1. processing:bets:active + processing:bets:active:<id пользователя>:<id комнаты>
      *    3.2. processing:bets:accepted
      *    3.3. processing:rooms
      *
@@ -179,7 +179,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
       // 3. Обновить кэш, который указан в cache2update
 
-        // 3.1. processing:bets:active
+        // 3.1. processing:bets:active + processing:bets:active:<id пользователя>
 
           // 3.1.1. Получить кэш
           $cache = json_decode(Cache::get('processing:bets:active'), true);
@@ -205,6 +205,13 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
                 // 2] Записать JSON с $active_bets в кэш
                 Cache::put('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок
+                foreach($active_bets as $bet) {
+                  $id_user = $bet['m5_users'][0]['id'];
+                  $id_room = $bet['rooms'][0]['id'];
+                  Cache::put('processing:bets:active:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
+                }
 
               });
             }
