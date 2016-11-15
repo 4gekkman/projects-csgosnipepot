@@ -213,6 +213,18 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                   Cache::put('processing:bets:active:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
                 }
 
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок
+                foreach($active_bets as $bet) {
+                  $id_user = $bet['m5_users'][0]['id'];
+                  $id_room = $bet['rooms'][0]['id'];
+                  Cache::tags(['processing:bets:active:personal'])->put('processing:bets:active:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
+                }
+
+                // 4] Если $active_bets пуст, сбросить весь персонализированный кэш
+                if(count($active_bets) == 0) {
+                  Cache::tags(['processing:bets:active:personal'])->flush();
+                }
+
               });
             }
 
