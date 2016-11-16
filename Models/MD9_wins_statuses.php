@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD4_wins extends Model {
+class MD9_wins_statuses extends Model {
 
   /**
    *
@@ -49,11 +49,11 @@ class MD4_wins extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm9.md4_wins';
+  protected $table = 'm9.md9_wins_statuses';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
-    public $timestamps = true;
+    public $timestamps = false;
 
     // 3] Вкл / Выкл (по умолч.) мягкое удаление //
     //-------------------------------------------//
@@ -67,11 +67,7 @@ class MD4_wins extends Model {
   //------------------//
 
     // relationships start
-    public function rounds() { return $this->belongsToMany('\M9\Models\MD2_rounds', 'm9.md1000', 'id_win', 'id_round'); }
-    public function wins_statuses() { return $this->belongsToMany('\M9\Models\MD9_wins_statuses', 'm9.md1012', 'id_win', 'id_status')->withPivot(['started_at','ended_at','comment']); }
-    public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm9.md2004', 'id_win', 'id_user'); }
-    public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm9.md2005', 'id_win', 'id_bot'); }
-    public function m8_items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm9.md2006', 'id_win', 'id_item')->withPivot(['price','assetid']); }
+    public function wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md1012', 'id_status', 'id_win')->withPivot(['started_at','ended_at','comment']); }
     // relationships stop
 
 

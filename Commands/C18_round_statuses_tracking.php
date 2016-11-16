@@ -464,9 +464,16 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             "comment"    => "Автоматическое изменение статуса раунда командой m9.C18"
           ]);
 
+          // 7] Вычислить победителя
+          $result = runcommand('\M9\Commands\C23_who_are_you_mr_winner', []);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
         }
 
       }
+
+      throw new \Exception("Stop!");
 
       // 4. Обновить весь кэш, если статус любого раунда был изменён
       if($is_any_round_status_was_changed == true) {
