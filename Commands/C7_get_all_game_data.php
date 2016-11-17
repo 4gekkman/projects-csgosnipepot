@@ -251,30 +251,30 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
                 // 1.2] Добавить доп.свойство total_bet_amount
 
                   // 1.2.1] Получить все связанные с $bet вещи
-                  $items = \M8\Models\MD2_items::with(['m9_bets'])
-                    ->whereHas('m9_bets', function($query) USE ($bet) {
-                      $query->where('id', $bet['id']);
-                    })->get();
+                  $items = $bet['m8_items'];
 
                   // 1.2.2] Посчитать итоговую сумму поставленных вещей
                   // - Используя значение item_price_at_bet_time из pivot-таблицы
                   $total_bet_amount = call_user_func(function() USE ($items, $bet) {
 
                     $result = 0;
-                    for($i=0; $i<count($items); $i++) {
-
-                      // 1.2.2.1] Получить ставку с id == $bet->id
-                      $bet_with_id = call_user_func(function() USE ($i, $items, $bet) {
-                        for($j=0; $j<count($items[$i]['m9_bets']); $j++) {
-                          if($items[$i]['m9_bets'][$j]->id == $bet['id'])
-                            return $items[$i]['m9_bets'][$j];
-                        }
-                      });
-
-                      // 1.2.2.2] Вернуть результат
-                      $result = +$result + $bet_with_id['pivot']['item_price_at_bet_time'];
-
+                    foreach($items as $item) {
+                      $result = +$result + +round($item['price']*100);
                     }
+//                    for($i=0; $i<count($items); $i++) {
+//
+//                      // 1.2.2.1] Получить ставку с id == $bet->id
+//                      $bet_with_id = call_user_func(function() USE ($i, $items, $bet) {
+//                        for($j=0; $j<count($items[$i]['m9_bets']); $j++) {
+//                          if($items[$i]['m9_bets'][$j]->id == $bet['id'])
+//                            return $items[$i]['m9_bets'][$j];
+//                        }
+//                      });
+//
+//                      // 1.2.2.2] Вернуть результат
+//                      $result = +$result + $bet_with_id['pivot']['item_price_at_bet_time'];
+//
+//                    }
                     return $result;
 
                   });

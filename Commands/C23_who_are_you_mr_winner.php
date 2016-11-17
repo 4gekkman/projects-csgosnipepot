@@ -435,8 +435,9 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       });
 
       // 7. Записать выигравший билет и угол вращения в раунд
-      $round->ticket_winner_number = $winner_and_ticket['ticket_winner_number'];
-      $round->wheel_rotation_angle = $wheel_rotation_angle;
+      $round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
+      $round->wheel_rotation_angle        = $wheel_rotation_angle;
+      $round->wheel_rotation_angle_origin = $wheel_rotation_angle;
       $round->save();
 
       // 8. Вычислить, какими бонусами обладает игрок
@@ -684,7 +685,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       return [
         "status"  => 0,
         "data"    => [
-          "wheel_rotation_angle" => $wheel_rotation_angle
+          "wheel_rotation_angle_origin" => $wheel_rotation_angle
         ]
       ];
 
