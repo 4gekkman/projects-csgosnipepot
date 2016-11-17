@@ -143,6 +143,19 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  6. Вычислить угол вращения колеса
      *  7. Записать выигравший билет и угол вращения в раунд
      *  8. Вычислить, какими бонусами обладает игрок
+     *  9. Вычислить итоговый размер комиссии
+     *  10. Составить список всех поставленных вещей, отсортированный по цене
+     *  11. Определить вещи на отдачу
+     *  12. Определить вещи на комиссию
+     *  13. Посчитать прибавку к долговому балансу игрока
+     *  14. Создать новый выигрыш, и заполнить ранее вычисленными значениями
+     *  15. Связать новый выигрыш $newwin с раундом $round
+     *  16. Связать новый выигрыш с пользователем-победителем
+     *  17. Связать новый выигрыш с ботом, проводившим раунд
+     *  18. Связать новый выигрыш с вещами $items2give
+     *  19. Связать новый выигрыш со статусом Ready
+     *  20. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
+     *  21. Сделать commit
      *
      *  N. Вернуть статус 0
      *
@@ -439,19 +452,32 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         // 2] Получить номиналы бонусов для комнаты id_room
         $bonus_nominals = [
           "bonus_domain"      => !empty($room['bonus_domain']) ? $room['bonus_domain'] : 0,
-          "bonus_domain_name" => !empty($room['bonus_domain_name']) ? $room['bonus_domain'] : "",
+          "bonus_domain_name" => !empty($room['bonus_domain_name']) ? $room['bonus_domain_name'] : "",
           "bonus_firstbet"    => !empty($room['bonus_firstbet']) ? $room['bonus_firstbet'] : 0,
           "bonus_secondbet"   => !empty($room['bonus_secondbet']) ? $room['bonus_secondbet'] : 0
         ];
 
-        // 3] Вычислить, на какие бонусы игрок-победитель имеет право
+        // 3] Получить первую ставку, сделанную соотв.игроком
+        $firstbet = $winner_and_ticket['round']['bets'][0];
+
+        // 4] Получить первую ставку, сделанную другим (вторым) игроком
+        $secondbet = call_user_func(function() USE ($firstbet, $winner_and_ticket) {
+          foreach($winner_and_ticket['round']['bets'] as $bet) {
+            if($bet['m5_users'][0]['id'] != $firstbet['m5_users'][0]['id'])
+              return $bet;
+          }
+        });
+        if(empty($secondbet))
+          throw new \Exception('Не удалось найти в раунде первую ставку, сделунную вторым игроком раунда');
+
+        // 5] Вычислить, на какие бонусы игрок-победитель имеет право
         $has = [
           "bonus_domain"    => preg_match("/ ".$bonus_nominals['bonus_domain_name']."$/ui", $winner_and_ticket['user_winner']['nickname']),
-          "bonus_firstbet"  => $winner_and_ticket['round']['bets'][0]['m5_users'][0]['id'] == $winner_and_ticket['user_winner']['id'],
-          "bonus_secondbet" => $winner_and_ticket['round']['bets'][1]['m5_users'][0]['id'] == $winner_and_ticket['user_winner']['id']
+          "bonus_firstbet"  => $firstbet['m5_users'][0]['id'] == $winner_and_ticket['user_winner']['id'],
+          "bonus_secondbet" => $firstbet['m5_users'][0]['id'] != $winner_and_ticket['user_winner']['id'] && $secondbet['m5_users'][0]['id'] == $winner_and_ticket['user_winner']['id']
         ];
 
-        // 4] Вернуть результаты
+        // 6] Вернуть результаты
         return [
           "bonus_domain"    => $has['bonus_domain'] ? $bonus_nominals['bonus_domain'] : 0,
           "bonus_firstbet"  => $has['bonus_firstbet'] ? $bonus_nominals['bonus_firstbet'] : 0,
@@ -460,42 +486,207 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
       });
 
-      Log::info($bonuses);
+      // 9. Вычислить итоговый размер комиссии
+      $fee = call_user_func(function() USE ($bonuses, $room) {
 
+        // 1] Вычислить суммарный размер бонусов
+        $bonuses_sum = call_user_func(function() USE ($bonuses) {
+          $result = 0;
+          foreach($bonuses as $bonus)
+            $result = +$result + $bonus;
+          return $result;
+        });
+        if(empty($bonuses_sum)) $bonuses_sum = 0;
 
+        // 2] Получить установленные размер комиссии в комнате
+        $room_fee = $room['fee_percents'];
+        if(empty($room_fee)) $room_fee = 10;
 
+        // 3] Вычислить итоговый размер комиссии
+        $fee_final = +$room_fee - +$bonuses_sum;
+        if($fee_final < 0) $fee_final = 0;
 
+        // 4] Вернуть результат
+        return $fee_final;
 
+      });
 
-      // Вычислить, какими бонусами обладает пользователь
-      // - Сделал ли он ставку первым?
-      // - Сделал ли он ставку вторым?
-      // - Есть ли у него в нике необходимая строка?
+      // 10. Составить список всех поставленных вещей, отсортированный по цене
+      // - Отсортированный по цене по убыванию.
+      // - Плюс, каждой вещи добавить св-во percentage (цена вещи, делёная на банк).
+      $items = call_user_func(function() USE ($winner_and_ticket, $jackpot_total_sum_cents) {
 
+        // 1] Подготовить массив для результатов
+        $results = [];
 
-      // Вычислить джекпот раунда (100%, без учёта комиссий)
+        // 2] Наполнить $results
+        // - И добавить каждой вещи св-во percentage
+        foreach($winner_and_ticket['round']['bets'] as $bet) {
+          foreach($bet['m8_items'] as $item) {
+            $item['percentage'] = (($item['price']*100)/$jackpot_total_sum_cents)*100;
+            array_push($results, $item);
+          }
+        }
 
+        // 3] Отсортировать все вещи по цене, по убыванию
+        usort($results, function($a, $b){
+          if((int)($a['price']*100) < (int)($b['price'])) return 1;
+          if((int)($a['price']) > (int)($b['price'])) return -1;
+          return 0;
+        });
 
-      // Вычислить комиссию, долговой баланс, какие вещи в комиссии, а какие отдаём
-      // - Базовое значение брать из настроек комнаты.
-      // - Учесть всевозможные бонусы
-      // - Учесть долговой баланс пользователя.
-      // - Учесть, какие вещи из джекпота мы можем забрать
-      //   в качестве комиссии, а какие отдать.
-      // - Вычислить добавку к долговому балансу.
+        // n] Вернуть результаты
+        return $results;
 
-      // Создать новый выигрыш
-      // - Заполнить его ранее вычисленными значениями.
-      // - Связать его с раундом.
-      // - Связать его с пользователем-победителем.
-      // - Связать его с ботом, проводившим раунд.
-      // - Связать его с вещами, которые нужно выплатить в качестве выигрыша.
-      // - Связать его со статусом Ready.
+      });
 
+      // 11. Определить вещи на отдачу
+      $items2give = call_user_func(function() USE ($items, $fee) {
 
+        // 1] Подготовить массив для результатов
+        $results = [];
 
+        // 2] Получить % от выигрыша, который мы отдадим
+        $percents2give = 100 - $fee;
 
+        // 3] Сколько уже процентов от выигрыша
+        $percentage_already = 0;
 
+        // 4] Наполнить $results
+        for($i=0; $i<count($items); $i++) {
+          $percentage_already = +$percentage_already + +$items[$i]['percentage'];
+          if($percentage_already < $percents2give || $fee < $items[$i]['percentage'])
+            array_push($results, $items[$i]);
+        }
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 12. Определить вещи на комиссию
+      $items2take = call_user_func(function() USE ($items, $items2give) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Получить массив ID всех вещей из $items2give
+        $items2give_ids = collect($items2give)->pluck('id')->toArray();
+
+        // 3] Добавить в $results все вещий из $items, кроме $items2give
+        foreach($items as $item) {
+          if(!in_array($item['id'], $items2give_ids))
+            array_push($results, $item);
+        }
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 13. Посчитать прибавку к долговому балансу игрока
+      $debt_balance_cents_addition = call_user_func(function() USE ($items2take, $fee, $jackpot_total_sum_cents) {
+
+        // 1] Подсчитать суммарную стоимость $items2take
+        $items2take_sum_cents = call_user_func(function() USE ($items2take) {
+          $result = 0;
+          foreach($items2take as $item)
+            $result = +$result + +round($item['price']*100);
+          return $result;
+        });
+
+        // 2] Подсчитать, какую часть в % составляет $items2take_sum_cents от $jackpot_total_sum_cents
+        $percents = ($items2take_sum_cents / $jackpot_total_sum_cents) * 100;
+
+        // 3] Подсчитать, сколько мы должны были забрать
+        $we_must_take_cents = $jackpot_total_sum_cents - $jackpot_total_sum_cents*((100-$fee)/100);
+
+        // 4] Подсчитать, сколько мы по факту забрали
+        $we_take_fact_cents = $jackpot_total_sum_cents - $jackpot_total_sum_cents*((100-$percents)/100);
+
+        // 5] Вернуть результат
+        return [
+          "fee_fact_cents"      => $we_take_fact_cents,
+          "fee_must_take_cents" => $we_must_take_cents,
+          "win_fact_cents"      => $jackpot_total_sum_cents - $we_take_fact_cents,
+          "addition"            => $we_must_take_cents - $we_take_fact_cents
+        ];
+
+      });
+
+      // 14. Создать новый выигрыш, и заполнить ранее вычисленными значениями
+
+        // 1] Создать новый выигрыш
+        $newwin = new \M9\Models\MD4_wins();
+
+        // 2] Наполнить $newwin ранее вычисленными свойствами
+        $newwin->bonus_domain               = $bonuses['bonus_domain'];
+        $newwin->bonus_firstbet             = $bonuses['bonus_firstbet'];
+        $newwin->bonus_secondbet            = $bonuses['bonus_secondbet'];
+        $newwin->jackpot_total_sum_cents    = $jackpot_total_sum_cents;
+        $newwin->fee_percents_at_game_time  = $fee;
+        $newwin->fee_fact_cents             = $debt_balance_cents_addition["fee_fact_cents"];
+        $newwin->fee_must_take_cents        = $debt_balance_cents_addition["fee_must_take_cents"];
+        $newwin->win_fact_cents             = $debt_balance_cents_addition["win_fact_cents"];
+        $newwin->ready_state_sec            = "";
+        $newwin->debt_balance_cents         = $debt_balance_cents_addition['addition'];
+
+        // 3] Сохранить $newwin
+        $newwin->save();
+
+      // 15. Связать новый выигрыш $newwin с раундом $round
+      if(!$newwin->rounds->contains($round['id']))
+        $newwin->rounds()->attach($round['id']);
+
+      // 16. Связать новый выигрыш с пользователем-победителем
+      if(!$newwin->m5_users->contains($winner_and_ticket['user_winner']['id']))
+        $newwin->m5_users()->attach($winner_and_ticket['user_winner']['id']);
+
+      // 17. Связать новый выигрыш с ботом, проводившим раунд
+      if(!$newwin->m8_bots->contains($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']))
+        $newwin->m8_bots()->attach($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']);
+
+      // 18. Связать новый выигрыш с вещами $items2give
+      foreach($items2give as $item) {
+        if(!$newwin->m8_items->contains($item['id'])) {
+          $newwin->m8_items()->attach($item['id']);
+        }
+      }
+
+      // 19. Связать новый выигрыш со статусом Ready
+
+        // 19.1. Получить статус Ready
+        $status_ready = \M9\Models\MD9_wins_statuses::where('status', 'Ready')->first();
+        if(empty($status_ready))
+          throw new \Exception('Не удалось найти статус Ready в таблице md9_wins_statuses');
+
+        // 19.2. Связать $newwin со статусом $status_ready
+        if(!$newwin->wins_statuses->contains($status_ready['id'])) {
+          $newwin->wins_statuses()->attach($status_ready['id']);
+          $newwin->wins_statuses()->updateExistingPivot($status_ready['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "comment" => "Определение победителя, создние нового выигрыша."]);
+        }
+
+      // 20. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
+
+        // 1] Создать новый долг
+        $newdebt = new \M9\Models\MD10_debts();
+        $newdebt->debt_cents = $debt_balance_cents_addition['addition'];
+        $newdebt->save();
+
+        // 2] Связать $newdebt с $newwin
+        if(!$newwin->debts->contains($newdebt['id']))
+          $newwin->debts()->attach($newdebt['id']);
+
+      // 21. Сделать commit
+      DB::commit();
+
+      // n] Вернуть результат
+      return [
+        "status"  => 0,
+        "data"    => [
+          "wheel_rotation_angle" => $wheel_rotation_angle
+        ]
+      ];
 
 
     DB::commit(); } catch(\Exception $e) {

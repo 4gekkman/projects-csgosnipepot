@@ -181,6 +181,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "pending_duration_s" 			  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "offers_timeout_sec" 			  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "bonus_domain" 			        => ["required", "min:0", "max:100"],
+        "bonus_domain_name"         => ["required", "string"],
         "bonus_firstbet" 			      => ["required", "min:0", "max:100"],
         "bonus_secondbet" 			    => ["required", "min:0", "max:100"],
 

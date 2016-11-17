@@ -138,8 +138,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
      *  1. Получить все игровые данные из кэша
      *  2. Подготовить маячёк (изменился ли статус любого раунда)
      *  3. Пробежаться по $rooms, если надо поменять статусы последних раундов
-     *  4. Обновить весь кэш, если статус любого раунда был изменён
-     *  5. Сделать commit
+     *  4. Сделать commit
+     *  5. Обновить весь кэш, если статус любого раунда был изменён
      *  6. Получить свежие игровые данные
      *  7. Транслировать свежие игровые данные через публичный канал
      *
@@ -478,9 +478,10 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
       }
 
-      throw new \Exception("Stop!");
+      // 4. Сделать commit
+      DB::commit();
 
-      // 4. Обновить весь кэш, если статус любого раунда был изменён
+      // 5. Обновить весь кэш, если статус любого раунда был изменён
       if($is_any_round_status_was_changed == true) {
         $result = runcommand('\M9\Commands\C13_update_cache', [
           "all" => true
@@ -488,9 +489,6 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
       }
-
-      // 5. Сделать commit
-      DB::commit();
 
       // 6. Получить свежие игровые данные
       $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
