@@ -363,14 +363,15 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
         }
 
-        // 7.9. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
+        // 7.9. Сообщить игроку через публичный канал, что его ставка принята в текущий раунд
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:private:'.$this->data['id_user']],
           'queue'    => 'm9_lottery_broadcasting',
           'data'     => [
-            'task' => 'tradeoffer_cancel',
+            'task' => 'tradeoffer_accepted',
             'data' => [
-              'id_room' => $this->data['id_room']
+              'id_room'           => $this->data['id_room'],
+              'in_current_round'  => true
             ]
           ]
         ]));
@@ -390,14 +391,18 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // 8.3. Сообщить игроку через публичный канал, что надо закрыть окошко оффера
+        // 8.3. Сообщить игроку через публичный канал, что:
+        // - Его ставка принята, но в текущий раунд она не попала.
+        // - Она поставлена в очередь, и появится в соответствии с ней,
+        //   и с правилами комнаты, в одном из следующих раундов.
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:private:'.$this->data['id_user']],
           'queue'    => 'm9_lottery_broadcasting',
           'data'     => [
             'task' => 'tradeoffer_cancel',
             'data' => [
-              'id_room' => $this->data['id_room']
+              'id_room'           => $this->data['id_room'],
+              'in_current_round'  => false
             ]
           ]
         ]));

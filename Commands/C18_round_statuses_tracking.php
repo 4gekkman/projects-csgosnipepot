@@ -464,10 +464,15 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             "comment"    => "Автоматическое изменение статуса раунда командой m9.C18"
           ]);
 
-          // 7] Вычислить победителя
-          $result = runcommand('\M9\Commands\C23_who_are_you_mr_winner', []);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
+          // 7] Если новый статус - Lottery - то вычислить победителя
+          if($suitable_room_status['name'] == "Lottery") {
+            $result = runcommand('\M9\Commands\C23_who_are_you_mr_winner', [
+              "id_round" => $lastround['id'],
+              "id_room"  => $room['id']
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+          }
 
         }
 

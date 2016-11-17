@@ -135,20 +135,144 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить и проверить входящие данные
+     *  2. Получить модель комнаты id_room
+     *  3. Получить модель раунда id_round
+     *  4. Определить выигравший билет, и игрока-победителя
+     *
      *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //--------------------------------------------------//
+    // Определяет победителя раунда, делает записи в БД //
+    //--------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить и проверить входящие данные
+      $validator = r4_validate($this->data, [
 
-      // ...
+        "id_round"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+      // 2. Получить модель комнаты id_room
+      $room = \M9\Models\MD1_rooms::find($this->data['id_room']);
+      if(empty($room))
+        throw new \Exception('Не удалось найти комнату с ID = '.$this->data['id_room']);
+
+      // 3. Получить модель раунда id_round
+      $round = \M9\Models\MD2_rounds::find($this->data['id_round']);
+      if(empty($round))
+        throw new \Exception('Не удалось найти раунд с ID = '.$this->data['id_round']);
+
+      // 4. Определить выигравший билет, и игрока-победителя
+      $winner_and_ticket = call_user_func(function(){
+
+        // 1] Получить из кэша все игровые данные
+        $rooms = json_decode(Cache::get('processing:rooms'), true);
+
+        // 2] Найти в $rooms комнату с id_room
+        $room = call_user_func(function() USE ($rooms) {
+          foreach($rooms as $room) {
+            if($room['id'] == $this->data['id_room'])
+              return $room;
+          }
+        });
+        if(!$room)
+          throw new \Exception('Не удалось найти комнату с ID = '.$this->data['id_room'].' в кэше.');
+
+        // 3] Найти в $room раунд с id_round
+        $round = call_user_func(function() USE ($room) {
+          foreach($room['rounds'] as $round) {
+            if($round['id'] == $this->data['id_round'])
+              return $round;
+          }
+        });
+        if(!$room)
+          throw new \Exception('Не удалось найти раунд с ID = '.$this->data['id_round'].' в кэше.');
+
+        // 4] Получить номер последнего билета последней ставки
+        $lastbet_lastticket = $round['bets'][count($round['bets']) - 1]['m5_users'][0]['pivot']['tickets_to'];
+
+        // 5] Получить номер выигравшего билета
+        // - От 0 до $lastbet_lastticket включительно.
+        $ticket_winner_number = random_int(0, $lastbet_lastticket);
+
+        // 6] Найти пользователя, у которого билет $ticket_winner_number
+        $user = call_user_func(function() USE ($round, $ticket_winner_number) {
+          foreach($round['bets'][count($round['bets']) - 1]['m5_users'] as $user) {
+            if($ticket_winner_number >= $user['pivot']['tickets_from'] && $ticket_winner_number <= $user['pivot']['tickets_to'])
+              return $user;
+          }
+        });
+        if(!$user)
+          throw new \Exception('Не удалось найти пользователя, обладающего билетом-победителем "'.$ticket_winner_number.'" в кэше.');
+
+
+        Log::info($ticket_winner_number);
+        Log::info($user);
+
+
+
+      });
+
+
+
+      // Получить пользователя-победителя
+      // - Получить все игровые данные из кэша.
+      // - Найти там комнату id_room и раунд id_round.
+      // - Получить номер последнего билета последней ставки.
+      // - Получить случайное целое число от 0 до номера последнего билета.
+      //   Полученное число и будет номером победившего билета.
+      // - Найти пользователя, которому принадлежит этот билет.
+
+
+      // Вычислить угол вращения колеса, максимально точно, с дробными
+
+
+      // Записать выигравший билет и угол вращения в раунд
+
+
+      // Вычислить, какими бонусами обладает пользователь
+      // - Сделал ли он ставку первым?
+      // - Сделал ли он ставку вторым?
+      // - Есть ли у него в нике необходимая строка?
+
+
+      // Вычислить джекпот раунда (100%, без учёта комиссий)
+
+
+      // Вычислить комиссию, долговой баланс, какие вещи в комиссии, а какие отдаём
+      // - Базовое значение брать из настроек комнаты.
+      // - Учесть всевозможные бонусы
+      // - Учесть долговой баланс пользователя.
+      // - Учесть, какие вещи из джекпота мы можем забрать
+      //   в качестве комиссии, а какие отдать.
+      // - Вычислить добавку к долговому балансу.
+
+      // Создать новый выигрыш
+      // - Заполнить его ранее вычисленными значениями.
+      // - Связать его с раундом.
+      // - Связать его с пользователем-победителем.
+      // - Связать его с ботом, проводившим раунд.
+      // - Связать его с вещами, которые нужно выплатить в качестве выигрыша.
+      // - Связать его со статусом Ready.
+
+
+
+
+
+
+
+      Log::info(123, []);
 
 
     DB::commit(); } catch(\Exception $e) {
