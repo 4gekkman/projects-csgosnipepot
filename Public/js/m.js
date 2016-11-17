@@ -648,6 +648,10 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.pending_duration_s 					= ko.observable("");
 		self.m.s2.edit.winner_duration_s 					  = ko.observable("");
 		self.m.s2.edit.offers_timeout_sec 					= ko.observable("");
+		self.m.s2.edit.bonus_domain 								= ko.observable("");
+		self.m.s2.edit.bonus_domain_name 						= ko.observable("");
+		self.m.s2.edit.bonus_firstbet 							= ko.observable("");
+		self.m.s2.edit.bonus_secondbet 							= ko.observable("");
 
 		// 2] Поле allow_only_types в виде json-строки //
 		//---------------------------------------------//

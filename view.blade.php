@@ -572,12 +572,61 @@
               </div>
             </div>
 
-            <?php /* 9] offers_timeout_min -->
+            <?php /* 9] offers_timeout_sec -->
             <!---------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Таймаут офферов ботов игрокам, с</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.offers_timeout_sec">
+              </div>
+            </div>
+
+          </div>
+
+          <?php /*------>
+          <!-- Бонусы -->
+          <!--------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Бонусы</span>
+            </div>
+
+            <?php /* 1] bonus_domain -->
+            <!---------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Бонус за строку в нике</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.bonus_domain">
+              </div>
+            </div>
+
+            <?php /* 2] bonus_domain_name -->
+            <!--------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Какая строка должна быть в нике</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.bonus_domain_name">
+              </div>
+            </div>
+
+            <?php /* 3] bonus_firstbet -->
+            <!-----------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Бонус за 1-ю в раунде ставку</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.bonus_firstbet">
+              </div>
+            </div>
+
+            <?php /* 4] bonus_secondbet -->
+            <!------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Бонус за 2-ю в раунде ставку</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.bonus_secondbet">
               </div>
             </div>
 

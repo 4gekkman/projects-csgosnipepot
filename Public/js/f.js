@@ -628,6 +628,10 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.pending_duration_s(data.pending_duration_s());
 			self.m.s2.edit.winner_duration_s(data.winner_duration_s());
 			self.m.s2.edit.offers_timeout_sec(data.offers_timeout_sec());
+			self.m.s2.edit.bonus_domain(data.bonus_domain());
+			self.m.s2.edit.bonus_domain_name(data.bonus_domain_name());
+			self.m.s2.edit.bonus_firstbet(data.bonus_firstbet());
+			self.m.s2.edit.bonus_secondbet(data.bonus_secondbet());
 
 			// 2] Загрузить данные для allow_only_types
 			var allow_only_types = JSON.parse(data.allow_only_types());
@@ -697,7 +701,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					lottery_duration_ms: 			self.m.s2.edit.lottery_duration_ms(),
 					pending_duration_s: 			self.m.s2.edit.pending_duration_s(),
 					winner_duration_s: 				self.m.s2.edit.winner_duration_s(),
-					offers_timeout_sec: 			self.m.s2.edit.offers_timeout_sec()
+					offers_timeout_sec: 			self.m.s2.edit.offers_timeout_sec(),
+					bonus_domain: 						self.m.s2.edit.bonus_domain(),
+					bonus_domain_name: 				self.m.s2.edit.bonus_domain_name(),
+					bonus_firstbet: 					self.m.s2.edit.bonus_firstbet(),
+					bonus_secondbet: 					self.m.s2.edit.bonus_secondbet()
 
 				},
 			  prejob:       function(config, data, event){},
