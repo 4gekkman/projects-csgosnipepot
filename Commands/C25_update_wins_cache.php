@@ -7,14 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Notify users via private websockets channels about their active offers time to deadline
+ *    - Cache updating for wins processing
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        all           | True/False, если true, то обновить весь кэш
+ *        cache2update  | Массив ключей кэша, который надо обновить (нужен, только если all не указано)
+ *        force         | (по умолчанию, == true) Обновлять кэш, даже если он присутствует
  *      ]
  *    ]
  *
@@ -101,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C20_notify_users_about_offers_time2deadline extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C25_update_wins_cache extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,68 +137,35 @@ class C20_notify_users_about_offers_time2deadline extends Job { // TODO: доб�
     /**
      * Оглавление
      *
-     *  1. Получить активные ставки из кэша
-     *  2. Оповестить владельцев офферов по частным каналам
+     *  1.
+     *
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //--------------------------------------------------------------------------------------------------------------------------------//
-    // Оповещать каждого игрока через частный websockets-канал о том, сколько времени осталось до истечения всех его активных офферов //
-    //--------------------------------------------------------------------------------------------------------------------------------//
+    //---------------------------------------------------//
+    // Обновляет указанный кэш в рамках процессинга игры //
+    //---------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить активные ставки из кэша
-      $bets_active = json_decode(Cache::get('processing:bets:active'), true);
-
-      // 2. Оповестить владельцев офферов по частным каналам
-      foreach($bets_active as $bet) {
-
-        // 1] Вычислить, сколько секунд осталось до истечения оффера $bet
-        // - Если оффер истёк, вернуть 0.
-        $secs = call_user_func(function() USE ($bet) {
-
-          // 1) Получить expired_at
-          $expired_at = \Carbon\Carbon::parse($bet['bets_statuses'][0]['pivot']['expired_at']);
-
-          // 2) Получить текущее серверное время
-          $now = \Carbon\Carbon::now();
-
-          // 3) Вычислить, что больше, $expired_at или $now
-          $is_expired_gt_than_now = $expired_at->gt($now);
-
-          // 4) Вычесть $now из $expired_at, и получить разницу в секундах
-          $sec = $expired_at->diffInSeconds($now);
-
-          // 5) Если оффер уже истёк, вернуть 0
-          if($is_expired_gt_than_now == false) return 0;
-
-          // 6) Иначе, вернуть $sec
-          else return $sec;
-
-        });
-
-        // 2] Транслировать владельцу $bet значение $secs
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:private:'.$bet['m5_users'][0]['id']],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'tradeoffer_expire_secs',
-            'data' => [
-              'id_room' => $bet['rooms'][0]['id'],
-              'secs'    => $secs
-            ]
-          ]
-        ]));
-
+      // 1. Принять и проверить входящие данные
+      $validator = r4_validate($this->data, [
+        "all"             => ["boolean"],
+        "cache2update"    => ["required_without:all", "array"],
+        "force"           => ["boolean"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
       }
 
+      write2log("C25_update_wins_cache", []);
+
+
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C20_notify_users_about_offers_time2deadline from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C25_update_wins_cache from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C20_notify_users_about_offers_time2deadline']);
+        write2log($errortext, ['M9', 'C25_update_wins_cache']);
         return [
           "status"  => -2,
           "data"    => [

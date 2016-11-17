@@ -137,7 +137,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *
      *  ▪ Сама команда C11_processor на каждом тике добавляется в очередь "processor_main".
      *  ▪ Все команды выполняются по очереди либо в "processor_hard" (продакшн), либо в smallbroadcast (отладка)
-     *  ▪ Обе очереди обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
+     *  ▪ Очереди "main" и "hard" обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
      *
      * Оглавление
      *

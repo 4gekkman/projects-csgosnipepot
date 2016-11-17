@@ -122,7 +122,8 @@
           '\M9\Console\T3_sync_round_statuses',
           '\M9\Console\T4_sync_rooms',
           '\M9\Console\T5_processor',
-          '\M9\Console\T6_cancel_the_active_bet'
+          '\M9\Console\T6_cancel_the_active_bet',
+          '\M9\Console\T7_processor_wins'
         ];
 
         // Регистрация команд в методе register
