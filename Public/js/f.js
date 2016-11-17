@@ -1504,7 +1504,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  command: 	    "\\M8\\Commands\\C4_getinventory",
 				from: 		    "f.s3.update",
 			  data: 		    {
-					steamid: 				  self.m.s2.edit.steamid()
+					steamid: 				  self.m.s2.edit.steamid(),
+					force:            true
 				},
 			  prejob:       function(config, data, event){
 
@@ -1878,7 +1879,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  command: 	    "\\M8\\Commands\\C4_getinventory",
 				from: 		    "f.s6.update",
 			  data: 		    {
-					steamid: 				  self.m.s5.steamid_partner() || parameters.steamid
+					steamid: 				  self.m.s5.steamid_partner() || parameters.steamid,
+					force:            true
 				},
 			  prejob:       function(config, data, event){
 
@@ -2437,7 +2439,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  command: 	    "\\M8\\Commands\\C4_getinventory",
 				from: 		    "f.s7.get_prices",
 			  data: 		    {
-					steamid: 				  self.m.s2.edit.steamid()
+					steamid: 				  self.m.s2.edit.steamid(),
+					force:            true
 				},
 			  prejob:       function(config, data, event){
 
@@ -2500,7 +2503,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						command: 	    "\\M8\\Commands\\C4_getinventory",
 						from: 		    "f.s7.get_prices",
 						data: 		    {
-							steamid: 				  params.env.partner_steamid()
+							steamid: 				  params.env.partner_steamid(),
+							force:            true
 						},
 						prejob:       function(config, data, event){
 
