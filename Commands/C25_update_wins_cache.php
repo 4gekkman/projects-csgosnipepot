@@ -197,22 +197,24 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
 
                 // 1] Получить все выигрыши со статусом Active
                 // - Включая все их связи.
-                $active_wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                $active_wins = \M9\Models\MD4_wins::with(["debts","rounds","rounds.rooms","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
                   ->whereHas('wins_statuses', function($query){
                     $query->where('status', 'Active');
                   })
                   ->get();
 
-                // 2] Записать JSON с $active_wins в кэш
+
+
+                // 3] Записать JSON с $active_wins в кэш
                 Cache::put('processing:wins:active', json_encode($active_wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
-                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных выигрышей
+                // 4] Пробежаться по $cache, и записать индивидуальный кэш активных выигрышей
                 foreach($active_wins as $win) {
                   $id_user = $win['m5_users'][0]['id'];
                   Cache::tags(['processing:wins:active:personal'])->put('processing:wins:active:'.$id_user, json_encode($win, JSON_UNESCAPED_UNICODE), 30);
                 }
 
-                // 4] Если $active_wins пуст, сбросить весь персонализированный кэш
+                // 5] Если $active_wins пуст, сбросить весь персонализированный кэш
                 if(count($active_wins) == 0) {
                   Cache::tags(['processing:wins:active:personal'])->flush();
                 }
@@ -240,7 +242,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
 
                 // 1] Получить все выигрыши со статусами кроме Paid и Expired
                 // - Включая все их связи.
-                $wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                $wins = \M9\Models\MD4_wins::with(["debts","rounds","rounds.rooms","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
                   ->whereDoesntHave('wins_statuses', function($query){
                     $query->where('status', 'Paid')
                       ->orWhere('status', 'Expired');
@@ -296,7 +298,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
 
                 // 1] Получить все выигрыши со статусом Paid
                 // - Включая все их связи.
-                $paid_wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                $paid_wins = \M9\Models\MD4_wins::with(["debts","rounds","rounds.rooms","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
                   ->whereHas('wins_statuses', function($query){
                     $query->where('status', 'Paid');
                   })
@@ -351,7 +353,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
 
                 // 1] Получить все выигрыши со статусом Expired
                 // - Включая все их связи.
-                $expired_wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                $expired_wins = \M9\Models\MD4_wins::with(["debts","rounds","rounds.rooms","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
                   ->whereHas('wins_statuses', function($query){
                     $query->where('status', 'Expired');
                   })
