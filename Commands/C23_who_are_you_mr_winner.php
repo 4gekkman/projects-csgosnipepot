@@ -159,6 +159,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  22. Записать код безопасности $safecode в md6_safecodes
      *  23. Связать $safecode и $newwin через md1014
      *  24. Сделать commit
+     *  25. Обновить весь кэш процессинга выигрышей
      *
      *  N. Вернуть статус 0
      *
@@ -702,7 +703,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       foreach($items2give as $item) {
         if(!$newwin->m8_items->contains($item['id'])) {
           $newwin->m8_items()->attach($item['id']);
-          $newwin->m8_items()->updateExistingPivot($item['id'], ["assetid" => $item['pivot']['assetid_bots']]);
+          $newwin->m8_items()->updateExistingPivot($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
         }
       }
 
@@ -740,6 +741,13 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
       // 24. Сделать commit
       DB::commit();
+
+      // 25. Обновить весь кэш процессинга выигрышей
+      $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+        "all"   => true
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
       // n] Вернуть результат
       return [

@@ -72,7 +72,7 @@ class MD4_wins extends Model {
     public function debts() { return $this->belongsToMany('\M9\Models\MD10_debts', 'm9.md1013', 'id_win', 'id_debt'); }
     public function safecodes() { return $this->belongsToMany('\M9\Models\MD6_safecodes', 'm9.md1014', 'id_win', 'id_safecode'); }
     public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm9.md2004', 'id_win', 'id_user'); }
-    public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm9.md2005', 'id_win', 'id_bot'); }
+    public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm9.md2005', 'id_win', 'id_bot')->withPivot(['is_free','tradeofferid']); }
     public function m8_items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm9.md2006', 'id_win', 'id_item')->withPivot(['price','assetid']); }
     // relationships stop
 

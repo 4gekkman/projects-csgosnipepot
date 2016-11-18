@@ -136,7 +136,16 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
+     *  2. Получить steamid пользователя, который делает запрос
+     *  3. Получить из кэша все not_paid_expired-выигрыши этого игрока
+     *  4. Найти среди них выигрыш с id_win
+     *  5. Проверить, нет ли уже у пользователя активных выигрышей
+     *  6. От каждого бота отправить игроку торовое предложение
+     *  7. Обновить данные о выигрыше в БД, если $tradeoffer_ids не пуст
+     *  8. Сделать коммит, если $tradeoffer_ids не пуст
      *
+     *  n. Обновить весь кэш, если $tradeoffer_ids не пуст
+     *  m. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -200,7 +209,20 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
       if(empty($win2pay))
         throw new \Exception("Не удалось обнаружить в системе тот выигрыш, который ты хочешь забрать.");
 
-      // 5. От каждого бота отправить игроку торовое предложение
+      // 5. Проверить, нет ли уже у пользователя активных выигрышей
+      call_user_func(function() USE ($steamid_and_id) {
+
+        // 5.1. Получить все активные выигрыши пользователя из кэша
+        $wins_active = json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$steamid_and_id['id']), true);
+
+        // 5.2. Если $wins_active не пуста
+        // - Завершить с ошибкой
+        if(count($wins_active) != 0)
+          throw new \Exception("Нельзя одновременно запросить торговые предложения от ботов по 2-м и более выигрышам.");
+
+      });
+
+      // 6. От каждого бота отправить игроку торовое предложение
       // - И получить traderofferid каждого из этих предложений.
       // - В случае неудачи при отправке, процесс не прерывается.
       // - Потом для успешно расплатившихся ботов надо будет пометить
@@ -212,17 +234,17 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
       //      "tradeofferid"  => <номер оффера> или "" (в случае неудачи),
       //      "error"         => текст ошибки
       //    ]
-      //
+      // $tradeoffer_ids[$bot['id']][tradeofferid]
       $tradeoffer_ids = call_user_func(function() USE ($steamid_and_id, $win2pay) {
 
-        // 5.1. Подготовить массив для результатов
+        // 6.1. Подготовить массив для результатов
         $results = [];
 
-        // 5.2. Наполнить $results
+        // 6.2. Наполнить $results
         foreach($win2pay['m8_bots'] as $bot) {
 
           // 1] Попробовать отправить оффер
-          $tradeoffer_result = call_user_func(function() USE ($steamid_and_id, $win2pay){
+          $tradeoffer_result = call_user_func(function() USE ($steamid_and_id, $win2pay, $bot){
 
             // 1.1] Получить steam_tradeurl пользователя $user
             $steam_tradeurl = $steamid_and_id['user']['steam_tradeurl'];
@@ -230,7 +252,7 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
               return [
                 "success"       => false,
                 "tradeofferid"  => "",
-                "error"         => "Торговый URL бота не введён."
+                "error"         => "Твой торговый URL в Steam не введён."
               ];
 
             // 1.2] Получить partner и token пользователя из его trade url
@@ -241,257 +263,147 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
               return [
                 "success"       => false,
                 "tradeofferid"  => "",
-                "error"         => "Торговый URL бота неверен."
+                "error"         => "Твой торговый URL в Steam неверен."
               ];
             $partner = $partner_and_token['data']['partner'];
             $token = $partner_and_token['data']['token'];
 
-            Log::info($steam_tradeurl);
-            Log::info($partner);
-            Log::info($token);
+            // 1.3] Подготовить массив assetid вещей, которые бот должен отправить
+            $assets2send = call_user_func(function() USE ($win2pay) {
 
+              $results = [];
+              for($i=0; $i<count($win2pay['m8_items']); $i++) {
+                array_push($results, $win2pay['m8_items'][$i]['pivot']['assetid']);
+              }
+              return $results;
+
+            });
+
+            // 1.4] Сформировать сообщение для торгового предложения
+            $tradeoffermessage = call_user_func(function() USE ($win2pay) {
+              return "Safecode: ".$win2pay['safecodes'][0]['code'];
+            });
+
+            // 1.5] Отправить пользователю торговое предложение
+
+              // 1.5.1] Отправить
+              $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
+                "id_bot"                => $bot['id'],
+                "steamid_partner"  			=> $steamid_and_id['steamid'],
+                "id_partner"            => $partner,
+                "token_partner"         => $token,
+                "dont_trade_with_gays"  => "1",
+                "assets2send"           => $assets2send,
+                "assets2recieve"        => [],
+                "tradeoffermessage"     => $tradeoffermessage
+              ]);
+
+              // 1.5.2] Если возникла ошибка
+              if($tradeoffer['status'] != 0)
+                return [
+                  "success"       => false,
+                  "tradeofferid"  => "",
+                  "error"         => "Не удалось отправить торговое предложение. Возможно, проблемы с ботом, или Steam тормозит."
+                ];
+
+              // 1.5.3] Если с этим пользователем нельзя торговать из-за escrow
+              if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
+                return [
+                  "success"       => false,
+                  "tradeofferid"  => "",
+                  "error"         => "Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней."
+                ];
+
+              // 1.5.4] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
+              $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
+                "id_bot"                => $bot['id'],
+                "need_to_ids"           => "0",
+                "just_fetch_info"       => "0"
+              ]);
+              if($result['status'] != 0)
+                return [
+                  "success"       => false,
+                  "tradeofferid"  => "",
+                  "error"         => "Не удалось подтвердить отправленное торговое предложение."
+                ];
 
             // 1.n] Вернуть результат
             return [
               "success"       => true,
-              "tradeofferid"  => "",
+              "tradeofferid"  => $tradeoffer['data']['tradeofferid'],
               "error"         => ""
             ];
 
-
-
-    //        // 3] Подготовить массив assetid вещей, которые бот должен запросить
-    //        $assets2recieve = call_user_func(function() USE ($win2pay) {
-    //
-    //          $results = [];
-    //          for($i=0; $i<count($win2pay['m8_items']); $i++) {
-    //            array_push($results, $win2pay['m8_items'][$i]['assetid']);
-    //          }
-    //          return $results;
-    //
-    //        });
-    //
-    //        // 4] Сформировать сообщение для торгового предложения
-    //        $tradeoffermessage = call_user_func(function() USE ($safecode) {
-    //          return "Safecode: ".$safecode;
-    //        });
-    //
-    //        // 5] Отправить пользователю торговое предложение
-    //
-    //          // 5.1] Отправить
-    //          $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
-    //            "id_bot"                => $bot2acceptbet->id,
-    //            "steamid_partner"  			=> $this->data['players_steamid'],
-    //            "id_partner"            => $partner,
-    //            "token_partner"         => $token,
-    //            "dont_trade_with_gays"  => "1",
-    //            "assets2send"           => [],
-    //            "assets2recieve"        => $assets2recieve,
-    //            "tradeoffermessage"     => $tradeoffermessage
-    //          ]);
-    //
-    //          // 5.2] Если возникла ошибка
-    //          if($tradeoffer['status'] != 0)
-    //            throw new \Exception("Не удалось отправить торговое предложение. Возможно, проблемы с ботом, или Steam тормозит.");
-    //
-    //          // 5.3] Если с этим пользователем нельзя торговать из-за escrow
-    //          if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
-    //            throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
-    //
-    //        // 6] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
-    //        $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
-    //          "id_bot"                => $bot2acceptbet->id,
-    //          "need_to_ids"           => "0",
-    //          "just_fetch_info"       => "0"
-    //        ]);
-    //        if($result['status'] != 0)
-    //          throw new \Exception($result['data']['errormsg']);
-    //
-    //        // n] Вернуть ID торгового предложения
-    //        return $tradeoffer['data']['tradeofferid'];
-
           });
 
-          // 5.2.2. Записать результат в $results
-          $results[$bot['id']] = $tradeofferid;
+          // 2] Записать результат в $results
+          $results[$bot['id']] = $tradeoffer_result;
 
         }
 
-        // 5.3. Вернуть $results
+        // 6.3. Вернуть $results
         return $results;
 
       });
 
+      // 7. Обновить данные о выигрыше в БД, если $tradeoffer_ids не пуст
+      if(count($tradeoffer_ids) > 0) {
 
+        // 1] Получить модель $win2pay
+        $win2pay_model = \M9\Models\MD4_wins::find($win2pay['id']);
+        if(empty($win2pay_model))
+          throw new \Exception('Не удалось найти в БД выигрыш с ID = '.$win2pay['id']);
 
+        // 2] Обновить значение ended_at в pivot-таблице с текущим статусом
+        $win2pay_model->wins_statuses()->updateExistingPivot($win2pay['wins_statuses'][count($win2pay['wins_statuses']) - 1]['id'], ['ended_at' => \Carbon\Carbon::now()->toDateTimeString()]);
 
-      // n. Обновить весь кэш
-      // TODO
+        // 3] Получить статус выигрышей Active
+        $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
+        if(empty($status_active))
+          throw new \Exception('Не удалось найти статус Active в таблице md9_wins_statuses');
 
+        // 4] Изменить статус $win2pay на Active
+        // - Если связи ещё нет, создать. А если есть, обновить.
+        if(!$win2pay_model->wins_statuses->contains($status_active['id']))
+          $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
+        else
+          $win2pay_model->wins_statuses()->updateExistingPivot($status_active['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "ended_at" => "", "comment" => "Повторное создание активного оффера (ов) для выплаты этого выигрыша победителю."]);
+
+        // 5] Для каждого из $win2pay['m8_bots'] записать is_free и tradeofferid
+        foreach($win2pay['m8_bots'] as $bot) {
+          $win2pay_model->m8_bots()->updateExistingPivot($bot['id'], [
+            "is_free"       => 0,
+            "tradeofferid"  => $tradeoffer_ids[$bot['id']]['tradeofferid']
+          ]);
+        }
+
+      }
+
+      // 8. Сделать коммит, если $tradeoffer_ids не пуст
+      if(count($tradeoffer_ids) > 0) {
+        DB::commit();
+      }
+
+      // n. Обновить весь кэш, если $tradeoffer_ids не пуст
+      if(count($tradeoffer_ids) > 0) {
+
+        $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+          "all"   => true
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+      }
 
       // m. Вернуть результаты
-
-
-//        // 18.1. Получить массив ботов, проводивших раунд
-//        $roundbots = call_user_func(function() USE ($winner_and_ticket) {
-//          $result = [];
-//          $result_ids = [];
-//          foreach($winner_and_ticket['round']['bets'] as $bet) {
-//            if(!in_array($bet['m8_bots'][0]['id'], $result_ids)) {
-//              array_push($result_ids, $bet['m8_bots'][0]['id']);
-//              array_push($result, $bet['m8_bots'][0]);
-//            }
-//          }
-//          return $result;
-//        });
-
-
-
-//        // 19.1. Получить инвентари этих ботов
-//        // - Чтобы иметь доступ в формате: $roundbots_inventories[<id бота>][<id вещи>]
-//        $roundbots_inventories = call_user_func(function() USE ($roundbots) {
-//          $results = [];
-//          foreach($roundbots as $bot) {
-//
-//            // 1] Получить инвентарь бота $bot
-//            $inventory = runcommand('\M8\Commands\C4_getinventory', [
-//              "steamid" => $bot['steamid'],
-//              "force"   => true
-//            ]);
-//            if($inventory['status'] != 0)
-//              throw new \Exception("Не получается получить инвентарь бота №".$bot['steamid']." из Steam.");
-//
-//            // 2] Записать $inventory в $results
-//            // - Так, чтобы иметь доступ в формате: $roundbots_inventories[<id бота>][<id вещи>]
-//            $results[$bot['id']] = call_user_func(function() USE ($inventory) {
-//
-//              $results = [];
-//              foreach($inventory['data']['rgDescriptions'] as $item) {
-//                $results[$item['id']] = $item;
-//              }
-//              return $results;
-//
-//            });
-//
-//          }
-//          return $results;
-//        });
-//
-//        Log::info($roundbots_inventories);
-
-
-
-
-
-
-//      // 5. Получить инвентарь бота, который должен выплачивать выигрыш
-//      $inventory = runcommand('\M8\Commands\C4_getinventory', [
-//        "steamid" => $win2pay['m8_bots'][0]['steamid'],
-//        "force"   => true
-//      ]);
-//      if($inventory['status'] != 0)
-//        throw new \Exception("Не получается получить твой инвентарь. Зайди в свой аккаунт в Steam, в настройки приватности, и проверь, чтобы инвентарь был 'Public'.");
-//
-//      // 6. Удостовериться, что в $inventory есть все вещи, которые надо выплатить
-//      call_user_func(function() USE ($inventory) {
-//
-//        // 1] Получить список assetid_classid_instanceid всех вещей из инвентаря
-//        $inventory_ids = call_user_func(function() USE ($inventory) {
-//          $results = [];
-//          foreach($inventory['data']['rgDescriptions'] as $item) {
-//            array_push($results, $item['assetid'] . "_" . $item['classid'] . "_" . $item['instanceid']);
-//          }
-//          return $results;
-//        });
-//
-//        // 2] Получить
-//
-//        Log::info($inventory_ids);
-//
-//      });
-
-
-
-
-      // 6. Отправить игроку торговое предложение
-      // - С запросом тех предметов, которые он хочет поставить.
-      $tradeofferid = call_user_func(function() USE ($steamid_and_id, $win2pay){
-
-        // 1] Получить steam_tradeurl пользователя $user
-        $steam_tradeurl = $steamid_and_id['user']['steam_tradeurl'];
-        if(empty($steam_tradeurl))
-          throw new \Exception("Чтобы сделать ставку, сначала введи свой Steam Trade URL в настройках.");
-
-        // 2] Получить partner и token пользователя из его trade url
-        $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
-          "trade_url" => $steam_tradeurl
-        ]);
-        if($partner_and_token['status'] != 0)
-          throw new \Exception("Похоже, что ты ввёл неправильный Steam Trade URL в настройках. Перепроверь его.");
-        $partner = $partner_and_token['data']['partner'];
-        $token = $partner_and_token['data']['token'];
-
-
-
-//        // 3] Подготовить массив assetid вещей, которые бот должен запросить
-//        $assets2recieve = call_user_func(function() USE ($win2pay) {
-//
-//          $results = [];
-//          for($i=0; $i<count($win2pay['m8_items']); $i++) {
-//            array_push($results, $win2pay['m8_items'][$i]['assetid']);
-//          }
-//          return $results;
-//
-//        });
-//
-//        // 4] Сформировать сообщение для торгового предложения
-//        $tradeoffermessage = call_user_func(function() USE ($safecode) {
-//          return "Safecode: ".$safecode;
-//        });
-//
-//        // 5] Отправить пользователю торговое предложение
-//
-//          // 5.1] Отправить
-//          $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
-//            "id_bot"                => $bot2acceptbet->id,
-//            "steamid_partner"  			=> $this->data['players_steamid'],
-//            "id_partner"            => $partner,
-//            "token_partner"         => $token,
-//            "dont_trade_with_gays"  => "1",
-//            "assets2send"           => [],
-//            "assets2recieve"        => $assets2recieve,
-//            "tradeoffermessage"     => $tradeoffermessage
-//          ]);
-//
-//          // 5.2] Если возникла ошибка
-//          if($tradeoffer['status'] != 0)
-//            throw new \Exception("Не удалось отправить торговое предложение. Возможно, проблемы с ботом, или Steam тормозит.");
-//
-//          // 5.3] Если с этим пользователем нельзя торговать из-за escrow
-//          if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
-//            throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
-//
-//        // 6] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
-//        $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
-//          "id_bot"                => $bot2acceptbet->id,
-//          "need_to_ids"           => "0",
-//          "just_fetch_info"       => "0"
-//        ]);
-//        if($result['status'] != 0)
-//          throw new \Exception($result['data']['errormsg']);
-//
-//        // n] Вернуть ID торгового предложения
-//        return $tradeoffer['data']['tradeofferid'];
-
-      });
-
-
-
-
-
-
-      throw new \Exception('Stop!');
-
+      return [
+        "status"  => 0,
+        "data"    => [
+          "safecode"        => $win2pay['safecodes'][0]['code'],
+          "tradeoffer_ids"  => $tradeoffer_ids,
+          "expire_in_secs"  => $win2pay['rounds'][0]['rooms']['offers_timeout_sec']
+        ]
+      ];
 
 
     DB::commit(); } catch(\Exception $e) {

@@ -197,7 +197,8 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
         // 3] Получить инвентарь бота, связанного с $bet
         $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
-          "steamid" => $bet_bot_steamid
+          "steamid" => $bet_bot_steamid,
+          "force"   => true
         ]);
         if($bet_bot_inventory['status'] != 0)
           throw new \Exception($bet_bot_inventory['data']['errormsg']);
