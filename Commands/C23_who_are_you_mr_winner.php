@@ -148,14 +148,17 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  11. Определить вещи на отдачу
      *  12. Определить вещи на комиссию
      *  13. Посчитать прибавку к долговому балансу игрока
-     *  14. Создать новый выигрыш, и заполнить ранее вычисленными значениями
-     *  15. Связать новый выигрыш $newwin с раундом $round
-     *  16. Связать новый выигрыш с пользователем-победителем
-     *  17. Связать новый выигрыш с ботом, проводившим раунд
-     *  18. Связать новый выигрыш с вещами $items2give
-     *  19. Связать новый выигрыш со статусом Ready
-     *  20. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
-     *  21. Сделать commit
+     *  14. Сгенерировать случайный код безопасности
+     *  15. Создать новый выигрыш, и заполнить ранее вычисленными значениями
+     *  16. Связать новый выигрыш $newwin с раундом $round
+     *  17. Связать новый выигрыш с пользователем-победителем
+     *  18. Связать новый выигрыш с ботом, проводившим раунд
+     *  19. Связать новый выигрыш с вещами $items2give
+     *  20. Связать новый выигрыш со статусом Ready
+     *  21. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
+     *  22. Записать код безопасности $safecode в md6_safecodes
+     *  23. Связать $safecode и $newwin через md1014
+     *  24. Сделать commit
      *
      *  N. Вернуть статус 0
      *
@@ -615,7 +618,38 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
       });
 
-      // 14. Создать новый выигрыш, и заполнить ранее вычисленными значениями
+      // 14. Сгенерировать случайный код безопасности
+      // - Он представляет из себя число определённой длины.
+      // - Длина указана в настройках соответствующей комнаты, в safecode_length.
+      // - У каждого кода безопасности есть свой срок годности.
+
+        // 14.1. Получить длину кода безопасности
+        $safecode_length = call_user_func(function() USE ($room) {
+
+          // 1] Получить длину кода безопасности
+          $safecode_length = $room['safecode_length'];
+
+          // 2] Если $safecode_length пуста, или не числа, использовать '6'
+          $validator = r4_validate(['safecode_length' => $safecode_length], [
+            "safecode_length" => ["required", "regex:/^[0-9]+$/ui"],
+          ]); if($validator['status'] == -1)
+            $safecode_length = 6;
+
+          // 3] Вернуть результат
+          return $safecode_length;
+
+        });
+
+        // 14.2. Сгенерировать случайное $safecode_length-значное число
+        $safecode = call_user_func(function() USE ($safecode_length) {
+          $result = '';
+          for($i = 0; $i < $safecode_length; $i++) {
+            $result .= mt_rand(0, 9);
+          }
+          return $result;
+        });
+
+      // 15. Создать новый выигрыш, и заполнить ранее вычисленными значениями
 
         // 1] Создать новый выигрыш
         $newwin = new \M9\Models\MD4_wins();
@@ -635,39 +669,39 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         // 3] Сохранить $newwin
         $newwin->save();
 
-      // 15. Связать новый выигрыш $newwin с раундом $round
+      // 16. Связать новый выигрыш $newwin с раундом $round
       if(!$newwin->rounds->contains($round['id']))
         $newwin->rounds()->attach($round['id']);
 
-      // 16. Связать новый выигрыш с пользователем-победителем
+      // 17. Связать новый выигрыш с пользователем-победителем
       if(!$newwin->m5_users->contains($winner_and_ticket['user_winner']['id']))
         $newwin->m5_users()->attach($winner_and_ticket['user_winner']['id']);
 
-      // 17. Связать новый выигрыш с ботом, проводившим раунд
+      // 18. Связать новый выигрыш с ботом, проводившим раунд
       if(!$newwin->m8_bots->contains($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']))
         $newwin->m8_bots()->attach($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']);
 
-      // 18. Связать новый выигрыш с вещами $items2give
+      // 19. Связать новый выигрыш с вещами $items2give
       foreach($items2give as $item) {
         if(!$newwin->m8_items->contains($item['id'])) {
           $newwin->m8_items()->attach($item['id']);
         }
       }
 
-      // 19. Связать новый выигрыш со статусом Ready
+      // 20. Связать новый выигрыш со статусом Ready
 
-        // 19.1. Получить статус Ready
+        // 20.1. Получить статус Ready
         $status_ready = \M9\Models\MD9_wins_statuses::where('status', 'Ready')->first();
         if(empty($status_ready))
           throw new \Exception('Не удалось найти статус Ready в таблице md9_wins_statuses');
 
-        // 19.2. Связать $newwin со статусом $status_ready
+        // 20.2. Связать $newwin со статусом $status_ready
         if(!$newwin->wins_statuses->contains($status_ready['id'])) {
           $newwin->wins_statuses()->attach($status_ready['id']);
           $newwin->wins_statuses()->updateExistingPivot($status_ready['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "comment" => "Определение победителя, создние нового выигрыша."]);
         }
 
-      // 20. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
+      // 21. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
 
         // 1] Создать новый долг
         $newdebt = new \M9\Models\MD10_debts();
@@ -678,7 +712,15 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         if(!$newwin->debts->contains($newdebt['id']))
           $newwin->debts()->attach($newdebt['id']);
 
-      // 21. Сделать commit
+      // 22. Записать код безопасности $safecode в md6_safecodes
+      $newsafecode = new \M9\Models\MD6_safecodes();
+      $newsafecode->code = $safecode;
+      $newsafecode->save();
+
+      // 23. Связать $safecode и $newwin через md1014
+      $newwin->safecodes()->attach($newsafecode->id);
+
+      // 24. Сделать commit
       DB::commit();
 
       // n] Вернуть результат

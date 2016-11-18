@@ -137,8 +137,13 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Принять и проверить входящие данные
+     *  2. Назначить значения по умолчанию
+     *  3. Обновить кэш, который указан в cache2update
+     *    3.1. processing:wins:active + processing:wins:active:<id пользователя>
+     *    3.2. processing:wins:not_paid_expired + processing:wins:not_paid_expired:<id пользователя>
+     *    3.3. processing:wins:paid + processing:wins:paid:<id пользователя>
+     *    3.4. processing:wins:expired + processing:wins:expired:<id пользователя>
      *
      *  N. Вернуть статус 0
      *
@@ -158,7 +163,231 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
         throw new \Exception($validator['data']);
       }
 
-      write2log("C25_update_wins_cache", []);
+      // 2. Назначить значения по умолчанию
+
+        // 2.1. Если all не передано, задать ей значение по умолчанию false
+        if(!array_key_exists('all', $this->data))
+          $this->data['all'] = false;
+
+        // 2.2. Если cache2update не передан, назначить пустой массив
+        if(!array_key_exists('cache2update', $this->data))
+          $this->data['cache2update'] = [];
+
+        // 2.3. Если force отсутствует, назначить true
+        if(!array_key_exists('force', $this->data))
+          $this->data['force'] = true;
+
+      // 3. Обновить кэш, который указан в cache2update
+
+        // 3.1. processing:wins:active + processing:wins:active:<id пользователя>
+
+          // 3.1.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:wins:active'), true);
+
+          // 3.1.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:wins:active') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:wins:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
+
+                // 1] Получить все выигрыши со статусом Active
+                // - Включая все их связи.
+                $active_wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                  ->whereHas('wins_statuses', function($query){
+                    $query->where('status', 'Active');
+                  })
+                  ->get();
+
+                // 2] Записать JSON с $active_wins в кэш
+                Cache::put('processing:wins:active', json_encode($active_wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных выигрышей
+                foreach($active_wins as $win) {
+                  $id_user = $win['m5_users'][0]['id'];
+                  Cache::tags(['processing:wins:active:personal'])->put('processing:wins:active:'.$id_user, json_encode($win, JSON_UNESCAPED_UNICODE), 30);
+                }
+
+                // 4] Если $active_wins пуст, сбросить весь персонализированный кэш
+                if(count($active_wins) == 0) {
+                  Cache::tags(['processing:wins:active:personal'])->flush();
+                }
+
+              });
+            }
+
+          }
+
+        // 3.2. processing:wins:not_paid_expired + processing:wins:not_paid_expired:<id пользователя>
+
+          // 3.2.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:wins:not_paid_expired'), true);
+
+          // 3.1.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:wins:not_paid_expired') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:wins:not_paid_expired", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
+
+                // 1] Получить все выигрыши со статусами кроме Paid и Expired
+                // - Включая все их связи.
+                $wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                  ->whereDoesntHave('wins_statuses', function($query){
+                    $query->where('status', 'Paid')
+                      ->orWhere('status', 'Expired');
+                  })
+                  ->get();
+
+                // 2] Записать JSON с $wins в кэш
+                Cache::put('processing:wins:not_paid_expired', json_encode($wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш не-paid-expired выигрышей
+                Cache::tags(['processing:wins:not_paid_expired:personal'])->flush();
+                foreach($wins as $win) {
+
+                  // 3.1] Получить ID пользователя
+                  $id_user = $win['m5_users'][0]['id'];
+
+                  // 3.2] Получить его текущий кэш
+                  $curcache = json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$id_user), true) ?: [];
+
+                  // 3.3] Добавить $win в $curcache
+                  array_push($curcache, $win);
+
+                  // 3.4] Засунуть $curcache в кэш
+                  Cache::tags(['processing:wins:not_paid_expired:personal'])->put('processing:wins:not_paid_expired:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
+
+                }
+
+                // 4] Если $wins пуст, сбросить весь персонализированный кэш
+                if(count($wins) == 0) {
+                  Cache::tags(['processing:wins:not_paid_expired:personal'])->flush();
+                }
+
+              });
+            }
+
+          }
+
+        // 3.3. processing:wins:paid + processing:wins:paid:<id пользователя>
+
+          // 3.3.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:wins:paid'), true);
+
+          // 3.3.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:wins:paid') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:wins:paid", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
+
+                // 1] Получить все выигрыши со статусом Paid
+                // - Включая все их связи.
+                $paid_wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                  ->whereHas('wins_statuses', function($query){
+                    $query->where('status', 'Paid');
+                  })
+                  ->get();
+
+                // 2] Записать JSON с $paid_wins в кэш
+                Cache::put('processing:wins:paid', json_encode($paid_wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш для paid-выигрышей
+                Cache::tags(['processing:wins:paid:personal'])->flush();
+                foreach($paid_wins as $win) {
+
+                  // 3.1] Получить ID пользователя
+                  $id_user = $win['m5_users'][0]['id'];
+
+                  // 3.2] Получить его текущий кэш
+                  $curcache = json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$id_user), true) ?: [];
+
+                  // 3.3] Добавить $win в $curcache
+                  array_push($curcache, $win);
+
+                  // 3.4] Засунуть $curcache в кэш
+                  Cache::tags(['processing:wins:paid:personal'])->put('processing:wins:not_paid_expired:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
+
+                }
+
+                // 4] Если $paid_wins пуст, сбросить весь персонализированный кэш
+                if(count($paid_wins) == 0) {
+                  Cache::tags(['processing:wins:paid:personal'])->flush();
+                }
+
+              });
+            }
+
+          }
+
+        // 3.4. processing:wins:expired + processing:wins:expired:<id пользователя>
+
+          // 3.4.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:wins:expired'), true);
+
+          // 3.4.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:wins:expired') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:wins:expired", $this->data['cache2update']) == true || $this->data['all'] == true) {
+              call_user_func(function(){
+
+                // 1] Получить все выигрыши со статусом Expired
+                // - Включая все их связи.
+                $expired_wins = \M9\Models\MD4_wins::with(["debts","rounds","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                  ->whereHas('wins_statuses', function($query){
+                    $query->where('status', 'Expired');
+                  })
+                  ->get();
+
+                // 2] Записать JSON с $expired_wins в кэш
+                Cache::put('processing:wins:expired', json_encode($expired_wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш для expired-выигрышей
+                Cache::tags(['processing:wins:expired:personal'])->flush();
+                foreach($expired_wins as $win) {
+
+                  // 3.1] Получить ID пользователя
+                  $id_user = $win['m5_users'][0]['id'];
+
+                  // 3.2] Получить его текущий кэш
+                  $curcache = json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$id_user), true) ?: [];
+
+                  // 3.3] Добавить $win в $curcache
+                  array_push($curcache, $win);
+
+                  // 3.4] Засунуть $curcache в кэш
+                  Cache::tags(['processing:wins:expired:personal'])->put('processing:wins:not_expired_expired:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
+
+                }
+
+                // 4] Если $expired_wins пуст, сбросить весь персонализированный кэш
+                if(count($expired_wins) == 0) {
+                  Cache::tags(['processing:wins:expired:personal'])->flush();
+                }
+
+              });
+            }
+
+          }
+
 
 
     DB::commit(); } catch(\Exception $e) {

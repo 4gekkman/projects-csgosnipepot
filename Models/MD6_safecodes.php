@@ -68,6 +68,7 @@ class MD6_safecodes extends Model {
 
     // relationships start
     public function bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md1007', 'id_safecode', 'id_bet'); }
+    public function wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md1014', 'id_safecode', 'id_win'); }
     // relationships stop
 
 
