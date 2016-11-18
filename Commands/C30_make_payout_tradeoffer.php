@@ -210,7 +210,8 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
         throw new \Exception("Не удалось обнаружить в системе тот выигрыш, который ты хочешь забрать.");
 
       // 5. Проверить, нет ли уже у пользователя активных выигрышей
-      call_user_func(function() USE ($steamid_and_id) {
+      // - А также, совпадают ли steamid запрашивающего выигрыш, и получателя
+      call_user_func(function() USE ($steamid_and_id, $win2pay) {
 
         // 5.1. Получить все активные выигрыши пользователя из кэша
         $wins_active = json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$steamid_and_id['id']), true);
@@ -219,6 +220,10 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
         // - Завершить с ошибкой
         if(count($wins_active) != 0)
           throw new \Exception("Нельзя одновременно запросить торговые предложения от ботов по 2-м и более выигрышам.");
+
+        // 5.3. Если steamid запрашивающего и получателя не одинаковы, завершить
+        if($win2pay['m5_users'][0]['ha_provider_uid'] != $steamid_and_id['steamid'])
+          throw new \Exception("Выигрыш может получить только его владелец, бро. Только его владелец.");
 
       });
 
@@ -247,7 +252,7 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
           $tradeoffer_result = call_user_func(function() USE ($steamid_and_id, $win2pay, $bot){
 
             // 1.1] Получить steam_tradeurl пользователя $user
-            $steam_tradeurl = $steamid_and_id['user']['steam_tradeurl'];
+            $steam_tradeurl = $win2pay['m5_users'][0]['steam_tradeurl'];
             if(empty($steam_tradeurl))
               return [
                 "success"       => false,
@@ -289,7 +294,7 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
               // 1.5.1] Отправить
               $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
                 "id_bot"                => $bot['id'],
-                "steamid_partner"  			=> $steamid_and_id['steamid'],
+                "steamid_partner"  			=> $win2pay['m5_users'][0]['ha_provider_uid'],
                 "id_partner"            => $partner,
                 "token_partner"         => $token,
                 "dont_trade_with_gays"  => "1",
