@@ -677,21 +677,32 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       if(!$newwin->m5_users->contains($winner_and_ticket['user_winner']['id']))
         $newwin->m5_users()->attach($winner_and_ticket['user_winner']['id']);
 
-      // 18. Связать новый выигрыш с ботом, проводившим раунд
-      if(!$newwin->m8_bots->contains($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']))
-        $newwin->m8_bots()->attach($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']);
+      // 18. Связать новый выигрыш с ботами, проводившими раунд
+
+        // 18.1. Получить массив ботов, проводивших раунд
+        $roundbots = call_user_func(function() USE ($winner_and_ticket) {
+          $result = [];
+          $result_ids = [];
+          foreach($winner_and_ticket['round']['bets'] as $bet) {
+            if(!in_array($bet['m8_bots'][0]['id'], $result_ids)) {
+              array_push($result_ids, $bet['m8_bots'][0]['id']);
+              array_push($result, $bet['m8_bots'][0]);
+            }
+          }
+          return $result;
+        });
+
+        // 18.2. Связать каждого из ботов с $newwin
+        foreach($roundbots as $bot) {
+          if(!$newwin->m8_bots->contains($bot['id'])) {}
+            $newwin->m8_bots()->attach($bot['id']);
+        }
 
       // 19. Связать новый выигрыш с вещами $items2give
-
-        // 19.1. Получить ID бота, который принимал все ставки
-
-
-        // 19.2. Получить инвентать бота
-
-
       foreach($items2give as $item) {
         if(!$newwin->m8_items->contains($item['id'])) {
           $newwin->m8_items()->attach($item['id']);
+          $newwin->m8_items()->updateExistingPivot($item['id'], ["assetid" => $item['pivot']['assetid_bots']]);
         }
       }
 

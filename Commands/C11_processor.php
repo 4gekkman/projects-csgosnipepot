@@ -166,7 +166,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         "prod"  => "processor_hard",   // Продакшн
         "dev"   => "smallbroadcast"    // Отладка
       ];
-      $queue = $queues['prod'];
+      $queue = $queues['dev'];
 
 
       // Б. Если $queue не пуста, завершить
