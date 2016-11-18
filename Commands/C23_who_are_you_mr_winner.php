@@ -682,6 +682,13 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         $newwin->m8_bots()->attach($winner_and_ticket['round']['bets'][0]['m8_bots'][0]['id']);
 
       // 19. Связать новый выигрыш с вещами $items2give
+
+        // 19.1. Получить ID бота, который принимал все ставки
+
+
+        // 19.2. Получить инвентать бота
+
+
       foreach($items2give as $item) {
         if(!$newwin->m8_items->contains($item['id'])) {
           $newwin->m8_items()->attach($item['id']);
