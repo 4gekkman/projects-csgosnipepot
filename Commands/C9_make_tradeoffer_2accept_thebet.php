@@ -151,6 +151,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
      *  13. Записать необходимую информацию о ставке в БД
      *  14. Сделать коммит
      *  15. Обновить весь кэш
+     *  16. Подготовить активные офферы именно для этого пользователя
      *  m. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -647,7 +648,8 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           "safecode"        => $safecode,
           "tradeofferid"    => $tradeofferid,
           "current_or_next" => "в текущий раунд",
-          "expire_in_secs"  => $room->offers_timeout_sec
+          "expire_in_secs"  => $room->offers_timeout_sec,
+          "bets_active"     => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
         ]
       ];
 

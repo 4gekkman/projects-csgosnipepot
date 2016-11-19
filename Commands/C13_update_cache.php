@@ -140,7 +140,9 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
      *  1. Принять и проверить входящие данные
      *  2. Назначить значения по умолчанию
      *  3. Обновить кэш, который указан в cache2update
-     *    3.1. processing:bets:active + processing:bets:active:<id пользователя>:<id комнаты>
+     *    3.1. processing:bets:active +
+     *         processing:bets:active:<id пользователя> +
+     *         processing:bets:active:<id пользователя>:<id комнаты>
      *    3.2. processing:bets:accepted
      *    3.3. processing:rooms
      *
@@ -179,7 +181,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
       // 3. Обновить кэш, который указан в cache2update
 
-        // 3.1. processing:bets:active + processing:bets:active:<id пользователя>
+        // 3.1. processing:bets:active + processing:bets:active:<id пользователя> + processing:bets:active:<id пользователя>
 
           // 3.1.1. Получить кэш
           $cache = json_decode(Cache::get('processing:bets:active'), true);
@@ -206,21 +208,47 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                 // 2] Записать JSON с $active_bets в кэш
                 Cache::put('processing:bets:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
-                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок
-                foreach($active_bets as $bet) {
-                  $id_user = $bet['m5_users'][0]['id'];
-                  $id_room = $bet['rooms'][0]['id'];
-                  Cache::put('processing:bets:active:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
-                }
+                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок (пользователь)
 
-                // 3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок
+                  // 3.1] Получить не повторяющийся список ID пользователей, которые есть в $active_bets
+                  $users_ids = call_user_func(function() USE ($active_bets) {
+                    $result = [];
+                    foreach($active_bets as $bet) {
+                      $id_user = $bet['m5_users'][0]['id'];
+                      if(!in_array($id_user, $result))
+                        array_push($result, $id_user);
+                    }
+                    return $result;
+                  });
+
+                  // 3.2] Получить для каждого $users_ids свой массив с активными ставками
+                  $users_active_bets = call_user_func(function() USE ($users_ids, $active_bets) {
+                    $result = [];
+                    foreach($users_ids as $id) {
+                      foreach($active_bets as $bet) {
+                        $id_user = $bet['m5_users'][0]['id'];
+                        if($id_user == $id) {
+                          if(!array_key_exists($id_user, $result)) $result[$id_user] = [];
+                          array_push($result[$id_user], $bet);
+                        }
+                      }
+                    }
+                    return $result;
+                  });
+
+                  // 3.3] Записать $users_active_bets в кэш
+                  foreach($users_active_bets as $id_user => $bets) {
+                    Cache::tags(['processing:bets:active:personal'])->put('processing:bets:active:'.$id_user, json_encode($bets, JSON_UNESCAPED_UNICODE), 30);
+                  }
+
+                // 4] Пробежаться по $cache, и записать индивидуальный кэш активных ставок (пользователь + комната)
                 foreach($active_bets as $bet) {
                   $id_user = $bet['m5_users'][0]['id'];
                   $id_room = $bet['rooms'][0]['id'];
                   Cache::tags(['processing:bets:active:personal'])->put('processing:bets:active:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
                 }
 
-                // 4] Если $active_bets пуст, сбросить весь персонализированный кэш
+                // 5] Если $active_bets пуст, сбросить весь персонализированный кэш
                 if(count($active_bets) == 0) {
                   Cache::tags(['processing:bets:active:personal'])->flush();
                 }

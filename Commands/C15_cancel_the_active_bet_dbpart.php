@@ -202,7 +202,48 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
       // 7. Сделать commit
       DB::commit();
 
-      // 8. Сообщить игроку $this->data['id_user'], что его ставка истекла
+      // 8. Подготовить активные офферы именно для этого пользователя
+      $bets_active = call_user_func(function(){
+
+        // 1] Получить все активные офферы
+        $bets_active_all = json_decode(Cache::get('processing:bets:active'), true);
+
+        // 2] Если $bets_active_all пусто, вернуть пустой массив
+        if(empty($bets_active_all)) return [];
+
+        // 3] Отсеять из массива все офферы, не принадлежащие этому пользователю
+        $bets_active_user = array_values(array_filter($bets_active_all, function($item){
+
+          // 3.1] Если $item принадлежит текущему пользователю, вернуть true
+          if($item['m5_users'][0]['id'] == $this->data['id_user']) return true;
+
+        }));
+
+        // 4] Добавить свойство bets_statuses[0]['pivot']['expire_secs']
+        for($i=0; $i<count($bets_active_user); $i++) {
+          $bets_active_user[$i]['bets_statuses'][0]['pivot']['expire_secs'] = call_user_func(function() USE ($bets_active_user, $i) {
+
+            // 4.1] Получить текущую дату и время
+            $now = \Carbon\Carbon::now();
+
+            // 4.2] Получить дату и время истечения оффера
+            $expired_at = \Carbon\Carbon::parse($bets_active_user[$i]['bets_statuses'][0]['pivot']['expired_at']);
+
+            // 4.3] Если $now >= $expired_at, вернуть 0
+            if($now->gte($expired_at)) return 0;
+
+            // 4.4] Иначе, вернуть разницу между ними
+            return $now->diffInSeconds($expired_at);
+
+          });
+        }
+
+        // n] Вернуть результат
+        return $bets_active_user;
+
+      });
+
+      // 9. Сообщить игроку $this->data['id_user'], что его ставка истекла
       // - Через websocket, по частном каналу
       Event::fire(new \R2\Broadcast([
         'channels' => ['m9:private:'.$this->data['id_user']],
@@ -210,7 +251,8 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
         'data'     => [
           'task' => 'tradeoffer_cancel',
           'data' => [
-            'id_room' => $this->data['id_room']
+            'id_room'     => $this->data['id_room'],
+            'bets_active' => $bets_active
           ]
         ]
       ]));
