@@ -203,16 +203,46 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                   })
                   ->get();
 
-
-
                 // 3] Записать JSON с $active_wins в кэш
                 Cache::put('processing:wins:active', json_encode($active_wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
                 // 4] Пробежаться по $cache, и записать индивидуальный кэш активных выигрышей
+                // - У каждого пользователя может быть одновременно лишь 1 активный выигрыш.
                 foreach($active_wins as $win) {
                   $id_user = $win['m5_users'][0]['id'];
                   Cache::tags(['processing:wins:active:personal'])->put('processing:wins:active:'.$id_user, json_encode($win, JSON_UNESCAPED_UNICODE), 30);
                 }
+
+                  //  // 4.1] Получить не повторяющийся список ID пользователей, которые есть в $active_wins
+                  //  $users_ids = call_user_func(function() USE ($active_wins) {
+                  //    $result = [];
+                  //    foreach($active_wins as $win) {
+                  //      $id_user = $win['m5_users'][0]['id'];
+                  //      if(!in_array($id_user, $result))
+                  //        array_push($result, $id_user);
+                  //    }
+                  //    return $result;
+                  //  });
+                  //
+                  //  // 4.2] Получить для каждого $users_ids свой массив с активными офферами выигрышей
+                  //  $users_active_wins = call_user_func(function() USE ($users_ids, $active_wins) {
+                  //    $result = [];
+                  //    foreach($users_ids as $id) {
+                  //      foreach($active_wins as $win) {
+                  //        $id_user = $win['m5_users'][0]['id'];
+                  //        if($id_user == $id) {
+                  //          if(!array_key_exists($id_user, $result)) $result[$id_user] = [];
+                  //          array_push($result[$id_user], $win);
+                  //        }
+                  //      }
+                  //    }
+                  //    return $result;
+                  //  });
+                  //
+                  //  // 4.3] Записать $users_active_bets в кэш
+                  //  foreach($users_active_wins as $id_user => $wins) {
+                  //    Cache::tags(['processing:wins:active:personal'])->put('processing:wins:active:'.$id_user, json_encode($wins, JSON_UNESCAPED_UNICODE), 30);
+                  //  }
 
                 // 5] Если $active_wins пуст, сбросить весь персонализированный кэш
                 if(count($active_wins) == 0) {

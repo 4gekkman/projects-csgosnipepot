@@ -372,7 +372,8 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             'task' => 'tradeoffer_accepted',
             'data' => [
               'id_room'           => $this->data['id_room'],
-              'in_current_round'  => true
+              'in_current_round'  => true,
+              'bets_active' => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
             ]
           ]
         ]));
@@ -403,7 +404,8 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             'task' => 'tradeoffer_cancel',
             'data' => [
               'id_room'           => $this->data['id_room'],
-              'in_current_round'  => false
+              'in_current_round'  => false,
+              'bets_active' => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
             ]
           ]
         ]));
