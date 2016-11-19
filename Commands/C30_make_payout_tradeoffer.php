@@ -359,26 +359,22 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
         if(empty($win2pay_model))
           throw new \Exception('Не удалось найти в БД выигрыш с ID = '.$win2pay['id']);
 
-        // 2] Обновить значение ended_at в pivot-таблице с текущим статусом
-        $win2pay_model->wins_statuses()->updateExistingPivot($win2pay['wins_statuses'][count($win2pay['wins_statuses']) - 1]['id'], ['ended_at' => \Carbon\Carbon::now()->toDateTimeString()]);
-
-        // 3] Получить статус выигрышей Active
+        // 2] Получить статус выигрышей Active
         $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
         if(empty($status_active))
           throw new \Exception('Не удалось найти статус Active в таблице md9_wins_statuses');
 
-        // 4] Изменить статус $win2pay на Active
-        // - Если связи ещё нет, создать. А если есть, обновить.
-        if(!$win2pay_model->wins_statuses->contains($status_active['id']))
-          $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
-        else
-          $win2pay_model->wins_statuses()->updateExistingPivot($status_active['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "ended_at" => "", "comment" => "Повторное создание активного оффера (ов) для выплаты этого выигрыша победителю."]);
+        // 3] Изменить статус $win2pay на Active
+        // - Удалить старые связи с wins_statuses, и создать новую.
+        $win2pay_model->wins_statuses()->detach();
+        $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
 
-        // 5] Для каждого из $win2pay['m8_bots'] записать is_free и tradeofferid
+        // 4] Для каждого из $win2pay['m8_bots'] записать is_free, tradeofferid и offer_expired_at
         foreach($win2pay['m8_bots'] as $bot) {
           $win2pay_model->m8_bots()->updateExistingPivot($bot['id'], [
-            "is_free"       => 0,
-            "tradeofferid"  => $tradeoffer_ids[$bot['id']]['tradeofferid']
+            "is_free"           => 0,
+            "tradeofferid"      => $tradeoffer_ids[$bot['id']]['tradeofferid'],
+            "offer_expired_at"  => \Carbon\Carbon::now()->addSeconds((int)round($win2pay_model['rounds'][0]['rooms']['offers_timeout_sec']))->toDateTimeString()
           ]);
         }
 

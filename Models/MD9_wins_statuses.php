@@ -67,7 +67,7 @@ class MD9_wins_statuses extends Model {
   //------------------//
 
     // relationships start
-    public function wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md1012', 'id_status', 'id_win')->withPivot(['started_at','ended_at','comment']); }
+    public function wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md1012', 'id_status', 'id_win')->withPivot(['started_at','comment']); }
     // relationships stop
 
 

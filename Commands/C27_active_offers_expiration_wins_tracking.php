@@ -135,7 +135,8 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить активные выигрыши из кэша
+     *  2. Отменить истёкшие офферы, перевести соотв.выигрыши в состояние Ready
      *
      *
      *  N. Вернуть статус 0
@@ -147,8 +148,44 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
     //------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить активные выигрыши из кэша
+      $wins_active = json_decode(Cache::get('processing:wins:active'), true);
 
-      write2log("C27_active_offers_expiration_wins_tracking", []);
+      // 2. Отменить истёкшие офферы, перевести соотв.выигрыши в состояние Ready
+      foreach($wins_active as $win) {
+
+        // 2.1. Получить всех ботов, связанных с $win
+        $bots = $win['m8_bots'];
+
+        // 2.2. Проверить истёкшие офферы у каждого из ботов
+        foreach($bots as $bot) {
+
+          // 1] Получить дату и время истечения оффера для $bot
+          $offer_expired_at = $bot['pivot']['offer_expired_at'];
+
+          // 2] Определить, истёк ли срок годности оффера
+          $is_expired = call_user_func(function() USE ($offer_expired_at) {
+
+            return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($offer_expired_at));
+
+          });
+
+          // 3] Если оффер истёк, отменить его
+          if($is_expired == true) {
+
+            runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+              "winid"        => $win['id'],
+              "tradeofferid" => $bot['pivot']['tradeofferid'],
+              "id_bot"       => $bot['id'],
+              "id_user"      => $win['m5_users'][0]['id'],
+              "id_room"      => $win['rounds'][0]['rooms']['id'],
+            ], 0, ['on'=>true, 'name'=>'smallbroadcast']); // 'processor_wins_hard']);
+
+          }
+
+        }
+
+      }
 
 
     DB::commit(); } catch(\Exception $e) {
