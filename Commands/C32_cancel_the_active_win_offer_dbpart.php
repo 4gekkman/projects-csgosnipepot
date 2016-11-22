@@ -171,6 +171,7 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
       }
 
       // 2. Получить выигрыш с winid и tradeofferid
+      // - Заодно удалить значение tradeofferid из pivot-таблицы.
       $win = call_user_func(function(){
 
         // 1] Получить выигрыш с winid
@@ -179,10 +180,18 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
             ->first();
 
         // 2] Если у $win нет tradeofferid, вернуть ""
-        $has_tradeofferid = call_user_func(function() USE ($win) {
-          foreach($win['m8_bots'] as $bot) {
-            if($bot['pivot']['tradeofferid'] == $this->data['tradeofferid'])
+        $has_tradeofferid = call_user_func(function() USE (&$win) {
+          foreach($win['m8_bots'] as &$bot) {
+            if($bot['pivot']['tradeofferid'] == $this->data['tradeofferid']) {
+
+              // Удалить значение tradeofferid из pivot-таблицы
+              $bot['pivot']['tradeofferid'] = "";
+              $bot['pivot']->save();
+
+              // Вернуть true
               return true;
+
+            }
           }
           return false;
         });

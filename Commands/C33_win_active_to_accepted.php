@@ -7,14 +7,18 @@
 /**
  *  Что делает
  *  ----------
- *    - Wins expiration tracking
+ *    - Convert active win trade offer to accepted
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        winid
+ *        tradeofferid
+ *        id_user
+ *        id_room
+ *        id_bot
  *      ]
  *    ]
  *
@@ -101,7 +105,7 @@
 //---------//
 // Команда //
 //---------//
-class C28_wins_expiration_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C33_win_active_to_accepted extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,125 +139,155 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
     /**
      * Оглавление
      *
-     *  1. Получить активные выигрыши из кэша
-     *  2. Получить все not_paid_expired выигрыши из кэша,
-     *  3. Получить все истёкшие выигрыши из $wins_not_paid_expired
-     *  4. Для $expired_wins: отменить активные офферы, сменить статус на Expired
-     *  5. Сделать commit
-     *  6. Обновить весь кэш
-     *
+     *  1. Получить и проверить входящие данные
+     *  2. Получить выигрыш с winid
+     *  3. Получить статусы Active и Paid
+     *  4. Получить активный оффер с tradeofferid
+     *  5. Поменять в pivot is_free на 1, и удалить значение tradeofferid
+     *  6. Выплатили ли все боты по выигрышу $win всё, что должны?
+     *  7. Если $is_all_free == true, поменять статус $win на Paid
+     *  8. Сделать commit
+     *  9. Обновить весь кэш
+     *  10. Сообщить игроку $this->data['id_user'], что его выигрыш выплачен
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------//
-    // Отслеживание сроков годности самих выигрышей //
-    //----------------------------------------------//
+    //------------------------------------------------------------------//
+    // Обозначить оффер по выплате указанного выигрыша, как выплаченный //
+    //------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить текущее серверное время в формате Carbon
-      $servertime = \Carbon\Carbon::now();
+      // 1. Получить и проверить входящие данные
+      $validator = r4_validate($this->data, [
 
-      // 2. Получить все not_paid_expired выигрыши из кэша,
-      $wins_not_paid_expired = json_decode(Cache::get('processing:wins:not_paid_expired'), true);
+        "winid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_bot"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
-      // 3. Получить все истёкшие выигрыши из $wins_not_paid_expired
-      $expired_wins = call_user_func(function() USE ($servertime, $wins_not_paid_expired) {
+      ]); if($validator['status'] == -1) {
 
-        $results = [];
-        foreach($wins_not_paid_expired as $win) {
+        throw new \Exception($validator['data']);
 
-          // 1] Получить дату и время создания $win в формате Carbon
-          $created_at = \Carbon\Carbon::parse($win['created_at']);
+      }
 
-          // 2] Получить лимит времени на выплута в минутах (payout_limit_min)
-          $payout_limit_min = $win['rounds'][0]['rooms']['payout_limit_min'];
-          if(!$payout_limit_min) $payout_limit_min = 60;
+      // 2. Получить выигрыш с winid
+      $win = \M9\Models\MD4_wins::with(['wins_statuses', 'm8_items', 'm8_bots'])
+          ->where('id', $this->data['winid'])
+          ->first();
+      if(empty($win))
+        throw new \Exception('Не удалось найти выигрыш в m9.md4_wins по id = '.$this->data['winid']);
 
-          // 3] Вычислить, когда должен истечь выигрыш $win
-          $expired_at = $created_at->addMinutes($payout_limit_min);
+      // 3. Получить статусы Active и Paid
+      $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
+      $status_paid = \M9\Models\MD9_wins_statuses::where('status', 'Paid')->first();
+      if(empty($status_active) || empty($status_paid))
+        throw new \Exception('Не удалось найти статусы Active или Paid в m9.md9_wins_statuses');
 
-          // 4] Если $servertime >= $expired_at, добавить $win в $results
-          if($servertime->gte($expired_at))
-            array_push($results, $win);
+      // 4. Получить активный оффер с tradeofferid
+      // - В формате:
+      //
+      //    [
+      //      id_bot        // id бота, чей трейдоффер
+      //      win           // массив данных о выигрыше
+      //      tradeofferid  // id трейдоффера
+      //    ]
+      //
+      $bot_win_tradeofferid = call_user_func(function(){
 
-        }
-        return $results;
+        // 1] Получить активные выигрыши из кэша
+        $wins_active = json_decode(Cache::get('processing:wins:active'), true);
 
-      });
+        // 2] Получить из $wins_active список всех активных офферов, и ID отправивших их ботов
+        // - В формате:
+        //
+        //    [
+        //      <номер оффера> => [
+        //        id_bot      => <id бота>,
+        //        win         => <ссылка на выигрыш из $wins_active>,
+        //      ],
+        //      ...
+        //    ]
+        //
+        $offers_ids = call_user_func(function() USE ($wins_active) {
 
-      // 4. Для $expired_wins: отменить активные офферы, сменить статус на Expired
-      foreach($expired_wins as $expired_win) {
+          $offers_ids = [];
+          for($i=0; $i<count($wins_active); $i++) {
+            foreach($wins_active[$i]['m8_bots'] as $bot) {
 
-        // 4.1. Отменить все активные офферы для $expired_win
-        call_user_func(function() USE ($expired_win, $expired_wins) {
+              // 1] Получить pivot-таблицу
+              $pivot = $bot['pivot'];
 
-          // 1] Получить активные выигрыши из кэша
-          $wins_active = json_decode(Cache::get('processing:wins:active'), true);
+              // 2] Если is_free == 1, или отсутствует tradeofferid
+              // - Перейти к следующей итерации.
+              if($pivot['is_free'] == 1 || empty($pivot['tradeofferid']))
+                continue;
 
-          // 2] Отменить офферы истёкших выигрышей, перевести соотв.выигрыши в состояние Expired
-          foreach($wins_active as $win) {
+              // 3] Получить ID и tradeofferid бота
+              $id           = $bot['id'];
+              $tradeofferid = $pivot['tradeofferid'];
 
-            // 2.1] Получить всех ботов, связанных с $win
-            $bots = $win['m8_bots'];
-
-            // 2.2. Проверить истёкшие офферы у каждого из ботов
-            foreach($bots as $bot) {
-
-              // 1] Получить дату и время истечения выигрыша
-              $offer_expired_at = $bot['pivot']['offer_expired_at'];
-
-              // 2] Определить, истёк ли срок годности оффера
-              $is_expired = call_user_func(function() USE ($offer_expired_at) {
-
-                return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($offer_expired_at));
-
-              });
-
-              // 3] Если оффер истёк, отменить его
-              if($is_expired == true) {
-
-                runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
-                  "winid"        => $win['id'],
-                  "tradeofferid" => $bot['pivot']['tradeofferid'],
-                  "id_bot"       => $bot['id'],
-                  "id_user"      => $win['m5_users'][0]['id'],
-                  "id_room"      => $win['rounds'][0]['rooms']['id'],
-                ], 0, ['on'=>true, 'name'=>'smallbroadcast']); // 'processor_wins_hard']);
-
-              }
+              // 4] Если $id нет в $offers_ids, добавить
+              if(!in_array($id, $offers_ids))
+                $offers_ids[$tradeofferid] = [
+                  "id_bot"        => $id,
+                  "win"           => $wins_active[$i],
+                  "tradeofferid"  => $tradeofferid
+                ];
 
             }
 
           }
-
-
-
-          // 1] Получить массив с данными всех активных офферов для $expired_win
-          // - Каждый элемент массива содержит:
-          //
-          //    • winid
-          //    • tradeofferid
-          //    • id_bot
-          //    • id_user
-          //    • id_room
-          //
-
+          return $offers_ids;
 
         });
 
-        // 4.2. Сменить статус $expired_win на Expired
-        call_user_func(function() USE ($expired_win) {
+        // 3] Если tradeofferid есть в $offers_ids, вернуть результат
+        if(array_key_exists($this->data['tradeofferid'], $offers_ids))
+          return $offers_ids[$this->data['tradeofferid']];
 
-        });
+        // 4] Иначе вернуть пустую строку
+        else return '';
 
+      });
+      if(empty($bot_win_tradeofferid))
+        throw new \Exception('Не удалось найти в БД активный оффер #'.$this->data['tradeofferid'].' для выигрыша #'.$this->data['winid']);
+
+      // 5. Поменять в pivot is_free на 1, и удалить значение tradeofferid
+      call_user_func(function () USE ($win, $bot_win_tradeofferid) {
+        foreach($win['m8_bots'] as &$bot) {
+          if($bot['pivot']['tradeofferid'] == $this->data['tradeofferid']) {
+            $bot['pivot']['is_free'] = 1;
+            $bot['pivot']['tradeofferid'] = "";
+            $bot['pivot']->save();
+            break;
+          }
+        }
+      });
+
+      // 6. Выплатили ли все боты по выигрышу $win всё, что должны?
+      $is_all_free = call_user_func(function() USE ($win) {
+        $is_all_free = true;
+        foreach($win['m8_bots'] as $bot) {
+          if($bot['pivot']['is_free'] == 0)
+            $is_all_free = false;
+        }
+        return $is_all_free;
+      });
+
+      // 7. Если $is_all_free == true, поменять статус $win на Paid
+      if($is_all_free == true) {
+        $win->wins_statuses()->detach($status_active->id);
+        $win->wins_statuses()->attach($status_paid->id);
       }
 
-      // 5. Сделать commit
+      // 8. Сделать commit
       DB::commit();
 
-      // 6. Обновить весь кэш
+      // 9. Обновить весь кэш
       // - Но только, если он не был обновлён в C18.
       // - А там он обновляется только лишь при изменении статуса
       //   любого из раундов, любой из комнат.
@@ -263,7 +297,7 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 7. Сообщить игроку $this->data['id_user'] свежие данные по выигрышам
+      // 10. Сообщить игроку $this->data['id_user'], что его выигрыш выплачен
       // - Через websocket, по частном каналу.
       // - Сообщить те же данные, что при истечения выигрыша, с тем же task.
       Event::fire(new \R2\Broadcast([
@@ -284,11 +318,14 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
       ]));
 
 
+
+
+
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C28_wins_expiration_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C33_win_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C28_wins_expiration_tracking']);
+        write2log($errortext, ['M9', 'C33_win_active_to_accepted']);
         return [
           "status"  => -2,
           "data"    => [

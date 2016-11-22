@@ -201,11 +201,6 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
           0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 5. Информирование игроков о секундах до истечения их активных офферов и выигрышей
-      runcommand('\M9\Commands\C29_wins_and_offers_expiration_notify', [],
-          0, ['on'=>true, 'name'=>$queue]);
-
-
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C24_processor_wins from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();

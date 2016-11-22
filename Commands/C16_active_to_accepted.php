@@ -14,7 +14,10 @@
  *
  *    [
  *      "data" => [
- *
+ *        betid
+ *        tradeofferid
+ *        id_user
+ *        id_room
  *      ]
  *    ]
  *
