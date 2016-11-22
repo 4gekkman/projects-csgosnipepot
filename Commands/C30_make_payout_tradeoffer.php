@@ -342,7 +342,9 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
           });
 
           // 2] Записать результат в $results
-          $results[$bot['id']] = $tradeoffer_result;
+          // - Но только, если success == true
+          if($tradeoffer_result['success'] == true)
+            $results[$bot['id']] = $tradeoffer_result;
 
         }
 

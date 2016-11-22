@@ -7,18 +7,17 @@
 /**
  *  Что делает
  *  ----------
- *    - Cancel the active win expired offer
+ *    - It is just a datbase part of the C31_cancel_the_active_win_offer command
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        winid,
- *        tradeofferid
- *        id_bot
- *        id_user
- *        id_room
+ *        winid               | ID выигрыша в базе данных
+ *        tradeofferid        | ID оффера ставки
+ *        id_user             | ID пользователя, владельца ставки
+ *        id_room             | ID комнаты, связанной со ставкой
  *      ]
  *    ]
  *
@@ -105,7 +104,7 @@
 //---------//
 // Команда //
 //---------//
-class C31_cancel_the_active_win_offer extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -139,111 +138,112 @@ class C31_cancel_the_active_win_offer extends Job { // TODO: добавить "i
     /**
      * Оглавление
      *
-     *  1. Принять и проверить входящие данные
-     *  2. Попробовать получить оффер с tradeofferid из Steam через HTTP
-     *  3. Если $offers_http не найден, или его статус "Active"
-     *  4. Если успешно удалось отменить ТП в Steam
+     *  1. Получить и проверить входящие данные
+     *  2. Получить выигрыш с winid и tradeofferid
+     *  3. Получить статусы Active и статус для another_status_id
+     *  4. Отвязать ставку от статуса $status_active
+     *  5. Привязать ставку к статусу $another_status
+     *  6. Обновить весь кэш
+     *  7. Сделать commit
+     *  8. Сообщить игроку $this->data['id_user'], что его ставка истекла
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------//
-    // Отменить активный оффер указанного выигрыша //
-    //---------------------------------------------//
+    //--------------------------------------------------------------------------//
+    // It is just a datbase part of the C31_cancel_the_active_win_offer command //
+    //--------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять и проверить входящие данные
+      // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
 
-        "winid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_bot"        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_room"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        "winid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
       ]); if($validator['status'] == -1) {
+
         throw new \Exception($validator['data']);
+
       }
 
-      // 2. Попробовать получить оффер с tradeofferid из Steam через HTTP
-      // - Что означают коды:
-      //
-      //    -3    // Не удалось получить ответ от Steam
-      //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
-      //    -1    // Среди отправленных офферов не удалось найти оффер с tradeofferid
-      //    0     // Успех, найденный оффер доступен по ключу offer
-      //
-      // $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>3,"activeonly"=>1]);
-      // $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
-      $offers_http = call_user_func(function(){
+      // 2. Получить выигрыш с winid и tradeofferid
+      $win = call_user_func(function(){
 
-        // 1] Получить все активные офферы бота id_bot
-        $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>3,"mode"=>3]);
+        // 1] Получить выигрыш с winid
+        $win =  \M9\Models\MD4_wins::with(['wins_statuses', 'm8_bots'])
+            ->where('id', $this->data['winid'])
+            ->first();
 
-        // 2] Если получить ответ от Steam не удалось
-        if($offers['status'] != 0)
-          return [
-            "code"   => -3,
-            "offer"  => ""
-          ];
-
-        // 3] Если trade_offers_sent отсутствуют в ответе
-        if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
-          return [
-            "code"   => -2,
-            "offer"  => ""
-          ];
-
-        // 4] Найти среди $offers оффер с tradeofferid
-
-          // 4.1] Попробовать найти
-          for($i=0; $i<count($offers['data']['tradeoffers']['trade_offers_sent']); $i++) {
-            if($offers['data']['tradeoffers']['trade_offers_sent'][$i]['tradeofferid'] == $this->data['tradeofferid'])
-              return [
-                "code"  => 0,
-                "offer" => $offers['data']['tradeoffers']['trade_offers_sent'][$i]
-              ];
+        // 2] Если у $win нет tradeofferid, вернуть ""
+        $has_tradeofferid = call_user_func(function() USE ($win) {
+          foreach($win['m8_bots'] as $bot) {
+            if($bot['pivot']['tradeofferid'] == $this->data['tradeofferid'])
+              return true;
           }
+          return false;
+        });
 
-          // 4.2] Если найти не удалось
-          return [
-            "code"  => -1,
-            "offer" => ""
-          ];
+        // 3] Если $has_tradeofferid == false, вернуть ""
+        if($has_tradeofferid == false) return "";
+
+        // 4] Иначе вернуть $win
+        return $win;
 
       });
+      if(empty($win))
+        throw new \Exception('Не удалось найти выигрыш в m9.md4_wins по id = '.$this->data['winid']);
 
-      // 3. Если $offers_http не найден, или его статус "Active"
-      // - Отменить его.
-      if($offers_http['code'] != 0 || $offers_http['offer']['trade_offer_state'] == 2) {
-        $cancel_result = runcommand('\M8\Commands\C27_cancel_trade_offer', [
-          "id_bot"        => $this->data['id_bot'],
-          "id_tradeoffer" => $this->data['tradeofferid']
-        ]);
-      }
+      // 3. Получить статусы Active и Ready
+      $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
+      $status_ready = \M9\Models\MD9_wins_statuses::where('status', 'Ready')->first();
+      if(empty($status_active) || empty($status_ready))
+        throw new \Exception('Не удалось найти статусы Active или Ready в m9.md9_wins_statuses');
 
-      // 4. Если успешно удалось отменить ТП в Steam
-      // - Или если оффер уже не активен
-      if((!empty($cancel_result) && $cancel_result['status'] == 0) || ($offers_http['code'] != 0 || $offers_http['offer']['trade_offer_state'] != 2)) {
+      // 4. Отвязать выигрыш от статуса $status_active
+      $win->wins_statuses()->detach($status_active->id);
 
-        $result = runcommand('\M9\Commands\C32_cancel_the_active_win_offer_dbpart', [
-          "winid"             => $this->data['winid'],
-          "tradeofferid"      => $this->data['tradeofferid'],
-          "id_user"           => $this->data['id_user'],
-          "id_room"           => $this->data['id_room'],
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+      // 5. Привязать ставку к статусу $status_ready
+      $win->wins_statuses()->attach($status_ready->id);
 
-      }
+      // 6. Обновить весь кэш
+      $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+        "all" => true
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 7. Сделать commit
+      DB::commit();
+
+      // 8. Сообщить игроку $this->data['id_user'], что его ставка истекла
+      // - Через websocket, по частном каналу
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m9:private:'.$this->data['id_user']],
+        'queue'    => 'm9_lottery_broadcasting',
+        'data'     => [
+          'task' => 'tradeoffer_wins_cancel',
+          'data' => [
+            'id_room'     => $this->data['id_room'],
+            'wins'        => [
+              "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: "",
+              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
+              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
+              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: []
+            ]
+          ]
+        ]
+      ]));
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C31_cancel_the_active_win_offer from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C32_cancel_the_active_win_offer_dbpart from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C31_cancel_the_active_win_offer']);
+        write2log($errortext, ['M9', 'C32_cancel_the_active_win_offer_dbpart']);
         return [
           "status"  => -2,
           "data"    => [
