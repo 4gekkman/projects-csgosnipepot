@@ -177,7 +177,7 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
     //-------------------------//
     // Отлавливать тики из M11 //
     //-------------------------//
-    $res = call_user_func(function() USE ($event) { try { DB::beginTransaction();
+    $res = call_user_func(function() USE ($event) { try {
 
       // 1. Трансляция серверного время всем клиентам
       Event::fire(new \R2\Broadcast([
@@ -188,18 +188,18 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         ]
       ]));
 
-//      // 2. Процессинг игры "Лоттерея"
-//      $result = runcommand('\M9\Commands\C11_processor', [], 0, ['on'=>true, 'name'=>'processor_main']);
-//      if($result['status'] != 0)
-//        throw new \Exception($result['data']['errormsg']);
-//
-//      // 3. Процессинг выигрышей игры "Лоттерея"
-//      $result = runcommand('\M9\Commands\C24_processor_wins', [], 0, ['on'=>true, 'name'=>'processor_wins_main']);
-//      if($result['status'] != 0)
-//        throw new \Exception($result['data']['errormsg']);
+      // 2. Процессинг игры "Лоттерея"
+      $result = runcommand('\M9\Commands\C11_processor', [], 0, ['on'=>true, 'name'=>'processor_main']);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 3. Процессинг выигрышей игры "Лоттерея"
+      $result = runcommand('\M9\Commands\C24_processor_wins', [], 0, ['on'=>true, 'name'=>'processor_wins_main']);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         DB::rollback();
         $errortext = 'Invoking of event handler H1_ticks of M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);

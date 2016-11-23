@@ -186,7 +186,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
       if($bet->bets_statuses->contains($status_active->id)) $bet->bets_statuses()->detach($status_active->id);
-      if(!$bet->bets_statuses->contains($status_accepted->id))$bet->bets_statuses()->attach($status_accepted->id);
+      if(!$bet->bets_statuses->contains($status_accepted->id)) $bet->bets_statuses()->attach($status_accepted->id);
 
       // 5. Записать assetid_bots в md2001
       // - Это assetid принятых ботом в виде ставки скинов.

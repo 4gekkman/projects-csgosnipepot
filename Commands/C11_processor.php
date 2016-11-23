@@ -144,6 +144,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *  А. Подготовить имя очереди, которая будет обрабатывать команды
      *  Б. Если $queue не пуста, завершить
      *
+     *  a. Сделать пометку в кэше о начале итерации процессинга
      *  C13_update_cache                            | 1. Обновить весь кэш, но для каждого, только если он отсутствует
      *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
      *  C19_active_offers_expiration_tracking       | 3. Отслеживать срок годности активных ставок
@@ -151,6 +152,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *  C21_deffered_bets_tracking                  | 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
      *  C18_round_statuses_tracking                 | 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
      *  C17_new_rounds_provider                     | 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+     *  С34_processing_cache_stop                   | x. Сделать пометку в кэше об окончании процессинга
      *
      *  N. Вернуть статус 0
      *
@@ -169,7 +171,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       $queue = $queues['prod'];
 
 
-      // Б. Если $queue не пуста, завершить
+      // Б. Если $queue не пуста, и C14 не выполняется, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
       $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
       if($queue_count == 0) {

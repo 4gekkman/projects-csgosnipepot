@@ -230,23 +230,29 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           $offers_http = call_user_func(function() USE ($id_bot) {
 
             // 2.4.1] Получить все активные офферы бота $id_bot через HTTP
-            $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>4]);
+            $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>3]);
 
-            // 2.4.2] Если получить ответ от Steam не удалось
+            // 2.4.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+            $offers['data']['tradeoffers']['trade_offers_sent'] = array_filter($offers['data']['tradeoffers']['trade_offers_sent'], function($item){
+              if($item['trade_offer_state'] != 2) return true;
+              else return false;
+            });
+
+            // 2.4.3] Если получить ответ от Steam не удалось
             if($offers['status'] != 0)
               return [
                 "code"   => -3,
                 "offers"  => ""
               ];
 
-            // 2.4.3] Если trade_offers_sent отсутствуют в ответе
+            // 2.4.4] Если trade_offers_sent отсутствуют в ответе
             if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
               return [
                 "code"   => -2,
                 "offers"  => ""
               ];
 
-            // 2.2.4] Вернуть offers
+            // 2.2.5] Вернуть offers
             return [
               "code"    => 0,
               "offers"  => $offers
