@@ -183,6 +183,9 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
     //---------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
+      $time = \Carbon\Carbon::now()->toTimeString();
+      write2log("C24START: $time", []);
+
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"    => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
@@ -877,6 +880,8 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
       });
 
+      write2log("C24START: $time; END: ".\Carbon\Carbon::now()->toTimeString(), []);
+
       // 5. Вернуть результаты
       return [
         "status"  => 0,
@@ -888,6 +893,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
 
     } catch(\Exception $e) {
+        write2log("C24START: error; END: ".\Carbon\Carbon::now()->toTimeString(), []);
         $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
         write2log($errortext, ['M8', 'C1_get_trade_offers_via_html']);
