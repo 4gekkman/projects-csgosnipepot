@@ -152,12 +152,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
     //---------------------------------------------------------------------------------------------------------//
     // Отслеживать и обновлять статус всех не-finished-раундов, транслировать свежие игровые данные, если надо //
     //---------------------------------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      $time = \Carbon\Carbon::now()->toTimeString();
-      write2log("C18START: $time", []);
-
-      DB::beginTransaction();
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить все игровые данные из кэша
       $rooms = json_decode(Cache::get('processing:rooms'), true);
@@ -514,9 +509,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           ]
         ]));
       }
-
       DB::commit();
-      write2log("C18START: $time; C18END: ".\Carbon\Carbon::now()->toTimeString(), []);
 
       // m. Вернуть результаты
       return [
