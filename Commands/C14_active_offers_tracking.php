@@ -334,6 +334,8 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
       call_user_func(function() USE ($bets_ex_active) {
         for($i=0; $i<count($bets_ex_active); $i++) {
 
+          write2log(count($bets_ex_active), []);
+
           // 1] Получить нужные данные в короткие переменные
           $tradeoffer     = $bets_ex_active[$i]['tradeoffer'];
             $betid          = $tradeoffer['id'];

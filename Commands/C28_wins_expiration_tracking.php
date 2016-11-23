@@ -213,13 +213,15 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
               if($is_free == 1 || !$tradeofferid) continue;
 
               // 1.2.3] Отменить $tradeofferid
-              runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+              $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
                 "winid"        => $win['id'],
                 "tradeofferid" => $tradeofferid,
                 "id_bot"       => $bot['id'],
                 "id_user"      => $win['m5_users'][0]['id'],
                 "id_room"      => $expired_win['rounds'][0]['rooms']['id'],
               ]);
+              if($result['status'] != 0)
+                throw new \Exception($result['data']['errormsg']);
 
             }
 
@@ -268,12 +270,12 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
           'data'     => [
             'task' => 'tradeoffer_wins_cancel',
             'data' => [
-              'id_room'     =>   $this->data['id_room'],
+              'id_room'     =>   $expired_win['rounds'][0]['rooms']['id'],
               'wins'        => [
-                "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$this->data['id_user']), true) ?: "",
-                "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$this->data['id_user']), true) ?: [],
-                "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$this->data['id_user']), true) ?: [],
-                "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$this->data['id_user']), true) ?: []
+                "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$expired_win['m5_users'][0]['id']), true) ?: "",
+                "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$expired_win['m5_users'][0]['id']), true) ?: [],
+                "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$expired_win['m5_users'][0]['id']), true) ?: [],
+                "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$expired_win['m5_users'][0]['id']), true) ?: []
               ]
             ]
           ]

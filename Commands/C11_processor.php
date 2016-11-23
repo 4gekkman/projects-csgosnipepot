@@ -180,12 +180,10 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
 
       // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-      $result = runcommand('\M9\Commands\C13_update_cache', [
+      runcommand('\M9\Commands\C13_update_cache', [
         "all"   => true,
         "force" => false
       ], 0, ['on'=>true, 'name'=>$queue]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
 
 
       // 2. Отслеживать изменения статусов активных офферов

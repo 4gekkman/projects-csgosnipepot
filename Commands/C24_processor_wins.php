@@ -157,7 +157,7 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
     //----------------------------------------------------------------//
     // The wins pay processor, fires at every game tick, every second //
     //----------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // А. Подготовить имя очереди, которая будет обрабатывать команды
       $queues = [
@@ -178,12 +178,10 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
 
 
       // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-      $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+      runcommand('\M9\Commands\C25_update_wins_cache', [
         "all"   => true,
         "force" => false
       ], 0, ['on'=>true, 'name'=>$queue]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
 
 
       // 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
@@ -201,7 +199,7 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
           0, ['on'=>true, 'name'=>$queue]);
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C24_processor_wins from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

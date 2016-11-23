@@ -145,7 +145,7 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
     //------------------------------------------------------------------------//
     // Отслеживание и удаление истёкших активных офферов по выплате выигрышей //
     //------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить активные выигрыши из кэша
       $wins_active = json_decode(Cache::get('processing:wins:active'), true);
@@ -187,7 +187,7 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
       }
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C27_active_offers_expiration_wins_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

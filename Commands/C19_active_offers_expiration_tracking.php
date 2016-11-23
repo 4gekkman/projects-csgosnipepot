@@ -145,7 +145,7 @@ class C19_active_offers_expiration_tracking extends Job { // TODO: добави�
     //-------------------------------------------------------------//
     // Отслеживание и удаление истёкших активных исходящих офферов //
     //-------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить активные ставки из кэша
       $bets_active = json_decode(Cache::get('processing:bets:active'), true);
@@ -181,7 +181,7 @@ class C19_active_offers_expiration_tracking extends Job { // TODO: добави�
 
       }
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C19_active_offers_expiration_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
