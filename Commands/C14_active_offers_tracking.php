@@ -149,7 +149,12 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
     //-----------------------------------------------------------------------------------//
     // Отслеживание изменения статусов всех активных офферов в процессе процессинга игры //
     //-----------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
+
+      $time = \Carbon\Carbon::now()->toTimeString();
+      write2log("START: $time", []);
+
+      //DB::beginTransaction();
 
       // 1. Получить активные ставки из кэша
       $bets_active = json_decode(Cache::get('processing:bets:active'), true);
@@ -327,14 +332,14 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
       });
 
       // 5. Сделать commit
-      DB::commit();
+      //DB::commit();
+
+      write2log('C14(bets_ex_active count) = '.count($bets_ex_active));
 
       // 6. Пробежаться по каждому офферу в $bets_ex_active
       // - И в зависимости от того "Accepted" он, или отличается, предпринять ряд действий.
       call_user_func(function() USE ($bets_ex_active) {
         for($i=0; $i<count($bets_ex_active); $i++) {
-
-          write2log(count($bets_ex_active), []);
 
           // 1] Получить нужные данные в короткие переменные
           $tradeoffer     = $bets_ex_active[$i]['tradeoffer'];
@@ -376,8 +381,10 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
         }
       });
 
+      //DB::commit();
+      write2log("START: $time; END: ".\Carbon\Carbon::now()->toTimeString(), []);
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C14_active_offers_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

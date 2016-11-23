@@ -187,10 +187,10 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
         throw new \Exception('Не удалось найти статусы Active или статус с ID == '.$this->data["another_status_id"].' в m9.md8_bets_statuses');
 
       // 4. Отвязать ставку от статуса $status_active
-      $bet->bets_statuses()->detach($status_active->id);
+      if($bet->bets_statuses->contains($status_active->id)) $bet->bets_statuses()->detach($status_active->id);
 
       // 5. Привязать ставку к статусу $another_status
-      $bet->bets_statuses()->attach($status_another->id);
+      if(!$bet->bets_statuses->contains($status_another->id)) $bet->bets_statuses()->attach($status_another->id);
 
       // 6. Обновить весь кэш
       $result = runcommand('\M9\Commands\C13_update_cache', [

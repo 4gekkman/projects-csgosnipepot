@@ -369,7 +369,7 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
         // 3] Изменить статус $win2pay на Active
         // - Удалить старые связи с wins_statuses, и создать новую.
         $win2pay_model->wins_statuses()->detach();
-        $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
+        if(!$win2pay_model->wins_statuses->contains($status_active['id'])) $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
 
         // 4] Для каждого из $win2pay['m8_bots'] записать is_free, tradeofferid и offer_expired_at
         foreach($win2pay['m8_bots'] as $bot) {

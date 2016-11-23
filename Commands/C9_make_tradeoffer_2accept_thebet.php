@@ -569,7 +569,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
         // 2] Связать её с пользователем $user через md2000
         // - Но номера билетов пока не указывать.
-        $newbet->m5_users()->attach($user->id);
+        if(!$newbet->m5_users->contains($user->id)) $newbet->m5_users()->attach($user->id);
 
         // 3] Связать $newbet с вещами $items2bet_market_names в нашей базе через md2001
         // - Не забыть указать item_price_at_bet_time и assetid_users.
@@ -602,15 +602,15 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
               throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
 
             // 3.2.3] Связать $newbet с $item
-            $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100), 'assetid_users' => $item_inventory['assetid']]);
+            if(!$newbet->m8_items->contains($item->id)) $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100), 'assetid_users' => $item_inventory['assetid']]);
 
           }
 
         // 4] Связать $newbet с ботом $bot2acceptbet
-        $newbet->m8_bots()->attach($bot2acceptbet->id);
+        if(!$newbet->m8_bots->contains($bot2acceptbet->id)) $newbet->m8_bots()->attach($bot2acceptbet->id);
 
         // 5] Связать $newbet с $room
-        $newbet->rooms()->attach($room->id);
+        if(!$newbet->rooms->contains($room->id)) $newbet->rooms()->attach($room->id);
 
         // 6] Записать код безопасности $safecode в md6_safecodes
         $newsafecode = new \M9\Models\MD6_safecodes();
@@ -618,7 +618,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         $newsafecode->save();
 
         // 7] Связать $safecode и $newbet через md1007
-        $newbet->safecodes()->attach($newsafecode->id);
+        if(!$newbet->safecodes->contains($newsafecode->id)) $newbet->safecodes()->attach($newsafecode->id);
 
         // 8] Связать $newbet со статусом "Active" в md8_bets_statuses
 
@@ -627,7 +627,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
           // 8.2] Связать $newbet с $status
           // - Не забыв указать expired_at
-          $newbet->bets_statuses()->attach($status->id, ['expired_at'=>\Carbon\Carbon::now()->addSeconds((int)round($room->offers_timeout_sec))->toDateTimeString()]);
+          if(!$newbet->bets_statuses->contains($status->id)) $newbet->bets_statuses()->attach($status->id, ['expired_at'=>\Carbon\Carbon::now()->addSeconds((int)round($room->offers_timeout_sec))->toDateTimeString()]);
 
       });
 

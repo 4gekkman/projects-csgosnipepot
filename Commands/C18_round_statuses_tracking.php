@@ -152,7 +152,12 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
     //---------------------------------------------------------------------------------------------------------//
     // Отслеживать и обновлять статус всех не-finished-раундов, транслировать свежие игровые данные, если надо //
     //---------------------------------------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
+
+      $time = \Carbon\Carbon::now()->toTimeString();
+      write2log("C18START: $time", []);
+
+      DB::beginTransaction();
 
       // 1. Получить все игровые данные из кэша
       $rooms = json_decode(Cache::get('processing:rooms'), true);
@@ -453,10 +458,10 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           ]);
 
           // 4] Отвязать $lastround от старого статуса
-          $lastround->rounds_statuses()->detach($params['status']);
+          if($lastround->rounds_statuses->contains($params['status'])) $lastround->rounds_statuses()->detach($params['status']);
 
           // 5] Привязать $lastround к новому статусу
-          $lastround->rounds_statuses()->attach($suitable_room_status['id']);
+          if(!$lastround->rounds_statuses->contains($suitable_room_status['id'])) $lastround->rounds_statuses()->attach($suitable_room_status['id']);
 
           // 6] Добавить значение started_at для нового статуса $lastround
           $lastround->rounds_statuses()->updateExistingPivot($suitable_room_status['id'], [
@@ -509,6 +514,9 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           ]
         ]));
       }
+
+      DB::commit();
+      write2log("C18START: $time; C18END: ".\Carbon\Carbon::now()->toTimeString(), []);
 
       // m. Вернуть результаты
       return [

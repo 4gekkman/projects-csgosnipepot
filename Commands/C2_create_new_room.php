@@ -199,7 +199,7 @@ class C2_create_new_room extends Job { // TODO: добавить "implements Sho
         $bet_accepting_mode = \M9\Models\MD7_bet_accepting_modes::where('mode', 'onebot_oneround_inturn_circled')->first();
         if(empty($bet_accepting_mode))
           throw new \Exception('В таблице m9.md7_bet_accepting_modes не найден режим onebot_oneround_inturn_circled');
-        $room->bet_accepting_modes()->attach($bet_accepting_mode->id);
+        if(!$room->bet_accepting_modes->contains($bet_accepting_mode->id)) $room->bet_accepting_modes()->attach($bet_accepting_mode->id);
         DB::commit();
 
       // 5. Вернуть результаты

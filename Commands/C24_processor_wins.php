@@ -170,34 +170,30 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
       // Б. Если $queue не пуста, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
       $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      if($queue_count > 0)
-        return [
-          "status"  => 0,
-          "data"    => ""
-        ];
+      if($queue_count == 0) {
+
+        // 1. Обновить весь кэш, но для каждого, только если он отсутствует
+        runcommand('\M9\Commands\C25_update_wins_cache', [
+          "all"   => true,
+          "force" => false
+        ], 0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-      runcommand('\M9\Commands\C25_update_wins_cache', [
-        "all"   => true,
-        "force" => false
-      ], 0, ['on'=>true, 'name'=>$queue]);
+        // 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
+        runcommand('\M9\Commands\C26_active_offers_wins_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
-      runcommand('\M9\Commands\C26_active_offers_wins_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 3. Отслеживать срок годности активных офферов по выплате выигрышей
+        runcommand('\M9\Commands\C27_active_offers_expiration_wins_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 3. Отслеживать срок годности активных офферов по выплате выигрышей
-      runcommand('\M9\Commands\C27_active_offers_expiration_wins_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 4. Отслеживать срок годности выигрышей
+        runcommand('\M9\Commands\C28_wins_expiration_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
-
-      // 4. Отслеживать срок годности выигрышей
-      runcommand('\M9\Commands\C28_wins_expiration_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
-
+      }
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C24_processor_wins from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

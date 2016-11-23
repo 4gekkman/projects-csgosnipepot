@@ -201,7 +201,7 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
           call_user_func(function() USE(&$newround) {
 
             // 4.1] Связать, и не забыть указать дату/время started_at
-            $newround->rounds_statuses()->attach(1);
+            if(!$newround->rounds_statuses->contains(1)) $newround->rounds_statuses()->attach(1);
 
             // 4.2] Указать дату/время started_at
             $newround->rounds_statuses()->updateExistingPivot(1, [

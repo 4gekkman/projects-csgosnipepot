@@ -172,49 +172,45 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       // Б. Если $queue не пуста, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
       $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      if($queue_count > 0)
-        return [
-          "status"  => 0,
-          "data"    => ""
-        ];
+      if($queue_count == 0) {
+
+        // 1. Обновить весь кэш, но для каждого, только если он отсутствует
+        runcommand('\M9\Commands\C13_update_cache', [
+          "all"   => true,
+          "force" => false
+        ], 0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-      runcommand('\M9\Commands\C13_update_cache', [
-        "all"   => true,
-        "force" => false
-      ], 0, ['on'=>true, 'name'=>$queue]);
+        // 2. Отслеживать изменения статусов активных офферов
+        runcommand('\M9\Commands\C14_active_offers_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 2. Отслеживать изменения статусов активных офферов
-      runcommand('\M9\Commands\C14_active_offers_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 3. Отслеживать срок годности активных ставок
+        runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 3. Отслеживать срок годности активных ставок
-      runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 4. Оповещать игроков о секундах до истечения их активных офферов
+        runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 4. Оповещать игроков о секундах до истечения их активных офферов
-      runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+        runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-      runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
+        runcommand('\M9\Commands\C18_round_statuses_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
-      // 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-      runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-          0, ['on'=>true, 'name'=>$queue]);
+        // 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+        runcommand('\M9\Commands\C17_new_rounds_provider', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
-
-      // 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-      runcommand('\M9\Commands\C17_new_rounds_provider', [],
-          0, ['on'=>true, 'name'=>$queue]);
-
+      }
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

@@ -154,7 +154,12 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
     //----------------------------------------------------------------------------//
     // Сконвертировать оффер со статусом Active в оффер со статусом Accepted в БД //
     //----------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
+
+      $time = \Carbon\Carbon::now()->toTimeString();
+      write2log("C16START: $time", []);
+
+      DB::beginTransaction();
 
       // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
@@ -185,8 +190,8 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         throw new \Exception('Не удалось найти статусы Active или Accepted в m9.md8_bets_statuses');
 
       // 4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
-      $bet->bets_statuses()->detach($status_active->id);
-      $bet->bets_statuses()->attach($status_accepted->id);
+      if($bet->bets_statuses->contains($status_active->id)) $bet->bets_statuses()->detach($status_active->id);
+      if(!$bet->bets_statuses->contains($status_accepted->id))$bet->bets_statuses()->attach($status_accepted->id);
 
       // 5. Записать assetid_bots в md2001
       // - Это assetid принятых ботом в виде ставки скинов.
@@ -318,10 +323,10 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         });
 
         // 7.3. Связать ставку с текущим раундом через md1010
-        $bet->rounds()->attach($lastround['id']);
+        if(!$bet->rounds->contains($lastround['id'])) $bet->rounds()->attach($lastround['id']);
 
         // 7.4. Отвязать ставку от комнаты, убрав запись из md1009
-        $bet->rooms()->detach($this->data['id_room']);
+        if($bet->rooms->contains($this->data['id_room'])) $bet->rooms()->detach($this->data['id_room']);
 
         // 7.5. Сделать commit
         DB::commit();
@@ -415,7 +420,10 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       }
 
-    DB::commit(); } catch(\Exception $e) {
+      DB::commit();
+      write2log("C16START: $time; C16END: ".\Carbon\Carbon::now()->toTimeString(), []);
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

@@ -241,7 +241,7 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
           $win->wins_statuses()->detach();
 
           // 3] Привязать $win к статусу $status_expired
-          $win->wins_statuses()->attach($status_expired->id);
+          if(!$win->wins_statuses->contains($status_expired->id)) $win->wins_statuses()->attach($status_expired->id);
 
           // 4] Добавить started_at в pivot-таблицу
           $win->wins_statuses()->updateExistingPivot($status_expired->id, ["started_at" => \Carbon\Carbon::now()->toDateTimeString()]);
