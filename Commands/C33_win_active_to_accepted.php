@@ -279,9 +279,11 @@ class C33_win_active_to_accepted extends Job { // TODO: добавить "implem
       });
 
       // 7. Если $is_all_free == true, поменять статус $win на Paid
+      // - И добавить started_at в pivot-таблицу.
       if($is_all_free == true) {
         $win->wins_statuses()->detach($status_active->id);
         $win->wins_statuses()->attach($status_paid->id);
+        $win->wins_statuses()->updateExistingPivot($status_paid->id, ["started_at" => \Carbon\Carbon::now()->toDateTimeString()]);
       }
 
       // 8. Сделать commit

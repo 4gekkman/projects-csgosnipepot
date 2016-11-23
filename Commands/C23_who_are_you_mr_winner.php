@@ -160,6 +160,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  23. Связать $safecode и $newwin через md1014
      *  24. Сделать commit
      *  25. Обновить весь кэш процессинга выигрышей
+     *  26. Обновить данные о выигрышах у победителя
      *
      *  N. Вернуть статус 0
      *
@@ -748,6 +749,27 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
+
+      // 26. Обновить данные о выигрышах у победителя
+      // - Через websocket, по частному каналу
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m9:public:'],
+        'queue'    => 'm9_lottery_broadcasting',
+        'data'     => [
+          'task' => 'tradeoffer_wins_cancel',
+          'data' => [
+            'id_room'     => $this->data['id_room'],
+            'wins'        => [
+              "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$winner_and_ticket['user_winner']['id']), true) ?: "",
+              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
+              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
+              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$winner_and_ticket['user_winner']['id']), true) ?: []
+            ]
+          ]
+        ]
+      ]));
+
+
 
       // n] Вернуть результат
       return [

@@ -539,7 +539,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
 
           // 5.2] Если возникла ошибка
           if($tradeoffer['status'] != 0)
-            throw new \Exception("Не удалось отправить торговое предложение. Возможно, проблемы с ботом, или Steam тормозит.");
+            throw new \Exception("Не удалось отправить торговое предложение. Возможные причины: ты указал неправильный Steam Trade URL; Steam тормозит; проблемы с ботом.");
 
           // 5.3] Если с этим пользователем нельзя торговать из-за escrow
           if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)

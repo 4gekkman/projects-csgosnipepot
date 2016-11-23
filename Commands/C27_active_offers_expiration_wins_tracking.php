@@ -178,7 +178,7 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
               "id_bot"       => $bot['id'],
               "id_user"      => $win['m5_users'][0]['id'],
               "id_room"      => $win['rounds'][0]['rooms']['id'],
-            ], 0, ['on'=>true, 'name'=>'smallbroadcast']); // 'processor_wins_hard']);
+            ], 0, ['on'=>true, 'name'=>'processor_wins_hard']); // 'smallbroadcast']);
 
           }
 
