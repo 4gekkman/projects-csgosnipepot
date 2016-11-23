@@ -331,7 +331,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
         // 4.3. Получить все элементы с торговыми предложениями
         $tradeOfferElements = $xpath->query('//div[@id[starts-with(.,"tradeofferid_")]]');
-write2log(count($tradeOfferElements), []);
+
         // 4.4. Пробежаться по $tradeOfferElements и наполнить $tradeoffers
         foreach ($tradeOfferElements as $tradeOfferElement) {
 
@@ -861,7 +861,7 @@ write2log(count($tradeOfferElements), []);
 
               // n.2.1] Если mode = 3, то добавлять ТП только, если trade_offer_state == 2/9/11
               if($this->data['mode'] == 3) {
-                if($tradeoffer['trade_offer_state'] == '2' || $tradeoffer['trade_offer_state'] == '9' || $tradeoffer['trade_offer_state'] == '11')
+                //if($tradeoffer['trade_offer_state'] == '2' || $tradeoffer['trade_offer_state'] == '9' || $tradeoffer['trade_offer_state'] == '11')
                   array_push($tradeoffers['trade_offers_sent'], $tradeoffer);
               }
 
