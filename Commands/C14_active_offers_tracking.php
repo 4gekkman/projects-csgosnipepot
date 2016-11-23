@@ -233,10 +233,10 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
             $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>3]);
 
             // 2.4.2] Отфильтровать из $offers офферы со статусом 2 (Active)
-            $offers['data']['tradeoffers']['trade_offers_sent'] = array_filter($offers['data']['tradeoffers']['trade_offers_sent'], function($item){
+            $offers['data']['tradeoffers']['trade_offers_sent'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_sent'], function($item){
               if($item['trade_offer_state'] != 2) return true;
               else return false;
-            });
+            }));
 
             // 2.4.3] Если получить ответ от Steam не удалось
             if($offers['status'] != 0)

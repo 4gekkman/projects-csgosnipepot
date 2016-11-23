@@ -151,6 +151,7 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
 
       // 1. Получить из кэша все включенные комнаты
       $rooms = json_decode(Cache::get('processing:rooms'), true);
+      if(empty($rooms)) $rooms = [];
 
       // 2. Подготовить маячёк
       // - Если он true, надо обновить кэш и отправить свежие данные в публ.канал

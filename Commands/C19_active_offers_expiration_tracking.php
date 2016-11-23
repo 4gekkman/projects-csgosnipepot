@@ -149,6 +149,7 @@ class C19_active_offers_expiration_tracking extends Job { // TODO: добави�
 
       // 1. Получить активные ставки из кэша
       $bets_active = json_decode(Cache::get('processing:bets:active'), true);
+      if(empty($bets_active)) $bets_active = [];
 
       // 2. Отменить те активные ставки, срок годности которых уже вышел
       foreach($bets_active as $bet) {

@@ -151,6 +151,7 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
 
       // 1. Получить из кэша все включенные комнаты
       $rooms = json_decode(Cache::get('processing:rooms'), true);
+      if(empty($rooms)) $rooms = [];
 
       // 2. Подготовить маячёк
       // - Если он true, надо обновить кэш и отправить свежие данные в публ.канал

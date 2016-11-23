@@ -156,6 +156,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
       // 1. Получить все игровые данные из кэша
       $rooms = json_decode(Cache::get('processing:rooms'), true);
+      if(empty($rooms)) $rooms = [];
 
       // 2. Подготовить маячёк (изменился ли статус любого раунда)
       $is_any_round_status_was_changed = false;
