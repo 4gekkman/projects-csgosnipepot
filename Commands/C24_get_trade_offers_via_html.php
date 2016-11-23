@@ -183,9 +183,6 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
     //---------------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      $time = \Carbon\Carbon::now()->toTimeString();
-      write2log("C24START: $time", []);
-
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"    => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
@@ -248,6 +245,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
         // 3.2. Осуществить GET-запрос к steam и получить HTML-документ в ответ
         $response = call_user_func(function() USE ($bot, $settings) {
+        $time = \Carbon\Carbon::now();
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
@@ -333,7 +331,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
         // 4.3. Получить все элементы с торговыми предложениями
         $tradeOfferElements = $xpath->query('//div[@id[starts-with(.,"tradeofferid_")]]');
-
+write2log(count($tradeOfferElements), []);
         // 4.4. Пробежаться по $tradeOfferElements и наполнить $tradeoffers
         foreach ($tradeOfferElements as $tradeOfferElement) {
 
@@ -880,8 +878,6 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
       });
 
-      write2log("C24START: $time; END: ".\Carbon\Carbon::now()->toTimeString(), []);
-
       // 5. Вернуть результаты
       return [
         "status"  => 0,
@@ -893,7 +889,6 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
 
     } catch(\Exception $e) {
-        write2log("C24START: error; END: ".\Carbon\Carbon::now()->toTimeString(), []);
         $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
         write2log($errortext, ['M8', 'C1_get_trade_offers_via_html']);

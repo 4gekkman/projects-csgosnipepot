@@ -165,7 +165,7 @@ class C12_update_bots_apikeys extends Job { // TODO: добавить "implement
         }
 
         // 2.2. Если доступ запрещён
-        if($result['data']['access_denied'] == 1) {
+        if(array_key_exists('access_denied', $result['data']) && $result['data']['access_denied'] == 1) {
           $bot->apikey_last_bug = 'Access Denied';
           $bot->apikey_last_update = (string) \Carbon\Carbon::now();
         }
