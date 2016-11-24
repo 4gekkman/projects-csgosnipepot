@@ -304,12 +304,13 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
               ]);
 
               // 1.5.2] Если возникла ошибка
-              if($tradeoffer['status'] != 0)
+              if($tradeoffer['status'] != 0) {
                 return [
                   "success"       => false,
                   "tradeofferid"  => "",
                   "error"         => "Не удалось отправить торговое предложение. Возможно, проблемы с ботом, или Steam тормозит."
                 ];
+              }
 
               // 1.5.3] Если с этим пользователем нельзя торговать из-за escrow
               if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)

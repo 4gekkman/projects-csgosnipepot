@@ -222,7 +222,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             call_user_func(function() USE (&$bet_items, &$bet, &$item, &$assetids_found, $bet_bot_inventory) {
               foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
                 if($item_in_inventory['market_hash_name'] == $item['name']) {
-                  if(!in_array($item_in_inventory['assetid'],$assetids_found)) {
+                  if(!in_array($item_in_inventory['assetid'], $assetids_found)) {
                     array_push($assetids_found, $item_in_inventory['assetid']);
                     $bet->m8_items()->updateExistingPivot($item['id'], ["assetid_bots" => $item_in_inventory['assetid']]);
                     break;
