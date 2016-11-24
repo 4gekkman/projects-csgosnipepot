@@ -154,12 +154,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
     //----------------------------------------------------------------------------//
     // Сконвертировать оффер со статусом Active в оффер со статусом Accepted в БД //
     //----------------------------------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      $time = \Carbon\Carbon::now();
-      Log::info("C16START: $time");
-
-      DB::beginTransaction();
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
@@ -420,11 +415,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       }
 
-    DB::commit();
-    Log::info("C16START: $time; C16END: ".\Carbon\Carbon::now());
-
-
-    } catch(\Exception $e) {
+    DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

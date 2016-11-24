@@ -475,6 +475,37 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
               throw new \Exception($result['data']['errormsg']);
           }
 
+          // 8] Если новый статус - Winner
+          // - Передать победителю по частному каналу свежие данные о выигрыше.
+          if($suitable_room_status['name'] == "Winner") {
+
+            // 8.1] Получить ID победившего в $lastround пользователя
+            $winner_id = call_user_func(function() USE ($lastround) {
+
+              return $lastround->wins[0]->m5_users[0]->id;
+
+            });
+
+            // 8.2] Транслировать свежие игровые данные
+            Event::fire(new \R2\Broadcast([
+              'channels' => ['m9:private:'.$winner_id],
+              'queue'    => 'm9_lottery_broadcasting',
+              'data'     => [
+                'task' => 'tradeoffer_wins_cancel',
+                'data' => [
+                  'id_room'     => $room['id'],
+                  'wins'        => [
+                    "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$winner_id), true) ?: "",
+                    "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$winner_id), true) ?: [],
+                    "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$winner_id), true) ?: [],
+                    "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$winner_id), true) ?: []
+                  ]
+                ]
+              ]
+            ]));
+
+          }
+
         }
 
       }
