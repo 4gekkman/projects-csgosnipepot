@@ -355,9 +355,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           return $data;
 
         });
-Log::info('---');
-Log::info($wheel['data']);
-Log::info('-------');
+
         // 5] Создать все сегменты кольца на основе данных из $wheel['data']
         $wheel['segments'] = call_user_func(function() USE ($wheel) {
 
@@ -401,8 +399,6 @@ Log::info('-------');
 
         });
 
-        Log::info($wheel['segments']);
-
         // 6] Найти сегмент-победитель в $segments
         $segment_winner = call_user_func(function() USE ($wheel, $winner_and_ticket) {
           foreach($wheel['segments'] as $segment) {
@@ -427,9 +423,9 @@ Log::info('-------');
           $startAngle = round($startAngle * $coef);
           $endAngle = round($endAngle * $coef);
 
-          // 7.4] Прибавляем 1 к startAngle, вычитаем 1 из endAngle
-          $startAngle = +$startAngle + 1;
-          $endAngle = +$endAngle - 1;
+          // 7.4] Прибавляем 0.01 к startAngle, вычитаем 0.01 из endAngle
+          $startAngle = +$startAngle + 0.01;
+          $endAngle = +$endAngle - 0.01;
 
           // 7.5] Получаем угол вращения
           return random_int($startAngle, $endAngle) / $coef;
