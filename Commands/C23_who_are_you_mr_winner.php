@@ -333,21 +333,19 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
             else {
 
               // 1) Найти предыдущую запись этого пользователя в $data
-              $prev_user_wheel_data = call_user_func(function() USE ($data, $previous_bet) {
-                foreach($data as $d) {
-                  if($previous_bet['m5_users'][0]['id'] == $d['user']['id'])
-                    return $d;
-                }
-              });
+              foreach($data as &$d) {
+                if($previous_bet['m5_users'][0]['id'] == $d['user']['id']) {
 
-              // 2) Добавить данные о новой ставке пользователя в $data
-              array_push($prev_user_wheel_data['bets'], $bet);
-              $prev_user_wheel_data['sum'] =
-                +$prev_user_wheel_data['sum'] +
-                +$bet['total_bet_amount'];
-              $prev_user_wheel_data['odds'] =
-                +$prev_user_wheel_data['odds'] +
-                +(+$bet['total_bet_amount'] / +$jackpot_total_sum_cents);
+                  array_push($d['bets'], $bet);
+                  $d['sum'] =
+                    +$d['sum'] +
+                    +$bet['total_bet_amount'];
+                  $d['odds'] =
+                    +$d['odds'] +
+                    +(+$bet['total_bet_amount'] / +$jackpot_total_sum_cents);
+
+                }
+              }
 
             }
 
@@ -357,7 +355,9 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           return $data;
 
         });
-
+Log::info('---');
+Log::info($wheel['data']);
+Log::info('-------');
         // 5] Создать все сегменты кольца на основе данных из $wheel['data']
         $wheel['segments'] = call_user_func(function() USE ($wheel) {
 
