@@ -401,6 +401,8 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         });
 
+        Log::info($wheel['segments']);
+
         // 6] Найти сегмент-победитель в $segments
         $segment_winner = call_user_func(function() USE ($wheel, $winner_and_ticket) {
           foreach($wheel['segments'] as $segment) {
@@ -703,8 +705,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       // 19. Связать новый выигрыш с вещами $items2give
       foreach($items2give as $item) {
         if(!$newwin->m8_items->contains($item['id'])) {
-          $newwin->m8_items()->attach($item['id']);
-          $newwin->m8_items()->updateExistingPivot($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
+          $newwin->m8_items()->attach($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
         }
       }
 
@@ -717,8 +718,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         // 20.2. Связать $newwin со статусом $status_ready
         if(!$newwin->wins_statuses->contains($status_ready['id'])) {
-          $newwin->wins_statuses()->attach($status_ready['id']);
-          $newwin->wins_statuses()->updateExistingPivot($status_ready['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "comment" => "Определение победителя, создние нового выигрыша."]);
+          $newwin->wins_statuses()->attach($status_ready['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "comment" => "Определение победителя, создние нового выигрыша."]);
         }
 
       // 21. Добавить долг debt_balance_cents в таблици, и связать с выигрышем

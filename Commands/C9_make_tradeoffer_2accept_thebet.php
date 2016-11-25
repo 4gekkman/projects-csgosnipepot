@@ -579,6 +579,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           $items = \M8\Models\MD2_items::whereIn('name', $items2bet_market_names)->get();
 
           // 3.2] Пробежимся циклом по $this->data['items2bet']
+          $assetid_users_arr = [];
           for($n=0; $n<count($this->data['items2bet']); $n++) {
 
             // 3.2.1] Находим в коллекции вещей из MD2_items соответствующую $n-й по market_name
@@ -592,10 +593,14 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
               throw new \Exception("Вещь '".$this->data['items2bet'][$n]['market_name']."' неизвестна системе, поэтому её нельзя поставить.");
 
             // 3.2.2] Находим в $inventory соответствующую $n-й по market_name
-            $item_inventory = call_user_func(function() USE ($inventory, $n) {
+            $item_inventory = call_user_func(function() USE ($inventory, $n, &$assetid_users_arr) {
               for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
-                if($inventory['data']['rgDescriptions'][$i]['market_name'] == $this->data['items2bet'][$n]['market_name'])
-                  return $inventory['data']['rgDescriptions'][$i];
+                if($inventory['data']['rgDescriptions'][$i]['market_name'] == $this->data['items2bet'][$n]['market_name']) {
+                  if(!in_array($inventory['data']['rgDescriptions'][$i]['assetid'], $assetid_users_arr)) {
+                    array_push($assetid_users_arr, $inventory['data']['rgDescriptions'][$i]['assetid']);
+                    return $inventory['data']['rgDescriptions'][$i];
+                  }
+                }
               }
             });
             if(empty($item_inventory))
