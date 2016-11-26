@@ -145,22 +145,27 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  8. Вычислить, какими бонусами обладает игрок
      *  9. Вычислить итоговый размер комиссии
      *  10. Составить список всех поставленных вещей, отсортированный по цене
-     *  11. Определить вещи на отдачу
-     *  12. Определить вещи на комиссию
-     *  13. Посчитать прибавку к долговому балансу игрока
-     *  14. Сгенерировать случайный код безопасности
-     *  15. Создать новый выигрыш, и заполнить ранее вычисленными значениями
-     *  16. Связать новый выигрыш $newwin с раундом $round
-     *  17. Связать новый выигрыш с пользователем-победителем
-     *  18. Связать новый выигрыш с ботом, проводившим раунд
-     *  19. Связать новый выигрыш с вещами $items2give
-     *  20. Связать новый выигрыш со статусом Ready
-     *  21. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
-     *  22. Записать код безопасности $safecode в md6_safecodes
-     *  23. Связать $safecode и $newwin через md1014
-     *  24. Сделать commit
-     *  25. Обновить весь кэш процессинга выигрышей
-     *  26. Обновить данные о выигрышах у победителя
+     *  11. Получить коллекцию всех долгов победителя
+     *  12. Вычислить, сколько в итоге мы должны забрать из этого выигрыша
+     *  13. Определить вещи на комиссию
+     *  14. Определить вещи на отдачу
+     *  15. Посчитать прибавку к долговому балансу игрока
+     *  16. Сгенерировать случайный код безопасности
+     *  17. Создать новый выигрыш, и заполнить ранее вычисленными значениями
+     *  18. Связать новый выигрыш $newwin с раундом $round
+     *  19. Связать новый выигрыш с пользователем-победителем
+     *  20. Связать новый выигрыш с ботом, проводившим раунд
+     *  21. Связать новый выигрыш с вещами $items2give
+     *  22. Связать новый выигрыш со статусом Ready
+     *  23. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
+     *  24. Записать код безопасности $safecode в md6_safecodes
+     *  25. Связать $safecode и $newwin через md1014
+     *  26. Сделать commit
+     *  27. Обновить весь кэш процессинга выигрышей
+     *  28. Обновить данные о выигрышах у победителя
+     *
+     *  m] Отладочный массив логов
+     *  n] Вернуть результат
      *
      *  N. Вернуть статус 0
      *
@@ -438,11 +443,10 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       });
 
       // 7. Записать выигравший билет и угол вращения в раунд
-      // TODO: раскомментировать
-      //$round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
-      //$round->wheel_rotation_angle        = $wheel_rotation_angle;
-      //$round->wheel_rotation_angle_origin = $wheel_rotation_angle;
-      //$round->save();
+      $round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
+      $round->wheel_rotation_angle        = $wheel_rotation_angle;
+      $round->wheel_rotation_angle_origin = $wheel_rotation_angle;
+      $round->save();
 
       // 8. Вычислить, какими бонусами обладает игрок
       $bonuses = call_user_func(function() USE ($room, $winner_and_ticket) {
@@ -533,10 +537,10 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           }
         }
 
-        // 3] Отсортировать все вещи по цене, по убыванию
+        // 3] Отсортировать все вещи по цене, по возрастанию
         usort($results, function($a, $b){
-          if((int)($a['price']*100) < (int)($b['price'])) return 1;
-          if((int)($a['price']) > (int)($b['price'])) return -1;
+          if((int)($a['price']*100) > (int)($b['price']*100)) return 1;
+          if((int)($a['price']*100) < (int)($b['price']*100)) return -1;
           return 0;
         });
 
@@ -605,21 +609,26 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           $cents_already = +$cents_already + +$items[$i]['price']*100;
           if($cents_already <= $howmuch['cents'])
             array_push($results, $items[$i]);
+          else
+            $cents_already = +$cents_already - +$items[$i]['price']*100;
         }
 
         // n] Вернуть результаты
-        return $results;
+        return [
+          "fee_cents_taken_fact" => $cents_already,
+          "items2take" =>           $results
+        ];
 
       });
 
-      // 12. Определить вещи на отдачу
+      // 14. Определить вещи на отдачу
       $items2give = call_user_func(function() USE ($items, $items2take) {
 
         // 1] Подготовить массив для результатов
         $results = [];
 
         // 2] Получить массив ID всех вещей из $items2give
-        $items2take_ids = collect($items2take)->pluck('id')->toArray();
+        $items2take_ids = collect($items2take['items2take'])->pluck('id')->toArray();
 
         // 3] Добавить в $results все вещий из $items, кроме $items2give
         foreach($items as $item) {
@@ -632,113 +641,23 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
       });
 
+      // 15. Посчитать прибавку к долговому балансу игрока
+      // - Итак, в $items2take мы выбрали вещи, которые заберём в виде комиссии.
+      // - Из этой суммы, в 1-ю очередь, вычитаются долги.
+      // - Оставшаяся сумма идёт, как часть обычной комиссии этого раунда.
+      // - Остаток идёт в новый долг.
+      $debt_balance_cents_addition = call_user_func(function() USE ($howmuch, $items2take) {
 
-
-
-
-      Log::info("Winner id = ".$winner_and_ticket['user_winner']['id']);
-      Log::info("Ticket-winner = ".$winner_and_ticket['ticket_winner_number']);
-      Log::info("Jackpot in cents = ".$jackpot_total_sum_cents);
-      Log::info("Bonuses:");
-      Log::info($bonuses);
-      Log::info("Final fee = ".$fee);
-      Log::info("Final fee + debts = ".$howmuch['fee']);
-      Log::info("Final cents + debts = ".$howmuch['cents']);
-      Log::info("All items:");
-      Log::info(collect($items)->pluck('name')->toArray());
-      Log::info("Items to take:");
-      Log::info(collect($items2take)->pluck('name')->toArray());
-      Log::info("Items to give:");
-      Log::info(collect($items2give)->pluck('name')->toArray());
-      throw new \Exception('Stop!');
-
-
-
-
-      // 11. Определить вещи на отдачу
-      $items2give = call_user_func(function() USE ($items, $fee) {
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Получить % от выигрыша, который мы отдадим
-        $percents2give = 100 - $fee;
-
-        // 3] Сколько уже процентов от выигрыша
-        $percentage_already = 0;
-
-        // 4] Наполнить $results
-        for($i=0; $i<count($items); $i++) {
-          $percentage_already = +$percentage_already + +$items[$i]['percentage'];
-          if($percentage_already < $percents2give || $fee < $items[$i]['percentage'])
-            array_push($results, $items[$i]);
-        }
-
-        // n] Вернуть результаты
-        return $results;
+        return $howmuch['cents'] - $items2take['fee_cents_taken_fact'];
 
       });
 
-      // 12. Определить вещи на комиссию
-      $items2take = call_user_func(function() USE ($items, $items2give) {
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Получить массив ID всех вещей из $items2give
-        $items2give_ids = collect($items2give)->pluck('id')->toArray();
-
-        // 3] Добавить в $results все вещий из $items, кроме $items2give
-        foreach($items as $item) {
-          if(!in_array($item['id'], $items2give_ids))
-            array_push($results, $item);
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
-
-
-
-
-
-      // 13. Посчитать прибавку к долговому балансу игрока
-      $debt_balance_cents_addition = call_user_func(function() USE ($items2take, $fee, $jackpot_total_sum_cents) {
-
-        // 1] Подсчитать суммарную стоимость $items2take
-        $items2take_sum_cents = call_user_func(function() USE ($items2take) {
-          $result = 0;
-          foreach($items2take as $item)
-            $result = +$result + +round($item['price']*100);
-          return $result;
-        });
-
-        // 2] Подсчитать, какую часть в % составляет $items2take_sum_cents от $jackpot_total_sum_cents
-        $percents = ($items2take_sum_cents / $jackpot_total_sum_cents) * 100;
-
-        // 3] Подсчитать, сколько мы должны были забрать
-        $we_must_take_cents = $jackpot_total_sum_cents - $jackpot_total_sum_cents*((100-$fee)/100);
-
-        // 4] Подсчитать, сколько мы по факту забрали
-        $we_take_fact_cents = $jackpot_total_sum_cents - $jackpot_total_sum_cents*((100-$percents)/100);
-
-        // 5] Вернуть результат
-        return [
-          "fee_fact_cents"      => $we_take_fact_cents,
-          "fee_must_take_cents" => $we_must_take_cents,
-          "win_fact_cents"      => $jackpot_total_sum_cents - $we_take_fact_cents,
-          "addition"            => $we_must_take_cents - $we_take_fact_cents
-        ];
-
-      });
-
-      // 14. Сгенерировать случайный код безопасности
+      // 16. Сгенерировать случайный код безопасности
       // - Он представляет из себя число определённой длины.
       // - Длина указана в настройках соответствующей комнаты, в safecode_length.
       // - У каждого кода безопасности есть свой срок годности.
 
-        // 14.1. Получить длину кода безопасности
+        // 16.1. Получить длину кода безопасности
         $safecode_length = call_user_func(function() USE ($room) {
 
           // 1] Получить длину кода безопасности
@@ -755,7 +674,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         });
 
-        // 14.2. Сгенерировать случайное $safecode_length-значное число
+        // 16.2. Сгенерировать случайное $safecode_length-значное число
         $safecode = call_user_func(function() USE ($safecode_length) {
           $result = '';
           for($i = 0; $i < $safecode_length; $i++) {
@@ -764,7 +683,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           return $result;
         });
 
-      // 15. Создать новый выигрыш, и заполнить ранее вычисленными значениями
+      // 17. Создать новый выигрыш, и заполнить ранее вычисленными значениями
 
         // 1] Создать новый выигрыш
         $newwin = new \M9\Models\MD4_wins();
@@ -775,26 +694,26 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         $newwin->bonus_secondbet            = $bonuses['bonus_secondbet'];
         $newwin->jackpot_total_sum_cents    = $jackpot_total_sum_cents;
         $newwin->fee_percents_at_game_time  = $fee;
-        $newwin->fee_fact_cents             = $debt_balance_cents_addition["fee_fact_cents"];
-        $newwin->fee_must_take_cents        = $debt_balance_cents_addition["fee_must_take_cents"];
-        $newwin->win_fact_cents             = $debt_balance_cents_addition["win_fact_cents"];
+        $newwin->fee_fact_cents             = $items2take['fee_cents_taken_fact'];
+        $newwin->fee_must_take_cents        = $howmuch['cents'];
+        $newwin->win_fact_cents             = $jackpot_total_sum_cents - $items2take['fee_cents_taken_fact'];
         $newwin->ready_state_sec            = "";
-        $newwin->debt_balance_cents         = $debt_balance_cents_addition['addition'];
+        $newwin->debt_balance_cents         = $debt_balance_cents_addition;
 
         // 3] Сохранить $newwin
         $newwin->save();
 
-      // 16. Связать новый выигрыш $newwin с раундом $round
+      // 18. Связать новый выигрыш $newwin с раундом $round
       if(!$newwin->rounds->contains($round['id']))
         $newwin->rounds()->attach($round['id']);
 
-      // 17. Связать новый выигрыш с пользователем-победителем
+      // 19. Связать новый выигрыш с пользователем-победителем
       if(!$newwin->m5_users->contains($winner_and_ticket['user_winner']['id']))
         $newwin->m5_users()->attach($winner_and_ticket['user_winner']['id']);
 
-      // 18. Связать новый выигрыш с ботами, проводившими раунд
+      // 20. Связать новый выигрыш с ботами, проводившими раунд
 
-        // 18.1. Получить массив ботов, проводивших раунд
+        // 20.1. Получить массив ботов, проводивших раунд
         $roundbots = call_user_func(function() USE ($winner_and_ticket) {
           $result = [];
           $result_ids = [];
@@ -807,61 +726,61 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           return $result;
         });
 
-        // 18.2. Связать каждого из ботов с $newwin
+        // 20.2. Связать каждого из ботов с $newwin
         foreach($roundbots as $bot) {
           if(!$newwin->m8_bots->contains($bot['id'])) {}
             $newwin->m8_bots()->attach($bot['id']);
         }
 
-      // 19. Связать новый выигрыш с вещами $items2give
+      // 21. Связать новый выигрыш с вещами $items2give
       foreach($items2give as $item) {
         if(!$newwin->m8_items->contains($item['id'])) {
           $newwin->m8_items()->attach($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
         }
       }
 
-      // 20. Связать новый выигрыш со статусом Ready
+      // 22. Связать новый выигрыш со статусом Ready
 
-        // 20.1. Получить статус Ready
+        // 22.1. Получить статус Ready
         $status_ready = \M9\Models\MD9_wins_statuses::where('status', 'Ready')->first();
         if(empty($status_ready))
           throw new \Exception('Не удалось найти статус Ready в таблице md9_wins_statuses');
 
-        // 20.2. Связать $newwin со статусом $status_ready
+        // 22.2. Связать $newwin со статусом $status_ready
         if(!$newwin->wins_statuses->contains($status_ready['id'])) {
           $newwin->wins_statuses()->attach($status_ready['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "comment" => "Определение победителя, создние нового выигрыша."]);
         }
 
-      // 21. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
+      // 23. Добавить долг debt_balance_cents в таблицу, и связать с выигрышем
 
         // 1] Создать новый долг
         $newdebt = new \M9\Models\MD10_debts();
-        $newdebt->debt_cents = $debt_balance_cents_addition['addition'];
+        $newdebt->debt_cents = $debt_balance_cents_addition;
         $newdebt->save();
 
         // 2] Связать $newdebt с $newwin
         if(!$newwin->debts->contains($newdebt['id']))
           $newwin->debts()->attach($newdebt['id']);
 
-      // 22. Записать код безопасности $safecode в md6_safecodes
+      // 24. Записать код безопасности $safecode в md6_safecodes
       $newsafecode = new \M9\Models\MD6_safecodes();
       $newsafecode->code = $safecode;
       $newsafecode->save();
 
-      // 23. Связать $safecode и $newwin через md1014
+      // 25. Связать $safecode и $newwin через md1014
       $newwin->safecodes()->attach($newsafecode->id);
 
-      // 24. Сделать commit
+      // 26. Сделать commit
       DB::commit();
 
-      // 25. Обновить весь кэш процессинга выигрышей
+      // 27. Обновить весь кэш процессинга выигрышей
       $result = runcommand('\M9\Commands\C25_update_wins_cache', [
         "all"   => true
       ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 26. Обновить данные о выигрышах у победителя
+      // 28. Обновить данные о выигрышах у победителя
       // - Через websocket, по частному каналу
       Event::fire(new \R2\Broadcast([
         'channels' => ['m9:public:'],
@@ -881,6 +800,24 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       ]));
 
 
+      // m] Отладочный массив логов
+      // Log::info("Winner id = ".$winner_and_ticket['user_winner']['id']);
+      // Log::info("Ticket-winner = ".$winner_and_ticket['ticket_winner_number']);
+      // Log::info("Jackpot in cents = ".$jackpot_total_sum_cents);
+      // Log::info("Bonuses:");
+      // Log::info($bonuses);
+      // Log::info("Final fee = ".$fee);
+      // Log::info("Final fee + debts = ".$howmuch['fee']);
+      // Log::info("Final cents + debts = ".$howmuch['cents']);
+      // Log::info("Fee fact = ".$items2take['fee_cents_taken_fact']);
+      // Log::info("New debt = ".$debt_balance_cents_addition);
+      // Log::info("All items:");
+      // Log::info(collect($items)->pluck('name')->toArray());
+      // Log::info("Items to take:");
+      // Log::info(collect($items2take['items2take'])->pluck('name')->toArray());
+      // Log::info("Items to give:");
+      // Log::info(collect($items2give)->pluck('name')->toArray());
+      // throw new \Exception('Stop!');
 
       // n] Вернуть результат
       return [
