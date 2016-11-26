@@ -179,6 +179,11 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
     //-------------------------//
     $res = call_user_func(function() USE ($event) { try {
 
+      // a. Если игра стоит на паузе, завершить
+      $cache = Cache::get('lottery:pause');
+      if(!empty($cache) && $cache == 1)
+        return;
+
       // 1. Трансляция серверного время всем клиентам
       Event::fire(new \R2\Broadcast([
         'channels' => ['m9:servertime'],
