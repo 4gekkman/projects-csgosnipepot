@@ -620,6 +620,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.max_bet_round(data.max_bet_round());
 			self.m.s2.edit.allow_unstable_prices(data.allow_unstable_prices());
 			self.m.s2.edit.fee_percents(data.fee_percents());
+			self.m.s2.edit.debts_collect_per_win_max_percent(data.debts_collect_per_win_max_percent());
 			self.m.s2.edit.change(data.change());
 			self.m.s2.edit.one_bot_payout(data.one_bot_payout());
 			self.m.s2.edit.payout_limit_min(data.payout_limit_min());
@@ -693,6 +694,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					max_bet_round: 						self.m.s2.edit.max_bet_round(),
 					allow_unstable_prices: 		self.m.s2.edit.allow_unstable_prices() == true ? 1 : 0,
 					fee_percents: 						self.m.s2.edit.fee_percents(),
+					debts_collect_per_win_max_percent: self.m.s2.edit.debts_collect_per_win_max_percent(),
 					change: 									self.m.s2.edit.change() == true ? 1 : 0,
 					one_bot_payout: 					self.m.s2.edit.one_bot_payout() == true ? 1 : 0,
 					payout_limit_min: 				self.m.s2.edit.payout_limit_min(),

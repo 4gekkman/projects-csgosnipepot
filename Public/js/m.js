@@ -640,6 +640,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			"weapon": 						ko.observable(false)
 		};
 		self.m.s2.edit.fee_percents 								= ko.observable("");
+		self.m.s2.edit.debts_collect_per_win_max_percent = ko.observable("");
 		self.m.s2.edit.change 											= ko.observable("");
 		self.m.s2.edit.one_bot_payout 							= ko.observable("");
 		self.m.s2.edit.payout_limit_min 						= ko.observable("");

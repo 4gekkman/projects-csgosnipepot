@@ -687,6 +687,15 @@
               </div>
             </div>
 
+            <?php /* 5] debts_collect_per_win_max_percent -->
+            <!------------------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Лимит на взымание долгов, %</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.debts_collect_per_win_max_percent">
+              </div>
+            </div>
+
           </div>
 
           <?php /*-------------------->
