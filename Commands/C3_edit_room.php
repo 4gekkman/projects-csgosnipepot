@@ -172,6 +172,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "allow_unstable_prices" 	  => ["required", "regex:/^[01]{1}$/ui"],
         "allow_only_types" 			    => ["required", "json"],
         "fee_percents" 	            => ["required", "r4_between:0,100"],
+        "debts_collect_per_win_max_percent"  => ["required", "r4_between:0,100"],
         "change" 				            => ["required", "regex:/^[01]{1}$/ui"],
         "one_bot_payout"            => ["required", "regex:/^[01]{1}$/ui"],
         "payout_limit_min"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],

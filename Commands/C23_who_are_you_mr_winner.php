@@ -438,10 +438,11 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       });
 
       // 7. Записать выигравший билет и угол вращения в раунд
-      $round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
-      $round->wheel_rotation_angle        = $wheel_rotation_angle;
-      $round->wheel_rotation_angle_origin = $wheel_rotation_angle;
-      $round->save();
+      // TODO: раскомментировать
+      //$round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
+      //$round->wheel_rotation_angle        = $wheel_rotation_angle;
+      //$round->wheel_rotation_angle_origin = $wheel_rotation_angle;
+      //$round->save();
 
       // 8. Вычислить, какими бонусами обладает игрок
       $bonuses = call_user_func(function() USE ($room, $winner_and_ticket) {
@@ -502,7 +503,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         });
         if(empty($bonuses_sum)) $bonuses_sum = 0;
 
-        // 2] Получить установленные размер комиссии в комнате
+        // 2] Получить установленнй размер комиссии в комнате
         $room_fee = $room['fee_percents'];
         if(empty($room_fee)) $room_fee = 10;
 
@@ -518,7 +519,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       // 10. Составить список всех поставленных вещей, отсортированный по цене
       // - Отсортированный по цене по убыванию.
       // - Плюс, каждой вещи добавить св-во percentage (цена вещи, делёная на банк).
-      $items = call_user_func(function() USE ($winner_and_ticket, $jackpot_total_sum_cents) {
+      $items = call_user_func(function () USE ($winner_and_ticket, $jackpot_total_sum_cents) {
 
         // 1] Подготовить массив для результатов
         $results = [];
@@ -543,6 +544,116 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         return $results;
 
       });
+
+      // 11. Получить коллекцию всех долгов победителя
+      $debts = \M9\Models\MD10_debts::whereHas('wins', function($query) USE ($winner_and_ticket) {
+        $query->whereHas('m5_users', function($query) USE ($winner_and_ticket) {
+          $query->where('id', $winner_and_ticket['user_winner']['id']);
+        });
+      })->get();
+
+      // 12. Вычислить, сколько в итоге мы должны забрать из этого выигрыша
+      // - Процентово от джекпота.
+      // - Центов
+      $howmuch = call_user_func(function() USE ($items, $fee, $winner_and_ticket, $room, $jackpot_total_sum_cents, &$debts) {
+
+        // 1] Получить установленный MAX размер взымание долга с победителя за 1 раунд
+        $debts_collect_per_win_max_percent = $room['debts_collect_per_win_max_percent'];
+        if(empty($debts_collect_per_win_max_percent)) $debts_collect_per_win_max_percent = 25;
+
+        // 2] Вычислить суммарный долг победителя на данный момент
+        $debts_sum = $debts->sum('debt_cents');
+
+        // 3] Вычислить сумму, которую можно было бы изъять у игрока за долги из этого выигрыша
+        $debts_sum_we_can_get = $jackpot_total_sum_cents * $debts_collect_per_win_max_percent/100;
+
+        // 4] Вычислить, сколько по факту мы изымем за долги из этого выигрыша
+        $debts2collect = call_user_func(function() USE ($debts_sum, $debts_sum_we_can_get) {
+
+          // 4.1] Если он должен больше, чем мы можем взять
+          // - То мы возмём с этого выигрыша MAX того, что можем взять.
+          if($debts_sum >= $debts_sum_we_can_get)
+            return $debts_sum_we_can_get;
+
+          // 4.2] Если он должен меньше, чем мы можем взять
+          // - То мы возьмём с этого его выигрыша весь его долг.
+          else
+            return $debts_sum;
+
+        });
+
+        // 5] Определить, каким % от общего банка является $debts2collect
+        $debts2collect_percent2bank = ($debts2collect/$jackpot_total_sum_cents)*100;
+
+        // 6] Вычислить итоговый % от выигрыша и сумму, которую мы должны забрать
+        return [
+          'fee'     => $fee + $debts2collect_percent2bank,
+          'cents'   => (($fee + $debts2collect_percent2bank)/100) * $jackpot_total_sum_cents
+        ];
+
+      });
+
+      // 13. Определить вещи на комиссию
+      $items2take = call_user_func(function() USE ($howmuch, $items) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 3] Наполнить $results
+        $cents_already = 0;
+        for($i=0; $i<count($items); $i++) {
+          $cents_already = +$cents_already + +$items[$i]['price']*100;
+          if($cents_already <= $howmuch['cents'])
+            array_push($results, $items[$i]);
+        }
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+      // 12. Определить вещи на отдачу
+      $items2give = call_user_func(function() USE ($items, $items2take) {
+
+        // 1] Подготовить массив для результатов
+        $results = [];
+
+        // 2] Получить массив ID всех вещей из $items2give
+        $items2take_ids = collect($items2take)->pluck('id')->toArray();
+
+        // 3] Добавить в $results все вещий из $items, кроме $items2give
+        foreach($items as $item) {
+          if(!in_array($item['id'], $items2take_ids))
+            array_push($results, $item);
+        }
+
+        // n] Вернуть результаты
+        return $results;
+
+      });
+
+
+
+
+
+      Log::info("Winner id = ".$winner_and_ticket['user_winner']['id']);
+      Log::info("Ticket-winner = ".$winner_and_ticket['ticket_winner_number']);
+      Log::info("Jackpot in cents = ".$jackpot_total_sum_cents);
+      Log::info("Bonuses:");
+      Log::info($bonuses);
+      Log::info("Final fee = ".$fee);
+      Log::info("Final fee + debts = ".$howmuch['fee']);
+      Log::info("Final cents + debts = ".$howmuch['cents']);
+      Log::info("All items:");
+      Log::info(collect($items)->pluck('name')->toArray());
+      Log::info("Items to take:");
+      Log::info(collect($items2take)->pluck('name')->toArray());
+      Log::info("Items to give:");
+      Log::info(collect($items2give)->pluck('name')->toArray());
+      throw new \Exception('Stop!');
+
+
+
 
       // 11. Определить вещи на отдачу
       $items2give = call_user_func(function() USE ($items, $fee) {
@@ -587,6 +698,10 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         return $results;
 
       });
+
+
+
+
 
       // 13. Посчитать прибавку к долговому балансу игрока
       $debt_balance_cents_addition = call_user_func(function() USE ($items2take, $fee, $jackpot_total_sum_cents) {
