@@ -140,7 +140,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
      *  2. Получить инвентарь игрока с помощью players_steamid
      *  3. Произвести сверку вещей в inventory и items2bet
      *  4. Получить комнату, в которой игрок хочет сделать ставку, с помощью choosen_room_id
-     *  5. Проверить типы вещей из $items2bet
+     *  5. Проверить типы вещей из $items2bet, а также наличие цены
      *  6. Сгенерировать случайный код безопасности
      *  7. Определить, какой бот будет принимать ставку
      *  8. Если не удалось определить бота, который должен принять ставку, вернуть ошибку
@@ -219,7 +219,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           return $results;
         });
 
-        // 3.3. Проверить, чтобы 3.2 полностью был включён в 3.3
+        // 3.4. Проверить, чтобы 3.2 полностью был включён в 3.3
         if(count(array_intersect($items2bet_aci, $inventory_aci)) != count($items2bet_aci)) {
 
           // 1] Получить ID текущего пользователя из сессии
@@ -252,7 +252,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       if(!$room)
         throw new \Exception("Бот не может найти в базе данных комнату, в которой ты пытаешься сделать ставку.");
 
-      // 5. Проверить типы вещей из $items2bet
+      // 5. Проверить типы вещей из $items2bet, а также наличие цены
       // - Если есть хотя бы 1 вещь запрещённого типа, завершить с ошибкой.
 
         // 5.1. Получить список допустимых в $room типов вещей
@@ -263,8 +263,37 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         call_user_func(function() USE ($inventory, $items2bet_market_names, $allow_only_types) {
           for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
             if(in_array($inventory['data']['rgDescriptions'][$i]['market_name'], $items2bet_market_names)) {
-              if(!in_array($inventory['data']['rgDescriptions'][$i]['itemtype'], $allow_only_types))
-                throw new \Exception("Одна из вещей, которые ты пытаешься поставить, имеет запрещённый в этой комнате тип. Вещь: ".$inventory['data']['rgDescriptions'][$i]['market_name'].". Тип: ".$inventory['data']['rgDescriptions'][$i]['itemtype'].".");
+
+              // 1] Получить вещь в короткую переменную
+              $item = $inventory['data']['rgDescriptions'][$i];
+
+              // 2] Все ли itemtypes вещи $item есть в $allow_only_types
+              $is = call_user_func(function() USE ($item, $allow_only_types) {
+
+                foreach($item['itemtypes'] as $type => $is) {
+                  if($is == 1) {
+                    if(!in_array($type, $allow_only_types))
+                      return false;
+                  }
+                }
+                return true;
+
+              });
+
+              // 3] Если не все, возбудить исключение
+              if(!$is)
+                throw new \Exception("Одна из вещей, которые ты пытаешься поставить, имеет запрещённый в этой комнате тип. Вещь: ".$inventory['data']['rgDescriptions'][$i]['market_name'].".");
+
+            }
+          }
+        });
+
+        // 5.3. Проверить наличие цены у каждой из вещей
+        call_user_func(function() USE ($inventory, $items2bet_market_names, $allow_only_types) {
+          for($i=0; $i<count($inventory['data']['rgDescriptions']); $i++) {
+            if(in_array($inventory['data']['rgDescriptions'][$i]['market_name'], $items2bet_market_names)) {
+              if(empty($inventory['data']['rgDescriptions'][$i]['price']))
+                throw new \Exception("У нас нет цен на некоторые из вещей, которые ты пытаешься поставить. Одна из них: ".$inventory['data']['rgDescriptions'][$i]['market_name'].".");
             }
           }
         });
