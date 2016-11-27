@@ -142,10 +142,11 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
      *  2. Получить ставку с betid и tradeofferid
      *  3. Получить статусы Active и Accepted
      *  4. Отвязать ставку от статуса $status_active, привязать к $status_accepted
-     *  5. Записать assetid_bots в md2001
-     *  6. Вычислить, можно ли пользователю id_user разместить ещё одну ставку в посл.раунд комнаты id_room
-     *  7. Принять ставку в текущий раунд, если $canwe_makeabet['verdict'] == true
-     *  8. Если принять ставку в текущий раунд нельзя, отложить до следующего
+     *  5. Получить массив уже занятых в других ставках assetid
+     *  6. Записать assetid_bots в md2001
+     *  7. Вычислить, можно ли пользователю id_user разместить ещё одну ставку в посл.раунд комнаты id_room
+     *  8. Принять ставку в текущий раунд, если $canwe_makeabet['verdict'] == true
+     *  9. Если принять ставку в текущий раунд нельзя, отложить до следующего
      *
      *  N. Вернуть статус 0
      *
@@ -188,7 +189,52 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       if($bet->bets_statuses->contains($status_active->id)) $bet->bets_statuses()->detach($status_active->id);
       if(!$bet->bets_statuses->contains($status_accepted->id)) $bet->bets_statuses()->attach($status_accepted->id);
 
-      // 5. Записать assetid_bots в md2001
+      // 5. Получить массив уже занятых в других ставках assetid
+      // - Ставка $bet связана с конкретным раундом.
+      // - С этим раундом могут быть связаны от 0 и более других ставок.
+      // - Каждая из этих ставок связана с 1-й или более вещью.
+      // - В связи с каждой вещью определен и assetid этой вещи у бота.
+      // - Необходимо получить массив этих самых занятых assetid других ставок.
+      $busy_assetids = call_user_func(function() {
+
+        // 1] Получить из кэша текущее состояние игры
+        $rooms = json_decode(Cache::get('processing:rooms'), true);
+
+        // 2] Получить из $rooms комнату с id_room
+        $room = call_user_func(function() USE ($rooms) {
+
+          foreach($rooms as $room) {
+            if($room['id'] == $this->data['id_room'])
+              return $room;
+          }
+
+        });
+        if(empty($room))
+          return [];
+
+        // 3] Получить последний раунд, связанный с комнатой $room
+        $lastround = count($room['rounds']) >= 0 ? $room['rounds']['0'] : "";
+        if(empty($lastround))
+          return [];
+
+        // 4] Получить все связанные с $lastround ставки
+        $bets = $lastround['bets'];
+
+        // 5] Собрать в массив (без повторений) все assetid всех вещей ставjr $bets
+        $busy_assetids = [];
+        foreach($bets as $bet) {
+          foreach($bet['m8_items'] as $item) {
+            if(!in_array($item['pivot']['assetid_bots'], $busy_assetids))
+              array_push($busy_assetids, $item['pivot']['assetid_bots']);
+          }
+        }
+
+        // n] Вернуть результат
+        return $busy_assetids;
+
+      });
+
+      // 6. Записать assetid_bots в md2001
       // - Это assetid принятых ботом в виде ставки скинов.
       // - Единственный технический способ это сделать таков:
       //   1) Сначала составить массив с данными для всех связей.
@@ -197,7 +243,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       // - Действовать через pivot->assetid_bots, или через updateExistingPivot
       //   не получается, т.к. система находит все связи с одинаковыми id_item
       //   и id_bet, и записывает значение во все связи, а не в одну.
-      call_user_func(function() USE (&$bet) {
+      call_user_func(function() USE (&$bet, $busy_assetids) {
 
         // 1] Получить список всех связанных с $bet скинов
         $bet_items = $bet->m8_items;
@@ -214,7 +260,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
           throw new \Exception($bet_bot_inventory['data']['errormsg']);
 
         // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
-        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory){
+        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory, $busy_assetids){
 
           // 4.1] Составить итоговый массив всех связей с m8_items для $bet
           // - В формате:
@@ -227,7 +273,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
           //    assetid_bots
           //  ]
           //
-          $rels = call_user_func(function() USE (&$bet, &$bet_items, &$bet_bot_inventory) {
+          $rels = call_user_func(function() USE (&$bet, &$bet_items, &$bet_bot_inventory, $busy_assetids) {
 
             // 4.1.1] Подготовить массив для результатов
             $results = [];
@@ -249,11 +295,11 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
               array_push($assetid_users_arr, $item->pivot->assetid_users);
 
               // 3) Найти в $bet_bot_inventory соотв.вещь, и добавить значение в $results
-              call_user_func(function() USE (&$results, &$bet_items, &$bet, &$item, &$assetids_found, &$assetid_users_arr, &$bet_bot_inventory) {
+              call_user_func(function() USE (&$results, &$bet_items, &$bet, &$item, &$assetids_found, &$assetid_users_arr, &$bet_bot_inventory, $busy_assetids) {
                 foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
                   if($item_in_inventory['market_hash_name'] == $item['name']) {
 
-                    if(!in_array($item_in_inventory["assetid"], $assetids_found)) {
+                    if(!in_array($item_in_inventory["assetid"], $assetids_found) && !in_array($item_in_inventory["assetid"], $busy_assetids)) {
 
                       // 3.1) Добавить assetid в $assetids_found
                       array_push($assetids_found, $item_in_inventory["assetid"]);
@@ -305,7 +351,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       });
 
-      // 6. Вычислить, можно ли пользователю id_user разместить ещё одну ставку в посл.раунд комнаты id_room
+      // 7. Вычислить, можно ли пользователю id_user разместить ещё одну ставку в посл.раунд комнаты id_room
       // - Можно, если выполняются следующие условия:
       //
       //    • Текущий раунд существует
@@ -326,13 +372,13 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       });
 
-      // 7. Принять ставку в текущий раунд, если $canwe_makeabet['verdict'] == true
+      // 8. Принять ставку в текущий раунд, если $canwe_makeabet['verdict'] == true
       if($canwe_makeabet['verdict'] == true) {
 
-        // 7.1. Получить ссылку на массив споследним раундом в комнате id_room
+        // 8.1. Получить ссылку на массив споследним раундом в комнате id_room
         $lastround = $canwe_makeabet['lastround'];
 
-        // 7.2. Добавить tickets_from / tickets_to в md2000
+        // 8.2. Добавить tickets_from / tickets_to в md2000
         // - Добавлять билеты:
         //  • Исходя из того, что 1 цент == 1 билет.
         //  • И исходя из уже связанных с раундом ставок.
@@ -384,16 +430,16 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
         });
 
-        // 7.3. Связать ставку с текущим раундом через md1010
+        // 8.3. Связать ставку с текущим раундом через md1010
         if(!$bet->rounds->contains($lastround['id'])) $bet->rounds()->attach($lastround['id']);
 
-        // 7.4. Отвязать ставку от комнаты, убрав запись из md1009
+        // 8.4. Отвязать ставку от комнаты, убрав запись из md1009
         if($bet->rooms->contains($this->data['id_room'])) $bet->rooms()->detach($this->data['id_room']);
 
-        // 7.5. Сделать commit
+        // 8.5. Сделать commit
         DB::commit();
 
-        // 7.6. Обновить весь кэш
+        // 8.6. Обновить весь кэш
         // - Но только, если он не был обновлён в C18.
         // - А там он обновляется только лишь при изменении статуса
         //   любого из раундов, любой из комнат.
@@ -403,7 +449,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // 7.7. Выполнить C18_round_statuses_tracking
+        // 8.7. Выполнить C18_round_statuses_tracking
         // - Что позволит в случае необходимости обновить статус раунда.
         // - Но при этом, C18 не будет отправлять данные игры через
         //   публичный канал, если итоговый статус <= 3.
@@ -411,7 +457,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         if($status_tracking['status'] != 0)
           throw new \Exception($status_tracking['data']['errormsg']);
 
-        // 7.8. Транслировать через публичный канал свежие игровые данные
+        // 8.8. Транслировать через публичный канал свежие игровые данные
         // - Но только, если они не были уже транслированы в C18
         if($status_tracking['data']['is_cache_was_updated'] == false) {
 
@@ -434,7 +480,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
         }
 
-        // 7.9. Сообщить игроку через публичный канал, что его ставка принята в текущий раунд
+        // 8.9. Сообщить игроку через публичный канал, что его ставка принята в текущий раунд
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:private:'.$this->data['id_user']],
           'queue'    => 'm9_lottery_broadcasting',
@@ -450,20 +496,20 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
       }
 
-      // 8. Если принять ставку в текущий раунд нельзя, отложить до следующего
+      // 9. Если принять ставку в текущий раунд нельзя, отложить до следующего
       else {
 
-        // 8.1. Сделать commit
+        // 9.1. Сделать commit
         DB::commit();
 
-        // 8.2. Обновить весь кэш
+        // 9.2. Обновить весь кэш
         $result = runcommand('\M9\Commands\C13_update_cache', [
           "all" => true
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // 8.3. Сообщить игроку через публичный канал, что:
+        // 9.3. Сообщить игроку через публичный канал, что:
         // - Его ставка принята, но в текущий раунд она не попала.
         // - Она поставлена в очередь, и появится в соответствии с ней,
         //   и с правилами комнаты, в одном из следующих раундов.

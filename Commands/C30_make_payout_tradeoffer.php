@@ -288,12 +288,6 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
             $tradeoffermessage = call_user_func(function() USE ($win2pay) {
               return "Safecode: ".$win2pay['safecodes'][0]['code'];
             });
-Log::info('Bot ID = '.$bot['id']);
-Log::info('Bot steam id = '.$win2pay['m5_users'][0]['ha_provider_uid']);
-Log::info('Partner = '.$partner);
-Log::info('Token = '.$token);
-Log::info('assets2send:');
-Log::info($assets2send);
 
             // 1.5] Отправить пользователю торговое предложение
 
