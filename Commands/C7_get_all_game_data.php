@@ -516,8 +516,6 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
 
       });
 
-      //Log::info($rooms);
-
       // n. Вернуть результаты
       DB::commit();
       return [
