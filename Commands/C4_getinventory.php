@@ -148,6 +148,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
      *      2.2.5. Вернуть $items
      *  3. Закэшировать все вещи
      *  4. Если filter_by_room_id не пуста, провести фильтрацию $items
+     *  5. Отфильтровать из $items все вещи без цены
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -399,7 +400,20 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                 }
 
               // 5.3] Добавить в каждый из $item его тип и стабильность
-              // Из набора: ["undefined","case","key","startrak","souvenir","souvenir packages","knife","weapon"]
+              // - Каждая вещь может быть одновременно нескольких типов.
+              // - Поэтому, добавить св-во itemtypes в следующем формате:
+              //
+              //    [
+              //      "undefined"         => 0 или 1,    // тип не определён
+              //      "case"              => 0 или 1,
+              //      "key"               => 0 или 1,
+              //      "startrak"          => 0 или 1,
+              //      "souvenir"          => 0 или 1,
+              //      "souvenir packages" => 0 или 1,
+              //      "knife"             => 0 или 1,
+              //      "weapon"            => 0 или 1,
+              //    ]
+              //
               foreach($items as &$item) {
 
                 // 1] Получить вещь с name == $item
@@ -427,7 +441,16 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                   $item['is_price_unstable'] = 0;
 
                   // 2.2] Записать в $item тип вещи
-                  $item['itemtype'] = "undefined";
+                  $item['itemtypes'] = [
+                    "undefined"         => 1,
+                    "case"              => 0,
+                    "key"               => 0,
+                    "startrak"          => 0,
+                    "souvenir"          => 0,
+                    "souvenir packages" => 0,
+                    "knife"             => 0,
+                    "weapon"            => 0,
+                  ];
 
                   // 2.3] Перейти к следующей итерации
                   continue;
@@ -441,13 +464,16 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                   $item['is_price_unstable'] = $item_db->is_price_unstable;
 
                   // 3.2] Добавить в $item его тип
-                  if($item_db->is_case == '1')              $item['itemtype'] = "case";
-                  if($item_db->is_key == '1')               $item['itemtype'] = "key";
-                  if($item_db->is_startrak == '1')          $item['itemtype'] = "startrak";
-                  if($item_db->is_souvenir == '1')          $item['itemtype'] = "souvenir";
-                  if($item_db->is_souvenir_package == '1')  $item['itemtype'] = "souvenir_package";
-                  if($item_db->is_knife == '1')             $item['itemtype'] = "knife";
-                  if($item_db->is_weapon == '1')            $item['itemtype'] = "weapon";
+                  $item['itemtypes'] = [
+                    "undefined"         => 0,
+                    "case"              => $item_db->is_case == '1' ? 1 : 0,
+                    "key"               => $item_db->is_key == '1' ? 1 : 0,
+                    "startrak"          => $item_db->is_startrak == '1' ? 1 : 0,
+                    "souvenir"          => $item_db->is_souvenir == '1' ? 1 : 0,
+                    "souvenir packages" => $item_db->is_souvenir_package == '1' ? 1 : 0,
+                    "knife"             => $item_db->is_knife == '1' ? 1 : 0,
+                    "weapon"            => $item_db->is_weapon == '1' ? 1 : 0,
+                  ];
 
                   // 3.3] Перейти к следующей итерации
                   continue;
@@ -500,10 +526,38 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         // 4] Получить список допустимых в $room типов вещей
         $allow_only_types = json_decode($room['allow_only_types'], JSON_UNESCAPED_UNICODE);
 
+        // 5] Получить список запрещённых в $room типов вещей
+        $forbidden_only_types =
+
         // 5] Отфильтровать $items по типам вещей
         $items = array_values(array_filter($items, function($item, $key) USE ($allow_only_types) {
 
-          return in_array($item['itemtype'], $allow_only_types);
+          // 5.1] Все ли itemtypes вещи $item есть в $allow_only_types
+          $is = call_user_func(function() USE ($item, $allow_only_types) {
+
+            foreach($item['itemtypes'] as $type => $is) {
+              if($is == 1) {
+                if(!in_array($type, $allow_only_types))
+                  return false;
+              }
+            }
+            return true;
+
+          });
+
+          // 5.2] Если все, то пропустить
+          return $is;
+
+        }, ARRAY_FILTER_USE_BOTH));
+
+      });
+
+      // 5. Отфильтровать из $items все вещи без цены
+      call_user_func(function() USE (&$items) {
+
+        $items = array_values(array_filter($items, function($item, $key) {
+
+          return !empty($item['price']);
 
         }, ARRAY_FILTER_USE_BOTH));
 
