@@ -213,10 +213,6 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         if($bet_bot_inventory['status'] != 0)
           throw new \Exception($bet_bot_inventory['data']['errormsg']);
 
-//runcommand('\M8\Commands\C4_getinventory', ['steamid'=>76561198303487947, "force"=>true])['data']['rgDescriptions'][0]
-//$bet = \M9\Models\MD3_bets::with(['bets_statuses', 'm8_items', 'm8_bots'])->where('id', 144)->where('tradeofferid', 1667523805)->first();
-//$item['pivot']['assetid_users']
-
         // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
         call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory){
 
