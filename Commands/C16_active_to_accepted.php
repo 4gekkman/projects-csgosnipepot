@@ -283,10 +283,14 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
           });
 
-          // 4.2] Сделать detach для всех связей между $bet и m8_items
+          // 4.2] Если $rels пуст, завершить с ошибкой
+          if(empty($rels) || count($rels) == 0)
+            throw new \Exception('Не удалось получить связи между ставкой и её вещами, которые нужно пересоздавать для добавления assetid_bots');
+
+          // 4.3] Сделать detach для всех связей между $bet и m8_items
           $bet->m8_items()->detach();
 
-          // 4.3] Сделать attach всех связей $rels между $bet и m8_items
+          // 4.4] Сделать attach всех связей $rels между $bet и m8_items
           call_user_func(function() USE (&$rels, &$bet, &$bet_items) {
             foreach($rels as $rel) {
               $bet->m8_items()->attach($rel['id_item'], [
@@ -439,7 +443,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             'data' => [
               'id_room'           => $this->data['id_room'],
               'in_current_round'  => true,
-              'bets_active'       => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
+              'bets_active'       => [] //json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
             ]
           ]
         ]));

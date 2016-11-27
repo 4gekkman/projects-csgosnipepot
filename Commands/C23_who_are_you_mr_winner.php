@@ -445,10 +445,10 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       });
 
       // 7. Записать выигравший билет и угол вращения в раунд
-      //$round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
-      //$round->wheel_rotation_angle        = $wheel_rotation_angle;
-      //$round->wheel_rotation_angle_origin = $wheel_rotation_angle;
-      //$round->save();
+      $round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
+      $round->wheel_rotation_angle        = $wheel_rotation_angle;
+      $round->wheel_rotation_angle_origin = $wheel_rotation_angle;
+      $round->save();
 
       // 8. Вычислить, какими бонусами обладает игрок
       $bonuses = call_user_func(function() USE ($room, $winner_and_ticket) {
@@ -779,7 +779,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
             // - Вычесть долг из $debt['debt_cents'].
             // - Завершить цикл.
             if($debt['debt_cents'] > $left_cents) {
-              $debt['debt_cents'] = +$debt['debt_cents'] - +$debt['debt_cents'];
+              $debt['debt_cents'] = +$debt['debt_cents'] - +$left_cents;
               $debt->save();
               break;
             }
