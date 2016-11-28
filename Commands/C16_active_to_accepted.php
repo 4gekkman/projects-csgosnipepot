@@ -462,7 +462,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         if($status_tracking['data']['is_cache_was_updated'] == false) {
 
           // 1] Получить свежие игровые данные
-          $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
+          $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1, 'safe' => true]);
           if($allgamedata['status'] != 0)
             throw new \Exception($allgamedata['data']['errormsg']);
 
@@ -480,7 +480,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
         }
 
-        // 8.9. Сообщить игроку через публичный канал, что его ставка принята в текущий раунд
+        // 8.9. Сообщить игроку через частный канал, что его ставка принята в текущий раунд
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:private:'.$this->data['id_user']],
           'queue'    => 'm9_lottery_broadcasting',
@@ -521,7 +521,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             'data' => [
               'id_room'           => $this->data['id_room'],
               'in_current_round'  => false,
-              'bets_active'       => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
+              'bets_active'       => json_decode(Cache::tags(['processing:bets:active:personal:safe'])->get('processing:bets:active:safe:'.$this->data['id_user']), true) ?: [],
             ]
           ]
         ]));

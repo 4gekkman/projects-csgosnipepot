@@ -683,7 +683,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
           "tradeofferid"    => $tradeofferid,
           "current_or_next" => "в текущий раунд",
           "expire_in_secs"  => $room->offers_timeout_sec,
-          "bets_active"     => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
+          "bets_active"     => json_decode(Cache::tags(['processing:bets:active:personal:safe'])->get('processing:bets:active:safe:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
         ]
       ];
 

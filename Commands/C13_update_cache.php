@@ -508,14 +508,11 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                 // 4.2] Записать JSON с $rooms в кэш
                 Cache::put('processing:rooms:safe', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
-                Log::info(json_decode(Cache::get('processing:rooms:safe'), true));
-
               });
 
             }
 
           }
-
 
 
 

@@ -407,10 +407,10 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
           "tradeoffer_ids"  => $tradeoffer_ids,
           "expire_in_secs"  => $win2pay['rounds'][0]['rooms']['offers_timeout_sec'],
           "wins"                  => [
-            "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: "",
-            "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
-            "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
-            "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: []
+            "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: "",
+            "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
+            "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: [],
+            "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.json_decode(session('auth_cache'), true)['user']['id']), true) ?: []
           ],
         ]
       ];

@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *        rounds_limit          // Сколько последних раундов должно войти в результат по каждой комнате (0 - значит без ограничений)
+ *        rounds_limit          // Сколько последних раундов должно войти в результат по каждой комнате (0 - значит без ограничений),
+ *        safe                  // Использовать ли безопасный (без тайной информации) кэш
  *      ]
  *    ]
  *
@@ -151,11 +152,18 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
-      $validator = r4_validate($this->data, [
-        "rounds_limit"              => ["required", "regex:/^[0-9]+$/ui"]
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
+
+        // 1.1. Провести валидацию
+        $validator = r4_validate($this->data, [
+          "rounds_limit"              => ["required", "regex:/^[0-9]+$/ui"],
+          "safe"                      => ["boolean"],
+        ]); if($validator['status'] == -1) {
+          throw new \Exception($validator['data']);
+        }
+
+        // 1.2. Назначить значение по умолчанию
+        if(!in_array('safe', $this->data))
+          $this->data['safe'] = false;
 
       // 2. Получить коллекцию всех игровых данных
       //				   Комната
@@ -168,7 +176,10 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
       //
 
         // 2.1. Извлечь коллекцию всех игровых данных из кэша
-        $rooms = json_decode(Cache::get('processing:rooms'), true);
+        if($this->data['safe'] == false)
+          $rooms = json_decode(Cache::get('processing:rooms'), true);
+        else
+          $rooms = json_decode(Cache::get('processing:rooms:safe'), true);
 
         // 2.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
         if(count($rooms) == 0) {
@@ -186,7 +197,10 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
             throw new \Exception($result['data']['errormsg']);
 
           // 3] Извлечь коллекцию всех игровых данных из кэша
-          $rooms = json_decode(Cache::get('processing:rooms'), true);
+          if($this->data['safe'] == false)
+            $rooms = json_decode(Cache::get('processing:rooms'), true);
+          else
+            $rooms = json_decode(Cache::get('processing:rooms:safe'), true);
 
         }
 
@@ -447,7 +461,11 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
         call_user_func(function() USE (&$rooms) {
 
           // 1.1] Получить кэш
-          $cache = json_decode(Cache::get('processing:bets:active'), true);
+          if($this->data['safe'] == false)
+            $cache = json_decode(Cache::get('processing:bets:active'), true);
+          else
+            $cache = json_decode(Cache::get('processing:bets:active:safe'), true);
+
 
           // 1.2] Получить информацию о пользователе
           $user = json_decode(session('auth_cache'), true);

@@ -931,10 +931,10 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           'data' => [
             'id_room'     => $this->data['id_room'],
             'wins'        => [
-              "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$winner_and_ticket['user_winner']['id']), true) ?: "",
-              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
-              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
-              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$winner_and_ticket['user_winner']['id']), true) ?: []
+              "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: "",
+              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
+              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
+              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: []
             ]
           ]
         ]

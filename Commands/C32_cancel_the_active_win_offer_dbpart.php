@@ -238,10 +238,10 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
           'data' => [
             'id_room'     => $this->data['id_room'],
             'wins'        => [
-              "active"            => json_decode(Cache::tags(['processing:wins:active:personal'])->get('processing:wins:active:'.$this->data['id_user']), true) ?: "",
-              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$this->data['id_user']), true) ?: [],
-              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$this->data['id_user']), true) ?: [],
-              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$this->data['id_user']), true) ?: []
+              "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$this->data['id_user']), true) ?: "",
+              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$this->data['id_user']), true) ?: [],
+              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$this->data['id_user']), true) ?: [],
+              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$this->data['id_user']), true) ?: []
             ]
           ]
         ]

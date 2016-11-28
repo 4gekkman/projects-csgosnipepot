@@ -211,7 +211,7 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
           'task' => 'tradeoffer_cancel',
           'data' => [
             'id_room'     => $this->data['id_room'],
-            'bets_active' => json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
+            'bets_active' => [] //json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
           ]
         ]
       ]));

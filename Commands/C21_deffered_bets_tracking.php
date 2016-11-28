@@ -286,7 +286,7 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
           throw new \Exception($result['data']['errormsg']);
 
         // 5.2. Получить свежие игровые данные
-        $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1]);
+        $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1, 'safe' => true]);
         if($allgamedata['status'] != 0)
           throw new \Exception($allgamedata['data']['errormsg']);
 
