@@ -178,9 +178,15 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 2] Попробовать снова извлечь $rooms
-          $rooms = \M9\Models\MD1_rooms::with(['rounds.rounds_statuses', 'rounds.bets.m5_users'])
-              ->where('is_on', 1)->get()->toArray();
+          // 2] Обновить весь кэш
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "all"   => true
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 3] Извлечь коллекцию всех игровых данных из кэша
+          $rooms = json_decode(Cache::get('processing:rooms'), true);
 
         }
 
