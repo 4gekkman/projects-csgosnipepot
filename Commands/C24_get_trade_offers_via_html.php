@@ -889,16 +889,37 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        Log::info($errortext);
-        write2log($errortext, ['M8', 'C1_get_trade_offers_via_html']);
-        return [
-          "status"  => -2,
-          "data"    => [
-            "errortext" => $errortext,
-            "errormsg" => $e->getMessage()
-          ]
-        ];
+
+      // 1] Получить текст ошибки
+      $errortext = 'Invoking of command C1_get_trade_offers_via_html from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+      // 2] Если текст ошибки содержит waitforauth, переавторизовать бота id_bot
+      if(preg_match("/waitforauth/ui", $e->getMessage()) != 0) {
+
+        runcommand('\M8\Commands\C8_bot_login', [
+          "id_bot"          => $this->data['id_bot'],
+          "relogin"         => "1",
+          "captchagid"      => "0",
+          "captcha_text"    => "0",
+          "method"          => "GET",
+          "cookies_domain"  => "steamcommunity.com"
+        ]);
+
+      }
+
+      // 3] Отправить сообщения в логи
+      Log::info($errortext);
+      write2log($errortext, ['M8', 'C1_get_trade_offers_via_html']);
+
+      // 4] Вернуть результат с ошибкой
+      return [
+        "status"  => -2,
+        "data"    => [
+          "errortext" => $errortext,
+          "errormsg" => $e->getMessage()
+        ]
+      ];
+
     }}); if(!empty($res)) return $res;
 
 
