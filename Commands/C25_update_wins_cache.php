@@ -260,19 +260,29 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 // - Что должно быть вырезано цензурой:
                 //
                 //    • Для m8_bots оставить только id и pivot.
+                //    • m5_users.adminnote
                 //
                 $active_wins->transform(function($value, $key){
 
                   // 1) Удалить m8_bots из $value
                   $value_arr = $value->toArray();
-                  $value_arr['m8_bots'] = [
-                    [
-                      "id"    => $value_arr['m8_bots'][0]['id'],
-                      "pivot" => $value_arr['m8_bots'][0]['pivot'],
-                    ]
-                  ];
 
-                  // 2) Вернуть $value_arr
+                  // 2) Сформировать массив для m8_bots
+                  $m8_bots = [];
+                  foreach($value_arr['m8_bots'] as &$bot) {
+                    array_push($m8_bots, [
+                      "id"    => $bot['id'],
+                      "pivot" => $bot['pivot'],
+                    ]);
+                  }
+                  $value_arr['m8_bots'] = $m8_bots;
+
+                  // 3) Вырезать m5_users.adminnote
+                  foreach($value_arr['m5_users'] as &$user) {
+                    $user['adminnote'] = "";
+                  }
+
+                  // 4) Вернуть $value_arr
                   return $value_arr;
 
                 });
@@ -360,6 +370,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 // - Что должно быть вырезано цензурой:
                 //
                 //    • Полностью m8_bots.
+                //    • m5_users.adminnote
                 //
                 $wins->transform(function($value, $key){
 
@@ -367,7 +378,12 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                   $value_arr = $value->toArray();
                   $value_arr['m8_bots'] = [];
 
-                  // 2) Вернуть $value_arr
+                  // 2) Вырезать m5_users.adminnote
+                  foreach($value_arr['m5_users'] as &$user) {
+                    $user['adminnote'] = "";
+                  }
+
+                  // 3) Вернуть $value_arr
                   return $value_arr;
 
                 });
@@ -465,6 +481,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 // - Что должно быть вырезано цензурой:
                 //
                 //    • Полностью m8_bots.
+                //    • m5_users.adminnote
                 //
                 $paid_wins->transform(function($value, $key){
 
@@ -472,7 +489,12 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                   $value_arr = $value->toArray();
                   $value_arr['m8_bots'] = [];
 
-                  // 2) Вернуть $value_arr
+                  // 2) Вырезать m5_users.adminnote
+                  foreach($value_arr['m5_users'] as &$user) {
+                    $user['adminnote'] = "";
+                  }
+
+                  // 3) Вернуть $value_arr
                   return $value_arr;
 
                 });
@@ -570,6 +592,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 // - Что должно быть вырезано цензурой:
                 //
                 //    • Полностью m8_bots.
+                //    • m5_users.adminnote
                 //
                 $expired_wins->transform(function($value, $key){
 
@@ -577,7 +600,12 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                   $value_arr = $value->toArray();
                   $value_arr['m8_bots'] = [];
 
-                  // 2) Вернуть $value_arr
+                  // 2) Вырезать m5_users.adminnote
+                  foreach($value_arr['m5_users'] as &$user) {
+                    $user['adminnote'] = "";
+                  }
+
+                  // 3) Вернуть $value_arr
                   return $value_arr;
 
                 });
