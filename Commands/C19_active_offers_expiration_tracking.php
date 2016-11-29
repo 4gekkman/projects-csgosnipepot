@@ -147,8 +147,6 @@ class C19_active_offers_expiration_tracking extends Job { // TODO: добави�
     //-------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // m9:processing:c35_executing
-
       // 1. Получить активные ставки из кэша
       $bets_active = json_decode(Cache::get('processing:bets:active'), true);
       if(empty($bets_active)) $bets_active = [];

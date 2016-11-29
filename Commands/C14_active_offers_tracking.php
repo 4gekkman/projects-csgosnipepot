@@ -139,8 +139,10 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
      *  2. Получить из $bets_active неповторяющийся список всех ботов, имеющих активные офферы
      *  3. Для каждого из $bots_ids получить список активных офферов
      *  4. Попробовать найти бывшие активные ($bets_active) офферы
-     *  5. Сделать commit
-     *  6. Пробежаться по каждому офферу в $bets_ex_active
+     *  5. Получить из кэша информацию о состоянии активных офферов из m9.C35
+     *  6. Пополнить $bets_ex_active информацией из $c35_executing
+     *  7. Сделать commit
+     *  8. Пробежаться по каждому офферу в $bets_ex_active
      *
      *  N. Вернуть статус 0
      *
@@ -179,48 +181,7 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           // 2.1] Получить ID i-го бота
           $id_bot = $bots_ids[$i];
 
-          // 2.2] Попробовать получить активные исходящие офферы $id_bot через API
-          // - Что означают коды:
-          //
-          //    -3    // Не удалось получить ответ от Steam
-          //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
-          //    0     // Успех, найденный оффер доступен по ключу offer
-          //
-          //$offers_api = call_user_func(function() USE ($id_bot) {
-          //
-          //  // 2.2.1] Получить все исходящие (в т.ч. не активные) офферы бота $id_bot через API
-          //  $offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ["id_bot"=>$id_bot,"activeonly"=>1]);
-          //
-          //  // 2.2.2] Если получить ответ от Steam не удалось
-          //  if($offers['status'] != 0)
-          //    return [
-          //      "code"   => -3,
-          //      "offers"  => ""
-          //    ];
-          //
-          //  // 2.2.3] Если trade_offers_sent отсутствуют в ответе
-          //  if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
-          //    return [
-          //      "code"   => -2,
-          //      "offers"  => ""
-          //    ];
-          //
-          //  // 2.2.4] Вернуть offers
-          //  return [
-          //    "code"    => 0,
-          //    "offers"  => $offers
-          //  ];
-          //
-          //});
-
-          // 2.3] Если $offers_api['code'] == 0
-          // - Записать данные в $result и перейти к следующей итерации
-          //if($offers_api['code'] == 0) {
-          //  $result[$id_bot] = $offers_api['offers'];
-          //  continue;
-          //}
-
-          // 2.4] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
+          // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
           // - Что означают коды:
           //
           //    -3    // Не удалось получить ответ от Steam
@@ -229,23 +190,23 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           //
           $offers_http = call_user_func(function() USE ($id_bot) {
 
-            // 2.4.1] Получить все активные офферы бота $id_bot через HTTP
+            // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
             $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>3]);
 
-            // 2.4.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+            // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
             $offers['data']['tradeoffers']['trade_offers_sent'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_sent'], function($item){
               if($item['trade_offer_state'] != 2) return true;
               else return false;
             }));
 
-            // 2.4.3] Если получить ответ от Steam не удалось
+            // 2.2.3] Если получить ответ от Steam не удалось
             if($offers['status'] != 0)
               return [
                 "code"   => -3,
                 "offers"  => ""
               ];
 
-            // 2.4.4] Если trade_offers_sent отсутствуют в ответе
+            // 2.2.4] Если trade_offers_sent отсутствуют в ответе
             if(!array_key_exists('trade_offers_sent', $offers['data']['tradeoffers']))
               return [
                 "code"   => -2,
@@ -260,7 +221,7 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
           });
 
-          // 2.5] Если $offers_http['code'] == 0
+          // 2.3] Если $offers_http['code'] == 0
           // - Записать данные в $result и перейти к следующей итерации
           if($offers_http['code'] == 0) {
             $result[$id_bot] = $offers_http['offers'];
@@ -332,10 +293,57 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
       });
 
-      // 5. Сделать commit
+      // 5. Получить из кэша информацию о состоянии активных офферов из m9.C35
+      // - В формате:
+      //
+      //    [
+      //      [
+      //        id_bot
+      //        tradeoffer
+      //        tradeofferid
+      //        id_status_old
+      //        id_status_new
+      //      ],
+      //      ...
+      //    ]
+      //
+      $c35_executing = json_decode(Cache::get('m9:processing:c35_executing'), true);
+      if(empty($c35_executing)) $c35_executing = [];
+
+      // 6. Пополнить $bets_ex_active информацией из $c35_executing
+      // - Добавлять только информацию об офферах со статусом НЕ Active (не 2).
+      // - Добавлять только в том случае, если $bets_ex_active ещё нет информации по этому офферу.
+      // - Добавлять только в том случае, если оффер есть в $bets_active.
+      foreach($c35_executing as $to) {
+
+        // 1] Если $to нет в $bets_active, перейти к следующей итерации
+        $is_in_bets_active = false;
+        foreach($bets_active as $bet) {
+          if($to['tradeofferid'] == $bet['tradeofferid'])
+            $is_in_bets_active = true;
+        }
+        if($is_in_bets_active == false) continue;
+
+        // 2] Если информацио о $to уже есть в $bets_ex_active, перейти к следующей итерации
+        $is_already_in_bets_ex_acitive = false;
+        foreach($bets_ex_active as $bet) {
+          if($to['tradeofferid'] == $bet['tradeofferid'])
+            $is_already_in_bets_ex_acitive = true;
+        }
+        if($is_already_in_bets_ex_acitive == true) continue;
+
+        // 3] Если статус $to "Active", перейти к следующей итерации
+        if($to['id_status_new'] == 2) continue;
+
+        // 4] Добавить $to в $bets_ex_active
+        array_push($bets_ex_active, $to);
+
+      }
+
+      // 7. Сделать commit
       DB::commit();
 
-      // 6. Пробежаться по каждому офферу в $bets_ex_active
+      // 8. Пробежаться по каждому офферу в $bets_ex_active
       // - И в зависимости от того "Accepted" он, или отличается, предпринять ряд действий.
       call_user_func(function() USE ($bets_ex_active) {
         for($i=0; $i<count($bets_ex_active); $i++) {
