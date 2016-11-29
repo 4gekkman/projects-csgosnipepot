@@ -152,6 +152,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *  C18_round_statuses_tracking                 | 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
      *  C17_new_rounds_provider                     | 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
      *
+     *  В. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
      *  N. Вернуть статус 0
      *
      */
@@ -212,6 +213,17 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
 
       }
+
+      // В. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
+      // - Но выполнять только в том случае, если предыдущая закончила выполняться.
+      $cache = json_decode(Cache::get('m9:processing:c35_executing'), true);
+      $bets_active = json_decode(Cache::get('processing:bets:active'), true);
+      if(empty($cache) || !is_array($cache) || count($cache) == 0) {
+        if(!empty($bets_active))
+          runcommand('\M9\Commands\C35_offers_toothcomb', [],
+              0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
+      }
+
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
