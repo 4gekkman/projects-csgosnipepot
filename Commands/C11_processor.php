@@ -210,6 +210,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         runcommand('\M9\Commands\C17_new_rounds_provider', [],
             0, ['on'=>true, 'name'=>$queue]);
 
+
       }
 
     } catch(\Exception $e) {
