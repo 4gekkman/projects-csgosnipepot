@@ -149,6 +149,8 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
      *  12. Добавить пользователя $user2auth в группу $steamusers
      *  13. Через websocket послать аутентиф.информацию по каналу websockets_channel
      *  14. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+     *  15. Сохранить аватар пользователя
+     *  16. Сбросить authorize_access/authorize_exec в сессии
      *
      *  N. Вернуть статус 0
      *
@@ -393,6 +395,10 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         $image->save(public_path('public/M5/steam_avatars/'.$user2auth->id.'.jpg'), 100);
 
       });
+
+      // 16. Сбросить authorize_access/authorize_exec в сессии
+      Session::forget('authorize_access');
+      Session::forget('authorize_exec');
 
 
     DB::commit(); } catch(\Exception $e) {

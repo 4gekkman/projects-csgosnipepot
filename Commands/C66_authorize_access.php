@@ -143,7 +143,7 @@ class C66_authorize_access extends Job { // TODO: добавить "implements S
      *  5. Извлечь из сессии значение по ключу "authorize_access"
      *  6. Провести валидацию $authorize_access
      *  7. Искать $packid в $authorize_access
-     *  8. Иначе, искать право доступ к интерфейсам $packid в БД
+     *  8. Иначе, искать право доступа к интерфейсам $packid в БД
      *    8.1. Получить коллекцию всех пакетов, к интерфейсам которых $userid имеет доступ
      *    8.2. Перезаписать в сессии кэш authorize_access
      *    8.3. Если $packid не в $packages->pluck('id_inner')->toArray()
@@ -228,7 +228,7 @@ class C66_authorize_access extends Job { // TODO: добавить "implements S
 
       }
 
-      // 8. Иначе, искать право доступ к интерфейсам $packid в БД
+      // 8. Иначе, искать право доступа к интерфейсам $packid в БД
       // - А заодно и перезаписать кэш "authorize_access" в сессии.
       // - Если права нет, вернуть статус -1 (доступ запрещён).
       else {

@@ -141,6 +141,7 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
      *  4. Забыть аутентификационную куку
      *  5. Забыть куку "PHPSESSID", которую ставит HybridAuth
      *  6. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+     *  7. Сбросить authorize_access/authorize_exec в сессии
      *
      *  N. Вернуть статус 0
      *
@@ -219,6 +220,11 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
             'number' => $logged_in_steam_users
           ]
         ]));
+
+      // 7. Сбросить authorize_access/authorize_exec в сессии
+      Session::forget('authorize_access');
+      Session::forget('authorize_exec');
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C59_logout from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
