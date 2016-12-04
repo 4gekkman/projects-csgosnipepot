@@ -240,16 +240,37 @@ class C23_check_escrow_hold_days extends Job { // TODO: добавить "implem
 
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C23_check_escrow_hold_days from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        Log::info($errortext);
-        write2log($errortext, ['M8', 'C23_check_escrow_hold_days']);
-        return [
-          "status"  => -2,
-          "data"    => [
-            "errortext" => $errortext,
-            "errormsg" => $e->getMessage()
-          ]
-        ];
+
+      // 1] Получить текст ошибки
+      $errortext = 'Invoking of command C23_check_escrow_hold_days from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+      // 2] Если текст ошибки содержит g_daysMyEscrow или "401 Unauthorized", переавторизовать бота id_bot
+      if(preg_match("/g_daysMyEscrow/ui", $e->getMessage()) != 0 || preg_match("/401 Unauthorized/ui", $e->getMessage()) != 0) {
+
+        $result = runcommand('\M8\Commands\C8_bot_login', [
+          "id_bot"          => $this->data['id_bot'],
+          "relogin"         => "1",
+          "captchagid"      => "0",
+          "captcha_text"    => "0",
+          "method"          => "GET",
+          "cookies_domain"  => "steamcommunity.com"
+        ]);
+
+      }
+
+      // 3] Отправить сообщения в логи
+      Log::info($errortext);
+      write2log($errortext, ['M8', 'C23_check_escrow_hold_days']);
+
+      // 4] Вернуть результат с ошибкой
+      return [
+        "status"  => -2,
+        "data"    => [
+          "errortext" => $errortext,
+          "errormsg" => $e->getMessage()
+        ]
+      ];
+
     }}); if(!empty($res)) return $res;
 
 
