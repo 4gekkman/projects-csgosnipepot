@@ -211,40 +211,10 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 // 2.2] Пробежаться по $cache, и записать индивидуальный кэш активных выигрышей
                 // - У каждого пользователя может быть одновременно лишь 1 активный выигрыш.
                 foreach($active_wins as $win) {
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
                   $id_user = $win['m5_users'][0]['id'];
                   Cache::tags(['processing:wins:active:personal'])->put('processing:wins:active:'.$id_user, json_encode($win, JSON_UNESCAPED_UNICODE), 30);
                 }
-
-                  //  // 4.1] Получить не повторяющийся список ID пользователей, которые есть в $active_wins
-                  //  $users_ids = call_user_func(function() USE ($active_wins) {
-                  //    $result = [];
-                  //    foreach($active_wins as $win) {
-                  //      $id_user = $win['m5_users'][0]['id'];
-                  //      if(!in_array($id_user, $result))
-                  //        array_push($result, $id_user);
-                  //    }
-                  //    return $result;
-                  //  });
-                  //
-                  //  // 4.2] Получить для каждого $users_ids свой массив с активными офферами выигрышей
-                  //  $users_active_wins = call_user_func(function() USE ($users_ids, $active_wins) {
-                  //    $result = [];
-                  //    foreach($users_ids as $id) {
-                  //      foreach($active_wins as $win) {
-                  //        $id_user = $win['m5_users'][0]['id'];
-                  //        if($id_user == $id) {
-                  //          if(!array_key_exists($id_user, $result)) $result[$id_user] = [];
-                  //          array_push($result[$id_user], $win);
-                  //        }
-                  //      }
-                  //    }
-                  //    return $result;
-                  //  });
-                  //
-                  //  // 4.3] Записать $users_active_bets в кэш
-                  //  foreach($users_active_wins as $id_user => $wins) {
-                  //    Cache::tags(['processing:wins:active:personal'])->put('processing:wins:active:'.$id_user, json_encode($wins, JSON_UNESCAPED_UNICODE), 30);
-                  //  }
 
                 // 2.3] Если $active_wins пуст, сбросить весь персонализированный кэш
                 if(count($active_wins) == 0) {
@@ -293,6 +263,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 // 3.3] Пробежаться по $cache, и записать индивидуальный кэш активных выигрышей
                 // - У каждого пользователя может быть одновременно лишь 1 активный выигрыш.
                 foreach($active_wins as $win) {
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
                   $id_user = $win['m5_users'][0]['id'];
                   Cache::tags(['processing:wins:active:personal:safe'])->put('processing:wins:active:safe:'.$id_user, json_encode($win, JSON_UNESCAPED_UNICODE), 30);
                 }
@@ -342,16 +313,19 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 Cache::tags(['processing:wins:not_paid_expired:personal'])->flush();
                 foreach($wins as $win) {
 
-                  // 2.2.1] Получить ID пользователя
+                  // 2.2.1] Если с $win не связаные пользователи, завершить
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
+
+                  // 2.2.2] Получить ID пользователя
                   $id_user = $win['m5_users'][0]['id'];
 
-                  // 2.2.2] Получить его текущий кэш
+                  // 2.2.3] Получить его текущий кэш
                   $curcache = json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$id_user), true) ?: [];
 
-                  // 2.2.3] Добавить $win в $curcache
+                  // 2.2.4] Добавить $win в $curcache
                   array_push($curcache, $win);
 
-                  // 2.2.4] Засунуть $curcache в кэш
+                  // 2.2.5] Засунуть $curcache в кэш
                   Cache::tags(['processing:wins:not_paid_expired:personal'])->put('processing:wins:not_paid_expired:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
 
                 }
@@ -395,16 +369,19 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->flush();
                 foreach($wins as $win) {
 
-                  // 3.3.1] Получить ID пользователя
+                  // 3.3.1] Если с $win не связаные пользователи, завершить
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
+
+                  // 3.3.2] Получить ID пользователя
                   $id_user = $win['m5_users'][0]['id'];
 
-                  // 3.3.2] Получить его текущий кэш
+                  // 3.3.3] Получить его текущий кэш
                   $curcache = json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:'.$id_user), true) ?: [];
 
-                  // 3.3.3] Добавить $win в $curcache
+                  // 3.3.4] Добавить $win в $curcache
                   array_push($curcache, $win);
 
-                  // 3.3.4] Засунуть $curcache в кэш
+                  // 3.3.5] Засунуть $curcache в кэш
                   Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->put('processing:wins:not_paid_expired:safe:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
 
                 }
@@ -453,16 +430,19 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 Cache::tags(['processing:wins:paid:personal'])->flush();
                 foreach($paid_wins as $win) {
 
-                  // 2.2.1] Получить ID пользователя
+                  // 2.2.1] Если с $win не связаные пользователи, завершить
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
+
+                  // 2.2.2] Получить ID пользователя
                   $id_user = $win['m5_users'][0]['id'];
 
-                  // 2.2.2] Получить его текущий кэш
+                  // 2.2.3] Получить его текущий кэш
                   $curcache = json_decode(Cache::tags(['processing:wins:paid:personal'])->get('processing:wins:paid:'.$id_user), true) ?: [];
 
-                  // 2.2.3] Добавить $win в $curcache
+                  // 2.2.4] Добавить $win в $curcache
                   array_push($curcache, $win);
 
-                  // 2.2.4] Засунуть $curcache в кэш
+                  // 2.2.5] Засунуть $curcache в кэш
                   Cache::tags(['processing:wins:paid:personal'])->put('processing:wins:not_paid_expired:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
 
                 }
@@ -506,16 +486,19 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 Cache::tags(['processing:wins:paid:personal:safe'])->flush();
                 foreach($paid_wins as $win) {
 
-                  // 3.3.1] Получить ID пользователя
+                  // 3.3.1] Если с $win не связаные пользователи, завершить
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
+
+                  // 3.3.2] Получить ID пользователя
                   $id_user = $win['m5_users'][0]['id'];
 
-                  // 3.3.2] Получить его текущий кэш
+                  // 3.3.3] Получить его текущий кэш
                   $curcache = json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$id_user), true) ?: [];
 
-                  // 3.3.3] Добавить $win в $curcache
+                  // 3.3.4] Добавить $win в $curcache
                   array_push($curcache, $win);
 
-                  // 3.3.4] Засунуть $curcache в кэш
+                  // 3.3.5] Засунуть $curcache в кэш
                   Cache::tags(['processing:wins:paid:personal:safe'])->put('processing:wins:not_paid_expired:safe:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
 
                 }
@@ -564,16 +547,19 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 Cache::tags(['processing:wins:expired:personal'])->flush();
                 foreach($expired_wins as $win) {
 
-                  // 2.2.1] Получить ID пользователя
+                  // 2.2.1] Если с $win не связаные пользователи, завершить
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
+
+                  // 2.2.2] Получить ID пользователя
                   $id_user = $win['m5_users'][0]['id'];
 
-                  // 2.2.2] Получить его текущий кэш
+                  // 2.2.3] Получить его текущий кэш
                   $curcache = json_decode(Cache::tags(['processing:wins:expired:personal'])->get('processing:wins:expired:'.$id_user), true) ?: [];
 
-                  // 2.2.3] Добавить $win в $curcache
+                  // 2.2.4] Добавить $win в $curcache
                   array_push($curcache, $win);
 
-                  // 2.2.4] Засунуть $curcache в кэш
+                  // 2.2.5] Засунуть $curcache в кэш
                   Cache::tags(['processing:wins:expired:personal'])->put('processing:wins:not_expired_expired:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
 
                 }
@@ -617,16 +603,19 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
                 Cache::tags(['processing:wins:expired:personal:safe'])->flush();
                 foreach($expired_wins as $win) {
 
-                  // 2.3.1] Получить ID пользователя
+                  // 3.3.1] Если с $win не связаные пользователи, завершить
+                  if(empty($win['m5_users']) || count($win['m5_users']) == 0) continue;
+
+                  // 3.3.2] Получить ID пользователя
                   $id_user = $win['m5_users'][0]['id'];
 
-                  // 2.3.2] Получить его текущий кэш
+                  // 3.3.3] Получить его текущий кэш
                   $curcache = json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$id_user), true) ?: [];
 
-                  // 2.3.3] Добавить $win в $curcache
+                  // 3.3.4] Добавить $win в $curcache
                   array_push($curcache, $win);
 
-                  // 2.3.4] Засунуть $curcache в кэш
+                  // 3.3.5] Засунуть $curcache в кэш
                   Cache::tags(['processing:wins:expired:personal:safe'])->put('processing:wins:not_expired_expired:safe:'.$id_user, json_encode($curcache, JSON_UNESCAPED_UNICODE), 30);
 
                 }

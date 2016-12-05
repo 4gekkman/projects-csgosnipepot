@@ -373,7 +373,10 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
               // 3.3.4] Если $bets_bot пуст, вернуть первого попавшегося бота комнаты
               if(count($bets_bot) == 0) return $bots[0];
 
-              // 3.3.5] Вернуть первого бота из $bets_bot
+              // 3.3.5] Если $bets_bot нет в $bots, вернуть первого попавшегося бота комнаты
+              if(!in_array($bets_bot[0]['id'], $bots->pluck('id')->toArray())) return $bots[0];
+
+              // 3.3.6] Вернуть первого бота из $bets_bot
               return $bets_bot[0];
 
             }

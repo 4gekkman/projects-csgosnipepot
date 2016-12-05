@@ -307,7 +307,7 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
       //      ...
       //    ]
       //
-      $c35_executing = json_decode(Cache::get('m9:processing:c35_executing'), true);
+      $c35_executing = json_decode(Cache::get('m9:processing:bets_ex_active'), true);
       if(empty($c35_executing)) $c35_executing = [];
 
       // 6. Пополнить $bets_ex_active информацией из $c35_executing
