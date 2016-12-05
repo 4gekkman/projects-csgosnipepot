@@ -304,7 +304,7 @@ class C12_cancel_the_active_bet extends Job { // TODO: добавить "impleme
             throw new \Exception($result['data']['errormsg']);
 
         }
-      
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C12_cancel_the_active_bet from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
