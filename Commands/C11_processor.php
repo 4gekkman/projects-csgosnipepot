@@ -174,7 +174,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       // Б. Если $queue не пуста, и C14 не выполняется, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
       $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      Log::info('queue_count = '.$queue_count);
       if($queue_count == 0) {
 
         // 1. Обновить весь кэш, но для каждого, только если он отсутствует

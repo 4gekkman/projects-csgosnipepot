@@ -185,6 +185,8 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         return;
 
       Log::info('tick');
+      $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:processor_hard', '0', '-1']));
+      Log::info('queue_count = '.$queue_count);
 
       // 1. Трансляция серверного время всем клиентам
       Event::fire(new \R2\Broadcast([
