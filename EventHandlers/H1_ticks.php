@@ -184,6 +184,8 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
       if(!empty($cache) && $cache == 1)
         return;
 
+      Log::info('tick');
+
       // 1. Трансляция серверного время всем клиентам
       Event::fire(new \R2\Broadcast([
         'channels' => ['m9:servertime'],
