@@ -61,8 +61,6 @@
         public function broadcastOn()
         {
 
-            $channels = $this->data['channels'];
-            write2log($channels, []);
             //$channels_classes = [];
             //foreach($channels as $channel) {
             //  array_push($channels_classes, new Channel($channel));
@@ -70,7 +68,7 @@
 
             // Вернуть массив таких каналов
             // - Подсказка: можно использовать ID пользователя
-            return $channels;
+            return $this->data['channels'];
 
         }
 
