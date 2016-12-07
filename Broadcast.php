@@ -18,6 +18,10 @@
     // Базовые классы, необходимые для работы событий вообще
     use App\Events\Event as OriginalEvent,
         Illuminate\Queue\SerializesModels,
+        Illuminate\Broadcasting\Channel,
+        Illuminate\Broadcasting\PrivateChannel,
+        Illuminate\Broadcasting\PresenceChannel,
+        Illuminate\Broadcasting\InteractsWithSockets,
         Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
   //---------------//
@@ -57,9 +61,16 @@
         public function broadcastOn()
         {
 
+            $channels = $this->data['channels'];
+            write2log($channels, []);
+            //$channels_classes = [];
+            //foreach($channels as $channel) {
+            //  array_push($channels_classes, new Channel($channel));
+            //}
+
             // Вернуть массив таких каналов
             // - Подсказка: можно использовать ID пользователя
-            return $this->data['channels'];
+            return $channels;
 
         }
 
