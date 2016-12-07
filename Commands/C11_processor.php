@@ -169,7 +169,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       ];
       $queue = $queues['prod'];
 
-      //Log::info('processor');
+      Log::info('processor');
 
       // Б. Если $queue не пуста, и C14 не выполняется, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
