@@ -230,9 +230,13 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         Log::info('diff = '.$cur->diffInSeconds($last));
 
         // 5] Если разница между $last и $cur более 10 секунд
-        // - Перезапустить все queue worker-ы
-        if($cur->diffInSeconds($last) > 10)
+        // - Перезапустить все queue worker-ы.
+        // - Записать в кэш текущие дату/время, чтобы оно не перезапускалось ежесекундно, а лишь раз в 10 сек.
+        if($cur->diffInSeconds($last) > 10) {
           Artisan::call('queue:restart');
+          Cache::put('m9:processing:prev_datetime', Cache::get('m9:processing:last_datetime'), 300);
+          Cache::put('m9:processing:last_datetime', \Carbon\Carbon::now()->toDateTimeString(), 300);
+        }
 
       }));
 
