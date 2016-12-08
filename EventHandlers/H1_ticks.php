@@ -185,8 +185,6 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         return;
 
       Log::info('tick');
-      $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:processor_hard', '0', '-1']));
-      Log::info('queue_count = '.$queue_count);
 
       // 1. Трансляция серверного время всем клиентам
       Event::fire(new \R2\Broadcast([
@@ -206,6 +204,37 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
       $result = runcommand('\M9\Commands\C24_processor_wins', [], 0, ['on'=>true, 'name'=>'processor_wins_main']);
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
+
+      // 4. Если от C11_processor ничего не слышно более 10 секунд
+      // - То, вероятно, он "замёрз".
+      // - Поэтому, найти и прибить его, а supervisord его сам перезапустит.
+      (call_user_func(function(){
+
+        // 1] Получить предыдущие дату/время выполнения C11_processor
+        $prev = Cache::get('m9:processing:prev_datetime');
+        $prev = !empty($prev) ? \Carbon\Carbon::parse($prev) : "";
+
+        // 2] Получить текущие дату/время выполнения C11_processor
+        $last = Cache::get('m9:processing:last_datetime');
+        $last = !empty($last) ? \Carbon\Carbon::parse($last) : "";
+
+        // 3] Получить текущие дату и время
+        $cur = \Carbon\Carbon::now();
+
+        Log::info($prev);
+        Log::info($cur);
+
+        // 4] Если $prev или $last отсутствуют, завершить
+        if(empty($prev) || empty($last)) return;
+
+        Log::info('diff = '.$cur->diffInSeconds($last));
+
+        // 5] Если разница между $last и $cur более 10 секунд
+        // - Перезапустить все queue worker-ы
+        if($cur->diffInSeconds($last) > 10)
+          Artisan::call('queue:restart');
+
+      }));
 
 
     } catch(\Exception $e) {

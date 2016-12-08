@@ -169,8 +169,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       ];
       $queue = $queues['prod'];
 
-      Log::info('processor');
-
       // Б. Если $queue не пуста, и C14 не выполняется, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
       $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
@@ -224,6 +222,12 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
           runcommand('\M9\Commands\C35_offers_toothcomb', [],
               0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
       }
+
+      // Г. Записывать в кэш дату и время последнего и предпоследнего выполнения команды processor
+      Cache::put('m9:processing:prev_datetime', Cache::get('m9:processing:last_datetime'), 300);
+      Cache::put('m9:processing:last_datetime', \Carbon\Carbon::now()->toDateTimeString(), 300);
+
+      Log::info('Processor');
 
 
     } catch(\Exception $e) {
