@@ -221,13 +221,13 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         // 3] Получить текущие дату и время
         $cur = \Carbon\Carbon::now();
 
-        Log::info($prev);
-        Log::info($cur);
+        // Log::info($prev);
+        // Log::info($cur);
 
         // 4] Если $prev или $last отсутствуют, завершить
         if(empty($prev) || empty($last)) return;
 
-        Log::info('diff = '.$cur->diffInSeconds($last));
+        // Log::info('diff = '.$cur->diffInSeconds($last));
 
         // 5] Если разница между $last и $cur более 20 секунд
         // - Перезапустить все queue worker-ы.
