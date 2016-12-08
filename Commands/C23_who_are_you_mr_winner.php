@@ -653,7 +653,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
             'cents' => ($debts2collect_percent2bank/100) * $jackpot_total_sum_cents
           ],
 
-          // n.3] Мы не можем взять с победителя в этом раунде больше, чем здесь указано
+          // n.3] Мы не можем взять с победителя (вкл.долги) в этом раунде больше, чем здесь указано
           'limits' => [
             'fee'   => 100-$winners_bet_persent_in_bank,
             'cents' => $jackpot_total_sum_cents - $winner_bets_items_cents['cents']
@@ -730,9 +730,17 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         $balance = $howmuch['round']['cents'] - $items2take['fee_cents_taken_fact'];
 
         // 2] Получить размер нового долга
-        $newdebt = $balance <= 0 ? 0 : abs($balance);
+
+          // 2.1] MAX сумма, которую мы можем записать в долг победителя в этом раунде
+          $max_debt = $howmuch['limits']['cents'] - $items2take['fee_cents_taken_fact'];
+          $max_debt = $max_debt <= 0 ? 0 : $max_debt;
+
+          // 2.2] Вычислить долг
+          $newdebt = $balance <= 0 ? 0 : abs($balance);
+          $newdebt = $newdebt <= $max_debt ? $newdebt : $max_debt;
 
         // 3] Получить размер вычета из старого долга
+        // - Если уж мы взяли больше, чем комиссия (изъяли долги), то значит:
         $reduce = $balance <= 0 ? abs($balance) : 0;
 
         // n] Вернуть результаты

@@ -236,6 +236,7 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
 
           // 5.1] Перезапустить воркеры
           Artisan::call('queue:restart');
+          sleep(3);
 
           // 5.2] Перезаписать кэш
           Cache::put('m9:processing:prev_datetime', Cache::get('m9:processing:last_datetime'), 300);
@@ -243,7 +244,7 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
 
           // 5.3] Перезапустить тики
           Artisan::call('m11:stop');
-          sleep(5);
+          sleep(3);
           Artisan::call('m11:start');
 
         }
