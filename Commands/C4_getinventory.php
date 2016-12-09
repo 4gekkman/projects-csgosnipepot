@@ -208,7 +208,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                 "/inventory/json/730/2";
 
             // 4] Выполнить запрос
-            $request_result = $guzzle->request('GET', $url, []);
+            $request_result = $guzzle->request('GET', $url, ['proxy' => '58.176.46.248']);
 
             // 5] Наполнить $result
             $result['result'] = $request_result;
