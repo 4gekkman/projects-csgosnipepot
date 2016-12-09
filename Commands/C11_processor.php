@@ -243,7 +243,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       Cache::put('m9:processing:prev_datetime', Cache::get('m9:processing:last_datetime'), 300);
       Cache::put('m9:processing:last_datetime', \Carbon\Carbon::now()->toDateTimeString(), 300);
 
-      // Log::info('Processor');
+      Log::info('Processor');
 
 
     } catch(\Exception $e) {
