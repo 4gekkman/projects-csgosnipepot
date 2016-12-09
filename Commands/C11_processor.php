@@ -223,7 +223,23 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
       }
 
-      // Г. Записывать в кэш дату и время последнего и предпоследнего выполнения команды processor
+      // Г. Если это первая итерация, послать всем клиентам команду перезагрузиться
+      // - Поскольку, их CSRF-токены недействительны.
+      $last_datetime = Cache::get('m9:processing:last_datetime');
+      if(empty($last_datetime)) {
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:public'],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'reload_page',
+            'data' => [
+
+            ]
+          ]
+        ]));
+      }
+
+      // Д. Записывать в кэш дату и время последнего и предпоследнего выполнения команды processor
       Cache::put('m9:processing:prev_datetime', Cache::get('m9:processing:last_datetime'), 300);
       Cache::put('m9:processing:last_datetime', \Carbon\Carbon::now()->toDateTimeString(), 300);
 
