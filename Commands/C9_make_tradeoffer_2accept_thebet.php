@@ -175,7 +175,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       // 2. Получить инвентарь игрока с помощью players_steamid
       $inventory = runcommand('\M8\Commands\C4_getinventory', [
         "steamid" => $this->data['players_steamid'],
-        "force"   => false
+        "force"   => true
       ]);
       if($inventory['status'] != 0)
         throw new \Exception("Не получается получить твой инвентарь. Зайди в свой аккаунт в Steam, в настройки приватности, и проверь, чтобы инвентарь был 'Public'.");
