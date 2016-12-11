@@ -165,7 +165,7 @@ class C37_get_request extends Job { // TODO: добавить "implements Should
       $guzzle = new \GuzzleHttp\Client();
 
       // 4. Выполнить запрос
-      $request_result = $guzzle->request('GET', $this->data['url'], ['connect_timeout' => config('M9.inventory_timeout'),'timeout' => config('M9.inventory_timeout')]);
+      $request_result = $guzzle->request('GET', $this->data['url'], ['connect_timeout' => config('M9.connection_request_timeout'),'timeout' => config('M9.connection_request_timeout')]);
 
       // 5. Наполнить $result
       $result['result'] = $request_result;
