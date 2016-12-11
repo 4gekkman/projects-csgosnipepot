@@ -196,6 +196,8 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           // 2.2.1. Выполнить HTTP-запрос и получить инвентарь пользователя со steamid
           $inventory = call_user_func(function() {
 
+            return [];
+
             // 1] Сформировать URL для запроса
             $url = "http://steamcommunity.com/profiles/" .
                 $this->data['steamid'] .
@@ -207,81 +209,100 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
             // 3] Подготовить функцию для осуществления запроса без proxy в виде TOR
             $get = function($url){
 
-              // 3.1] Подготовить массив для результата
-              $result = [];
+              // 3.1] Подготовить
+              $result = runcommand('\M9\Commands\C37_get_request', [
+                "url" => $url
+              ]);
+              if($result['status'] != 0) {}
 
-              // 3.2] Создать экземпляр guzzle
-              $guzzle = new \GuzzleHttp\Client();
-
-              // 3.3] Выполнить запрос
-              $request_result = $guzzle->request('GET', $url);
-
-              // 3.4] Наполнить $result
-              $result['result'] = $request_result;
-              $result['status'] = $request_result->getStatusCode();
-              $result['body'] = $request_result->getBody();
-
-              // 3.n] Вернуть результат
-              return $result;
+              // 3.2] Вернуть результат
+              return $result['data'];
 
             };
 
             // 4] Подготовить функцию для осуществления запроса через proxy в виде TOR
             $get_proxy = function($url, $proxy) {
 
-              // 4.1] Инициировать сессию cURL
-              $ch = curl_init();
+              // 4.1] Подготовить
+              $result = runcommand('\M9\Commands\C38_get_request_tor', [
+                "url"   => $url,
+                "proxy" => $proxy
+              ]);
+              if($result['status'] != 0) {}
 
-              // 4.2] Настроить параметры сессии
-              curl_setopt($ch, CURLOPT_URL,$url);
-              curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-              curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.1) Gecko/2008070208');
-              curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
-              curl_setopt($ch, CURLOPT_PROXY, "$proxy");
-
-              // 4.3] Сделать запрос, получить ответ
-              $ss = curl_exec($ch);
-
-              $status = curl_getinfo($ch);
-              write2log($status, []);
-
-              // 4.4] Завершить сессию cURL
-              curl_close($ch);
-
-              // 4.5] Вернуть ответ
-              return [
-                "status" => $ss != false ? 200 : 404,
-                "body"   => $ss
-              ];
+              // 4.2] Вернуть результат
+              return $result['data'];
 
             };
 
             // 5] Подготовить функцию для обновления IP TOR'а
             $update_tor_ip = function(){
 
-              // 5.1] Извлечь пароль от TOR из конфига
-              $password = config('M9.mysupertorpassword77714');
+              // 5.1] Подготовить
+              $result = runcommand('\M9\Commands\C36_update_tor_ip', []);
+              if($result['status'] != 0) {}
 
-              // 5.2] Обновить IP TOR'а
-              $tc = new \TorControl\TorControl([
-                'hostname' => 'localhost',
-                'port'     => '9051',
-                'password' => $password,
-              ]);
-              $tc->connect();
-              $tc->authenticate();
-              $tc->executeCommand('SIGNAL NEWNYM');
-              $tc->quit();
+              // 5.2] Вернуть результат
+              return $result['data'];
 
             };
 
+            // 6] Получить из конфига значение параметра таймаута для получения инвентаря
+            $inventory_timeout = config('M9.inventory_timeout');
 
-            $result = $get_proxy($url, $proxy);
-            write2log($result, []);
+            // 7] В течение времени $inventory_timeout пробовать получить инвентарь
+            Log::info($inventory_timeout);
+            $start = \Carbon\Carbon::now()->addSeconds($inventory_timeout);
+            while($start->gte(\Carbon\Carbon::now())) {
 
-            return $result;
+              // 7.1] Попробовать получить инвентарь естественным путём
 
+                // Попробовать
+                $result = $get($url);
 
+                // Провести валидацию
+                $validator = r4_validate($result, [
+                  "status"          => ["required", "in:200"],
+                  "body"            => ["required", "json"],
+                ]);
+
+                // Если удалось, вернуть $result
+                if($validator['status'] != -1) {
+                  Log::info("Без proxy");
+                  return $result;
+                }
+
+              // 7.2] Попробовать получить инвентарь через TOR
+
+                // Попробовать
+                $result = $get_proxy($url, $proxy);
+
+                // Провести валидацию
+                $validator = r4_validate($result, [
+                  "status"          => ["required", "in:200"],
+                  "body"            => ["required", "json"],
+                ]);
+
+                // Если удалось, вернуть $result
+                if($validator['status'] != -1) {
+                  Log::info("С proxy");
+                  return $result;
+                }
+
+                // Если не удалось, обновить IP TOR'а, и подождать 3 секунды
+                else {
+                  $update_tor_ip();
+                  sleep(3);
+                }
+
+            }
+
+            // 8] Попытка извлечь инвентарь оказалась неудачной
+            // - Вернуть пустые значения.
+            return [
+              "status"          => "",
+              "body"            => "",
+            ];
 
             //// 1] Подготовить массив для результата
             //$result = [];
