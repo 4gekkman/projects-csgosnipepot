@@ -179,7 +179,7 @@ return [
       "inventory_timeout" => 20,
 
       // 9.3] Таймаут в секундах подключения/запроса | connection/request timeout,secs
-      "connection_request_timeout" => 7,
+      "connection_request_timeout" => 4,
 
 
 ];
