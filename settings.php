@@ -175,8 +175,11 @@ return [
       // 9.1] Пароль от TOR | TOR password
       "torpassword" => "",
 
-      // 9.2] Таймаут в секундах для получения инвентаря | inventory timeout
-      "inventory_timeout" => 30
+      // 9.2] Таймаут в секундах для получения инвентаря | inventory timeout, secs
+      "inventory_timeout" => 20,
+
+      // 9.3] Таймаут в секундах подключения/запроса | connection/request timeout,secs
+      "connection_request_timeout" => 7,
 
 
 ];

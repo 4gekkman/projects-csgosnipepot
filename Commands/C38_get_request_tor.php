@@ -169,6 +169,8 @@ class C38_get_request_tor extends Job { // TODO: добавить "implements Sh
       curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.1) Gecko/2008070208');
       curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
       curl_setopt($ch, CURLOPT_PROXY, $this->data['proxy']);
+      curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, config('M9.inventory_timeout'));
+      curl_setopt($ch, CURLOPT_TIMEOUT, config('M9.inventory_timeout'));
 
       // 4. Сделать запрос, получить ответ
       $ss = curl_exec($ch);
