@@ -168,10 +168,15 @@ return [
     ],
 
     //------------------//
-    // 9] Пароль от TOR //
-    //    TOR password  //
+    // 9] Параметры TOR //
+    //    TOR settings  //
     //------------------//
-    "torpassword" => ""
+
+      // 9.1] Пароль от TOR | TOR password
+      "torpassword" => "",
+
+      // 9.2] Таймаут в секундах для получения инвентаря | inventory timeout
+      "inventory_timeout" => 30
 
 
 ];

@@ -174,7 +174,6 @@ class T9_update_tor_ip extends Command
 
     // 3. В случае успеха, вывести соотв.сообщение
     $this->info("Success");
-    $this->info("New IP: ".$result['data']['newip']);
 
   }
 

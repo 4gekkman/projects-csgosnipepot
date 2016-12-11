@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Updates tor IP
+ *    - Make GET request
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        url
  *      ]
  *    ]
  *
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C36_update_tor_ip extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C37_get_request extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,44 +135,51 @@ class C36_update_tor_ip extends Job { // TODO: добавить "implements Shou
     /**
      * Оглавление
      *
-     *  1. Извлечь пароль от TOR из конфига
-     *  2. Обновить IP TOR'а
+     *  1. Провести валидацию входящих параметров
+     *  2. Подготовить массив для результата
+     *  3. Создать экземпляр guzzle
+     *  4. Выполнить запрос
+     *  5. Наполнить $result
      *  n. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------//
-    // Обновить IP TOR'а //
-    //-------------------//
+    //-----------------------------------------//
+    // Выполнить GET-запрос, вернуть результат //
+    //-----------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Извлечь пароль от TOR из конфига
-      $password = config('M9.torpassword');
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
+        "url"              => ["required", "url"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-      // 2. Обновить IP TOR'а
-      $tc = new \TorControl\TorControl([
-        'hostname'    => '127.0.0.1',
-        'port'        => 9051,
-        'password'    => $password,
-        'authmethod'  => 1
-      ]);
-      $tc->connect();
-      $tc->authenticate();
-      $tc->executeCommand('SIGNAL NEWNYM');
-      $tc->quit();
+      // 2. Подготовить массив для результата
+      $result = [];
+
+      // 3. Создать экземпляр guzzle
+      $guzzle = new \GuzzleHttp\Client();
+
+      // 4. Выполнить запрос
+      $request_result = $guzzle->request('GET', $this->data['url']);
+
+      // 5. Наполнить $result
+      $result['result'] = $request_result;
+      $result['status'] = $request_result->getStatusCode();
+      $result['body'] = $request_result->getBody();
 
       // n. Вернуть результат
       return [
-        "status"  => 0,
-        "data"    => []
+        "status" => 0,
+        "data"   => $result
       ];
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C36_update_tor_ip from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        Log::info($errortext);
-        write2log($errortext, ['M9', 'C36_update_tor_ip']);
+        $errortext = 'Invoking of command C37_get_request from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         return [
           "status"  => -2,
           "data"    => [

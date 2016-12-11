@@ -7,14 +7,15 @@
 /**
  *  Что делает
  *  ----------
- *    - Updates tor IP
+ *    - Make GET request through TOR
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        url
+ *        proxy
  *      ]
  *    ]
  *
@@ -101,7 +102,7 @@
 //---------//
 // Команда //
 //---------//
-class C36_update_tor_ip extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C38_get_request_tor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,44 +136,58 @@ class C36_update_tor_ip extends Job { // TODO: добавить "implements Shou
     /**
      * Оглавление
      *
-     *  1. Извлечь пароль от TOR из конфига
-     *  2. Обновить IP TOR'а
+     *  1. Провести валидацию входящих параметров
+     *  2. Инициировать сессию cURL
+     *  3. Настроить параметры сессии
+     *  4. Сделать запрос, получить ответ
+     *  5. Завершить сессию cURL
      *  n. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-------------------//
-    // Обновить IP TOR'а //
-    //-------------------//
+    //---------------------------------------------------//
+    // Выполнить GET-запрос через TOR, вернуть результат //
+    //---------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Извлечь пароль от TOR из конфига
-      $password = config('M9.torpassword');
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
+        "url"              => ["required", "url"],
+        "proxy"            => ["required"]
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-      // 2. Обновить IP TOR'а
-      $tc = new \TorControl\TorControl([
-        'hostname'    => '127.0.0.1',
-        'port'        => 9051,
-        'password'    => $password,
-        'authmethod'  => 1
-      ]);
-      $tc->connect();
-      $tc->authenticate();
-      $tc->executeCommand('SIGNAL NEWNYM');
-      $tc->quit();
+      // 2. Инициировать сессию cURL
+      $ch = curl_init();
+
+      // 3. Настроить параметры сессии
+      curl_setopt($ch, CURLOPT_URL, $this->data['url']);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+      curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.1) Gecko/2008070208');
+      curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+      curl_setopt($ch, CURLOPT_PROXY, $this->data['proxy']);
+
+      // 4. Сделать запрос, получить ответ
+      $ss = curl_exec($ch);
+      $status = curl_getinfo($ch)['http_code'];
+
+      // 5. Завершить сессию cURL
+      curl_close($ch);
 
       // n. Вернуть результат
       return [
-        "status"  => 0,
-        "data"    => []
+        "status" => 0,
+        "data"   => [
+          "status" => $status,
+          "body"   => $ss
+        ]
       ];
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C36_update_tor_ip from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        Log::info($errortext);
-        write2log($errortext, ['M9', 'C36_update_tor_ip']);
+        $errortext = 'Invoking of command C38_get_request_tor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         return [
           "status"  => -2,
           "data"    => [
