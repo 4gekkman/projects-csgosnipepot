@@ -184,7 +184,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
       // 2. Получить обработанный и подготовленный инвентарь
       $items = call_user_func(function(){
 
-        // 2.1. Если force == false и кэш существует, взять его из кэш
+        // 2.1. Если force == false и кэш существует, взять его из кэша
         $cache = json_decode(Cache::get("inventory:".$this->data['steamid']), true);
         if($this->data['force'] == false && !empty($cache)) {
           return $cache['rgDescriptions'];
@@ -196,27 +196,114 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           // 2.2.1. Выполнить HTTP-запрос и получить инвентарь пользователя со steamid
           $inventory = call_user_func(function() {
 
-            // 1] Подготовить массив для результата
-            $result = [];
-
-            // 2] Создать экземпляр guzzle
-            $guzzle = new \GuzzleHttp\Client();
-
-            // 3] Сформировать URL для запроса
+            // 1] Сформировать URL для запроса
             $url = "http://steamcommunity.com/profiles/" .
                 $this->data['steamid'] .
                 "/inventory/json/730/2";
 
-            // 4] Выполнить запрос
-            $request_result = $guzzle->request('GET', $url);
+            // 2] Сформировать адрес proxy для запроса
+            $proxy = "localhost:9050";
 
-            // 5] Наполнить $result
-            $result['result'] = $request_result;
-            $result['status'] = $request_result->getStatusCode();
-            $result['body'] = $request_result->getBody();
+            // 3] Подготовить функцию для осуществления запроса без proxy в виде TOR
+            $get = function($url){
 
-            // n] Вернуть результат
+              // 3.1] Подготовить массив для результата
+              $result = [];
+
+              // 3.2] Создать экземпляр guzzle
+              $guzzle = new \GuzzleHttp\Client();
+
+              // 3.3] Выполнить запрос
+              $request_result = $guzzle->request('GET', $url);
+
+              // 3.4] Наполнить $result
+              $result['result'] = $request_result;
+              $result['status'] = $request_result->getStatusCode();
+              $result['body'] = $request_result->getBody();
+
+              // 3.n] Вернуть результат
+              return $result;
+
+            };
+
+            // 4] Подготовить функцию для осуществления запроса через proxy в виде TOR
+            $get_proxy = function($url, $proxy) {
+
+              // 4.1] Инициировать сессию cURL
+              $ch = curl_init();
+
+              // 4.2] Настроить параметры сессии
+              curl_setopt($ch, CURLOPT_URL,$url);
+              curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+              curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.1) Gecko/2008070208');
+              curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+              curl_setopt($ch, CURLOPT_PROXY, "$proxy");
+
+              // 4.3] Сделать запрос, получить ответ
+              $ss = curl_exec($ch);
+
+              $status = curl_getinfo($ch);
+              write2log($status, []);
+
+              // 4.4] Завершить сессию cURL
+              curl_close($ch);
+
+              // 4.5] Вернуть ответ
+              return [
+                "status" => $ss != false ? 200 : 404,
+                "body"   => $ss
+              ];
+
+            };
+
+            // 5] Подготовить функцию для обновления IP TOR'а
+            $update_tor_ip = function(){
+
+              // 5.1] Извлечь пароль от TOR из конфига
+              $password = config('M9.mysupertorpassword77714');
+
+              // 5.2] Обновить IP TOR'а
+              $tc = new \TorControl\TorControl([
+                'hostname' => 'localhost',
+                'port'     => '9051',
+                'password' => $password,
+              ]);
+              $tc->connect();
+              $tc->authenticate();
+              $tc->executeCommand('SIGNAL NEWNYM');
+              $tc->quit();
+
+            };
+
+
+            $result = $get_proxy($url, $proxy);
+            write2log($result, []);
+
             return $result;
+
+
+
+            //// 1] Подготовить массив для результата
+            //$result = [];
+            //
+            //// 2] Создать экземпляр guzzle
+            //$guzzle = new \GuzzleHttp\Client();
+            //
+            //// 3] Сформировать URL для запроса
+            //$url = "http://steamcommunity.com/profiles/" .
+            //    $this->data['steamid'] .
+            //    "/inventory/json/730/2";
+            //
+            //// 4] Выполнить запрос
+            //$request_result = $guzzle->request('GET', $url);
+            //
+            //// 5] Наполнить $result
+            //$result['result'] = $request_result;
+            //$result['status'] = $request_result->getStatusCode();
+            //$result['body'] = $request_result->getBody();
+            //
+            //// n] Вернуть результат
+            //return $result;
 
           });
 
