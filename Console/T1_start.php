@@ -161,7 +161,6 @@ class T1_start extends Command
      *
      */
 
-    Log::info('m11:start');
 
     // 1. Выполнить команду
     $this->comment('Checking existence of ticks chain...');
