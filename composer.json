@@ -13,7 +13,8 @@
         }
     ],
     "require": {
-			"4gekkman/M5": "~1.0"
+			"4gekkman/M5": "~1.0",
+			"dunglas/php-torcontrol": "~1.0"
 		},
     "autoload": {
         "psr-4": {"M9\\": ""}

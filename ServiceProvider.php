@@ -124,7 +124,8 @@
           '\M9\Console\T5_processor',
           '\M9\Console\T6_cancel_the_active_bet',
           '\M9\Console\T7_processor_wins',
-          '\M9\Console\T8_pause'
+          '\M9\Console\T8_pause',
+          '\M9\Console\T9_update_tor_ip'
         ];
 
         // Регистрация команд в методе register
