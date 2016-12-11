@@ -80,7 +80,7 @@ class MD1_users extends Model {
     public function m10_rooms() { return $this->belongsToMany('\M10\Models\MD1_rooms', 'm10.md2002', 'id_user', 'id_room'); }
     public function m10_messages() { return $this->belongsToMany('\M10\Models\MD2_messages', 'm10.md2001', 'id_user', 'id_message'); }
     public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md2000', 'id_user', 'id_bot'); }
-    public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2000', 'id_user', 'id_bet'); }
+    public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2000', 'id_user', 'id_bet')->withPivot(['tickets_from','tickets_to']); }
     public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2004', 'id_user', 'id_win'); }
     // relationships stop
 
