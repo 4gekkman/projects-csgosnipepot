@@ -17,6 +17,7 @@
  *        "steamid"               // id steam-пользователя
  *        "force"                 // [не обязателен] принудительное обновление кэша (==false по умолчанию)
  *        "filter_by_room_id"     // [не обязателен] фильтровать по типам предметов указанной комнаты
+ *        "timeout"               // [не обязателен] таймаут для запроса инвентаря
  *      ]
  *    ]
  *
@@ -166,7 +167,8 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         $validator = r4_validate($this->data, [
           "steamid"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
           "force"                => ["boolean"],
-          "filter_by_room_id"    => ["regex:/^[1-9]+[0-9]*$/ui"]
+          "filter_by_room_id"    => ["regex:/^[1-9]+[0-9]*$/ui"],
+          "timeout"              => ["regex:/^[1-9]+[0-9]*$/ui"]
         ]); if($validator['status'] == -1) {
           throw new \Exception($validator['data']);
         }
@@ -180,6 +182,10 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
           // filter_by_room_id
           if(!array_key_exists("filter_by_room_id", $this->data))
             $this->data['filter_by_room_id'] = "";
+
+          // timeout
+          if(!array_key_exists("timeout", $this->data))
+            $this->data['timeout'] = config('M9.inventory_timeout');
 
       // 2. Получить обработанный и подготовленный инвентарь
       $items = call_user_func(function(){
@@ -195,8 +201,6 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
           // 2.2.1. Выполнить HTTP-запрос и получить инвентарь пользователя со steamid
           $inventory = call_user_func(function() {
-
-            return [];
 
             // 1] Сформировать URL для запроса
             $url = "http://steamcommunity.com/profiles/" .
@@ -247,15 +251,11 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
             };
 
-            // 6] Получить из конфига значение параметра таймаута для получения инвентаря
-            $inventory_timeout = config('M9.inventory_timeout');
-
-            // 7] В течение времени $inventory_timeout пробовать получить инвентарь
-            Log::info($inventory_timeout);
-            $start = \Carbon\Carbon::now()->addSeconds($inventory_timeout);
+            // 6] В течение времени $this->data['timeout'] пробовать получить инвентарь
+            $start = \Carbon\Carbon::now()->addSeconds($this->data['timeout']);
             while($start->gte(\Carbon\Carbon::now())) {
 
-              // 7.1] Попробовать получить инвентарь естественным путём
+              // 6.1] Попробовать получить инвентарь естественным путём
 
                 // Попробовать
                 $result = $get($url);
@@ -268,11 +268,10 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
                 // Если удалось, вернуть $result
                 if($validator['status'] != -1) {
-                  Log::info("Без proxy");
                   return $result;
                 }
 
-              // 7.2] Попробовать получить инвентарь через TOR
+              // 6.2] Попробовать получить инвентарь через TOR
 
                 // Попробовать
                 $result = $get_proxy($url, $proxy);
@@ -285,19 +284,34 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
                 // Если удалось, вернуть $result
                 if($validator['status'] != -1) {
-                  Log::info("С proxy");
                   return $result;
                 }
 
                 // Если не удалось, обновить IP TOR'а, и подождать 3 секунды
                 else {
-                  $update_tor_ip();
-                  sleep(3);
+
+                  // 1] Получить дату/время последнего обновления TOR
+                  $last = Cache::get('m9:processing:tor_last_ip_update');
+
+                  // 2] Получить текущие дату и время
+                  $now = \Carbon\Carbon::now();
+
+                  // 3] Если $last пуст, или с момента $last прошло уже 3 секунды
+                  if(empty($last) || abs($now->diffInSeconds($last)) >= 3) {
+
+                    // 3.1] Записать $now в кэш
+                    Cache::put('m9:processing:tor_last_ip_update', $now, 300);
+
+                    // 3.2] Обновить IP TOR'а
+                    $update_tor_ip();
+
+                  }
+
                 }
 
             }
 
-            // 8] Попытка извлечь инвентарь оказалась неудачной
+            // 7] Попытка извлечь инвентарь оказалась неудачной
             // - Вернуть пустые значения.
             return [
               "status"          => "",
@@ -635,12 +649,12 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
         $allow_only_types = json_decode($room['allow_only_types'], JSON_UNESCAPED_UNICODE);
 
         // 5] Получить список запрещённых в $room типов вещей
-        $forbidden_only_types =
+        //$forbidden_only_types =
 
-        // 5] Отфильтровать $items по типам вещей
+        // 6] Отфильтровать $items по типам вещей
         $items = array_values(array_filter($items, function($item, $key) USE ($allow_only_types) {
 
-          // 5.1] Все ли itemtypes вещи $item есть в $allow_only_types
+          // 6.1] Все ли itemtypes вещи $item есть в $allow_only_types
           $is = call_user_func(function() USE ($item, $allow_only_types) {
 
             foreach($item['itemtypes'] as $type => $is) {
@@ -653,7 +667,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
 
           });
 
-          // 5.2] Если все, то пропустить
+          // 6.2] Если все, то пропустить
           return $is;
 
         }, ARRAY_FILTER_USE_BOTH));
