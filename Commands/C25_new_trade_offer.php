@@ -334,7 +334,7 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
         return $results;
 
       });
-
+Log::info($params);
       // 7. Осуществить запрос к steam и создать новое торговое предложение
 
         // 7.1. Запросить
