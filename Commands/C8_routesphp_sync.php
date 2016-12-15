@@ -317,7 +317,7 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
 
         // 1.6. Сформировать result_route_str роутов в $results
         $results = $results->map(function($route){
-          $route['result_route_str'] = "Route::group(['domain' => '".$route['subdomain'].$route['domain']."'], function(){ Route::get('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@getIndex'); Route::post('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@postIndex'); });";
+          $route['result_route_str'] = "Route::group(['domain' => '".$route['subdomain'].(empty($route['subdomain']) ? '' : '.').$route['domain']."'], function(){ Route::get('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@getIndex'); Route::post('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@postIndex'); });";
           return $route;
         });
 
@@ -409,7 +409,7 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
 
         // 2.7. Сформировать result_route_str роутов в $results
         $results = $results->map(function($route){
-          $route['result_route_str'] = "Route::group(['domain' => '".$route['subdomain'].$route['domain']."', 'middleware' => 'web'], function(){ Route::get('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@getIndex'); Route::post('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@postIndex'); });";
+          $route['result_route_str'] = "Route::group(['domain' => '".$route['subdomain'].(empty($route['subdomain']) ? '' : '.').$route['domain']."', 'middleware' => 'web'], function(){ Route::get('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@getIndex'); Route::post('".$route['uri']."', '\\".$route['dlw_pack_id']."\\Controller@postIndex'); });";
           return $route;
         });
 
