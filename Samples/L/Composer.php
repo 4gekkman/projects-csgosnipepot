@@ -64,7 +64,14 @@ View::composer('PARAMpackfullnamePARAM::layout', function($view) {
 
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
-    // "menu" => $menu
+    'auth'                  => session('auth_cache') ?: '',
+    'request'               => [
+      "secure" => \Request::secure() ? "https://" : "http://",
+      "host"   => \Request::getHost(),
+      "port"   => \Request::getPort()
+    ],
+    'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
+    'websockets_channel'    => Session::getId(),
   ], JSON_UNESCAPED_UNICODE));
 
 

@@ -242,10 +242,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			if(!ko.computedContext.isInitial()) return;
 
 			// n.2] Если сервер не прислал данные, завершить
-			if(!server || !server.data || !server.data.auth) return;
+			if(!layout_data || !layout_data.data || !layout_data.data.auth) return;
 
 			// n.3] Распаковать данные, и проверить
-			var auth = JSON.parse(server.data.auth);
+			var auth = JSON.parse(layout_data.data.auth);
 			if((!auth.is_anon && auth.is_anon != 0) || !auth.user || !auth.auth) return;
 
 			// n.4] Наполнить m.s0.auth.is_anon
