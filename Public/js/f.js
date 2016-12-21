@@ -43,6 +43,8 @@
  *    f.s3.update 									| s3.1. Обновить инвентарь выбранного бота
  *    f.s3.get_item_title           | s3.2. Формирует title для вещей в инвентаре
  *    f.s3.deselect_all             | s3.3. Развыделить все элементы в инвентаре
+ *    f.s3.move2items_to_give       | s3.4. Переместить вещь в список вещей на отдачу ботом
+ *    f.s3.remove_from_items_to_give| s3.5. Переместить вещь из списка вещей на отдачу ботом
  *
  *  s4. Функционал модели генератора мобильных аутентификационных кодов
  *
@@ -58,6 +60,8 @@
  *    f.s6.update 									| s6.1. Обновить инвентарь торгового партнёра
  *    f.s6.get_item_title           | s6.2. Формирует title для вещей в инвентаре
  *    f.s6.deselect_all             | s6.3. Развыделить все элементы в инвентаре
+ *    f.s6.move2items_to_give       | s6.4. Переместить вещь в список вещей на отдачу партнёром
+ *    f.s6.remove_from_items_to_give| s6.5. Переместить вещь из списка вещей на отдачу партнёром
  *
  *  s7. Функционал модели торговых предложений выбранного бота
  *
@@ -413,7 +417,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  ok_0:         function(data, params){
 
 					// 1] Тихо обновить инвентарь выбранного бота
-					self.f.s3.update({silent: true});
+					//self.f.s3.update({silent: true});
 
 					// 2] Сообщить, что новое торговое предложение успешно создано
 					notify({msg: "Approving operation...", time: 5, fontcolor: 'RGB(50,120,50)'});
@@ -869,12 +873,12 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							if(!self.m.s2.edit.steamid() || self.m.s1.selected_subdoc().id() != 2) return;
 
 							// 1.2.2] Обновить инвентарь выбранного бота
-							self.f.s3.update({silence: true});
+							//self.f.s3.update({silence: true});
 
 							// 1.2.3] Обновить инвентарь торгового партнёра
 							// - Если таковой, конечно, уже выбран
-							if(self.m.s5.steam_name_partner)
-								self.f.s6.update({silence: true});
+							//if(self.m.s5.steam_name_partner)
+								//self.f.s6.update({silence: true});
 
 						}
 					});
@@ -1147,7 +1151,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			if(self.m.s1.selected_group().name() == 'Bot') {
 
 				// 4.1] Обновить инвентарь по-тихому
-				self.f.s3.update({silent: true});
+				//self.f.s3.update({silent: true});
 
 			}
 
@@ -1612,6 +1616,42 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
+		//-------------------------------------------------------//
+		// s3.4. Переместить вещь в список вещей на отдачу ботом //
+		//-------------------------------------------------------//
+		f.s3.move2items_to_give = function(data, event) {
+
+			// 1] Добавить вещь data в m.s3.inventory_items2trade
+			// - Если её ещё нам нет.
+			if(model.m.s3.inventory_items2trade().indexOf(data.assetid()) == -1)
+				model.m.s3.inventory_items2trade.push(data.assetid());
+
+			//data.selected(!data.selected());
+
+		};
+
+
+		//--------------------------------------------------------//
+		// s3.5. Переместить вещь из списка вещей на отдачу ботом //
+		//--------------------------------------------------------//
+		f.s3.remove_from_items_to_give = function(data, event) {
+
+			// 1] Удалить вещь data в m.s3.inventory_items2trade
+			// - Если её ещё нам нет.
+			if(model.m.s3.inventory_items2trade().indexOf(data.assetid()) != -1) {
+
+				self.m.s3.inventory_items2trade.remove(function(item){
+					return item == data.assetid();
+				});
+
+			}
+
+			//data.selected(!data.selected());
+
+		};
+
+
+
 	//----------------------------------------------------------------------------------//
 	// 			        		 			                                                          //
 	// 			 s4. Функционал модели генератора мобильных аутентификационных кодов   			//
@@ -1803,7 +1843,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 							self.m.s5.avatar(data.data.avatar);
 
 							// 2] Обновить инвентарь торгового партнёра
-							self.f.s6.update({silent: false});
+							//self.f.s6.update({silent: false});
 
 							// n] Сообщить, что торговый партнёр по указанному торговому URL найден
 							notify({msg: "Trade partner has been found", time: 5, fontcolor: 'RGB(50,120,50)'});
@@ -1983,6 +2023,41 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			for(var i=0; i<self.m.s6.inventory().length; i++) {
 				self.m.s6.inventory()[i]().selected(false);
 			}
+
+		};
+
+
+		//-----------------------------------------------------------//
+		// s6.4. Переместить вещь в список вещей на отдачу партнёром //
+		//-----------------------------------------------------------//
+		f.s6.move2items_to_give = function(data, event) {
+
+			// 1] Добавить вещь data в m.s6.inventory_items2trade
+			// - Если её ещё нам нет.
+			if(model.m.s6.inventory_items2trade().indexOf(data.assetid()) == -1)
+				model.m.s6.inventory_items2trade.push(data.assetid());
+
+			//data.selected(!data.selected());
+
+		};
+
+
+		//------------------------------------------------------------//
+		// s6.5. Переместить вещь из списка вещей на отдачу партнёром //
+		//------------------------------------------------------------//
+		f.s6.remove_from_items_to_give = function(data, event) {
+
+			// 1] Удалить вещь data в m.s6.inventory_items2trade
+			// - Если её ещё нам нет.
+			if(model.m.s6.inventory_items2trade().indexOf(data.assetid()) != -1) {
+
+				self.m.s6.inventory_items2trade.remove(function(item){
+					return item == data.assetid();
+				});
+
+			}
+
+			//data.selected(!data.selected());
 
 		};
 

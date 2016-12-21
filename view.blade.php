@@ -1322,7 +1322,7 @@
                         <?php /*------------------->
                         <!-- Предмет в инвентаре -->
                         <!---------------------*/ ?>
-                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s3.found_inventory_items.indexOf(assetid()) != -1 && $root.m.s3.inventory_items2trade.indexOf(assetid()) == -1">
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: $root.f.s3.move2items_to_give, visible: $root.m.s3.inventory_items2trade.indexOf(assetid()) == -1">   <!-- visible: $root.m.s3.found_inventory_items.indexOf(assetid()) != -1 && $root.m.s3.inventory_items2trade.indexOf(assetid()) == -1 -->
 
                           <?php /*------------->
                           <!-- Лэйбл с ценой -->
@@ -1433,7 +1433,7 @@
                         <?php /*------------------->
                         <!-- Предмет в инвентаре -->
                         <!---------------------*/ ?>
-                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s6.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s6.found_inventory_items.indexOf(assetid()) != -1 && $root.m.s6.inventory_items2trade.indexOf(assetid()) == -1">
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s6.get_item_title($data)}, css: {selected: selected}, click: $root.f.s6.move2items_to_give, visible: $root.m.s6.inventory_items2trade.indexOf(assetid()) == -1">   <!-- visible: $root.m.s6.found_inventory_items.indexOf(assetid()) != -1 && $root.m.s6.inventory_items2trade.indexOf(assetid()) == -1 -->
 
                           <?php /*------------->
                           <!-- Лэйбл с ценой -->
@@ -1530,7 +1530,7 @@
                         <?php /*------------------->
                         <!-- Предмет в инвентаре -->
                         <!---------------------*/ ?>
-                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s3.inventory_items2trade.indexOf(assetid()) != -1">
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s3.get_item_title($data)}, css: {selected: selected}, click: $root.f.s3.remove_from_items_to_give, visible: $root.m.s3.inventory_items2trade.indexOf(assetid()) != -1">
 
                           <?php /*------------->
                           <!-- Лэйбл с ценой -->
@@ -1619,7 +1619,7 @@
                         <?php /*------------------->
                         <!-- Предмет в инвентаре -->
                         <!---------------------*/ ?>
-                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s6.get_item_title($data)}, css: {selected: selected}, click: function(data, event){ data.selected(!data.selected()); }, visible: $root.m.s6.inventory_items2trade.indexOf(assetid()) != -1">
+                        <div class="item" data-bind="style: {backgroundImage: 'url(\'' + icon_url() + '\')', backgroundColor: background_color}, attr: {title: $root.f.s6.get_item_title($data)}, css: {selected: selected}, click: $root.f.s6.remove_from_items_to_give, visible: $root.m.s6.inventory_items2trade.indexOf(assetid()) != -1">
 
                           <?php /*------------->
                           <!-- Лэйбл с ценой -->

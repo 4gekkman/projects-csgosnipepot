@@ -624,7 +624,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		}
 		return result;
 
-	});
+	}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 	//----------------------------------//
 	// s2.6. Модель редактирования бота //
@@ -877,122 +877,122 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//--------------------------------------//
 	// s3.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
-	ko.computed(function(){
-
-		//---------------------------------------//
-		// s3.n.1. Объект-контейнер для индексов //
-		//---------------------------------------//
-		self.m.s3.indexes = {};
-
-		//------------------------------------------------------------//
-		// s3.n.2. Общее количество вещей в инвентаре выбранного бота //
-		//------------------------------------------------------------//
-		(function(){
-
-			// 1] Подготовить объект для результатов
-			var results = 0;
-
-			// 2] Заполнить results
-			for(var i=0; i<self.m.s3.inventory().length; i++) {
-				results = +results + 1;
-			}
-
-			// 3] Записать results
-			self.m.s3.inventory_total(results);
-
-		}());
-
-		//-----------------------------------------------------------------------//
-		// s3.n.3. Общее количество выделенных вещей в инвентаре выбранного бота //
-		//-----------------------------------------------------------------------//
-		(function(){
-
-			// 1] Подготовить объект для результатов
-			var results = 0;
-
-			// 2] Заполнить results
-			for(var i=0; i<self.m.s3.inventory().length; i++) {
-				if(self.m.s3.inventory()[i]().selected())
-					results = +results + 1;
-			}
-
-			// 3] Записать results
-			self.m.s3.inventory_selected(results);
-
-		}());
-
-		//------------------------------------------------------------------------------------//
-		// s3.n.4. Наполнить массив с assetid эл-в инвентаря, прошедших фильтр строкой поиска //
-		//------------------------------------------------------------------------------------//
-		(function(){
-
-			// 1] Очистить массив m.s3.found_inventory_items
-			self.m.s3.found_inventory_items.removeAll();
-
-			// 2] Наполнить массив m.s3.found_inventory_items
-			for(var i=0; i<self.m.s3.inventory().length; i++) {
-
-				// 2.1] Если строка поиска пуста, добавить assetid i-го элемента
-				if(!self.m.s3.search_string())
-					self.m.s3.found_inventory_items.push(self.m.s3.inventory()[i]().assetid());
-
-				// 2.2] Если не пуст, провести валидацию, и если OK, добавить assetid i-го элемента
-				else {
-					if((new RegExp(self.m.s3.search_string(),'i')).test(self.m.s3.inventory()[i]().name()))
-						self.m.s3.found_inventory_items.push(self.m.s3.inventory()[i]().assetid());
-				}
-
-			}
-
-		}());
-
-		//---------------------------------------------------------------------------//
-		// s3.n.5. Наполнить массив с assetid эл-в инвентаря, выбранных для торговли //
-		//---------------------------------------------------------------------------//
-		(function(){
-
-			// 1] Очистить массив m.s3.inventory_items2trade
-			self.m.s3.inventory_items2trade.removeAll();
-
-			// 2] Наполнить массив m.s3.found_inventory_items
-			for(var i=0; i<self.m.s3.inventory().length; i++) {
-
-				// 2.1] Если i-й элемент выбран, добавить его assetid в inventory_items2trade
-				if(self.m.s3.inventory()[i]().selected())
-					self.m.s3.inventory_items2trade.push(self.m.s3.inventory()[i]().assetid());
-
-			}
-
-		}());
-
-		//-------------------------------------------------------------------//
-		// s3.n.6. Подсчитать суммарную стоимость выбранных для отдачи вещей //
-		//-------------------------------------------------------------------//
-		(function(){
-
-			// 1] Если никакие вещи не выбраны, записать 0
-			if(!self.m.s3.inventory_items2trade().length)
-				self.m.s3.items2trade_sumprice(0);
-
-			// 2] В противном случае, подсчитать суммарную стоимость, и записать
-			var price = 0;
-			for(var i=0; i<self.m.s3.inventory().length; i++) {
-
-				// 2.1] Если i-й эл-т не в m.s3.inventory_items2trade, перейти к след.итерации
-				if(self.m.s3.inventory_items2trade.indexOf(self.m.s3.inventory()[i]().assetid()) == -1)
-					continue;
-
-				// 2.2] В противном случае, добавить цену i-го эл-та к price
-				price = +price + +self.m.s3.inventory()[i]().price();
-
-			}
-
-			// 3] Записать price в m.s3.items2trade_sumprice
-			self.m.s3.items2trade_sumprice(price);
-
-		}());
-
-	});
+//	ko.computed(function(){
+//
+//		//---------------------------------------//
+//		// s3.n.1. Объект-контейнер для индексов //
+//		//---------------------------------------//
+//		self.m.s3.indexes = {};
+//
+//		//------------------------------------------------------------//
+//		// s3.n.2. Общее количество вещей в инвентаре выбранного бота //
+//		//------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Подготовить объект для результатов
+//			var results = 0;
+//
+//			// 2] Заполнить results
+//			for(var i=0; i<self.m.s3.inventory().length; i++) {
+//				results = +results + 1;
+//			}
+//
+//			// 3] Записать results
+//			self.m.s3.inventory_total(results);
+//
+//		}());
+//
+//		//-----------------------------------------------------------------------//
+//		// s3.n.3. Общее количество выделенных вещей в инвентаре выбранного бота //
+//		//-----------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Подготовить объект для результатов
+//			var results = 0;
+//
+//			// 2] Заполнить results
+//			for(var i=0; i<self.m.s3.inventory().length; i++) {
+//				if(self.m.s3.inventory()[i]().selected())
+//					results = +results + 1;
+//			}
+//
+//			// 3] Записать results
+//			self.m.s3.inventory_selected(results);
+//
+//		}());
+//
+//		//------------------------------------------------------------------------------------//
+//		// s3.n.4. Наполнить массив с assetid эл-в инвентаря, прошедших фильтр строкой поиска //
+//		//------------------------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Очистить массив m.s3.found_inventory_items
+//			self.m.s3.found_inventory_items.removeAll();
+//
+//			// 2] Наполнить массив m.s3.found_inventory_items
+//			for(var i=0; i<self.m.s3.inventory().length; i++) {
+//
+//				// 2.1] Если строка поиска пуста, добавить assetid i-го элемента
+//				if(!self.m.s3.search_string())
+//					self.m.s3.found_inventory_items.push(self.m.s3.inventory()[i]().assetid());
+//
+//				// 2.2] Если не пуст, провести валидацию, и если OK, добавить assetid i-го элемента
+//				else {
+//					if((new RegExp(self.m.s3.search_string(),'i')).test(self.m.s3.inventory()[i]().name()))
+//						self.m.s3.found_inventory_items.push(self.m.s3.inventory()[i]().assetid());
+//				}
+//
+//			}
+//
+//		}());
+//
+//		//---------------------------------------------------------------------------//
+//		// s3.n.5. Наполнить массив с assetid эл-в инвентаря, выбранных для торговли //
+//		//---------------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Очистить массив m.s3.inventory_items2trade
+//			self.m.s3.inventory_items2trade.removeAll();
+//
+//			// 2] Наполнить массив m.s3.found_inventory_items
+//			for(var i=0; i<self.m.s3.inventory().length; i++) {
+//
+//				// 2.1] Если i-й элемент выбран, добавить его assetid в inventory_items2trade
+//				if(self.m.s3.inventory()[i]().selected())
+//					self.m.s3.inventory_items2trade.push(self.m.s3.inventory()[i]().assetid());
+//
+//			}
+//
+//		}());
+//
+//		//-------------------------------------------------------------------//
+//		// s3.n.6. Подсчитать суммарную стоимость выбранных для отдачи вещей //
+//		//-------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Если никакие вещи не выбраны, записать 0
+//			if(!self.m.s3.inventory_items2trade().length)
+//				self.m.s3.items2trade_sumprice(0);
+//
+//			// 2] В противном случае, подсчитать суммарную стоимость, и записать
+//			var price = 0;
+//			for(var i=0; i<self.m.s3.inventory().length; i++) {
+//
+//				// 2.1] Если i-й эл-т не в m.s3.inventory_items2trade, перейти к след.итерации
+//				if(self.m.s3.inventory_items2trade.indexOf(self.m.s3.inventory()[i]().assetid()) == -1)
+//					continue;
+//
+//				// 2.2] В противном случае, добавить цену i-го эл-та к price
+//				price = +price + +self.m.s3.inventory()[i]().price();
+//
+//			}
+//
+//			// 3] Записать price в m.s3.items2trade_sumprice
+//			self.m.s3.items2trade_sumprice(price);
+//
+//		}());
+//
+//	}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 
 	//---------------------------------------------------------------------//
@@ -1213,122 +1213,122 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//--------------------------------------//
 	// s6.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
-	ko.computed(function(){
-
-		//---------------------------------------//
-		// s6.n.1. Объект-контейнер для индексов //
-		//---------------------------------------//
-		self.m.s6.indexes = {};
-
-		//---------------------------------------------------------------//
-		// s6.n.2. Общее количество вещей в инвентаре торгового партнёра //
-		//---------------------------------------------------------------//
-		(function(){
-
-			// 1] Подготовить объект для результатов
-			var results = 0;
-
-			// 2] Заполнить results
-			for(var i=0; i<self.m.s6.inventory().length; i++) {
-				results = +results + 1;
-			}
-
-			// 3] Записать results
-			self.m.s6.inventory_total(results);
-
-		}());
-
-		//--------------------------------------------------------------------------//
-		// s6.n.3. Общее количество выделенных вещей в инвентаре торгового партнёра //
-		//--------------------------------------------------------------------------//
-		(function(){
-
-			// 1] Подготовить объект для результатов
-			var results = 0;
-
-			// 2] Заполнить results
-			for(var i=0; i<self.m.s6.inventory().length; i++) {
-				if(self.m.s6.inventory()[i]().selected())
-					results = +results + 1;
-			}
-
-			// 3] Записать results
-			self.m.s6.inventory_selected(results);
-
-		}());
-
-		//------------------------------------------------------------------------------------//
-		// s6.n.4. Наполнить массив с assetid эл-в инвентаря, прошедших фильтр строкой поиска //
-		//------------------------------------------------------------------------------------//
-		(function(){
-
-			// 1] Очистить массив m.s6.found_inventory_items
-			self.m.s6.found_inventory_items.removeAll();
-
-			// 2] Наполнить массив m.s6.found_inventory_items
-			for(var i=0; i<self.m.s6.inventory().length; i++) {
-
-				// 2.1] Если строка поиска пуста, добавить assetid i-го элемента
-				if(!self.m.s6.search_string())
-					self.m.s6.found_inventory_items.push(self.m.s6.inventory()[i]().assetid());
-
-				// 2.2] Если не пуст, провести валидацию, и если OK, добавить assetid i-го элемента
-				else {
-					if((new RegExp(self.m.s6.search_string(),'i')).test(self.m.s6.inventory()[i]().name()))
-						self.m.s6.found_inventory_items.push(self.m.s6.inventory()[i]().assetid());
-				}
-
-			}
-
-		}());
-
-		//---------------------------------------------------------------------------//
-		// s6.n.5. Наполнить массив с assetid эл-в инвентаря, выбранных для торговли //
-		//---------------------------------------------------------------------------//
-		(function(){
-
-			// 1] Очистить массив m.s6.inventory_items2trade
-			self.m.s6.inventory_items2trade.removeAll();
-
-			// 2] Наполнить массив m.s6.found_inventory_items
-			for(var i=0; i<self.m.s6.inventory().length; i++) {
-
-				// 2.1] Если i-й элемент выбран, добавить его assetid в inventory_items2trade
-				if(self.m.s6.inventory()[i]().selected())
-					self.m.s6.inventory_items2trade.push(self.m.s6.inventory()[i]().assetid());
-
-			}
-
-		}());
-
-		//----------------------------------------------------------------------//
-		// s6.n.6. Подсчитать суммарную стоимость выбранных для получения вещей //
-		//----------------------------------------------------------------------//
-		(function(){
-
-			// 1] Если никакие вещи не выбраны, записать 0
-			if(!self.m.s6.inventory_items2trade().length)
-				self.m.s6.items2trade_sumprice(0);
-
-			// 2] В противном случае, подсчитать суммарную стоимость, и записать
-			var price = 0;
-			for(var i=0; i<self.m.s6.inventory().length; i++) {
-
-				// 2.1] Если i-й эл-т не в m.s6.inventory_items2trade, перейти к след.итерации
-				if(self.m.s6.inventory_items2trade.indexOf(self.m.s6.inventory()[i]().assetid()) == -1)
-					continue;
-
-				// 2.2] В противном случае, добавить цену i-го эл-та к price
-				price = +price + +self.m.s6.inventory()[i]().price();
-
-			}
-
-			// 3] Записать price в m.s6.items2trade_sumprice
-			self.m.s6.items2trade_sumprice(price);
-
-		}());
-
-	});
+//	ko.computed(function(){
+//
+//		//---------------------------------------//
+//		// s6.n.1. Объект-контейнер для индексов //
+//		//---------------------------------------//
+//		self.m.s6.indexes = {};
+//
+//		//---------------------------------------------------------------//
+//		// s6.n.2. Общее количество вещей в инвентаре торгового партнёра //
+//		//---------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Подготовить объект для результатов
+//			var results = 0;
+//
+//			// 2] Заполнить results
+//			for(var i=0; i<self.m.s6.inventory().length; i++) {
+//				results = +results + 1;
+//			}
+//
+//			// 3] Записать results
+//			self.m.s6.inventory_total(results);
+//
+//		}());
+//
+//		//--------------------------------------------------------------------------//
+//		// s6.n.3. Общее количество выделенных вещей в инвентаре торгового партнёра //
+//		//--------------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Подготовить объект для результатов
+//			var results = 0;
+//
+//			// 2] Заполнить results
+//			for(var i=0; i<self.m.s6.inventory().length; i++) {
+//				if(self.m.s6.inventory()[i]().selected())
+//					results = +results + 1;
+//			}
+//
+//			// 3] Записать results
+//			self.m.s6.inventory_selected(results);
+//
+//		}());
+//
+//		//------------------------------------------------------------------------------------//
+//		// s6.n.4. Наполнить массив с assetid эл-в инвентаря, прошедших фильтр строкой поиска //
+//		//------------------------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Очистить массив m.s6.found_inventory_items
+//			self.m.s6.found_inventory_items.removeAll();
+//
+//			// 2] Наполнить массив m.s6.found_inventory_items
+//			for(var i=0; i<self.m.s6.inventory().length; i++) {
+//
+//				// 2.1] Если строка поиска пуста, добавить assetid i-го элемента
+//				if(!self.m.s6.search_string())
+//					self.m.s6.found_inventory_items.push(self.m.s6.inventory()[i]().assetid());
+//
+//				// 2.2] Если не пуст, провести валидацию, и если OK, добавить assetid i-го элемента
+//				else {
+//					if((new RegExp(self.m.s6.search_string(),'i')).test(self.m.s6.inventory()[i]().name()))
+//						self.m.s6.found_inventory_items.push(self.m.s6.inventory()[i]().assetid());
+//				}
+//
+//			}
+//
+//		}());
+//
+//		//---------------------------------------------------------------------------//
+//		// s6.n.5. Наполнить массив с assetid эл-в инвентаря, выбранных для торговли //
+//		//---------------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Очистить массив m.s6.inventory_items2trade
+//			self.m.s6.inventory_items2trade.removeAll();
+//
+//			// 2] Наполнить массив m.s6.found_inventory_items
+//			for(var i=0; i<self.m.s6.inventory().length; i++) {
+//
+//				// 2.1] Если i-й элемент выбран, добавить его assetid в inventory_items2trade
+//				if(self.m.s6.inventory()[i]().selected())
+//					self.m.s6.inventory_items2trade.push(self.m.s6.inventory()[i]().assetid());
+//
+//			}
+//
+//		}());
+//
+//		//----------------------------------------------------------------------//
+//		// s6.n.6. Подсчитать суммарную стоимость выбранных для получения вещей //
+//		//----------------------------------------------------------------------//
+//		(function(){
+//
+//			// 1] Если никакие вещи не выбраны, записать 0
+//			if(!self.m.s6.inventory_items2trade().length)
+//				self.m.s6.items2trade_sumprice(0);
+//
+//			// 2] В противном случае, подсчитать суммарную стоимость, и записать
+//			var price = 0;
+//			for(var i=0; i<self.m.s6.inventory().length; i++) {
+//
+//				// 2.1] Если i-й эл-т не в m.s6.inventory_items2trade, перейти к след.итерации
+//				if(self.m.s6.inventory_items2trade.indexOf(self.m.s6.inventory()[i]().assetid()) == -1)
+//					continue;
+//
+//				// 2.2] В противном случае, добавить цену i-го эл-та к price
+//				price = +price + +self.m.s6.inventory()[i]().price();
+//
+//			}
+//
+//			// 3] Записать price в m.s6.items2trade_sumprice
+//			self.m.s6.items2trade_sumprice(price);
+//
+//		}());
+//
+//	}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 
 	//-----------------------------------------------------------//
