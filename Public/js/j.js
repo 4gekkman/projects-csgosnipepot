@@ -87,5 +87,5 @@ var layoutmodel = Object.create(LayoutModelProto).constructor(LayoutModelFunctio
 
 	// 4.2. Активизировать модель для DOM-элемента 'layoutmodel' //
 	//-----------------------------------------------------------//
-	// ko.applyBindings(layoutmodel, document.getElementById('layoutmodel'));
+	ko.applyBindings(layoutmodel, document.body);
 
