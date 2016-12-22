@@ -350,7 +350,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//-------------------------------------------------//
 	// s2.2. Состояние левого сайдбара (скрыт/раскрыт) //
 	//-------------------------------------------------//
-	self.m.s2.expanded = ko.observable(false);
+	self.m.s2.expanded = ko.observable(true);
 
 
 	//---------------------------------------------------------//
@@ -367,7 +367,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//--------------------------------------------------//
 	// s3.2. Состояние правого сайдбара (скрыт/раскрыт) //
 	//--------------------------------------------------//
-	self.m.s3.expanded = ko.observable(false);
+	self.m.s3.expanded = ko.observable(true);
 
 
 
