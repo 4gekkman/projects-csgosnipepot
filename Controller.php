@@ -18,8 +18,7 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   L10003:1              (v)      Описание
- *                  POST-API2   L10003:2              (v)      Описание
+ *                  POST-API1   L10003:1                   Безопасная обёртка для команды логаута
  *
  *
  *
@@ -161,14 +160,36 @@ class Controller extends BaseController {
       // - А в $key прислать ключ-код операции.
       if(!empty($key) && empty($command)) {
 
-        //-----------------------------//
+        //---------------------------------//
         // Нестандартная операция L10003:1 //
-        //-----------------------------//
-        if($key == 'L10003:1') {
+        //---------------------------------//
+        // - Безопасная обёртка для команды логаута
+        if($key == 'L10003:1') { try {
+
+          // 1. Выполнить команду
+          $result = runcommand('\M5\Commands\C59_logout', [
+
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2. Вернуть результаты
+          return $result;
+
+        } catch(\Exception $e) {
+          $errortext = 'Invoking of command D10007:D10007:8 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          Log::info($errortext);
+          write2log($errortext, ['M9', 'D10007:D10007:8']);
+          return [
+            "status"  => -2,
+            "data"    => [
+              "errortext" => $errortext,
+              "errormsg" => $e->getMessage()
+            ]
+          ];
+        }}
 
 
-
-        }
 
 
       }

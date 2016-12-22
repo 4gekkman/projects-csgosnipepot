@@ -52,7 +52,7 @@
 
   1. Фиксированная шапка сайта
     1.1. Область шапки над чатом и гл.меню (для логотипа)
-    1.2. Элементы управления в правой части шапки
+    1.2. Область шапки с элементами управления
   2. Фиксированное главное меню слева
     2.1. Переключатель главного меню
 
@@ -78,12 +78,66 @@
 
     </div>
 
-    <?php /*---------------------------------------------->
-    <!-- 1.2. Элементы управления в правой части шапки  -->
-    <!------------------------------------------------*/ ?>
+    <?php /*------------------------------------------>
+    <!-- 1.2. Область шапки с элементами управления -->
+    <!--------------------------------------------*/ ?>
     <div class="area2">
 
+      <?php /*--------------------->
+      <!-- Интерфейсы для гостей -->
+      <!-----------------------*/ ?>
 
+        <?php /*-------------------->
+        <!-- 1] Управление звуком -->
+        <!----------------------*/ ?>
+        <div style="display: none" class="soundcontrol_guest" data-bind="visible: !m.s0.is_logged_in()">
+          <i class="mdi mdi-volume-high"></i>
+        </div>
+
+        <?php /*------------------>
+        <!-- 2] Кнопка "Log in" -->
+        <!--------------------*/ ?>
+        <div style="display: none" class="login_button" data-bind="visible: !m.s0.is_logged_in()" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>
+          <i class="fa fa-fw fa-steam"></i>
+          <span>Войти через Steam</span>
+        </div>
+
+      <?php /*------------------------------------------------>
+      <!-- Интерфейсы для аутентифицированных пользователей -->
+      <!--------------------------------------------------*/ ?>
+
+        <?php /*-------------------->
+        <!-- 1] Управление звуком -->
+        <!----------------------*/ ?>
+        <div style="display: none" class="soundcontrol_guest" data-bind="visible: m.s0.is_logged_in">
+          <i class="mdi mdi-volume-high"></i>
+        </div>
+
+        <?php /*----------------------------------------------------------->
+        <!-- 2] Информация об аккаунте аутентифицированного пользователя -->
+        <!-------------------------------------------------------------*/ ?>
+        <div class="account" data-bind="visible: m.s0.is_logged_in">
+
+          <?php /*----------->
+          <!-- 2.1] Аватар -->
+          <!-------------*/ ?>
+          <div class="avatar">
+            <img data-bind="attr: {src: m.s0.auth.user().avatar_steam}" src="http://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/87/8781d4671c68dbbeba1910d7989664dad391c2fc_full.jpg">
+          </div>
+
+          <?php /*------------------------------->
+          <!-- 2.2] Никнэйм и кнопка "Log out" -->
+          <!---------------------------------*/ ?>
+          <div class="nickname_logout">
+            <div class="nickname">
+              <span data-bind="text: m.s0.auth.user().nickname, attr: {title: m.s0.auth.user().nickname}" title="gtmmm2011"></span>
+            </div>
+            <div class="logout">
+              <span data-bind="click: f.s0.logout">Выйти</span>
+            </div>
+          </div>
+
+        </div>
 
     </div>
 
@@ -99,12 +153,12 @@
     <?php /*---->
     <!-- Меню -->
     <!------*/ ?>
-    <div class="menu">
+    <div class="menu" data-bind="css: {'menu-hidden': !m.s2.expanded()}">
 
       <?php /*-------------------------------->
       <!-- 2.1. Переключатель главного меню -->
       <!----------------------------------*/ ?>
-      <div class="toggle">
+      <div class="toggle" data-bind="click: f.s1.switch">
         <i class="mdi mdi-chevron-double-right"></i>
       </div>
 

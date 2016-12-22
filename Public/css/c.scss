@@ -360,9 +360,13 @@
 
   3.1. Общие стили шапки
   3.2. Область шапки над чатом и гл.меню (для логотипа)
+    3.2.1. Общий стиль области
+    3.2.2. Логотип
   3.3. Область шапки справа от логотипа
-    3.3.1. Область шапки справа от логотипа
-    3.3.2. Блок элементов управления в шапке
+    3.3.1. Общий стиль области
+    3.3.2. Кнопка "Log in"
+    3.3.3. Управление звуком
+    3.3.4. Информация об аккаунте аутентифицированного пользователя
 
 //------------------------------------*/
 
@@ -381,17 +385,115 @@
   // 3.2. Область шапки над чатом и гл.меню (для логотипа) //
   //-------------------------------------------------------//
 
-    // Общий стиль области
+    // 3.2.1. Общий стиль области
     .site-header .area1 {
       width: $sizes_mainmenu_width;
       height: 100%;
     }
 
-    // Логотип
+    // 3.2.2. Логотип
     .site-header .area1 .logo img {
       max-height: 50px;
       margin-left: 10px;
     }
+
+  //--------------------------------------------//
+  // 3.3. Область шапки с элементами управления //
+  //--------------------------------------------//
+
+    // 3.3.1. Общий стиль области
+    .site-header .area2 {
+      position: absolute; top: 0; right: 0; left: $sizes_mainmenu_width;
+      height: 100%;
+      text-align: right;
+    }
+
+    // 3.3.2. Кнопка "Log in"
+    .site-header .area2 .login_button {
+      display: inline-block; vertical-align: middle;
+      height: $sizes_header_height*0.7;
+      line-height: $sizes_header_height*0.7;
+      margin: $sizes_header_height*0.15 10px;
+      padding: 0 $sizes_header_height*0.3;
+      font-size: 1.3em;
+      border: 1px solid #ccc;
+      color: #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .site-header .area2 .login_button:hover {
+      border: 1px solid #fff;
+      color: #fff;
+    }
+
+    // 3.3.3. Управление звуком
+    .site-header .area2 .soundcontrol_guest {
+      display: inline-block; vertical-align: middle;
+      height: $sizes_header_height;
+      line-height: $sizes_header_height;
+      font-size: 2em;
+      margin-right: 15px;
+      color: #ccc;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .site-header .area2 .soundcontrol_guest:hover {
+      color: #fff;
+    }
+
+    // 3.3.4. Информация об аккаунте аутентифицированного пользователя
+
+      // Общие стили
+      .site-header .area2 .account {
+        position: relative;
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        max-width: 300px;
+      }
+
+      // Аватар
+      .site-header .area2 .account .avatar {
+        position: absolute;
+        top: 0; right: 5px;
+      }
+      .site-header .area2 .account .avatar img {
+        height: $sizes_header_height*0.9;
+        border-radius: $sizes_header_height*0.9;
+        margin: $sizes_header_height*0.05 10px;
+      }
+
+      // Никнэйм и кнопка "Log out"
+      .site-header .area2 .account .nickname_logout {
+        height: $sizes_header_height;
+        margin-right: $sizes_header_height + 20px + 5px;
+        padding-left: 20px;
+        border-left: 1px solid #444;
+      }
+      .site-header .area2 .account .nickname {
+        height: $sizes_header_height*0.55;
+        line-height: $sizes_header_height*0.55*1.3;
+        vertical-align: bottom;
+        text-align: right;
+        font-size: 1.3em;
+        overflow: hidden;
+        cursor: default;
+      }
+      .site-header .area2 .account .logout {
+        height: $sizes_header_height*0.45;
+        line-height: $sizes_header_height*0.45;
+        text-align: right;
+      }
+      .site-header .area2 .account .logout span {
+        font-size: 1.1em;
+        color: #6ea0ad;
+        cursor: pointer;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .account .logout span:hover {
+        color: #7FB8C7;
+        border-bottom: 1px solid #7FB8C7;
+      }
 
 
 
@@ -442,6 +544,9 @@
     line-height: $sizes_mm_toogle_height;
     font-size: 2.5em;
     cursor: pointer;
+  }
+  .menu-container .menu .toggle:hover {
+    background: #444;
   }
   .menu-container .menu .toggle i {
     color: #3b535e;
