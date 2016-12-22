@@ -11,7 +11,7 @@
 <!---------------------*/ ?>
 @section('title')
 
-  <title>D10009 - CSGOHAP main document</title>
+  <title>CS GO рулетка с минимальной ставкой от 1 рубля! Рулетка скинов игры Counter Strike Global Offencive</title>
 
 @stop
 
