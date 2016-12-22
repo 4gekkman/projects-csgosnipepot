@@ -15,6 +15,7 @@
   2. Общие стили шаблона
   3. Стили фиксированной шапки сайта
   4. Стили фиксированного главного меню слева
+  5. Стили фиксированного чата справа
 
 
 ////------------------------------////
@@ -289,6 +290,12 @@
     $color_mainmenu_bg:       #212f35;  // Фон главного левого меню
     $color_mm_toogle_bg:      transparent; // Фон переключателя ширины
 
+    // Правый чат
+    $color_rightchat_bg:      #212f35;  // Фон правого чата
+    $color_rc_controls_bg:    #212f35;  // Фон панели управления правым чатом
+    $color_rcbut_bg:          #212f35;  // Фон кнопки раскрытия правого чата
+    $color_rcbut_color:       #ddd;     // Цвет иконки и текста кнопки раскрытия правого чата
+
   // 1.3. Переменные размеров
 
     // Шапка сайта
@@ -297,11 +304,21 @@
     // Главное меню
 
       // Общие размеры
-      $sizes_mainmenu_width:    230px;    // Ширина главного меню
+      $sizes_mainmenu_width:    240px;    // Ширина главного меню
       $sizes_mainmenu_whidden:  55px;     // Ширина главного меню в узком состоянии
 
       // Переключатель ширины
       $sizes_mm_toogle_height:  40px;     // Высота переключателя ширины
+
+    // Правая панель чата
+
+      // Общие размеры
+      $sizes_rightchat_width:   240px;    // Ширина правой панели чата
+      $sizes_rightchat_ctrlh:   40px;     // Высота панельки скрытия чата и выбора комнаты
+
+      // Панель эл-в управления правым чатом
+      $sizes_rc_ctrls_height:  40px;     // Высота панели управления правым чатом
+
 
 
 //------------------------//
@@ -545,26 +562,119 @@
     font-size: 2.5em;
     cursor: pointer;
   }
-  .menu-container .menu .toggle:hover {
-    background: #444;
-  }
   .menu-container .menu .toggle i {
     color: #3b535e;
+    display: inline-block;
     transition: all .5s ease;
   }
   .menu-container .menu .toggle:hover i {
     color: #557888;
-  }
-  .menu-container .menu .toggle i {
-    display: inline-block;
   }
   .menu-container .menu.menu-hidden .toggle i {
     transform: rotate(180deg);
   }
 
 
+//-------------------------------------//
+// 5. Стили фиксированного чата справа //
+/*-------------------------------------//
+Оглавление
+
+  5.1. Общие стили меню
+  5.2. Чат в убранном состоянии
+  5.3. Панель управления чатом
+  5.4. Кнопка раскрытия чата
 
 
+//------------------------------------*/
+
+  //-----------------------//
+  // 5.1. Общие стили меню //
+  //-----------------------//
+  .chat-right-container {
+    position: fixed;
+    right: 0;
+    z-index: 1;
+  }
+  .chat-right-container .chat {
+    right: 0;
+    width: $sizes_rightchat_width;
+    top: $sizes_header_height;
+    position: fixed;
+    margin-bottom: 35px;
+    background: $color_rightchat_bg;
+    min-height: 100%;
+    z-index: 101;
+    overflow: hidden;
+    transition: all .5s ease;
+  }
+
+  //-------------------------------//
+  // 5.2. Чат в убранном состоянии //
+  //-------------------------------//
+  .chat-right-container .chat.hidden-chat {
+    right: -$sizes_rightchat_width;
+  }
+
+  //------------------------------//
+  // 5.3. Панель управления чатом //
+  //------------------------------//
+
+    // Общие стили
+    .chat-right-container .controls {
+      height: $sizes_rc_ctrls_height;
+      background: $color_rc_controls_bg;
+      text-align: center;
+      line-height: $sizes_rc_ctrls_height;
+    }
+
+    // Кнопка сокрытия чата
+    .chat-right-container .controls .hide_chat_button {
+      height: $sizes_rc_ctrls_height;
+      text-align: center;
+      line-height: $sizes_rc_ctrls_height;
+      font-size: 2.5em;
+      cursor: pointer;
+      float: left;
+      margin-left: 7px;
+    }
+    .chat-right-container .controls .hide_chat_button i {
+      color: #3b535e;
+      transition: all .5s ease;
+    }
+    .chat-right-container .controls .hide_chat_button:hover i {
+      color: #557888;
+    }
+
+  //----------------------------//
+  // 5.4. Кнопка раскрытия чата //
+  //----------------------------//
+  .chat_right_open {
+    position: fixed;
+    right: 0; top: 50%;
+    width: 80px;
+    height: 35px;
+    line-height: 35px;
+    margin-top: -17px;
+    background: $color_rcbut_bg;
+    cursor: pointer;
+    transform: rotate(-90deg) translate3d(0,22px,0);
+    border-radius: 4px 4px 0 0;
+    color: $color_rcbut_color;
+    transition: all 4s ease;
+  }
+  .chat_right_open.hidden-chat-button {
+    margin-right: -35px;
+  }
+  .chat_right_open i {
+    font-size: 1.7em;
+    vertical-align: middle;
+    margin: 0 5px 0 7px;
+  }
+  .chat_right_open span {
+    font-size: 1.3em;
+    vertical-align: middle;
+  }
 
 
 
