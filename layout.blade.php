@@ -95,7 +95,8 @@
         <!-- 1] Управление звуком -->
         <!----------------------*/ ?>
         <div style="display: none" class="soundcontrol_guest" data-bind="visible: !m.s0.is_logged_in()">
-          <i class="mdi mdi-volume-high"></i>
+          <img data-bind="visible: m.s4.is_global_volume_on, click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_on.svg') !!}">
+          <img data-bind="visible: !m.s4.is_global_volume_on(), click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_off.svg') !!}">
         </div>
 
         <?php /*------------------>
@@ -114,7 +115,8 @@
         <!-- 1] Управление звуком -->
         <!----------------------*/ ?>
         <div style="display: none" class="soundcontrol_guest" data-bind="visible: m.s0.is_logged_in">
-          <i class="mdi mdi-volume-high"></i>
+          <img data-bind="visible: m.s4.is_global_volume_on, click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_on.svg') !!}">
+          <img data-bind="visible: !m.s4.is_global_volume_on(), click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_off.svg') !!}">
         </div>
 
         <?php /*----------------------------------------------------------->
@@ -160,7 +162,7 @@
       <?php /*-------------------------------->
       <!-- 2.1. Переключатель главного меню -->
       <!----------------------------------*/ ?>
-      <div class="toggle" data-bind="click: f.s2.switch">
+      <div class="toggle" data-bind="click: f.s2.switch, visible: !m.s2.hidden()">
         <i class="mdi mdi-chevron-double-left"></i>
       </div>
 
@@ -176,20 +178,37 @@
     <?php /*---------->
     <!-- Правый чат -->
     <!------------*/ ?>
-    <div class="chat" data-bind="css: {'hidden-chat': !m.s3.expanded()}">
+    <div class="chat" data-bind="css: {'hidden-chat': !m.s3.expanded(), minimized: m.s3.hidden, 'min-chat-not-expanded': !m.s3.expanded()}">
 
       <?php /*-------------------------------------------->
       <!-- 3.1. Панель управления чатом в верхней части -->
       <!----------------------------------------------*/ ?>
-      <div class="controls">
+      <div class="controls" data-bind="click: f.s3.switch">
 
         <?php /*-------------------->
         <!-- Кнопка сокрытия чата -->
         <!----------------------*/ ?>
-        <div class="hide_chat_button" data-bind="click: f.s3.switch">
-          <i class="mdi mdi-chevron-double-right"></i>
+        <div class="hide_chat_button">
+
+          <?php /*--------------------------------------------->
+          <!-- 1] Для большой версии чата на правом сайдбаре -->
+          <!-----------------------------------------------*/ ?>
+          <i class="mdi mdi-chevron-double-right" data-bind="visible: !m.s3.hidden()"></i>
+
+          <?php /*------------------------->
+          <!-- 2] Для мелкой версии чата -->
+          <!---------------------------*/ ?>
+          <i class="mdi mdi-chevron-down" data-bind="visible: (m.s3.hidden() && m.s3.expanded())"></i>
+
         </div>
 
+        <?php /*---------------------->
+        <!-- Надпись "Чат" и иконка -->
+        <!------------------------*/ ?>
+        <div class="chatheader">
+          <i class="mdi mdi-wechat"></i>
+          <span>Чат</span>
+        </div>
 
       </div>
 
@@ -202,7 +221,7 @@
   <?php /*----------------------------------------------------->
   <!-- 4. Фиксированная кнопка раскрытия правого чата справа -->
   <!-------------------------------------------------------*/ ?>
-  <div class="chat_right_open" data-bind="click: f.s3.switch, css: {'hidden-chat-button': m.s3.expanded}">
+  <div class="chat_right_open" data-bind="click: f.s3.switch, css: {'hidden-chat-button': m.s3.expanded}, visible: !m.s3.hidden()">
 
     <i class="mdi mdi-wechat"></i>
     <span>Чат</span>

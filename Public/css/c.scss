@@ -396,6 +396,7 @@
     min-width: 768px;
     background: $color_header_bg;
     opacity: $color_header_opacity;
+    z-index: 2;
   }
 
   //-------------------------------------------------------//
@@ -448,12 +449,17 @@
     .site-header .area2 .soundcontrol_guest {
       display: inline-block; vertical-align: middle;
       height: $sizes_header_height;
-      line-height: $sizes_header_height;
+      line-height: $sizes_header_height - 12px;
       font-size: 2em;
       margin-right: 15px;
       color: #ccc;
-      cursor: pointer;
       transition: all .2s ease;
+    }
+    .site-header .area2 .soundcontrol_guest img {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
     }
     .site-header .area2 .soundcontrol_guest:hover {
       color: #fff;
@@ -584,7 +590,7 @@
   5.2. Чат в убранном состоянии
   5.3. Панель управления чатом
   5.4. Кнопка раскрытия чата
-
+  5.5. Стили перенесённого влево чата (при малой ширине браузера)
 
 //------------------------------------*/
 
@@ -597,7 +603,8 @@
     z-index: 1;
   }
   .chat-right-container .chat {
-    right: 0;
+    left: 100%;
+    margin-left: -$sizes_rightchat_width;
     width: $sizes_rightchat_width;
     top: $sizes_header_height;
     position: fixed;
@@ -613,7 +620,7 @@
   // 5.2. Чат в убранном состоянии //
   //-------------------------------//
   .chat-right-container .chat.hidden-chat {
-    right: -$sizes_rightchat_width;
+    margin-left: 0;
   }
 
   //------------------------------//
@@ -626,6 +633,8 @@
       background: $color_rc_controls_bg;
       text-align: center;
       line-height: $sizes_rc_ctrls_height;
+      cursor: pointer;
+      position: relative;
     }
 
     // Кнопка сокрытия чата
@@ -645,6 +654,27 @@
     .chat-right-container .controls .hide_chat_button:hover i {
       color: #557888;
     }
+
+    // Надпись "Чат" и иконка
+    .chat-right-container .controls .chatheader {
+      position: absolute;
+      left: 35%;
+      display: inline-block;
+      height: $sizes_rc_ctrls_height;
+      text-align: center;
+      padding: 0 45px 0 0;
+      color: #ccc;
+    }
+    .chat-right-container .controls .chatheader i {
+      font-size: 1.7em;
+      vertical-align: middle;
+      margin: 0 5px 0 7px;
+    }
+    .chat-right-container .controls .chatheader span {
+      font-size: 1.3em;
+      vertical-align: middle;
+    }
+
 
   //----------------------------//
   // 5.4. Кнопка раскрытия чата //
@@ -676,12 +706,26 @@
     vertical-align: middle;
   }
 
-
-
-
-
-
-
+  //-----------------------------------------------------------------//
+  // 5.5. Стили перенесённого влево чата (при малой ширине браузера) //
+  //-----------------------------------------------------------------//
+  .chat-right-container .chat.minimized {
+    height: 280px;
+    bottom: 0;
+    right: inherit;
+    min-height: auto;
+    left: 60px;
+    top: unset;
+    margin-bottom: unset;
+    margin-left: 0;
+    transition: all .5s ease;
+  }
+  .chat-right-container .chat.minimized.min-chat-not-expanded {
+    margin-bottom: -240px;
+  }
+  .chat-right-container .chat.minimized.min-chat-not-expanded .controls .hide_chat_button i {
+    transform: rotate(180deg);
+  }
 
 
 
