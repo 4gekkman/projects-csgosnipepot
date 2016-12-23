@@ -361,6 +361,7 @@
   body::-webkit-scrollbar
   {
     width: 6px;
+    height: 6px;
     background-color: $color_scrollBarBg;
   }
   body::-webkit-scrollbar-thumb
@@ -394,7 +395,7 @@
   .site-header {
     position: fixed; top: 0; left: 0;
     height: $sizes_header_height; width: 100%;
-    min-width: 1040px;
+    min-width: 500px;
     background: $color_header_bg;
     opacity: $color_header_opacity;
     z-index: 2;

@@ -24,8 +24,9 @@
  *
  *    f.s3.switch 									| s3.1. Изменить состояние раскрытости правого сайдбара
  *
+ *  s4. Функционал модель по управлению звуком
  *
- *
+ *    f.s4.switch                   | s4.1. Изменить состояние раскрытости левого меню
  *
  *
  */
@@ -185,6 +186,12 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			// 1] Изменить состояние раскрытости на противоположное
 			self.m.s2.expanded(!self.m.s2.expanded());
 
+			// 2] При ширине экрана от 1280 до 1456 включительно
+			// - Скрыть правый сайдбар с чатом.
+			if(self.m.s0.cur_browser_width() >= 1280 && self.m.s0.cur_browser_width() <= 1456) {
+				self.m.s3.expanded(false);
+			}
+
 		};
 
 
@@ -202,6 +209,12 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			// 1] Изменить состояние раскрытости на противоположное
 			self.m.s3.expanded(!self.m.s3.expanded());
+
+			// 2] При ширине экрана от 1280 до 1456 включительно
+			// - Скрыть левый сайдбар с главным меню.
+			if(self.m.s0.cur_browser_width() >= 1280 && self.m.s0.cur_browser_width() <= 1456) {
+				self.m.s2.expanded(false);
+			}
 
 		};
 

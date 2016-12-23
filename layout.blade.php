@@ -233,8 +233,8 @@
   <?php /*--------------------->
   <!-- x. Контентная область -->
   <!-----------------------*/ ?>
-  <div data-bind="allowBindings: false">
-    <div id="content" class="content" data-bind="css: {'left-sidebar-expanded': m.s2.expanded, 'right-sidebar-expanded': (m.s3.expanded() && !m.s3.hidden())}">
+  <div data-bind="stopBindings: true">
+    <div id="content" class="content" data-bind="css: {'left-sidebar-expanded': layoutmodel.m.s2.expanded, 'right-sidebar-expanded': (layoutmodel.m.s3.expanded() && !layoutmodel.m.s3.hidden())}">
       @yield('content')
     </div>
   </div>
