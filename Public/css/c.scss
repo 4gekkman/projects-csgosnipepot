@@ -16,6 +16,7 @@
   3. Стили фиксированной шапки сайта
   4. Стили фиксированного главного меню слева
   5. Стили фиксированного чата справа
+  6. Стили для контентной области и контентного столбца
 
 
 ////------------------------------////
@@ -279,8 +280,8 @@
     $color_mainFontColor:     #fff;     // Главный общий цвет шрифта
 
     // Скролл бар
-    $color_scrollBarBg:       #1c1c22;  // Фон скролл бара
-    $color_scrollBarThumb:    #16161b;  // Цвет бегунка скролл бара
+    $color_scrollBarBg:       #16161b;  // Фон скролл бара
+    $color_scrollBarThumb:    #ccc;     // Цвет бегунка скролл бара
 
     // Шапка сайта
     $color_header_bg:         #16161b;  // Фон шапки сайта
@@ -292,7 +293,7 @@
 
     // Правый чат
     $color_rightchat_bg:      #212f35;  // Фон правого чата
-    $color_rc_controls_bg:    #212f35;  // Фон панели управления правым чатом
+    $color_rc_controls_bg:    #17232a;  // Фон панели управления правым чатом
     $color_rcbut_bg:          #212f35;  // Фон кнопки раскрытия правого чата
     $color_rcbut_color:       #ddd;     // Цвет иконки и текста кнопки раскрытия правого чата
 
@@ -347,24 +348,24 @@
 
   // Контент документа сдвинуть вниз на высоту шапки
   .content {
-    padding-top: $sizes_header_height;
+    padding-top: $sizes_header_height + 15px;
   }
 
   // Кастомные стили для скроллбара
   body::-webkit-scrollbar-track
   {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    //-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
     border-radius: 10px;
     background-color: $color_scrollBarBg;
   }
   body::-webkit-scrollbar
   {
-    width: 12px;
+    width: 6px;
     background-color: $color_scrollBarBg;
   }
   body::-webkit-scrollbar-thumb
   {
-    border-radius: 10px;
+    border-radius: 3px;
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
     background-color: $color_scrollBarThumb;
   }
@@ -393,7 +394,7 @@
   .site-header {
     position: fixed; top: 0; left: 0;
     height: $sizes_header_height; width: 100%;
-    min-width: 768px;
+    min-width: 1040px;
     background: $color_header_bg;
     opacity: $color_header_opacity;
     z-index: 2;
@@ -517,8 +518,6 @@
         color: #7FB8C7;
         border-bottom: 1px solid #7FB8C7;
       }
-
-
 
 
 
@@ -691,7 +690,7 @@
     transform: rotate(-90deg) translate3d(0,22px,0);
     border-radius: 4px 4px 0 0;
     color: $color_rcbut_color;
-    transition: all 4s ease;
+    transition: all 3s ease;
   }
   .chat_right_open.hidden-chat-button {
     margin-right: -35px;
@@ -728,4 +727,50 @@
   }
 
 
+//-------------------------------------------------------//
+// 6. Стили для контентной области и контентного столбца //
+/*-------------------------------------------------------//
 
+  6.1. Общие стили контентной области
+  6.2. Если левый сайдбар раскрыт
+  6.3. Если правый сайдбар раскрыт
+  6.4. Общие стили контентного столбца
+
+//---------------------------------------*/
+
+  //-------------------------------------//
+  // 6.1. Общие стили контентной области //
+  //-------------------------------------//
+  .content {
+    padding-left: $sizes_mainmenu_whidden;
+    padding-top: $sizes_header_height;
+    padding-right: 0;
+    min-height: 1000px;
+    text-align: center;
+    transition: all .5s ease;
+  }
+
+  //---------------------------------//
+  // 6.2. Если левый сайдбар раскрыт //
+  //---------------------------------//
+  .content.left-sidebar-expanded {
+    padding-left: $sizes_mainmenu_width;
+  }
+
+  //----------------------------------//
+  // 6.3. Если правый сайдбар раскрыт //
+  //----------------------------------//
+  .content.right-sidebar-expanded {
+    padding-right: $sizes_rightchat_width;
+  }
+
+  //--------------------------------------//
+  // 6.4. Общие стили контентного столбца //
+  //--------------------------------------//
+  .content .content-column {
+    display: inline-block;
+    width: 860px;
+    min-height: 1000px;
+    text-align: left;
+    background: #444;
+  }

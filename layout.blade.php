@@ -198,7 +198,7 @@
           <?php /*------------------------->
           <!-- 2] Для мелкой версии чата -->
           <!---------------------------*/ ?>
-          <i class="mdi mdi-chevron-down" data-bind="visible: (m.s3.hidden() && m.s3.expanded())"></i>
+          <i class="mdi mdi-chevron-down" data-bind="visible: m.s3.hidden()"></i>
 
         </div>
 
@@ -230,14 +230,11 @@
 
 
 
-
-
-
   <?php /*--------------------->
   <!-- x. Контентная область -->
   <!-----------------------*/ ?>
   <div data-bind="allowBindings: false">
-    <div id="content" class="content">
+    <div id="content" class="content" data-bind="css: {'left-sidebar-expanded': m.s2.expanded, 'right-sidebar-expanded': (m.s3.expanded() && !m.s3.hidden())}">
       @yield('content')
     </div>
   </div>
