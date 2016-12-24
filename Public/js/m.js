@@ -26,7 +26,7 @@
  *		s0.5. Виден ли щит "идёт ajax-запрос"
  *	  s0.6. Аутентификационная модель
  *    s0.7. Текущая ширина браузера клиента
- *    s0.8. Текущая величина прокрутки браузера
+ *    s0.8. Текущая и предыдущая величины прокрутки браузера
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -319,10 +319,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//---------------------------------------//
 	self.m.s0.cur_browser_width = ko.observable(getBrowserWindowMetrics().width);
 
-	//-------------------------------------------//
-	// s0.8. Текущая величина прокрутки браузера //
-	//-------------------------------------------//
+	//--------------------------------------------------------//
+	// s0.8. Текущая и предыдущая величины прокрутки браузера //
+	//--------------------------------------------------------//
 	self.m.s0.cur_browser_scroll = ko.observable(window.pageYOffset || document.documentElement.scrollTop);
+	self.m.s0.prev_browser_scroll = ko.observable(0);
 
 
 
@@ -781,30 +782,102 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				// 5] А если требуется, то:
 				else {
 
-					// 5.1] Получить MAX значение, на которое можно прокрутить левое меню
-					var maxscroll = (function(){
-						var value = menucontent_height - menuheight;
-						if(value < 0) return 0;
-						else return value;
-					})();
+					// Назначить новое значение св-ва top для меню
+					self.m.s2.top((function(){
 
-					// 5.2] Получить итоговое значение, на которое надо прокрутить
-					var finalscroll = (function(){
-						if(scrolled <= maxscroll) return scrolled;
-						else return maxscroll;
-					})();
+						// 5.1] Получить MAX возможную прокрутку меню
+						var maxscroll = menucontent_height - menuheight;
+
+						// 5.2] Получить MIN значения для параметра top у меню
+						var mintop = self.m.s2.topStart - maxscroll;
+
+						// 5.3] Получить итоговое значение, на которое надо прокрутить
+						var finalscroll = (function(){
+
+							// Получить разницу между предыдущей и текущей прокрутками
+							// - Если он положительная, значит прокрутка вниз. Иначе - вверх.
+							var diff = self.m.s0.prev_browser_scroll() - scrolled;
+
+							// Вычислить предположительное значение следующей прокрутки
+							var futuretop = self.m.s2.top() + diff;
+
+							// Вернуть подходящий futurescroll
+							if(futuretop >= self.m.s2.topStart) return self.m.s2.topStart;
+							if(futuretop <= mintop) return mintop;
+							return futuretop;
+
+						})();
+
+						// 5.4] Осуществить прокрутку
+						return finalscroll;
+
+					})());
+
+//
+//
+//
+//					// 5.1] Получить MIN значение для параметра top у меню
+//					var mintop = (function(){
+//						var value = menucontent_height - menuheight;
+//						if(value < 0) return self.m.s2.top();
+//						else return self.m.s2.top() - value;
+//					})();
+//
+//					// 5.2] Получить итоговое значение, на которое надо прокрутить
+//					var finalscroll = (function(){
+//
+//						// Получить разницу между предыдущей и текущей прокрутками
+//						// - Если он положительная, значит прокрутка вниз. Иначе - вверх.
+//						var diff = self.m.s0.prev_browser_scroll() - scrolled;
+//
+//						// Вычислить предположительное значение следующей прокрутки
+//						var futuretop = self.m.s2.top() + diff;
+//
+//						// Если futurescroll вписывается в mintop, вернуть его
+//						if(futuretop > mintop) return futuretop;
+//
+//						// Иначе вернуть maxscroll
+//						else return mintop;
+//
+//						//if(scrolled <= maxscroll) return scrolled;
+//						//else return maxscroll;
+//					})();
+//
+//					// 5.3] Осуществить прокрутку
+//					self.m.s2.top(finalscroll);
+//
+//					console.log('mintop = '+mintop);
+//					console.log('finalscroll = '+finalscroll);
+
+
+//					var finalscroll = (function(){
+//						if(scrolled <= maxscroll) return scrolled;
+//						else return maxscroll;
+//					})();
 
 					// 5.3] Вычесть finalscroll из стартового значения
-					self.m.s2.top(self.m.s2.topStart - finalscroll);
+					//self.m.s2.top(self.m.s2.topStart - finalscroll);
+					//self.m.s2.top(self.m.s2.top() + (self.m.s0.prev_browser_scroll() - scrolled));
+
+					// 5.3] Вычислить
 
 
-					console.log('menucontent_height = '+menucontent_height);
-					console.log('menuheight = '+menuheight);
-					console.log('scrolled = '+scrolled);
-					console.log('finalscroll = '+finalscroll);
+
+//					var x = self.m.s2.top() + (self.m.s0.prev_browser_scroll() - scrolled);
+//					var y = self.m.s2.top() + Math.abs(self.m.s0.prev_browser_scroll() - scrolled);
+//					if(y >= maxscroll) x = maxscroll;
+//					//if(x <= 0) x = 0;
+//					self.m.s2.top(x);
+//
+//					console.log('x = '+x);
+//					console.log('y = '+y);
+//					console.log('maxscroll = '+maxscroll);
 
 				}
 
+
+				// n] Записать последнее известное значение scrolled
+				self.m.s0.prev_browser_scroll(scrolled);
 
 //				console.log('menucontent_height = '+menucontent_height);
 //				console.log('menuheight = '+menuheight);
