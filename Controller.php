@@ -115,6 +115,8 @@ class Controller extends BaseController {
       // 1. ...
 
 
+
+
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
 
