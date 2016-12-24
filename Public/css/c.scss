@@ -530,7 +530,7 @@
   4.1. Общие стили меню
   4.2. Меню в узком состоянии
   4.3. Переключатель главного меню в узком состоянии
-
+  4.4. Стили пункта меню
 
 //------------------------------------*/
 
@@ -579,6 +579,51 @@
   .menu-container .menu.menu-hidden .toggle i {
     transform: rotate(180deg);
   }
+
+  //------------------------//
+  // 4.4. Стили пункта меню //
+  //------------------------//
+
+    // Контейнер главного меню
+    .menu-container .menu .items {}
+
+    // Пункт главного меню
+    .menu-container .menu .items .item {
+      height: $sizes_mainmenu_whidden; width: 100%;
+      border-bottom: 1px solid #161f24;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-size: 34px;
+    }
+    .menu-container .menu .items .item:hover {
+      background: #0e1214 !important;
+    }
+
+    // Иконка пункта меню
+    .menu-container .menu .items .item .icon {
+      position: absolute;
+      width: $sizes_mainmenu_whidden;
+      height: 100%;
+      text-align: center;
+      line-height: $sizes_mainmenu_whidden;
+    }
+    .menu-container .menu .items .item .icon i {}
+
+    // Стиль выбранного пункта меню
+    .menu-container .menu .items .item.choosen {
+      color: #f6e52d;
+      background: #0e1214 !important;
+    }
+
+    // Контент пункта меню
+    .menu-container .menu .items .item .item-content {
+      margin-left: $sizes_mainmenu_whidden + 5px;
+      font-size: 16px;
+      text-align: left;
+      line-height: $sizes_mainmenu_whidden;
+      overflow: hidden;
+      white-space: nowrap;
+    }
 
 
 //-------------------------------------//

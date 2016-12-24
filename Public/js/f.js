@@ -15,6 +15,9 @@
  *		f.s0.txt_delay_save           | s0.2. Функционал "механизма отложенного сохранения для текстовых полей"
  *    f.s0.logout                   | s1.1. Выйти из своей учётной записи
  *
+ *  s1. Функционал модели управления поддокументами приложения
+ *
+ *		f.s1.choose_subdoc            | s1.1. Выбрать subdoc с указанным URI
  *
  *  s2. Функционал модели механики левого сайдбара (с главным меню)
  *
@@ -167,6 +170,87 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 			});
+
+		};
+
+
+	//------------------------------------------------------------------------//
+	// 			        		 			                                                //
+	// 			 s1. Функционал модели управления поддокументами приложения 			//
+	// 			         					                                                //
+	//------------------------------------------------------------------------//
+	f.s1 = {};
+
+		//--------------------------------------//
+		// s1.1. Выбрать subdoc с указанным URI //
+		//--------------------------------------//
+		f.s1.choose_subdoc = function(parameters, data, event) {
+
+			// 1] Сформировать целевой URI из parameters
+			var uri = (function(){
+
+				// 1.1] Если uri передан в параметрах, выбрать его
+				if(parameters.uri)
+					var result = parameters.uri;
+
+				// 1.2] В противном случае
+				else {
+					result = '/';
+					for(var i=0; i<parameters.parameters.length; i++) {
+						result = result + parameters.parameters[i];
+						if(i != parameters.parameters.length-1)
+							result = result + '/';
+					}
+				}
+
+				// 1.3] Вернуть результат
+				return result;
+
+			})();
+
+			// 2] Получить по uri поддокумент из m.s1.subdocs
+			// - Если там такого uri нет, взять первый из subdocs
+			var subdoc = (function(){
+
+				// 2.1] Попробовать найти поддокумент
+				var subdoc = self.m.s1.indexes.subdocs[uri];
+
+				// 2.2] Если subdoc не найден, взять первый из m.s1.subdocs
+				if(!subdoc)
+					subdoc = self.m.s1.subdocs()[0];
+
+				// 2.n] Вернуть результат
+				return subdoc;
+
+			})();
+
+
+			// 3] Если subdoc не найден, вернуть ошибку
+			if(!subdoc) {
+
+				// 3.1] Сообщить об ошибке
+				console.log('Ошибка! Наблюдаемый массив с поддокументами пуст.');
+
+				// 3.2] Завершить
+				return;
+
+			}
+
+			// 4] Если это первый вызов subdoc
+			if(parameters.first) {
+
+				// Подменить текущее состояние, а не добавлять новое
+				History.replaceState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : ''));  // document.getElementsByTagName("title")[0].innerHTML
+
+			}
+
+			// 5] Если это не первый вход в документ
+			else {
+
+				// Добавить в историю новое состояние
+				History.pushState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : ''));
+
+			}
 
 		};
 

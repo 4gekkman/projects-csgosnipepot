@@ -335,11 +335,60 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//---------------------------------------------------//
 	self.m.s1.subdocs = ko.mapping.fromJS([
 		{
-			id: 				1,
 			uri:        '/',
-			icon:       '',
-			icon_uri:   '',
-			title:      'Классическая игра'
+			icon_mdi:   'mdi-crown',
+			icon_url:   '',
+			title:      'Classic game',
+			bg_color:   '#182328',
+			brd_color:  '#17171c'
+		},
+		{
+			uri:        '/double',
+			icon_mdi:   'mdi-adjust',
+			icon_url:   '',
+			title:      'Double game',
+			bg_color:   '#182328',
+			brd_color:  '#17171c'
+		},
+		{
+			uri:        '/shop',
+			icon_mdi:   'mdi-shopping',
+			icon_url:   '',
+			title:      'Магазин',
+			bg_color:   'transparent',
+			brd_color:  'transparent'
+		},
+		{
+			uri:        '/top',
+			icon_mdi:   'mdi-star-outline',
+			icon_url:   '',
+			title:      'История',
+			bg_color:   'transparent',
+			brd_color:  'transparent'
+		},
+		{
+			uri:        '/about',
+			icon_mdi:   'mdi-information-outline',
+			icon_url:   '',
+			title:      'О сайте',
+			bg_color:   'transparent',
+			brd_color:  'transparent'
+		},
+		{
+			uri:        '/ref',
+			icon_mdi:   'mdi-account-multiple',
+			icon_url:   '',
+			title:      'Партнёрка',
+			bg_color:   'transparent',
+			brd_color:  'transparent'
+		},
+		{
+			uri:        '/blog',
+			icon_mdi:   'mdi-blogger',
+			icon_url:   '',
+			title:      'Блог',
+			bg_color:   'transparent',
+			brd_color:  'transparent'
 		}
 	]);
 
@@ -359,9 +408,24 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		//--------------------------------------------------------------//
 		self.m.s1.indexes = {};
 
-		//------------------------------------------------------//
-		// s1.n.2. ... //
-		//------------------------------------------------------//
+		//-------------------------------------//
+		// s1.n.2. Индекс поддокументов по URI //
+		//-------------------------------------//
+		// - По указанному URI можно получить поддокумент.
+		self.m.s1.indexes.subdocs = (function(){
+
+			// 1. Подготовить объект для результатов
+			var results = {};
+
+			// 2. Заполнить results
+			for(var i=0; i<self.m.s1.subdocs().length; i++) {
+				results[self.m.s1.subdocs()[i].uri()] = self.m.s1.subdocs()[i];
+			}
+
+			// 3. Вернуть results
+			return results;
+
+		}());
 
 
 
@@ -605,6 +669,54 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			}, {self: self});
 
 		})();
+
+		//-----------------------------------------------------------------------//
+		// X1.4. На основе параметров parameters с сервера открыть соотв.докуент //
+		//-----------------------------------------------------------------------//
+		// - И заодно добавить стартовое состояние.
+		// - А также назначить функцию-обработчик, срабатывающую при смене состояния.
+		(function(){
+
+			// 1] На основе параметров page и subdoc с сервера открыть соотв.докуент, добавить стартовое состояние.
+			self.f.s1.choose_subdoc({
+				parameters: layout_data.data.parameters,
+				uri:        '',
+				first:      true
+			}, '', '');
+
+			// 2] Назначить функцию-обработчик, срабатывающую при смене состояния
+			History.Adapter.bind(window, 'statechange', function() {
+
+				// 1] Получить текущее новое состояние
+				var state = History.getState();
+				var state_uri = state.data.state;
+
+				// 2] Если состояния приложения и истории расходятся
+				// - То привести состояние приложения в соответствие
+				if(self.m.s1.selected_subdoc().uri() != state_uri) {
+
+					// 2.1] Получить объект поддокумента
+					var subdoc = self.m.s1.indexes.subdocs[state_uri];
+
+					// 2.2] Если subdoc не найден, вернуть ошибку и завершить
+					if(!subdoc) {
+						console.log('Ошибка! Наблюдаемый массив с поддокументами пуст.');
+						return;
+					}
+
+					// 2.3] Сменить состояние
+					self.f.s1.choose_subdoc({
+						uri: state_uri
+					});
+
+				}
+
+			});
+
+		})();
+
+
+
 
 
 

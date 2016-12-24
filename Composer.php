@@ -57,19 +57,39 @@
 ////==========================================================//*/
 View::composer('L10003::layout', function($view) {
 
-  // 1. Получить из конфига данные о пунктах меню
-  // $menu = config("L10000.menuitems");
+  // 1. Получить все сегменты-параметры URI запроса в виде массива значений
+  $parameters = array_values(Route::current()->parameters());
 
+  // 2. Получить базовый URI за вычетом параметров
+  $baseuri = call_user_func(function() USE ($parameters) {
 
+    // 1] Получить все сегменты
+    $segments = \Request::segments();
+
+    // 2] Подготовить переменную для базового URI
+    $result = '/';
+
+    // 3] Наполнить $result
+    // - Кроме count($parameters) последних значений
+    for($i=0; $i<(count($segments) - count($parameters)); $i++) {
+      $result = $result . $segments[$i];
+    }
+
+    // n] Вернуть результат
+    return $result;
+
+  });
 
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
     'request'               => [
-      "secure" => \Request::secure() ? "https://" : "http://",
-      "host"   => \Request::getHost(),
-      "port"   => \Request::getPort()
+      "secure"  => \Request::secure() ? "https://" : "http://",
+      "host"    => \Request::getHost(),
+      "port"    => \Request::getPort(),
+      "baseuri" => $baseuri
     ],
+    'parameters' =>         $parameters,
     'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
     'websockets_channel'    => Session::getId(),
   ], JSON_UNESCAPED_UNICODE));
