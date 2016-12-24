@@ -371,6 +371,11 @@
     background-color: $color_scrollBarThumb;
   }
 
+  // Моя тема для пёрфект скроллбара
+  .menu .ps-scrollbar-y-rail {
+    visibility: hidden;
+  }
+
 
 //------------------------------------//
 // 3. Стили фиксированной шапки сайта //
@@ -398,7 +403,7 @@
     min-width: 500px;
     background: $color_header_bg;
     opacity: $color_header_opacity;
-    z-index: 2;
+    z-index: 9999;
   }
 
   //-------------------------------------------------------//
@@ -537,14 +542,13 @@
   //-----------------------//
   // 4.1. Общие стили меню //
   //-----------------------//
-  .menu-container .menu {
+  .menu {
+    position: fixed;
+    min-height: 100%;
     left: 0;
     width: $sizes_mainmenu_width;
     top: $sizes_header_height;
-    position: fixed;
-    margin-bottom: 35px;
     background: $color_mainmenu_bg;
-    min-height: 100%;
     z-index: 101;
     overflow: hidden;
     transition: width .5s ease;
@@ -553,14 +557,14 @@
   //-----------------------------//
   // 4.2. Меню в узком состоянии //
   //-----------------------------//
-  .menu-container .menu.menu-hidden {
+  .menu.menu-hidden {
     width: $sizes_mainmenu_whidden;
   }
 
   //----------------------------------------------------//
   // 4.3. Переключатель главного меню в узком состоянии //
   //----------------------------------------------------//
-  .menu-container .menu .toggle {
+  .menu .toggle {
     height: $sizes_mm_toogle_height;
     background: $color_mm_toogle_bg;
     text-align: center;
@@ -568,15 +572,15 @@
     font-size: 2.5em;
     cursor: pointer;
   }
-  .menu-container .menu .toggle i {
+  .menu .toggle i {
     color: #3b535e;
     display: inline-block;
     transition: all .5s ease;
   }
-  .menu-container .menu .toggle:hover i {
+  .menu .toggle:hover i {
     color: #557888;
   }
-  .menu-container .menu.menu-hidden .toggle i {
+  .menu.menu-hidden .toggle i {
     transform: rotate(180deg);
   }
 
@@ -585,38 +589,38 @@
   //------------------------//
 
     // Контейнер главного меню
-    .menu-container .menu .items {}
+    .menu .items {}
 
     // Пункт главного меню
-    .menu-container .menu .items .item {
+    .menu .items .item {
       height: $sizes_mainmenu_whidden; width: 100%;
       border-bottom: 1px solid #161f24;
       cursor: pointer;
       transition: all .2s ease;
       font-size: 34px;
     }
-    .menu-container .menu .items .item:hover {
+    .menu .items .item:hover {
       background: #0e1214 !important;
     }
 
     // Иконка пункта меню
-    .menu-container .menu .items .item .icon {
+    .menu .items .item .icon {
       position: absolute;
       width: $sizes_mainmenu_whidden;
       height: 100%;
       text-align: center;
       line-height: $sizes_mainmenu_whidden;
     }
-    .menu-container .menu .items .item .icon i {}
+    .menu .items .item .icon i {}
 
     // Стиль выбранного пункта меню
-    .menu-container .menu .items .item.choosen {
+    .menu .items .item.choosen {
       color: #f6e52d;
       background: #0e1214 !important;
     }
 
     // Контент пункта меню
-    .menu-container .menu .items .item .item-content {
+    .menu .items .item .item-content {
       margin-left: $sizes_mainmenu_whidden + 5px;
       font-size: 16px;
       text-align: left;

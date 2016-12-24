@@ -153,48 +153,41 @@
   <?php /*----------------------------------->
   <!-- 2. Фиксированное главное меню слева -->
   <!-------------------------------------*/ ?>
-  <div class="menu-container">
+  <div class="menu" data-bind="css: {'menu-hidden': !m.s2.expanded()}, style: {top: (m.s2.top() + 'px')}">
 
-    <?php /*---->
-    <!-- Меню -->
-    <!------*/ ?>
-    <div class="menu" data-bind="css: {'menu-hidden': !m.s2.expanded()}">
+    <?php /*-------------------------------->
+    <!-- 2.1. Переключатель главного меню -->
+    <!----------------------------------*/ ?>
+    <div class="toggle" data-bind="click: f.s2.switch, visible: !m.s2.hidden()">
+      <i class="mdi mdi-chevron-double-left"></i>
+    </div>
 
-      <?php /*-------------------------------->
-      <!-- 2.1. Переключатель главного меню -->
-      <!----------------------------------*/ ?>
-      <div class="toggle" data-bind="click: f.s2.switch, visible: !m.s2.hidden()">
-        <i class="mdi mdi-chevron-double-left"></i>
-      </div>
+    <?php /*----------------->
+    <!-- 2.2. Главное меню -->
+    <!-------------------*/ ?>
+    <div class="items" data-bind="foreach: m.s1.subdocs">
 
-      <?php /*----------------->
-      <!-- 2.2. Главное меню -->
-      <!-------------------*/ ?>
-      <div class="items" data-bind="foreach: m.s1.subdocs">
+      <?php /*---------->
+      <!-- Пункт меню -->
+      <!------------*/ ?>
+      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data == $root.m.s1.selected_subdoc()}">
 
-        <?php /*---------->
-        <!-- Пункт меню -->
-        <!------------*/ ?>
-        <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data == $root.m.s1.selected_subdoc()}">
+        <?php /*--------------------->
+        <!-- 1] Иконка пункта меню -->
+        <!-----------------------*/ ?>
+        <div class="icon">
+          <i class="mdi" data-bind="css: icon_mdi"></i>
+        </div>
 
-          <?php /*--------------------->
-          <!-- 1] Иконка пункта меню -->
-          <!-----------------------*/ ?>
-          <div class="icon">
-            <i class="mdi" data-bind="css: icon_mdi"></i>
-          </div>
+        <?php /*---------------------->
+        <!-- 2] Контент пункта меню -->
+        <!------------------------*/ ?>
+        <div class="item-content">
 
-          <?php /*---------------------->
-          <!-- 2] Контент пункта меню -->
-          <!------------------------*/ ?>
-          <div class="item-content">
-
-            <?php /*------------>
-            <!-- 2] Заголовок -->
-            <!--------------*/ ?>
-            <span data-bind="text: title"></span>
-
-          </div>
+          <?php /*------------>
+          <!-- 2] Заголовок -->
+          <!--------------*/ ?>
+          <span data-bind="text: title"></span>
 
         </div>
 

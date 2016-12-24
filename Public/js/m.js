@@ -26,6 +26,7 @@
  *		s0.5. Виден ли щит "идёт ajax-запрос"
  *	  s0.6. Аутентификационная модель
  *    s0.7. Текущая ширина браузера клиента
+ *    s0.8. Текущая величина прокрутки браузера
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -38,6 +39,8 @@
  *
  *    s2.1. Объект-контейнер для всех свойств модели
  *    s2.2. Состояние левого сайдбара (скрыт/раскрыт)
+ *    s2.3. Спрятать ли кнопку раскрытия л.меню (если ширина окна < 1280px)
+ *    s2.4. Значение css-свойства top для левого сайдбара (прокрутка)
  *    s2.n. Индексы и вычисляемые значения
  *
  *  s3. Модель механики правого сайдбара (с чатом)
@@ -316,6 +319,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//---------------------------------------//
 	self.m.s0.cur_browser_width = ko.observable(getBrowserWindowMetrics().width);
 
+	//-------------------------------------------//
+	// s0.8. Текущая величина прокрутки браузера //
+	//-------------------------------------------//
+	self.m.s0.cur_browser_scroll = ko.observable(window.pageYOffset || document.documentElement.scrollTop);
 
 
 
@@ -452,6 +459,13 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	// s2.3. Спрятать ли кнопку раскрытия л.меню (если ширина окна < 1280px) //
 	//-----------------------------------------------------------------------//
 	self.m.s2.hidden = ko.observable(false);
+
+	//-----------------------------------------------------------------//
+	// s2.4. Значение css-свойства top для левого сайдбара (прокрутка) //
+	//-----------------------------------------------------------------//
+	self.m.s2.topStart = 50;
+	self.m.s2.top = ko.observable(self.m.s2.topStart);
+
 
 	//--------------------------------------//
 	// s2.n. Индексы и вычисляемые значения //
@@ -715,7 +729,108 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 		})();
 
+		//----------------------------------------------------//
+		// X1.5. Обновить текущую величину прокрутки браузера //
+		//----------------------------------------------------//
+		(function(){
+			addEvent(window, 'scroll', function(event, params) {
 
+				// 1] Получить текущее значение прокрутки
+				var scrolled = window.pageYOffset || document.documentElement.scrollTop;
+
+				// 2] Записать его в cur_browser_scroll
+				self.m.s0.cur_browser_scroll(scrolled);
+
+			}, {self: self});
+		})();
+
+		//---------------------------------------------------------------//
+		// X1.6. Организовать скролл левого меню при прокрутке документа //
+		//---------------------------------------------------------------//
+		(function(){
+			addEvent(window, 'scroll', function(event, params) {
+
+				// 1] Получить текущее значение прокрутки
+				var scrolled = window.pageYOffset || document.documentElement.scrollTop;
+
+				// 2] Получить текущую высоту контента меню
+				var menucontent_height = (function(){
+
+					// 2.1] Подготовить переменную для результата
+					var height = 0;
+
+					// 2.2] Добавить высоту всех пунктов меню
+					height = height + getBoundingDocRect(document.getElementsByClassName('items')[0]).height;
+
+					// 2.3] Добавить высоту кнопки-переключателя меню, если она отображается
+					if(!self.m.s2.hidden())
+						height = height + getBoundingDocRect(document.getElementsByClassName('toggle')[0]).height;
+
+					// 2.n] Вернуть результат
+					return height;
+
+				})();
+
+				// 3] Получить текущую высоту DOM-элемента меню
+				var menuheight = getBrowserWindowMetrics().height - self.m.s2.topStart;
+
+				// 4] Если прокрутка не требуется, вернуть стартовое значение top для меню
+				if(menuheight >= menucontent_height)
+					self.m.s2.top(self.m.s2.topStart);
+
+				// 5] А если требуется, то:
+				else {
+
+					// 5.1] Получить MAX значение, на которое можно прокрутить левое меню
+					var maxscroll = (function(){
+						var value = menucontent_height - menuheight;
+						if(value < 0) return 0;
+						else return value;
+					})();
+
+					// 5.2] Получить итоговое значение, на которое надо прокрутить
+					var finalscroll = (function(){
+						if(scrolled <= maxscroll) return scrolled;
+						else return maxscroll;
+					})();
+
+					// 5.3] Вычесть finalscroll из стартового значения
+					self.m.s2.top(self.m.s2.topStart - finalscroll);
+
+
+					console.log('menucontent_height = '+menucontent_height);
+					console.log('menuheight = '+menuheight);
+					console.log('scrolled = '+scrolled);
+					console.log('finalscroll = '+finalscroll);
+
+				}
+
+
+//				console.log('menucontent_height = '+menucontent_height);
+//				console.log('menuheight = '+menuheight);
+//
+//				// 4] Если прокрутка в принципе требуется
+//				if(menuheight <= menucontent_height) {
+//
+//					// 4.1] Если прокрутка ещё не дошла до конца
+//					if((menucontent_height - menuheight) <= scrolled) {
+//
+//						// Назначить margin-top для левого меню
+//						// - Путём вычета menuheight из стартового значения
+//						$('.menu').css('top', 50-scrolled);
+//
+//					}
+//
+//				}
+//
+//				// 5] Если же нет, вернуть стандартное значение top
+//				else {
+//					$('.menu').css('top', 50);
+//				}
+
+
+			}, {self: self});
+		})();
 
 
 
