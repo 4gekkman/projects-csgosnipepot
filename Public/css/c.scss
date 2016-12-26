@@ -975,6 +975,15 @@
       padding: 0 10px;
     }
 
+    // Стили сообщения для не аутентиф.пользователей
+    .chat-right-container .chat .chat-input .msg-for-not-auth {
+      text-align: center;
+      line-height: $sizes_chat_msg_inputheight;
+    }
+    .chat-right-container .chat .chat-input .msg-for-not-auth a {
+      cursor: pointer;
+    }
+
 
 
 //-------------------------------------------------------//

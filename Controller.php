@@ -196,6 +196,8 @@ class Controller extends BaseController {
         // - Безопасная обёртка для команды постинга в чат
         if($key == 'L10003:2') { try {
 
+          write2log(123, []);
+
           // 1. Выполнить команду
           $result = runcommand('\M10\Commands\C3_clientside_post_to_chat_room', [
             "message" => Input::get('data')['message'],

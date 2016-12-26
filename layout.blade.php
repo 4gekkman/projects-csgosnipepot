@@ -310,31 +310,31 @@
       <?php /*----------------------------------->
       <!-- 3.4. Поле для ввода сообщений в чат -->
       <!-------------------------------------*/ ?>
-      <div style="display: none" class="chat-input" data-bind="visible: m.s0.is_logged_in">
+      <div class="chat-input">
 
         <?php /*------------->
         <!-- Кнопка "Send" -->
         <!---------------*/ ?>
-        <div class="send" data-bind="click: f.s5.post_to_the_chat_main">
+        <div style="display: none" class="send" data-bind="click: f.s5.post_to_the_chat_main, visible: m.s0.is_logged_in">
           <i class="mdi mdi-send"></i>
         </div>
 
         <?php /*------------------------>
         <!-- Поле для ввода сообщений -->
         <!--------------------------*/ ?>
-        <div class="input-field">
+        <div style="display: none" class="input-field" data-bind="visible: m.s0.is_logged_in">
           <input type="text" data-bind="textInput: m.s5.new_message, event: {keypress: f.s5.post_to_the_chat_main}" placeholder="Введите сообщение...">
         </div>
 
-        <?php /*------------------------>
-        <!-- Поле для ввода сообщений -->
-        <!--------------------------*/ ?>
-        <div class="input-field">
-          <input type="text" data-bind="textInput: m.s5.new_message, event: {keypress: f.s5.post_to_the_chat_main}" placeholder="Введите сообщение...">
+        <?php /*-------------------------------------------------->
+        <!-- Сообщения для не аутентифицированных пользователей -->
+        <!----------------------------------------------------*/ ?>
+        <div style="display: none" class="msg-for-not-auth" data-bind="visible: !m.s0.is_logged_in()">
+          <span>Чтобы писать, </span>
+          <a onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>войди через Steam</a>
         </div>
 
       </div>
-
 
     </div>
 
