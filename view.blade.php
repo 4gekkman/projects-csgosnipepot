@@ -47,23 +47,97 @@
 <!--------------------------->
 Оглавление
 
-
+  1. Classic game
+  2. Double game
+  3. Coinflip
+  4. Магазин
+  5. Профиль пользователя
+  6. Партнёрка
+  7. ТОП игроков
+  8. F.A.Q.
+  9. Тех. поддержка
+  10. Free coins
 
 
 
 -------------------------*/ ?>
 @section('content')
+<?php /*-------------------------->
+<!-- Контентный столбец (860px) -->
+<!----------------------------*/ ?>
+<div class="content-column">
 
-  <?php /*-------------------------->
-  <!-- Контентный столбец (860px) -->
-  <!----------------------------*/ ?>
-  <div class="content-column">
-
-    Контентный столбец
-
+  <?php /*--------------->
+  <!-- 1. Classic game -->
+  <!-----------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/'">
+    <span>Classic game</span>
   </div>
 
+  <?php /*-------------->
+  <!-- 2. Double game -->
+  <!----------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/double'">
+    <span>Double game</span>
+  </div>
 
+  <?php /*----------->
+  <!-- 3. Coinflip -->
+  <!-------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/coinflip'">
+    <span>Coinflip</span>
+  </div>
+
+  <?php /*---------->
+  <!-- 4. Магазин -->
+  <!------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/shop'">
+    <span>Магазин</span>
+  </div>
+
+  <?php /*----------------------->
+  <!-- 5. Профиль пользователя -->
+  <!-------------------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/profile'">
+    <span>Профиль пользователя</span>
+  </div>
+
+  <?php /*------------>
+  <!-- 6. Партнёрка -->
+  <!--------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/ref'">
+    <span>Партнёрка</span>
+  </div>
+
+  <?php /*-------------->
+  <!-- 7. ТОП игроков -->
+  <!----------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/top'">
+    <span>ТОП игроков</span>
+  </div>
+
+  <?php /*--------->
+  <!-- 8. F.A.Q. -->
+  <!-----------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/faq'">
+    <span>F.A.Q.</span>
+  </div>
+
+  <?php /*----------------->
+  <!-- 9. Тех. поддержка -->
+  <!-------------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/support'">
+    <span>Тех. поддержка</span>
+  </div>
+
+  <?php /*-------------->
+  <!-- 10. Free coins -->
+  <!----------------*/ ?>
+  <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/freecoins'">
+    <span>Free coins</span>
+  </div>
+
+</div>
 @stop
 
 
