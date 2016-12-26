@@ -170,7 +170,7 @@
       <?php /*---------->
       <!-- Пункт меню -->
       <!------------*/ ?>
-      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data == $root.m.s1.selected_subdoc()}">
+      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}">
 
         <?php /*--------------------->
         <!-- 1] Иконка пункта меню -->
@@ -194,6 +194,28 @@
       </div>
 
     </div>
+
+    <?php /*-------------------------->
+    <!-- 2.3. Счётчик пользователей -->
+    <!----------------------------*/ ?>
+    <div class="users-counter">
+
+      <?php /*--------------------------->
+      <!-- Контент для раскрытого меню -->
+      <!-----------------------------*/ ?>
+      <div style="display: none" class="content-menu-hidden" data-bind="visible: !m.s2.expanded()">
+        <span data-bind="text: m.s0.logged_in_steam_users"></span>
+      </div>
+
+      <?php /*------------------------->
+      <!-- Контент для скрытого меню -->
+      <!---------------------------*/ ?>
+      <div style="display: none" class="content-menu-not-hidden" data-bind="visible: m.s2.expanded">
+        <span data-bind="text: 'Сейчас людей на сайте: '+m.s0.logged_in_steam_users()"></span>
+      </div>
+
+    </div>
+
 
   </div>
 

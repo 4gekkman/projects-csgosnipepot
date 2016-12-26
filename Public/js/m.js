@@ -27,6 +27,7 @@
  *	  s0.6. Аутентификационная модель
  *    s0.7. Текущая ширина браузера клиента
  *    s0.8. Текущая и предыдущая величины прокрутки браузера
+ *    s0.9. Количество залогиненных Steam-пользователей в системе
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -144,6 +145,14 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				setTimeout(function(){
 					location.reload();
 				}, 3000);
+
+			});
+
+			// A4.3.2. Обновление актуального кол-ва подключений //
+			//---------------------------------------------------//
+			self.websocket.ws1.on('active_connections_number', function(data) {
+
+				self.m.s0.logged_in_steam_users(data);
 
 			});
 
@@ -325,6 +334,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	self.m.s0.cur_browser_scroll = ko.observable(window.pageYOffset || document.documentElement.scrollTop);
 	self.m.s0.prev_browser_scroll = ko.observable(0);
 
+	//-------------------------------------------------------------//
+	// s0.9. Количество залогиненных Steam-пользователей в системе //
+	//-------------------------------------------------------------//
+	self.m.s0.logged_in_steam_users = ko.observable(layout_data.data.logged_in_steam_users);
 
 
 	//-----------------------------------------------------------//
@@ -348,7 +361,8 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_url:   '',
 			title:      'Classic game',
 			bg_color:   '#182328',
-			brd_color:  '#17171c'
+			brd_color:  '#17171c',
+			hidden:     false
 		},
 		{
 			uri:        '/double',
@@ -356,47 +370,80 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_url:   '',
 			title:      'Double game',
 			bg_color:   '#182328',
-			brd_color:  '#17171c'
+			brd_color:  '#17171c',
+			hidden:     false
+		},
+		{
+			uri:        '/coinflip',
+			icon_mdi:   'mdi-checkbox-multiple-blank-circle-outline',
+			icon_url:   '',
+			title:      'Coinflip',
+			bg_color:   '#182328',
+			brd_color:  '#17171c',
+			hidden:     false
 		},
 		{
 			uri:        '/shop',
 			icon_mdi:   'mdi-shopping',
 			icon_url:   '',
 			title:      'Магазин',
-			bg_color:   'transparent',
-			brd_color:  'transparent'
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
 		},
 		{
-			uri:        '/top',
-			icon_mdi:   'mdi-star-outline',
+			uri:        '/profile',
+			icon_mdi:   'mdi-account',
 			icon_url:   '',
-			title:      'История',
-			bg_color:   'transparent',
-			brd_color:  'transparent'
-		},
-		{
-			uri:        '/about',
-			icon_mdi:   'mdi-information-outline',
-			icon_url:   '',
-			title:      'О сайте',
-			bg_color:   'transparent',
-			brd_color:  'transparent'
+			title:      'Профиль',
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
 		},
 		{
 			uri:        '/ref',
 			icon_mdi:   'mdi-account-multiple',
 			icon_url:   '',
 			title:      'Партнёрка',
-			bg_color:   'transparent',
-			brd_color:  'transparent'
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
 		},
 		{
-			uri:        '/blog',
-			icon_mdi:   'mdi-blogger',
+			uri:        '/top',
+			icon_mdi:   'mdi-star-outline',
 			icon_url:   '',
-			title:      'Блог',
-			bg_color:   'transparent',
-			brd_color:  'transparent'
+			title:      'История',
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
+		},
+		{
+			uri:        '/faq',
+			icon_mdi:   'mdi-information-outline',
+			icon_url:   '',
+			title:      'F.A.Q.',
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
+		},
+		{
+			uri:        '/support',
+			icon_mdi:   'mdi-help-circle-outline',
+			icon_url:   '',
+			title:      'Тех.поддержка',
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
+		},
+		{
+			uri:        '/freecoins',
+			icon_mdi:   'mdi-coin',
+			icon_url:   '',
+			title:      'Free coins',
+			bg_color:   '#212f35',
+			brd_color:  'transparent',
+			hidden:     false
 		}
 	]);
 
@@ -767,6 +814,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 					if(!self.m.s2.hidden())
 						height = height + getBoundingDocRect(document.getElementsByClassName('toggle')[0]).height;
 
+					// 2.4] Добавить высоту счётчика посетителей
+					height = height + getBoundingDocRect(document.getElementsByClassName('users-counter')[0]).height;
+
 					// 2.n] Вернуть результат
 					return height;
 
@@ -813,94 +863,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 					})());
 
-//
-//
-//
-//					// 5.1] Получить MIN значение для параметра top у меню
-//					var mintop = (function(){
-//						var value = menucontent_height - menuheight;
-//						if(value < 0) return self.m.s2.top();
-//						else return self.m.s2.top() - value;
-//					})();
-//
-//					// 5.2] Получить итоговое значение, на которое надо прокрутить
-//					var finalscroll = (function(){
-//
-//						// Получить разницу между предыдущей и текущей прокрутками
-//						// - Если он положительная, значит прокрутка вниз. Иначе - вверх.
-//						var diff = self.m.s0.prev_browser_scroll() - scrolled;
-//
-//						// Вычислить предположительное значение следующей прокрутки
-//						var futuretop = self.m.s2.top() + diff;
-//
-//						// Если futurescroll вписывается в mintop, вернуть его
-//						if(futuretop > mintop) return futuretop;
-//
-//						// Иначе вернуть maxscroll
-//						else return mintop;
-//
-//						//if(scrolled <= maxscroll) return scrolled;
-//						//else return maxscroll;
-//					})();
-//
-//					// 5.3] Осуществить прокрутку
-//					self.m.s2.top(finalscroll);
-//
-//					console.log('mintop = '+mintop);
-//					console.log('finalscroll = '+finalscroll);
-
-
-//					var finalscroll = (function(){
-//						if(scrolled <= maxscroll) return scrolled;
-//						else return maxscroll;
-//					})();
-
-					// 5.3] Вычесть finalscroll из стартового значения
-					//self.m.s2.top(self.m.s2.topStart - finalscroll);
-					//self.m.s2.top(self.m.s2.top() + (self.m.s0.prev_browser_scroll() - scrolled));
-
-					// 5.3] Вычислить
-
-
-
-//					var x = self.m.s2.top() + (self.m.s0.prev_browser_scroll() - scrolled);
-//					var y = self.m.s2.top() + Math.abs(self.m.s0.prev_browser_scroll() - scrolled);
-//					if(y >= maxscroll) x = maxscroll;
-//					//if(x <= 0) x = 0;
-//					self.m.s2.top(x);
-//
-//					console.log('x = '+x);
-//					console.log('y = '+y);
-//					console.log('maxscroll = '+maxscroll);
-
 				}
-
 
 				// n] Записать последнее известное значение scrolled
 				self.m.s0.prev_browser_scroll(scrolled);
-
-//				console.log('menucontent_height = '+menucontent_height);
-//				console.log('menuheight = '+menuheight);
-//
-//				// 4] Если прокрутка в принципе требуется
-//				if(menuheight <= menucontent_height) {
-//
-//					// 4.1] Если прокрутка ещё не дошла до конца
-//					if((menucontent_height - menuheight) <= scrolled) {
-//
-//						// Назначить margin-top для левого меню
-//						// - Путём вычета menuheight из стартового значения
-//						$('.menu').css('top', 50-scrolled);
-//
-//					}
-//
-//				}
-//
-//				// 5] Если же нет, вернуть стандартное значение top
-//				else {
-//					$('.menu').css('top', 50);
-//				}
-
 
 			}, {self: self});
 		})();

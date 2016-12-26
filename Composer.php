@@ -92,6 +92,7 @@ View::composer('L10003::layout', function($view) {
     'parameters' =>         $parameters,
     'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
     'websockets_channel'    => Session::getId(),
+    'logged_in_steam_users' => Redis::get('active_connections_number'),
   ], JSON_UNESCAPED_UNICODE));
 
 

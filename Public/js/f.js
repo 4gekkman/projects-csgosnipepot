@@ -224,7 +224,6 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			})();
 
-
 			// 3] Если subdoc не найден, вернуть ошибку
 			if(!subdoc) {
 
@@ -236,7 +235,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
-			// 4] Если это первый вызов subdoc
+			// 4] Выбрать поддокумент subdoc
+			self.m.s1.selected_subdoc(subdoc);
+
+			// 5] Если это первый вызов subdoc
 			if(parameters.first) {
 
 				// Подменить текущее состояние, а не добавлять новое
@@ -244,7 +246,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
-			// 5] Если это не первый вход в документ
+			// 6] Если это не первый вход в документ
 			else {
 
 				// Добавить в историю новое состояние

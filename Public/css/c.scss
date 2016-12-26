@@ -307,6 +307,8 @@
       // Общие размеры
       $sizes_mainmenu_width:    240px;    // Ширина главного меню
       $sizes_mainmenu_whidden:  55px;     // Ширина главного меню в узком состоянии
+      $sizes_mainmenu_itemh:    63px;     // Высота пункта главного меню
+
 
       // Переключатель ширины
       $sizes_mm_toogle_height:  40px;     // Высота переключателя ширины
@@ -536,6 +538,7 @@
   4.2. Меню в узком состоянии
   4.3. Переключатель главного меню в узком состоянии
   4.4. Стили пункта меню
+  4.5. Стили счётчика пользователей онлайн
 
 //------------------------------------*/
 
@@ -550,7 +553,6 @@
     top: $sizes_header_height;
     background: $color_mainmenu_bg;
     z-index: 101;
-    overflow: hidden;
     transition: width .5s ease;
   }
 
@@ -593,14 +595,18 @@
 
     // Пункт главного меню
     .menu .items .item {
-      height: $sizes_mainmenu_whidden; width: 100%;
+      height: $sizes_mainmenu_itemh; width: 100%;
       border-bottom: 1px solid #161f24;
       cursor: pointer;
       transition: all .2s ease;
       font-size: 34px;
     }
-    .menu .items .item:hover {
+    .menu:not(.menu-hidden) .items .item:hover {
       background: #0e1214 !important;
+    }
+    .menu.menu-hidden .items .item:hover {
+      width: $sizes_mainmenu_width;
+      border-radius: 0 4px 4px 0;
     }
 
     // Иконка пункта меню
@@ -609,7 +615,7 @@
       width: $sizes_mainmenu_whidden;
       height: 100%;
       text-align: center;
-      line-height: $sizes_mainmenu_whidden;
+      line-height: $sizes_mainmenu_itemh;
     }
     .menu .items .item .icon i {}
 
@@ -624,10 +630,31 @@
       margin-left: $sizes_mainmenu_whidden + 5px;
       font-size: 16px;
       text-align: left;
-      line-height: $sizes_mainmenu_whidden;
+      line-height: $sizes_mainmenu_itemh;
       overflow: hidden;
       white-space: nowrap;
     }
+
+  //------------------------------------------//
+  // 4.5. Стили счётчика пользователей онлайн //
+  //------------------------------------------//
+
+    // Контейнер счётчика пользователей
+    .menu .users-counter {
+      height: $sizes_mainmenu_itemh/1.5; width: 100%;
+      border-top: 1px solid #161f24;
+      text-align: center;
+      line-height: $sizes_mainmenu_itemh/1.5;
+      color: #aaa;
+      font-size: 1.1em;
+    }
+
+    // Стили контента при скрытом меню
+    .menu .users-counter .content-menu-hidden {}
+
+    // Стили контента при раскрытом скрытом меню
+    .menu .users-counter .content-menu-not-hidden { }
+
 
 
 //-------------------------------------//
