@@ -298,6 +298,8 @@
     $color_rcbut_bg:          #212f35;  // Фон кнопки раскрытия правого чата
     $color_rcbut_color:       #ddd;     // Цвет иконки и текста кнопки раскрытия правого чата
     $color_rc_msgbg_big:      #233238;  // Цвет фона сообщений большой версии чата
+    $color_rc_min_bord:       #1e2b30;  // Цвет нижнего бордера сообщений минимизированного чата
+
 
   // 1.3. Переменные размеров
 
@@ -325,6 +327,8 @@
 
     // Чат
     $sizes_chat_msg_minheight:  40px;     // Минимальная высота сообщения в чате
+    $sizes_chat_msg_inputheight:40px;     // Высота поля для ввода сообщений в чат
+
 
 
 
@@ -809,71 +813,96 @@
   .chat-right-container .chat.minimized.min-chat-not-expanded .controls .hide_chat_button i {
     transform: rotate(180deg);
   }
+  .chat-right-container .chat.minimized .chat-messages {
+    position: relative;
+    height: calc(100% - #{$sizes_rightchat_ctrlh} - #{$sizes_chat_msg_inputheight});
+  }
 
   //-----------------------------//
   // 5.6. Стили сообщений в чате //
   //-----------------------------//
-  .chat-right-container .chat .chat-messages {
-    position: relative;
-    height: 100%;
-  }
-  .chat-right-container .chat .chat-messages .ps-scrollbar-y-rail {
-    visibility: hidden;
-  }
-  .chat-right-container .chat .chat-messages .ps-scrollbar-x-rail {
-    visibility: hidden;
-  }
-  .chat-right-container .chat .chat-messages .chat-message {
-    //margin-bottom: 10px;
-    transition: all 0.1s ease;
-    color: #aaa;
-    word-break: break-word;
-    overflow: hidden;
-    margin: 5px;
-    margin-bottom: 0;
-    box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.1);
-    background-color: $color_rc_msgbg_big;
-  }
-  .chat-right-container .chat .chat-messages .chat-message:hover {
-    color: #ddd;
-  }
-  .chat-right-container .chat .chat-messages .chat-message .message {
-    min-height: $sizes_chat_msg_minheight;
-    line-height: 0.9em;
-    font-weight: 400;
-    cursor: default;
-    font-size: .9em;
-  }
-  .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(1) {
-    font-weight: bold;
-    color: #647685;
-    line-height: 25px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: default;
-    padding-right: 5px;
-  }
-  .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(2) {
-    padding-right: 5px;
-    padding-bottom: 12px;
-    transition: all .5s ease;
-  }
-  .chat-right-container .chat .chat-messages .chat-message .avatarka {
-    text-align: center;
-    padding-top: 8px;
-    padding-bottom: 5px;
-    vertical-align: top;
-    border-radius: 0 0 6px 0;
-    padding-left: 4px;
-  }
-  .chat-right-container .chat .chat-messages .chat-message .avatarka img {
-    width: 34px;
-    height: 34px;
-    max-width: 34px;
-    max-height: 34px;
-    border-radius: 17px;
-  }
+
+    // Общие и для большого чата
+    .chat-right-container .chat:not(.minimized) .chat-messages {
+      position: relative;
+      height: calc(100% - #{$sizes_header_height} - #{$sizes_rightchat_ctrlh} - #{$sizes_chat_msg_inputheight});
+    }
+    .chat-right-container .chat .chat-messages .ps-scrollbar-y-rail {
+      visibility: hidden;
+    }
+    .chat-right-container .chat .chat-messages .ps-scrollbar-x-rail {
+      visibility: hidden;
+    }
+    .chat-right-container .chat .chat-messages .chat-message {
+      //margin-bottom: 10px;
+      transition: all 0.1s ease;
+      color: #aaa;
+      word-break: break-word;
+      overflow: hidden;
+      margin: 5px;
+      margin-top: 0;
+      box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.1);
+      background-color: $color_rc_msgbg_big;
+    }
+    .chat-right-container .chat .chat-messages .chat-message:first-child {
+      margin-top: 5px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message:hover {
+      color: #ddd;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message {
+      min-height: $sizes_chat_msg_minheight;
+      line-height: 0.9em;
+      font-weight: 400;
+      cursor: default;
+      font-size: .9em;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(1) {
+      font-weight: bold;
+      color: #647685;
+      line-height: 25px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: default;
+      padding-right: 5px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(2) {
+      padding-right: 5px;
+      padding-bottom: 12px;
+      transition: all .5s ease;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .avatarka {
+      text-align: center;
+      padding-top: 8px;
+      padding-bottom: 5px;
+      vertical-align: top;
+      border-radius: 0 0 6px 0;
+      padding-left: 4px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .avatarka img {
+      width: 34px;
+      height: 34px;
+      max-width: 34px;
+      max-height: 34px;
+      border-radius: 17px;
+    }
+
+    // Компактные стили для малого чата
+    .chat-right-container .chat.minimized .chat-messages .chat-message {
+      box-shadow: none;
+      margin: 0; margin-bottom: 1px;
+      border-bottom: 1px solid $color_rc_min_bord;
+    }
+    .chat-right-container .chat.minimized .chat-messages .chat-message .message {
+      min-height: $sizes_chat_msg_minheight*0.7;
+    }
+    .chat-right-container .chat.minimized .chat-messages .chat-message .message div:nth-child(1) {
+      line-height: 25px;
+    }
+    .chat-right-container .chat.minimized .chat-messages .chat-message .message div:nth-child(2) {
+      padding-bottom: 7px;
+    }
 
   //--------------------------------------------------------------------//
   // 5.7. Стили панельки с градиентом прозрачности в верхней части чата //
@@ -891,6 +920,60 @@
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='$color_rc_controls_bg', endColorstr='#037db9e8',GradientType=0 ); /* IE6-9 */
 
   }
+
+  //-------------------------------------//
+  // 5.8. Поле для ввода сообщений в чат //
+  //-------------------------------------//
+
+    // Общие стили панели ввода сообщений в чат
+    .chat-right-container .chat .chat-input {
+      position: absolute;
+      left: 0;
+      width: 100%; height: 40px;
+      background: $color_rc_controls_bg;
+    }
+
+    // Стили панели для крупной версии чата
+    .chat-right-container .chat:not(.minimized) .chat-input {
+      top: calc(100% - #{$sizes_header_height} - #{$sizes_chat_msg_inputheight});
+    }
+
+    // Стили панели для мини-версии чата
+    .chat-right-container .chat.minimized .chat-input {
+      top: calc(100% - #{$sizes_chat_msg_inputheight});
+    }
+
+    // Стили кнопки "Send"
+    .chat-right-container .chat .chat-input .send {
+      position: absolute;
+      right: 0; top: 0;
+      width: $sizes_chat_msg_inputheight + 10px;
+      height: $sizes_chat_msg_inputheight;
+      line-height: $sizes_chat_msg_inputheight;
+      text-align: center;
+      font-size: 1.7em;
+      cursor: pointer;
+      border-left: 1px solid $color_rightchat_bg;
+      transition: all .2s ease;
+    }
+    .chat-right-container .chat .chat-input .send i {
+      color: #ddd;
+      transition: all .3s ease;
+    }
+    .chat-right-container .chat .chat-input .send:hover i {
+      color: #269a95;
+    }
+
+    // Стили поля для ввода сообщений
+    .chat-right-container .chat .chat-input input {
+      height: $sizes_chat_msg_inputheight;
+      margin-right: $sizes_chat_msg_inputheight + 10px;
+      background-color: transparent;
+      border: 0;
+      outline: 0;
+      font-size: 1.2em;
+      padding: 0 10px;
+    }
 
 
 

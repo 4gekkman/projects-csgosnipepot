@@ -307,6 +307,34 @@
       <!--------------------------------------------------------------*/ ?>
       <!--<div class="gradient-panel"></div>-->
 
+      <?php /*----------------------------------->
+      <!-- 3.4. Поле для ввода сообщений в чат -->
+      <!-------------------------------------*/ ?>
+      <div style="display: none" class="chat-input" data-bind="visible: m.s0.is_logged_in">
+
+        <?php /*------------->
+        <!-- Кнопка "Send" -->
+        <!---------------*/ ?>
+        <div class="send" data-bind="click: f.s5.post_to_the_chat_main">
+          <i class="mdi mdi-send"></i>
+        </div>
+
+        <?php /*------------------------>
+        <!-- Поле для ввода сообщений -->
+        <!--------------------------*/ ?>
+        <div class="input-field">
+          <input type="text" data-bind="textInput: m.s5.new_message, event: {keypress: f.s5.post_to_the_chat_main}" placeholder="Введите сообщение...">
+        </div>
+
+        <?php /*------------------------>
+        <!-- Поле для ввода сообщений -->
+        <!--------------------------*/ ?>
+        <div class="input-field">
+          <input type="text" data-bind="textInput: m.s5.new_message, event: {keypress: f.s5.post_to_the_chat_main}" placeholder="Введите сообщение...">
+        </div>
+
+      </div>
+
 
     </div>
 

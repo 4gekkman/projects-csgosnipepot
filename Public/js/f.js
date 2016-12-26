@@ -23,14 +23,21 @@
  *  s2. Функционал модели механики левого сайдбара (с главным меню)
  *
  *    f.s2.switch 									| s2.1. Изменить состояние раскрытости левого меню
+ *    f.s2.scroll                   | s2.2. Управление скроллом левого меню
  *
  *  s3. Функционал модели механики правого сайдбара (с чатом)
  *
  *    f.s3.switch 									| s3.1. Изменить состояние раскрытости правого сайдбара
  *
+ *
  *  s4. Функционал модель по управлению звуком
  *
  *    f.s4.switch                   | s4.1. Изменить состояние раскрытости левого меню
+ *
+ *  s5. Функционал модели чата 
+ *  
+ *    f.s5.post_to_the_chat_main    | s5.1. Запостить сообщение в главную комнату чата
+ *    f.s5.add_incoming_msg         | s5.2. Добавить в чат новое, поступившее по websocket сообщение
  *
  *
  */
@@ -331,6 +338,82 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//---------------------------------------//
+		// s2.2. Управление скроллом левого меню //
+		//---------------------------------------//
+		f.s2.scroll = function(event, params) {
+
+			// 1] Получить текущее значение прокрутки
+			var scrolled = window.pageYOffset || document.documentElement.scrollTop;
+
+			// 2] Получить текущую высоту контента меню
+			var menucontent_height = (function(){
+
+				// 2.1] Подготовить переменную для результата
+				var height = 0;
+
+				// 2.2] Добавить высоту всех пунктов меню
+				height = height + getBoundingDocRect(document.getElementsByClassName('items')[0]).height;
+
+				// 2.3] Добавить высоту кнопки-переключателя меню, если она отображается
+				if(!self.m.s2.hidden())
+					height = height + getBoundingDocRect(document.getElementsByClassName('toggle')[0]).height;
+
+				// 2.4] Добавить высоту счётчика посетителей
+				height = height + getBoundingDocRect(document.getElementsByClassName('users-counter')[0]).height;
+
+				// 2.n] Вернуть результат
+				return height;
+
+			})();
+
+			// 3] Получить текущую высоту DOM-элемента меню
+			var menuheight = getBrowserWindowMetrics().height - self.m.s2.topStart;
+
+			// 4] Если прокрутка не требуется, вернуть стартовое значение top для меню
+			if(menuheight >= menucontent_height)
+				self.m.s2.top(self.m.s2.topStart);
+
+			// 5] А если требуется, то:
+			else {
+
+				// Назначить новое значение св-ва top для меню
+				self.m.s2.top((function(){
+
+					// 5.1] Получить MAX возможную прокрутку меню
+					var maxscroll = menucontent_height - menuheight;
+
+					// 5.2] Получить MIN значения для параметра top у меню
+					var mintop = self.m.s2.topStart - maxscroll;
+
+					// 5.3] Получить итоговое значение, на которое надо прокрутить
+					var finalscroll = (function(){
+
+						// Получить разницу между предыдущей и текущей прокрутками
+						// - Если он положительная, значит прокрутка вниз. Иначе - вверх.
+						var diff = self.m.s0.prev_browser_scroll() - scrolled;
+
+						// Вычислить предположительное значение следующей прокрутки
+						var futuretop = self.m.s2.top() + diff;
+
+						// Вернуть подходящий futurescroll
+						if(futuretop >= self.m.s2.topStart) return self.m.s2.topStart;
+						if(futuretop <= mintop) return mintop;
+						return futuretop;
+
+					})();
+
+					// 5.4] Осуществить прокрутку
+					return finalscroll;
+
+				})());
+
+			}
+
+			// n] Записать последнее известное значение scrolled
+			self.m.s0.prev_browser_scroll(scrolled);
+
+		};
 
 	//----------------------------------------------------------------------//
 	// 			        		 			                                              //
@@ -373,7 +456,112 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+	
+	//----------------------------------------//
+	// 			        		 			                //
+	// 			 s5. Функционал модели чата 			//
+	// 			         					                //
+	//----------------------------------------//
+	f.s5 = {};
 
+		//--------------------------------------------------//
+		// s5.1. Запостить сообщение в главную комнату чата //
+		//--------------------------------------------------//
+		// - Пояснение
+		f.s5.post_to_the_chat_main = function(data, event) {
+
+			// 1] Если нажата клавиша Enter
+			if(event.keyCode == 13 || event.type != 'keypress') {
+
+				// 1.1] Если поле для ввода сообщений пусто, завершить
+				if(!self.m.s5.new_message()) return;
+
+				// 1.2] Проверить, не длиннее ли сообщение лимита max_msg_length
+				if(self.m.s5.new_message().length > self.m.s5.max_msg_length()) {
+
+					// Сообщить
+					notify({msg: 'Too long message. Max = '+self.m.s5.max_msg_length()+' symbols.', time: 5, fontcolor: 'RGB(200,50,50)'});
+
+					// Завершить
+					return;
+
+				}
+
+				// 1.3] Отправить сообщение на сервер
+				ajaxko(self, {
+					url:          window.location.protocol + '//' + window.location.host + "/layouts/l10003",
+					key: 	    		"L10003:2",
+					from: 		    "ajaxko",
+					data: 		    {
+						message: self.m.s5.new_message()
+					},
+					prejob:       function(config, data, event){},
+					postjob:      function(data, params){},
+					ok_0:         function(data, params){},
+					ok_2:         function(data, params){
+
+						// Сообщить об ошибке
+						notify({msg: data.data.errormsg, time: 5, fontcolor: 'RGB(200,50,50)'});
+
+					}
+				});
+
+				// 1.n] Очистить поле для ввода сообщений
+				self.m.s5.new_message('');
+
+			}
+
+			// 2] Если нажата НЕ клавиша Enter
+			else {
+
+				// 2.1] Если превышен лимит на длину сообщения, принять меры
+				if(self.m.s5.new_message().length >= self.m.s5.max_msg_length()) {
+
+					// Обрезать сообщение по max длине
+					self.m.s5.new_message(self.m.s5.new_message().substring(0, self.m.s5.max_msg_length()));
+
+					// Запретить действие браузера по умолчанию, если был введён символ
+					if(event.which !== 0)
+						return false;
+
+				}
+
+			}
+
+			// n] Разрешить действие браузера по умолчанию
+			return true;
+
+		};
+
+		//----------------------------------------------------------------//
+		// s5.2. Добавить в чат новое, поступившее по websocket сообщение //
+		//----------------------------------------------------------------//
+		f.s5.add_incoming_msg = function(message) {
+
+			// 1] Сформировать объект для добавления
+			var obj = {};
+			for(var key in message) {
+
+				// Если свойство не своё, пропускаем
+				if(!message.hasOwnProperty(key)) continue;
+
+				// Добавим в obj свойство key
+				obj[key] = ko.observable(message[key]);
+
+			}
+
+			// 2] Добавить obj в m.s5.messages
+			self.m.s5.messages.push(obj);
+
+			// 3] Если длина m.s5.messages больше разрешённой
+			// - Удалить 1-й элемент из массива
+			if(self.m.s5.messages().length > self.m.s5.max_messages())
+				self.m.s5.messages.shift();
+
+		};
+	
+	
+	
 
 
 return f; }};

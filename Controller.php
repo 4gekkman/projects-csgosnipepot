@@ -19,6 +19,7 @@
  * Нестандартные POST-операции
  *
  *                  POST-API1   L10003:1                   Безопасная обёртка для команды логаута
+ *                  POST-API1   L10003:2                   Безопасная обёртка для команды постинга в чат
  *
  *
  *
@@ -177,9 +178,38 @@ class Controller extends BaseController {
           return $result;
 
         } catch(\Exception $e) {
-          $errortext = 'Invoking of command D10007:D10007:8 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          $errortext = 'Invoking of command L10003:L10003:1 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
           Log::info($errortext);
-          write2log($errortext, ['M9', 'D10007:D10007:8']);
+          write2log($errortext, ['M9', 'L10003:L10003:1']);
+          return [
+            "status"  => -2,
+            "data"    => [
+              "errortext" => $errortext,
+              "errormsg" => $e->getMessage()
+            ]
+          ];
+        }}
+
+        //---------------------------------//
+        // Нестандартная операция L10003:2 //
+        //---------------------------------//
+        // - Безопасная обёртка для команды постинга в чат
+        if($key == 'L10003:2') { try {
+
+          // 1. Выполнить команду
+          $result = runcommand('\M10\Commands\C3_clientside_post_to_chat_room', [
+            "message" => Input::get('data')['message'],
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2. Вернуть результаты
+          return $result;
+
+        } catch(\Exception $e) {
+          $errortext = 'Invoking of command L10003:L10003:2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          Log::info($errortext);
+          write2log($errortext, ['M9', 'L10003:L10003:2']);
           return [
             "status"  => -2,
             "data"    => [
