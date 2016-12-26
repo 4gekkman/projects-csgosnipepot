@@ -297,6 +297,7 @@
     $color_rc_controls_bg:    #17232a;  // Фон панели управления правым чатом
     $color_rcbut_bg:          #212f35;  // Фон кнопки раскрытия правого чата
     $color_rcbut_color:       #ddd;     // Цвет иконки и текста кнопки раскрытия правого чата
+    $color_rc_msgbg_big:      #233238;  // Цвет фона сообщений большой версии чата
 
   // 1.3. Переменные размеров
 
@@ -310,7 +311,6 @@
       $sizes_mainmenu_whidden:  55px;     // Ширина главного меню в узком состоянии
       $sizes_mainmenu_itemh:    63px;     // Высота пункта главного меню
 
-
       // Переключатель ширины
       $sizes_mm_toogle_height:  40px;     // Высота переключателя ширины
 
@@ -321,7 +321,10 @@
       $sizes_rightchat_ctrlh:   40px;     // Высота панельки скрытия чата и выбора комнаты
 
       // Панель эл-в управления правым чатом
-      $sizes_rc_ctrls_height:  40px;     // Высота панели управления правым чатом
+      $sizes_rc_ctrls_height:   40px;     // Высота панели управления правым чатом
+
+    // Чат
+    $sizes_chat_msg_minheight:  40px;     // Минимальная высота сообщения в чате
 
 
 
@@ -679,6 +682,7 @@
     position: fixed;
     right: 0;
     z-index: 1;
+    height: 100%;
   }
   .chat-right-container .chat {
     left: 100%;
@@ -689,6 +693,7 @@
     margin-bottom: 35px;
     background: $color_rightchat_bg;
     min-height: 100%;
+    height: 100%;
     z-index: 101;
     overflow: hidden;
     transition: all .5s ease;
@@ -808,7 +813,10 @@
   //-----------------------------//
   // 5.6. Стили сообщений в чате //
   //-----------------------------//
-  .chat-right-container .chat .chat-messages {}
+  .chat-right-container .chat .chat-messages {
+    position: relative;
+    height: 100%;
+  }
   .chat-right-container .chat .chat-messages .ps-scrollbar-y-rail {
     visibility: hidden;
   }
@@ -824,13 +832,13 @@
     margin: 5px;
     margin-bottom: 0;
     box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.1);
-    background-color: #233238;
+    background-color: $color_rc_msgbg_big;
   }
   .chat-right-container .chat .chat-messages .chat-message:hover {
     color: #ddd;
   }
   .chat-right-container .chat .chat-messages .chat-message .message {
-    min-height: 40px;
+    min-height: $sizes_chat_msg_minheight;
     line-height: 0.9em;
     font-weight: 400;
     cursor: default;
@@ -865,7 +873,24 @@
     max-width: 34px;
     max-height: 34px;
     border-radius: 17px;
-  }  
+  }
+
+  //--------------------------------------------------------------------//
+  // 5.7. Стили панельки с градиентом прозрачности в верхней части чата //
+  //--------------------------------------------------------------------//
+  .chat-right-container .chat .gradient-panel {
+    position: absolute;
+    top: $sizes_rc_ctrls_height; left: 0;
+    width: 100%;
+    height: $sizes_chat_msg_minheight/2;
+
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#17232a+0,7db9e8+100&1+0,0.01+100 */
+    background: -moz-linear-gradient(top,  $color_rc_controls_bg 0%, rgba(125,185,232,0.01) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, $color_rc_controls_bg 0%,rgba(125,185,232,0.01) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, $color_rc_controls_bg 0%,rgba(125,185,232,0.01) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='$color_rc_controls_bg', endColorstr='#037db9e8',GradientType=0 ); /* IE6-9 */
+
+  }
 
 
 

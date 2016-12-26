@@ -801,6 +801,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				// 1] Записать новое значение для cur_browser_width
 				self.m.s0.cur_browser_width(getBrowserWindowMetrics().width);
 
+				// 2] Обновить прокрутку чата
+				Ps.update(document.getElementsByClassName('chat-messages')[0]);
+
 			}, {self: self});
 
 		})();
@@ -983,7 +986,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 			Ps.initialize(document.getElementsByClassName('chat-messages')[0], {
 				wheelSpeed:.4,
-				wheelPropagation: true,
+				wheelPropagation: false,
 				minScrollbarLength: 20
 			});
 
