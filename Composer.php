@@ -80,6 +80,20 @@ View::composer('L10003::layout', function($view) {
 
   });
 
+  // 3. Получить последние N сообщений чата
+
+    // 3.1. Извлечь из конфига информацию о комнате чата с именем 'main'
+    $chat_main = config("M10.rooms.main");
+
+    // 3.2. Получить последние N сообщений
+    $messages = runcommand('\M10\Commands\C4_get_messages', [
+      "room_name"   => "main",
+      "number"      => $chat_main['max_messages'],
+      "active_only" => "1"
+    ]);
+    if($messages['status'] != 0)
+      throw new \Exception($messages['data']['errormsg']);
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -93,6 +107,8 @@ View::composer('L10003::layout', function($view) {
     'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
     'websockets_channel'    => Session::getId(),
     'logged_in_steam_users' => Redis::get('active_connections_number'),
+    'messages'              => $messages,
+    'chat_main'             => $chat_main,
   ], JSON_UNESCAPED_UNICODE));
 
 

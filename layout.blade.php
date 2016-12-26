@@ -60,9 +60,8 @@
     3.1. Панель управления чатом в верхней части
   4. Фиксированная кнопка раскрытия правого чата справа
 
-
+  n. Экран загрузки документа
   x. Контентная область
-
 
 ---------------------------------------------*/ ?>
 <body>
@@ -170,7 +169,7 @@
       <?php /*---------->
       <!-- Пункт меню -->
       <!------------*/ ?>
-      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}">
+      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}, visible: visible, click: $root.f.s1.choose_subdoc.bind($data, {uri: uri()})">
 
         <?php /*--------------------->
         <!-- 1] Иконка пункта меню -->
@@ -261,6 +260,47 @@
 
       </div>
 
+      <?php /*--------------------->
+      <!-- 3.2. Сообщения в чате -->
+      <!-----------------------*/ ?>
+      <div class="chat-messages" data-bind="foreach: m.s5.messages">
+
+        <?php /*---------------->
+        <!-- Сообщение в чате -->
+        <!------------------*/ ?>
+        <div class="chat-message row">
+
+          <?php /*-------->
+          <!-- Аватарка -->
+          <!----------*/ ?>
+          <div class="avatarka span20" data-bind="attr: {title: '['+level()+'] ' + steamname()}">
+            <img data-bind="attr: {src: avatar}">
+          </div>
+
+          <?php /*--------->
+          <!-- Сообщение -->
+          <!-----------*/ ?>
+          <div class="message span77">
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <div data-bind="attr: {title: steamname()}">
+              <span data-bind="text: steamname()"></span>
+            </div>
+
+            <?php /*-------------->
+            <!-- Само сообщение -->
+            <!----------------*/ ?>
+            <div>
+              <span data-bind="text: message"></span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
 
     </div>
 
@@ -278,6 +318,14 @@
   </div>
 
 
+  <?php /*--------------------------->
+  <!-- n. Экран загрузки документа -->
+  <!-----------------------------*/ ?>
+  <div class="start-loading-screen" style="z-index: 99999999;">
+
+    <img src="{!! asset('public/L10003/assets/images/main_logo.png') !!}">
+
+  </div>
 
   <?php /*--------------------->
   <!-- x. Контентная область -->

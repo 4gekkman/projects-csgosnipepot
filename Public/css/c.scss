@@ -10,6 +10,7 @@
 
   А. Шрифты
   Б. Кастомные стили для тостов toastr
+  В. Экран загрузки документа
 
   1. Все переменные стилей
   2. Общие стили шаблона
@@ -17,6 +18,7 @@
   4. Стили фиксированного главного меню слева
   5. Стили фиксированного чата справа
   6. Стили для контентной области и контентного столбца
+  7. Экран загрузки документа
 
 
 ////------------------------------////
@@ -256,7 +258,6 @@
         font-size: 16px;
         opacity: .7;
       }
-
 
 //--------------------------//
 // 1. Все переменные стилей //
@@ -662,16 +663,17 @@
 /*-------------------------------------//
 Оглавление
 
-  5.1. Общие стили меню
+  5.1. Общие стили чата
   5.2. Чат в убранном состоянии
   5.3. Панель управления чатом
   5.4. Кнопка раскрытия чата
   5.5. Стили перенесённого влево чата (при малой ширине браузера)
+  5.6. Стили сообщений в чате
 
 //------------------------------------*/
 
   //-----------------------//
-  // 5.1. Общие стили меню //
+  // 5.1. Общие стили чата //
   //-----------------------//
   .chat-right-container {
     position: fixed;
@@ -803,6 +805,69 @@
     transform: rotate(180deg);
   }
 
+  //-----------------------------//
+  // 5.6. Стили сообщений в чате //
+  //-----------------------------//
+  .chat-right-container .chat .chat-messages {}
+  .chat-right-container .chat .chat-messages .ps-scrollbar-y-rail {
+    visibility: hidden;
+  }
+  .chat-right-container .chat .chat-messages .ps-scrollbar-x-rail {
+    visibility: hidden;
+  }
+  .chat-right-container .chat .chat-messages .chat-message {
+    //margin-bottom: 10px;
+    transition: all 0.1s ease;
+    color: #aaa;
+    word-break: break-word;
+    overflow: hidden;
+    margin: 5px;
+    margin-bottom: 0;
+    box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.1);
+    background-color: #233238;
+  }
+  .chat-right-container .chat .chat-messages .chat-message:hover {
+    color: #ddd;
+  }
+  .chat-right-container .chat .chat-messages .chat-message .message {
+    min-height: 40px;
+    line-height: 0.9em;
+    font-weight: 400;
+    cursor: default;
+    font-size: .9em;
+  }
+  .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(1) {
+    font-weight: bold;
+    color: #647685;
+    line-height: 25px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+    padding-right: 5px;
+  }
+  .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(2) {
+    padding-right: 5px;
+    padding-bottom: 12px;
+    transition: all .5s ease;
+  }
+  .chat-right-container .chat .chat-messages .chat-message .avatarka {
+    text-align: center;
+    padding-top: 8px;
+    padding-bottom: 5px;
+    vertical-align: top;
+    border-radius: 0 0 6px 0;
+    padding-left: 4px;
+  }
+  .chat-right-container .chat .chat-messages .chat-message .avatarka img {
+    width: 34px;
+    height: 34px;
+    max-width: 34px;
+    max-height: 34px;
+    border-radius: 17px;
+  }  
+
+
 
 //-------------------------------------------------------//
 // 6. Стили для контентной области и контентного столбца //
@@ -851,3 +916,34 @@
     text-align: left;
     background: #444;
   }
+
+//-----------------------------//
+// 7. Экран загрузки документа //
+//-----------------------------//
+body {
+  overflow: hidden;
+}
+.start-loading-screen {
+  display: block;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: $color_body_bg;
+  z-index: 99999999;
+  opacity: 1;
+  transition: all 1s ease;
+}
+.start-loading-screen.hide-start-loading-screen {
+  opacity: 0;
+}
+.start-loading-screen.displaynone {
+  display: none;
+}
+.start-loading-screen img {
+  position: absolute;
+  top: 50%;
+  margin-top: -77px;
+  left: 50%;
+  margin-left: -208px;
+  -webkit-animation: loadhorse 1s linear 0s infinite;
+}

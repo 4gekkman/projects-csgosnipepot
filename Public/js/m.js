@@ -57,6 +57,18 @@
  *    s4.2. Глобальный выключатель звука
  *    s4.n. Индексы и вычисляемые значения
  *
+ *  s5. Модель чата
+ *
+ *  	s5.1. Объект-контейнер для всех свойств модели
+ *  	s5.2. Наблюдаемый массив сообщений в чате
+ *  	s5.3. Поле для ввода сообщений
+ *  	s5.4. Максимальная длина сообщений
+ *  	s5.5. Разрешено ли публиковать сообщения гостям
+ *  	s5.6. Максимальное кол-во сообщений в чате
+ *  	s5.7. Массив с ID модераторов чата
+ *  	s5.8. Количество залогиненных Steam-пользователей в системе
+ *  	s5.n. Индексы и вычисляемые значения
+ *
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -362,7 +374,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Classic game',
 			bg_color:   '#182328',
 			brd_color:  '#17171c',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/double',
@@ -371,7 +383,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Double game',
 			bg_color:   '#182328',
 			brd_color:  '#17171c',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/coinflip',
@@ -380,7 +392,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Coinflip',
 			bg_color:   '#182328',
 			brd_color:  '#17171c',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/shop',
@@ -389,7 +401,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Магазин',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/profile',
@@ -398,7 +410,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Профиль',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/ref',
@@ -407,16 +419,16 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Партнёрка',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/top',
 			icon_mdi:   'mdi-star-outline',
 			icon_url:   '',
-			title:      'История',
+			title:      'ТОП игроков',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/faq',
@@ -425,7 +437,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'F.A.Q.',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/support',
@@ -434,7 +446,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Тех.поддержка',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		},
 		{
 			uri:        '/freecoins',
@@ -443,7 +455,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Free coins',
 			bg_color:   '#212f35',
 			brd_color:  'transparent',
-			hidden:     false
+			visible:    true
 		}
 	]);
 
@@ -636,6 +648,67 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 
 	});
+	
+	//------------------------------//
+	// 			        		 	          //
+	// 			 s5. Модель чата  			//
+	// 			         			          //
+	//------------------------------//
+
+	//------------------------------------------------//
+	// s5.1. Объект-контейнер для всех свойств модели //
+	//------------------------------------------------//
+	self.m.s5 = {};
+
+	//-------------------------------------------//
+	// s5.2. Наблюдаемый массив сообщений в чате //
+	//-------------------------------------------//
+	self.m.s5.messages = ko.observableArray([]);
+
+	//--------------------------------//
+	// s5.3. Поле для ввода сообщений //
+	//--------------------------------//
+	self.m.s5.new_message = ko.observable('');
+
+	//------------------------------------//
+	// s5.4. Максимальная длина сообщений //
+	//------------------------------------//
+	self.m.s5.max_msg_length = ko.observable(layout_data.data.chat_main.max_msg_length);
+
+	//-------------------------------------------------//
+	// s5.5. Разрешено ли публиковать сообщения гостям //
+	//-------------------------------------------------//
+	self.m.s5.allow_guests = ko.observable(layout_data.data.chat_main.allow_guests);
+
+	//--------------------------------------------//
+	// s5.6. Максимальное кол-во сообщений в чате //
+	//--------------------------------------------//
+	self.m.s5.max_messages = ko.observable(layout_data.data.chat_main.max_messages);
+
+	//------------------------------------//
+	// s5.7. Массив с ID модераторов чата //
+	//------------------------------------//
+	self.m.s5.moderators = ko.observableArray(layout_data.data.chat_main.moderator_ids);
+
+
+	//--------------------------------------//
+	// s5.n. Индексы и вычисляемые значения //
+	//--------------------------------------//
+	ko.computed(function(){
+
+		//--------------------------------------------------------------//
+		// s5.n.1. Объект-контейнер для индексов и вычисляемых значений //
+		//--------------------------------------------------------------//
+		self.m.s5.indexes = {};
+
+		//-----------------------//
+		// s5.n.2. ... //
+		//-----------------------//
+
+
+
+
+	});	
 
 
 
@@ -871,8 +944,50 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			}, {self: self});
 		})();
 
+		//--------------------------------------------------------------------//
+		// X1.7. Отключить экран загрузки документа после его полной загрузки //
+		//--------------------------------------------------------------------//
+		(function(){
 
+			$(document).ready(function(){ setTimeout(function(){
 
+				// 1] Получить DOM-элемент экрана загрузки
+				var loading_screen = $('.start-loading-screen');
+
+				// 2] Сделать overflow: auto для body
+				$(document.body).css('overflow', 'auto');
+
+				// 3] За .5 секунды скрыть экран с помощью opacity
+				loading_screen.addClass('hide-start-loading-screen');
+
+				// 4] После скрытия экрана, удалить его из DOM
+				loading_screen.remove();
+
+			}, 500);});
+
+		})();
+
+		//-----------------------------------------------------------//
+		// X1.8. Обновить m.s5.messages начальными данными с сервера //
+		//-----------------------------------------------------------//
+		(function(){
+
+			self.f.s0.update_messages(layout_data.data.messages.data);
+
+		})();
+
+		//--------------------------------------------------------//
+		// X1.9. Инициализировать perfect scrollbar для чата меню //
+		//--------------------------------------------------------//
+		(function(){
+
+			Ps.initialize(document.getElementsByClassName('chat-messages')[0], {
+				wheelSpeed:.4,
+				wheelPropagation: true,
+				minScrollbarLength: 20
+			});
+
+		})();
 
 
 	});

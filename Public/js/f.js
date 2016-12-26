@@ -13,7 +13,8 @@
  *
  *		f.s0.sm_func									| s0.1. Показывает модальное окно с text, заголовком "ошибка" и кнопкой "закрыть"
  *		f.s0.txt_delay_save           | s0.2. Функционал "механизма отложенного сохранения для текстовых полей"
- *    f.s0.logout                   | s1.1. Выйти из своей учётной записи
+ *    f.s0.logout                   | s0.3. Выйти из своей учётной записи
+ *    f.s0.update_messages          | s0.4. Обновить модель чата данными с сервера
  *
  *  s1. Функционал модели управления поддокументами приложения
  *
@@ -173,6 +174,53 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//----------------------------------------------//
+		// s0.4. Обновить модель чата данными с сервера //
+		//----------------------------------------------//
+		f.s0.update_messages = function(data) {
+
+			// 1. Обновить m.s5.messages
+
+				// 1.1. Очистить
+				self.m.s5.messages.removeAll();
+
+				// 1.2. Наполнить
+				for(var i=0; i<data.messages.length; i++) {
+
+					// 1.2.1. Сформировать объект для добавления
+					var obj = {};
+					for(var key in data.messages[i]) {
+
+						// 1] Если свойство не своё, пропускаем
+						if(!data.messages[i].hasOwnProperty(key)) continue;
+
+						// 2] Добавим в obj свойство key
+						obj[key] = ko.observable(data.messages[i][key]);
+
+					}
+
+					// 1.2.2. Добавить этот объект в подготовленный массив
+					self.m.s5.messages.push(ko.observable(obj))
+
+				}
+
+			// 2. Прокрутить чат до конца вниз
+			setTimeout(function(){
+
+				// 2.1. Получить контейнер чата
+				var container = document.getElementsByClassName('chat-messages')[0];
+
+				// 2.2. Получить вертикальный размер прокрутки контейнера
+				var scrollHeight = container.scrollHeight;
+
+				// 2.3. Прокретить container в конец
+				container.scrollTop = scrollHeight;
+				Ps.update(container);
+
+			}, 100);
+
+		};
+
 
 	//------------------------------------------------------------------------//
 	// 			        		 			                                                //
@@ -238,7 +286,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			// 4] Выбрать поддокумент subdoc
 			self.m.s1.selected_subdoc(subdoc);
 
-			// 5] Если это первый вызов subdoc
+			// 5] Прокрутить документ в самый верх
+			// window.scrollTo(0, 0);
+
+			// 6] Если это первый вызов subdoc
 			if(parameters.first) {
 
 				// Подменить текущее состояние, а не добавлять новое
@@ -246,7 +297,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
-			// 6] Если это не первый вход в документ
+			// 7] Если это не первый вход в документ
 			else {
 
 				// Добавить в историю новое состояние
