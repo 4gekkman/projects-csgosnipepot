@@ -292,7 +292,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	// 			         			               //
 	//-----------------------------------//
 	// - См. D10009/Public/js/jackpot/m.js
-	self.m.s1 = Object.create(ModelJackpot).constructor();
+	//self.m.s1 = Object.create(ModelJackpot).constructor();
 
 
 	//------------------------------------------------------------//
