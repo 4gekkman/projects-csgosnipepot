@@ -319,8 +319,9 @@
     // Правая панель чата
 
       // Общие размеры
-      $sizes_rightchat_width:   240px;    // Ширина правой панели чата
-      $sizes_rightchat_ctrlh:   40px;     // Высота панельки скрытия чата и выбора комнаты
+      $sizes_rightchat_width:     240px;    // Ширина правой панели чата при ширине экрана менее 1400px
+      $sizes_rightchat_width_big: 310px;    // Ширина правой панели чата при ширине экрана от 1400px
+      $sizes_rightchat_ctrlh:     40px;     // Высота панельки скрытия чата и выбора комнаты
 
       // Панель эл-в управления правым чатом
       $sizes_rc_ctrls_height:   40px;     // Высота панели управления правым чатом
@@ -702,6 +703,12 @@
     overflow: hidden;
     transition: all .5s ease;
   }
+  @media(min-width: 1400px) {
+    .chat-right-container .chat {
+      margin-left: -$sizes_rightchat_width_big;
+      width: $sizes_rightchat_width_big;
+    }
+  }
 
   //-------------------------------//
   // 5.2. Чат в убранном состоянии //
@@ -810,7 +817,10 @@
   .chat-right-container .chat.minimized.min-chat-not-expanded {
     margin-bottom: -240px;
   }
-  .chat-right-container .chat.minimized.min-chat-not-expanded .controls .hide_chat_button i {
+  .chat-right-container .chat.minimized .controls .hide_chat_button {
+    transition: all .5s ease;
+  }
+  .chat-right-container .chat.minimized.min-chat-not-expanded .controls .hide_chat_button {
     transform: rotate(180deg);
   }
   .chat-right-container .chat.minimized .chat-messages {
@@ -1021,6 +1031,11 @@
   //----------------------------------//
   .content.right-sidebar-expanded {
     padding-right: $sizes_rightchat_width;
+  }
+  @media (min-width: 1400px) {
+    .content.right-sidebar-expanded {
+      padding-right: $sizes_rightchat_width_big;
+    }
   }
 
   //--------------------------------------//
