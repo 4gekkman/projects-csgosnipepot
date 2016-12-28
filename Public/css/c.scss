@@ -39,6 +39,7 @@
 
       // Шапка
       $cg_color_header_bg: #182328;       // Цвет фона шапки классической игры
+      $cg_color_roombrd: #269a95;         // Цвет рамки интерфейса выбора комнаты
 
     // 2] Переменные размеров
 
@@ -69,11 +70,81 @@
 
     // Общие стили шапки классической игры
     .content .classic-game .cg-container .header {
+      position: relative;
       background: $cg_color_header_bg;
       height: $cg_color_header_height;
     }
 
-    
+    // Логотип классической игры
+    .content .classic-game .cg-container .header .logo {
+      position: absolute; left: 0; top: 0;
+      height: $cg_color_header_height;
+      line-height: $cg_color_header_height;
+      width: $cg_color_header_height;
+      text-align: center;
+      font-size: 2.5em;
+      color: #fff;
+      cursor: pointer;
+    }
+    .content .classic-game .cg-container .header .logo i {}
+
+    // Заголовок классической игры
+    .content .classic-game .cg-container .header .name {
+      margin-left: $cg_color_header_height;
+      line-height: $cg_color_header_height;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+    .content .classic-game .cg-container .header .name span {
+      color: #fff;
+      transition: all .5s ease;
+    }
+    .content .classic-game .cg-container .header .name span:hover {
+      color: #269a95;
+    }
+
+    // Кнопка "История"
+    .content .classic-game .cg-container .header .history-button {
+      position: absolute; right: 0; top: 0;
+      height: $cg_color_header_height;
+      line-height: $cg_color_header_height;
+      font-size: 1.5em;
+      padding: 0 $cg_color_header_height/3;
+      border-left: 2px solid $cg_color_panel_bg;
+      cursor: pointer;
+      color: #fff;
+      transition: all .5s ease;
+    }
+    .content .classic-game .cg-container .header .history-button:hover {
+      color: #269a95;
+    }
+
+    // Интерфейс выбора комнаты
+    .content .classic-game .cg-container .header .choose-room {
+      position: absolute; top: 0;
+      left: 0; right: 0;
+      margin-left: auto; margin-right: auto;
+      margin-top: $cg_color_header_height*0.15;
+      margin-bottom: $cg_color_header_height*0.15;
+      width: 300px;
+      height: $cg_color_header_height*0.7;
+      line-height: $cg_color_header_height*0.7;
+      text-align: center;
+      border-radius: 4px;
+      border: 1px solid $cg_color_roombrd;
+      color: #fff;
+      font-size: 1.5em;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+    .content .classic-game .cg-container .header .choose-room i {
+      position: absolute; top: 0; right: 0;
+      width: $cg_color_header_height*0.7; height: $cg_color_header_height*0.7;
+      line-height: $cg_color_header_height*0.7;
+      text-align: center;
+      display: inline-block;
+    }
+
 
 
 
