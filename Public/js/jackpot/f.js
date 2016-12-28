@@ -11,8 +11,8 @@
  *
  * 	s1. Функционал игры Jackpot
  *
- *    f.s1.func										| s1.1. Функция
- *
+ *    f.s1.update_rooms										| s1.1. Обновить модель всех игровых данных данными с сервера
+ *    f.s1.update_lottery_statuses        | s1.2. Обновить модель возможных статусов игры лоттерея
  *
  *
  *
@@ -24,18 +24,66 @@
 // 			 Функционал  			//
 // 			         			    //
 //====================----//
-var ModelFunctionsJackpot = { constructor: function(selfmain) { var self = {}; self.f = {}; self.f.s1 = this;
+var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
-	//-------------------------------------//
-	// s1.1. Функция //
-	//-------------------------------------//
-	self.f.s1.func = function(data, event) {
-		console.log(123);
+	//-------------------------------//
+	// 			        		 	           //
+	// 	s1. Функционал игры Jackpot  //
+	// 			         			           //
+	//-------------------------------//
+
+	//-------------------------------------------------------------//
+	// s1.1. Обновить модель всех игровых данных данными с сервера //
+	//-------------------------------------------------------------//
+	f.s1.update_rooms = function(data) {
+
+		// 1. Очистить m.s1.game.rooms
+		self.m.s1.game.rooms.removeAll();
+
+		// 2. Обновить
+		(function(){
+
+			self.m.s1.game.rooms(ko.mapping.fromJS(data)());
+
+		})();
+
 	};
+	
+	//--------------------------------------------------------//
+	// s1.2. Обновить модель возможных статусов игры лоттерея //
+	//--------------------------------------------------------//
+	f.s1.update_lottery_statuses = function(data) {
+
+		// 1. Обновить m.s1.game.statuses
+
+			// 1.1. Очистить
+			self.m.s1.game.statuses.removeAll();
+
+			// 1.2. Наполнить
+			for(var i=0; i<data.length; i++) {
+
+				// 1.2.1. Сформировать объект для добавления
+				var obj = {};
+				for(var key in data[i]) {
+
+					// 1] Если свойство не своё, пропускаем
+					if(!data[i].hasOwnProperty(key)) continue;
+
+					// 2] Добавим в obj свойство key
+					obj[key] = ko.observable(data[i][key]);
+
+				}
+
+				// 1.2.2. Добавить этот объект в подготовленный массив
+				self.m.s1.game.statuses.push(ko.observable(obj))
+
+			}
+
+	};	
 
 
 
-return self.f.s1; }};
+return this; }};
 
 
 

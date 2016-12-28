@@ -107,7 +107,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 	// 			 s1. Функционал игры Jackpot			//
 	// 			         					                //
 	//----------------------------------------//
-	f.s1 = Object.create(ModelFunctionsJackpot).constructor(self);
+	f.s1 = Object.create(ModelFunctionsJackpot).constructor(self, f);
 
 
 

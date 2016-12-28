@@ -109,6 +109,26 @@ class Controller extends BaseController {
     }
 
     //-----------------------//
+    // Проверка наличия кэша //
+    //-----------------------//
+
+      // Обновить весь кэш процессинга игры, но для каждого, только если он отсутствует
+      $result = runcommand('\M9\Commands\C13_update_cache', [
+        "all"   => true,
+        "force" => false
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // Обновить весь кэш процессинга выигрышей, но для каждого, только если он отсутствует
+      $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+        "all"   => true,
+        "force" => false
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+    //-----------------------//
     // Обработать GET-запрос //
     //-----------------------//
 
@@ -138,8 +158,20 @@ class Controller extends BaseController {
 
       });
 
+      // 3. Получить все текущие игровые данные и id выбранной комнаты
+      $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1, 'safe' => true]);
+      if($allgamedata['status'] != 0)
+        throw new \Exception($allgamedata['data']['errormsg']);
 
+      // 4. Получить/Подготовить данные, связанные с возможными состояниями комнат
+      $states = runcommand('\M9\Commands\C6_get_available_game_statuses', []);
+      if($states['status'] != 0)
+        throw new \Exception($states['data']['errormsg']);
+      else
+        $lottery_game_statuses_db = $states['data']['lottery_game_statuses_db'];
 
+      // 5. Получить палитру цветов для игроков из конфига
+      $palette = config('M9.palette');
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -151,6 +183,11 @@ class Controller extends BaseController {
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
         'steam_tradeurl'        => $steam_tradeurl,
+        'rooms'                 => $allgamedata['data']['rooms'],
+        'choosen_room_id'       => $allgamedata['data']['choosen_room_id'],
+        'lottery_game_statuses' => $lottery_game_statuses_db,
+        'palette'               => $palette,
+        "servertime_s"          => \Carbon\Carbon::now()->timestamp,
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

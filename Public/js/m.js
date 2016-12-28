@@ -290,7 +290,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	// 			         			               //
 	//-----------------------------------//
 	// - См. D10009/Public/js/jackpot/m.js
-	self.m.s1 = Object.create(ModelJackpot).constructor(self);
+	self.m.s1 = Object.create(ModelJackpot).constructor(self, self.m);
 
 
 	//------------------------------------------------------------//
@@ -341,11 +341,54 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//-------------------------------------------------------------//
 		if(!ko.computedContext.isInitial()) return;
 
-		//-------------------------------------------------------------//
-		// X1.2. ... //
-		//-------------------------------------------------------------//
+		//-----------------------------------------------------//
+		// X1.2. Наполнить m.s1.game.palette данными с сервера //
+		//-----------------------------------------------------//
+		(function(){
 
-			// ... код ...
+			self.m.s1.game.palette(server.data.palette);
+
+		})();
+
+		//----------------------------------------------------------------------------------//
+		// X1.3. Обновить m.s1.game.rooms (все игровые данные) начальными данными с сервера //
+		//----------------------------------------------------------------------------------//
+		(function(){
+
+			// 1] Обновить
+			self.f.s1.update_rooms(server.data.rooms);
+
+			// 2] Выбрать комнату по переданному choosen_room_id
+			// - Но только, если он не равен 0.
+			if(server.data.choosen_room_id != 0)
+				self.m.s1.game.choosen_room(self.m.s1.indexes.rooms[server.data.choosen_room_id]);
+
+		})();
+		
+		//----------------------------------------------------------------//
+		// X1.4. Обновить m.s1.game.statuses начальными данными с сервера //
+		//----------------------------------------------------------------//
+		// - При клике в любом месте, кроме как на самой панели.
+		(function(){
+
+			// 1] Обновить
+			self.f.s1.update_lottery_statuses(server.data.lottery_game_statuses);
+
+		})();
+		
+		//-----------------------------------------------------//
+		// X1.5. Вычислить стартовое состояние текущего раунда //
+		//-----------------------------------------------------//
+		(function(){
+
+			// 1] Проверить наличие необходимых ресурсов
+			if(!self.m.s1.game.curprev().current().rounds_statuses) return;
+
+			// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
+			self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
+
+		})();		
+		
 
 	});
 
