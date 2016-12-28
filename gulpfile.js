@@ -123,7 +123,42 @@ for(var javascriptnum=0; javascriptnum<sources["javascript"].length; javascriptn
 	// Создать i-ую задачу
 	module.exports['javascript_'+javascriptnum] = function(javascriptnum, callback){
 
-		return gulp.src([sources["javascript"][javascriptnum]+'m.js', sources["javascript"][javascriptnum]+'f.js', sources["javascript"][javascriptnum]+'j.js'])
+		// 1] Подготовить массив src JS-ресурсов для обработки, для javascriptnum
+
+			// 1.1] Если речь идёт о L10003
+			if(javascriptnum == 0) var src_arr = (function(){
+
+				return [
+
+					// Основная модель и функционал
+					sources["javascript"][javascriptnum]+'m.js',
+					sources["javascript"][javascriptnum]+'f.js',
+					sources["javascript"][javascriptnum]+'j.js'
+
+				];
+
+			})();
+
+			// 1.2] Если речь идёт о D10009
+			if(javascriptnum == 1) var src_arr = (function(){
+
+				return [
+
+					// Jackpot
+					sources["javascript"][javascriptnum]+'jackpot/m.js',
+					sources["javascript"][javascriptnum]+'jackpot/f.js',
+
+					// Основная модель и функционал
+					sources["javascript"][javascriptnum]+'m.js',
+					sources["javascript"][javascriptnum]+'f.js',
+					sources["javascript"][javascriptnum]+'j.js'
+
+				];
+
+			})();
+
+		// n] Произвести обработку
+		return gulp.src(src_arr)
 				.pipe(sourcemaps.init())
 				.pipe(concat('j.js'))
 				.pipe(uglify())

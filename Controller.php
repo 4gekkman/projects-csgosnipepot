@@ -112,7 +112,31 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. ...
+      // 1. Провести авто-инициацию некоторых таблиц-справочников в БД
+      $result = runcommand('\M9\Commands\C39_init_db_references', []);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 2. Получить steam_tradeurl, если он есть
+      $steam_tradeurl = call_user_func(function(){
+
+        // 1] Извлечь auth_cache
+        $auth = json_decode(session('auth_cache'), true);
+
+        // 2] Получить ID запрашивающего пользователя
+        if(!array_key_exists('user', $auth) || !array_key_exists('id', $auth['user']))
+          return "";
+        $id = $auth['user']['id'];
+
+        // 3] Попробовать найти пользователя с $id
+        $user = \M5\Models\MD1_users::find($id);
+        if(empty($user))
+          return "";
+
+        // 4] Вернуть steam_tradeurl
+        return $user->steam_tradeurl;
+
+      });
 
 
 
@@ -126,6 +150,7 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
+        'steam_tradeurl'        => $steam_tradeurl,
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
