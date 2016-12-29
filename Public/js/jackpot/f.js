@@ -14,7 +14,7 @@
  *    f.s1.update_rooms										| s1.1. Обновить модель всех игровых данных данными с сервера
  *    f.s1.update_lottery_statuses        | s1.2. Обновить модель возможных статусов игры лоттерея
  *    f.s1.choose_tab                     | s1.3. Выбрать кликнутый таб
- *
+ *    f.s1.choose_room                    | s1.4. Выбрать кликнутую комнату
  *
  *
  */
@@ -90,6 +90,18 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		self.m.s1.maintabs.choosen(self.m.s1.indexes.maintabs[name]);
 
 	};
+
+	//---------------------------------//
+	// s1.4. Выбрать кликнутую комнату //
+	//---------------------------------//
+	f.s1.choose_room = function(data, event) {
+
+		// 1] Выбрать кликнутую комнату
+		self.m.s1.game.choosen_room(data);
+
+	};
+
+
 
 
 

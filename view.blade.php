@@ -112,9 +112,44 @@
       <?php /*--------------------------->
       <!-- 2] Интерфейс выбора комнаты -->
       <!-----------------------------*/ ?>
-      <div class="choose-room">
-        <span>MAIN ROOM</span>
-        <i class="mdi mdi-chevron-down"></i>
+      <div class="choose-room" data-bind="if: m.s1.game.choosen_room()">
+
+        <?php /*------------------------------->
+        <!-- 2.1] Название выбранной комнаты -->
+        <!---------------------------------*/ ?>
+        <div class="choosen-name">
+          <span data-bind="text: m.s1.game.choosen_room().name() + ' ROOM'"></span>
+          <i class="mdi mdi-chevron-down"></i>
+        </div>
+
+        <?php /*----------------------------------------->
+        <!-- 2.2] Список комнат, которые можно выбрать -->
+        <!-------------------------------------------*/ ?>
+        <div class="rooms-list" data-bind="foreach: m.s1.game.rooms">
+
+          <?php /*------->
+          <!-- Комната -->
+          <!---------*/ ?>
+          <div class="room" data-bind="click: $root.f.s1.choose_room">
+
+            <?php /*-------->
+            <!-- Название -->
+            <!----------*/ ?>
+            <div class="title">
+              <span data-bind="text: name() + ' ROOM'"></span>
+            </div>
+
+            <?php /*-------->
+            <!-- Описание -->
+            <!----------*/ ?>
+            <div class="description">
+              <span data-bind="html: description"></span>
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
       <?php /*------------------->
@@ -134,8 +169,25 @@
       <?php /*-------------------------->
       <!-- 1.1.2.1. Номер игры и банк -->
       <!----------------------------*/ ?>
-      <div>
-        Номер игры и банк
+      <div class="gamenum_and_bank">
+
+        <?php /*------------->
+        <!-- 1] Номер игры -->
+        <!---------------*/ ?>
+        <div class="gamenum">
+          <span>ИГРА</span>
+          <span>#76853</span>
+        </div>
+
+        <?php /*------->
+        <!-- 2] Банк -->
+        <!---------*/ ?>
+        <div class="bank">
+          <span>БАНК:</span>
+          <span>6</span>
+          <span>руб</span>
+        </div>
+
       </div>
 
       <?php /*----------------------------------------------------->
