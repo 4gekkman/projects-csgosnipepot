@@ -277,10 +277,39 @@
 
     // Счётчик вещей раунда
     .content .classic-game .cg-container .counters .counter-items {
+      position: relative;
       background: darken($cg_main_color, 5%);
       margin-right: 10px;
       border-radius: 4px;
-      width: 470px;
+      width: 490px;
+    }
+    .content .classic-game .cg-container .counters .counter-items .indicator {
+      position: relative;
+      width: 25%;
+      height: 42px;
+      margin: 4px;
+      border-radius: 4px;
+
+      background: rgb(217,89,32); /* Old browsers */
+      background: -moz-linear-gradient(left,  rgba(217,89,32,1) 0%, rgba(245,156,26,1) 50%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
+      background: -webkit-linear-gradient(left,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
+      background: linear-gradient(to right,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d95920', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+    }
+    .content .classic-game .cg-container .counters .counter-items .indicator .knifes {
+      position: absolute; top: -20px; right: -50px;
+      width: 100px;
+      height: 85px;
+    }
+    .content .classic-game .cg-container .counters .counter-items .indicator .items-inbank-max {
+      position: absolute; top: 4px; right: -50px;
+      padding: 3px 8px;
+      color: #ffd38f;
+      font-size: 1.8em;
+      height: 34px;
+      line-height: 28px;
+      border-radius: 4px;
+      background-color: rgba(0,0,0,.6);
     }
 
     // Текст между счётчиками
@@ -306,20 +335,20 @@
       text-align: center;
       vertical-align: middle;
       font-size: 2.5em;
+      font-weight: bold;
     }
     .content .classic-game .cg-container .counters .counter-time>div:nth-child(1) {
-      width: 55px;
-      font-weight: bold;
+      width: 70px;
       background: darken($cg_main_color, 5%);
       border-radius: 4px;
     }
     .content .classic-game .cg-container .counters .counter-time>div:nth-child(2) {
       width: 20px;
-      font-size: 3em;
+      line-height: 45px;
+      padding-right: 1px;
     }
     .content .classic-game .cg-container .counters .counter-time>div:nth-child(3) {
-      width: 55px;
-      font-weight: bold;
+      width: 70px;
       background: darken($cg_main_color, 5%);
       border-radius: 4px;
     }
