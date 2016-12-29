@@ -338,7 +338,26 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
 			self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
 
-		})();		
+		})();
+
+		//-------------------------------//
+		// s1.n.10. Индекс главных табов //
+		//-------------------------------//
+		// - По name гл.таба можно получить ссылку на оный в m.s1.maintabs.list
+		self.m.s1.indexes.maintabs = (function(){
+
+			// 1. Подготовить объект для результатов
+			var results = {};
+
+			// 2. Заполнить results
+			for(var i=0; i<self.m.s1.maintabs.list().length; i++) {
+				results[self.m.s1.maintabs.list()[i].name()] = self.m.s1.maintabs.list()[i];
+			}
+
+			// 3. Вернуть results
+			return results;
+
+		}());
 
 		
 	});

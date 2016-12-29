@@ -101,22 +101,16 @@
     <!--------------*/ ?>
     <div class="header">
 
-      <?php /*---------------------------->
-      <!-- 1] Логотип классической игры -->
-      <!------------------------------*/ ?>
-      <div class="logo">
+      <?php /*-------------------------------------------->
+      <!-- 1] Логотип классической игры, и её заголовок -->
+      <!----------------------------------------------*/ ?>
+      <div class="logo_and_name" data-bind="css: {choosen: m.s1.maintabs.choosen().name() == 'game'}, click: f.s1.choose_tab.bind($data, 'game')">
         <i class="mdi mdi-crown"></i>
-      </div>
-
-      <?php /*------------------------------>
-      <!-- 2] Заголовок классической игры -->
-      <!--------------------------------*/ ?>
-      <div class="name">
         <span>Classic Game</span>
       </div>
 
       <?php /*--------------------------->
-      <!-- 3] Интерфейс выбора комнаты -->
+      <!-- 2] Интерфейс выбора комнаты -->
       <!-----------------------------*/ ?>
       <div class="choose-room">
         <span>MAIN ROOM</span>
@@ -124,9 +118,9 @@
       </div>
 
       <?php /*------------------->
-      <!-- 4] Кнопка "История" -->
+      <!-- 3] Кнопка "История" -->
       <!---------------------*/ ?>
-      <div class="history-button">
+      <div class="history-button"  data-bind="css: {choosen: m.s1.maintabs.choosen().name() == 'history'}, click: f.s1.choose_tab.bind($data, 'history')">
         <span>История</span>
       </div>
 
