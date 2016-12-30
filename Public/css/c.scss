@@ -50,6 +50,7 @@
       // Номер игры и банк
 
 
+
     // 2] Переменные размеров
 
       // Общие
@@ -60,6 +61,7 @@
 
       // Органы управления игрой для игрока
       $cg_sizes_controls_height: 120px;   // Высота панели органов управления
+
 
   //------------------------------------//
   // 1.2. Общие стили классической игры //
@@ -364,7 +366,7 @@
 
     // Общие стили
     .content .classic-game .cg-container .controls {
-      height: 120px;
+      height: $cg_sizes_controls_height;
       background: darken($cg_main_color, 5%);
       overflow: hidden;
       white-space: nowrap;
@@ -374,44 +376,92 @@
 
       // Общие стили
       .content .classic-game .cg-container .controls .status_and_button {
-        height: 60px;
+        height: $cg_sizes_controls_height*.6;
       }
       .content .classic-game .cg-container .controls .status_and_button>div {
         display: inline-block;
         width: 33.33333%;
-        height: 60px;
-        line-height: 60px;
+        height: $cg_sizes_controls_height*.6;
+        line-height: $cg_sizes_controls_height*.6;
         vertical-align: middle;
+      }
+
+      // Количество внесённых предметов
+      .content .classic-game .cg-container .controls .status_and_button .items_info {
+        text-align: center;
+        color: #81D1F9;
+        font-size: 1.5em;
+      }
+
+      // Шанс
+      .content .classic-game .cg-container .controls .status_and_button .chance {
+        position: relative;
+        text-align: center;
+        font-size: 1.5em;
+      }
+      .content .classic-game .cg-container .controls .status_and_button .chance .arrows-left {
+        position: absolute;
+        top: $cg_sizes_controls_height*.3 - 10px;
+        left: 0;
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background-image: url('/public/D10009/assets/icons/sprites.png');
+        background-repeat: no-repeat;
+        background-position: -93px -15px;
+      }
+      .content .classic-game .cg-container .controls .status_and_button .chance .arrows-right {
+        position: absolute;
+        top: $cg_sizes_controls_height*.3 - 10px;
+        right: 0;
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background-image: url('/public/D10009/assets/icons/sprites.png');
+        background-repeat: no-repeat;
+        background-position: -93px -15px;
       }
 
       // Кнопка "Внести депозит"
       .content .classic-game .cg-container .controls .status_and_button .make-a-bet {
         text-align: center;
-        height: 60px;
-        line-height: 60px;
+        height: $cg_sizes_controls_height*.6;
+        line-height: $cg_sizes_controls_height*.6;
       }
       .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button {
         display: inline-block;
-        height: 50%;
-        line-height: 100%;
+        height: $cg_sizes_controls_height*.3;
+        line-height: $cg_sizes_controls_height*.3;
         vertical-align: middle;
-        padding: 0 15px;
-        font-size: 1.3em;
+        padding: 0 29px;
+        font-size: 1.5em;
         background: #795349;
         color: #fff;
         border: 1px solid #E3764D;
         cursor: pointer;
+        transition: all .5s ease;
+      }
+      .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button:hover {
+        background: rgba(252, 131, 86, 0.5)
       }
       .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button span {
-        vertical-align: middle;
+        vertical-align: baseline;
       }
 
     // Панель с информацией о лимитах выбранной комнаты
     .content .classic-game .cg-container .controls .info {
-      height: 60px;
+      height: $cg_sizes_controls_height*.4;
     }
-
-
+    .content .classic-game .cg-container .controls .info .limits {
+      height: $cg_sizes_controls_height*.2;
+      line-height: $cg_sizes_controls_height*.2;
+      margin: $cg_sizes_controls_height*.05 40px;
+      font-size: 1.1em;
+      text-align: center;
+      background-color: #573c46;
+      border: 1px solid #734857;
+      color: #fad8f1;
+    }
 
 
 
