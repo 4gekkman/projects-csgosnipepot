@@ -107,14 +107,43 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		// А4.3. Назначение обработчиков сообщений с websocket-серверов //
 		//--------------------------------------------------------------//
 
-			// A4.3.1.  //
-			//--------------------------------------------------------------------//
-			self.websocket.ws1.on('some_channel', function(message) {
+			// A4.3.1. Публичный канал данной игры //
+			//-------------------------------------//
+			self.websocket.ws1.on('m9:public', function(data) {
 
-				// 1]
-				//console.log(message);
+				// 1] Получить имя задачи
+				var task = data.data.data.task;
+
+				// 2] В зависимости от task выполнить соотв.метод
+				switch(task) {
+					case "fresh_game_data": 	self.f.s6.fresh_game_data(data.data.data.data); break;
+					case "reload_page": 		  self.f.s0.reload_page(data.data.data.data); break;
+				}
 
 			});
+
+			// A4.3.2. Частный канал данной игры игры для этого игрока //
+			//---------------------------------------------------------//
+			// - Только для аутентифицированных пользователей.
+			if(JSON.parse(layout_data.data.auth).is_anon == 0) {
+				self.websocket.ws1.on('m9:private:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
+
+					// 1] Получить имя задачи
+					var task = data.data.data.task;
+
+					// 2] В зависимости от task выполнить соотв.метод
+					switch(task) {
+						//case "tradeoffer_expire_secs": 	self.f.s6.tradeoffer_expire_secs(data.data.data.data); break;
+						//case "tradeoffer_cancel": 			self.f.s6.tradeoffer_cancel(data.data.data.data); break;
+						//case "tradeoffer_accepted": 		self.f.s6.tradeoffer_accepted(data.data.data.data); break;
+						//case "active_offers_update": 		self.f.s6.active_offers_update(data.data.data.data); break;
+						//case "update_inventory": 				self.f.s0.update_inventory_data(data.data.data.data.inventory.data.rgDescriptions); break;
+
+						//case "tradeoffer_wins_cancel": 	self.f.s8.tradeoffer_cancel(data.data.data.data); break;
+					}
+
+				});
+			}
 
 
 	});

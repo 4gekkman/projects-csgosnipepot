@@ -14,6 +14,7 @@
  *
  * 		s1.1. Модель комнат, раундов, статусов, ставок, поставивших пользователей
  * 		s1.2. Модель табов с доп.разделами Jackpot
+ * 		s1.3. Модель поставленных на данный момент вещей
  *    s1.n. Индексы и вычисляемые значения
  *
  * 	X. Подготовка к завершению
@@ -178,6 +179,21 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//------------------//
 		self.m.s1.maintabs.choosen = ko.observable(self.m.s1.maintabs.list()[0]);
 
+	//--------------------------------------------------//
+	// s1.3. Модель поставленных на данный момент вещей //
+	//--------------------------------------------------//
+	self.m.s1.bank = {};
+
+		// 1] Наблюдаемый массив всех поставленынх в наст.момент вещей в текущем раунда //
+		//------------------------------------------------------------------------------//
+		// - Отсортированный по цене вещей.
+		// - Складывается из всех вещей всех ставок всех пользователей текущего раунда, выбранной комнаты.
+		self.m.s1.bank.items_sorted = ko.observableArray([]);
+
+		// 2] Суммарная стоимость поставленных вещей //
+		//-------------------------------------------//
+		self.m.s1.bank.sum = ko.observable(0);	
+	
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
@@ -358,6 +374,50 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			return results;
 
 		}());
+		
+		//-------------------------------------------------------------------------------------------//
+		// s1.n.11. Вычисление bank.items_sorted и подсчитать суммарную стоимость поставленных вещей //
+		//-------------------------------------------------------------------------------------------//
+		(function(){
+
+			// 1.1] Если нет необходимых ресурсов, завершить
+			if(!self.m.s1.indexes.curprev || !self.m.s1.game.choosen_room() || !self.m.s1.indexes.curprev[self.m.s1.game.choosen_room().name()].current || !self.m.s1.indexes.curprev[self.m.s1.game.choosen_room().name()].current.bets) return;
+
+			// 1.2] Очистить bank.items_sorted
+			self.m.s1.bank.items_sorted.removeAll();
+
+			// 1.3] Записать ссылку на ставки текущего раунда в короткую переменную
+			var bets = self.m.s1.indexes.curprev[self.m.s1.game.choosen_room().name()].current.bets();
+
+			// 1.4] Наполнить bank.items_sorted
+			for(var i=0; i<bets.length; i++) {
+				for(var j=0; j<bets[i].m8_items().length; j++) {
+					self.m.s1.bank.items_sorted.push(bets[i].m8_items()[j]);
+				}
+			}
+
+			// 1.5] Отсортировать bank.items_sorted по цене
+			self.m.s1.bank.items_sorted.sort(function(a,b){
+
+				// По цене
+				if(+a.price()*100 < +b.price()*100) return 1;
+				else if(+a.price()*100 > +b.price()*100) return -1;
+				return 0;
+
+			});
+
+			// 1.6] Подсчитать суммарную стоимость поставленных вещей
+			self.m.s1.bank.sum((function(){
+
+				var result = 0;
+				for(var i=0; i<self.m.s1.bank.items_sorted().length; i++) {
+					result = +result + +Math.round(self.m.s1.bank.items_sorted()[i].price()*100);
+				}
+				return result;
+
+			})());
+
+		})();		
 
 		
 	});
