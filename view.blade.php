@@ -203,7 +203,7 @@
           <?php /*------------------->
           <!-- Индикаторная полоса -->
           <!---------------------*/ ?>
-          <div class="indicator">
+          <div class="indicator" data-bind="style: {width: m.s1.bank.indicator_percents()+'%'}">
 
             <?php /*--------------------------------------->
             <!-- Ножи в правой части индикаторной полосы -->
@@ -232,9 +232,13 @@
         <!-- 3] Счётчик времени раунда -->
         <!---------------------------*/ ?>
         <div class="counter-time">
-          <div>01</div>
+          <div>
+            <span data-bind="text: m.s1.game.timeleft.minutes"></span>
+          </div>
           <div>:</div>
-          <div>54</div>
+          <div>
+            <span data-bind="text: m.s1.game.timeleft.seconds"></span>
+          </div>
         </div>
 
 

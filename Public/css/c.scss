@@ -272,7 +272,7 @@
       display: inline-block;
       vertical-align: middle;
       height: 50px;
-      margin: 35px 40px;
+      margin: 35px 50px;
     }
 
     // Счётчик вещей раунда
@@ -281,7 +281,7 @@
       background: darken($cg_main_color, 5%);
       margin-right: 10px;
       border-radius: 4px;
-      width: 490px;
+      width: 470px;
     }
     .content .classic-game .cg-container .counters .counter-items .indicator {
       position: relative;
@@ -289,6 +289,7 @@
       height: 42px;
       margin: 4px;
       border-radius: 4px;
+      transition: all .5s ease;
 
       background: rgb(217,89,32); /* Old browsers */
       background: -moz-linear-gradient(left,  rgba(217,89,32,1) 0%, rgba(245,156,26,1) 50%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
