@@ -28,6 +28,7 @@
   1.4. Стили интерфейса выбора комнаты в шапке игры
   1.5. Номер игры и банк
   1.6. Счётчики предметов и времени текущего раунда
+  1.7. Органы управления игрой для игрока
 
 //------------------------------------*/
 
@@ -57,6 +58,8 @@
       // Шапка
       $cg_color_header_height: 50px;      // Высота шапки классической игры
 
+      // Органы управления игрой для игрока
+      $cg_sizes_controls_height: 120px;   // Высота панели органов управления
 
   //------------------------------------//
   // 1.2. Общие стили классической игры //
@@ -354,6 +357,59 @@
       border-radius: 4px;
     }
 
+
+  //-----------------------------------------//
+  // 1.7. Органы управления игрой для игрока //
+  //-----------------------------------------//
+
+    // Общие стили
+    .content .classic-game .cg-container .controls {
+      height: 120px;
+      background: darken($cg_main_color, 5%);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    // Кол-во внесённых предметов, шанс, кнопка "Внести депозит"
+
+      // Общие стили
+      .content .classic-game .cg-container .controls .status_and_button {
+        height: 60px;
+      }
+      .content .classic-game .cg-container .controls .status_and_button>div {
+        display: inline-block;
+        width: 33.33333%;
+        height: 60px;
+        line-height: 60px;
+        vertical-align: middle;
+      }
+
+      // Кнопка "Внести депозит"
+      .content .classic-game .cg-container .controls .status_and_button .make-a-bet {
+        text-align: center;
+        height: 60px;
+        line-height: 60px;
+      }
+      .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button {
+        display: inline-block;
+        height: 50%;
+        line-height: 100%;
+        vertical-align: middle;
+        padding: 0 15px;
+        font-size: 1.3em;
+        background: #795349;
+        color: #fff;
+        border: 1px solid #E3764D;
+        cursor: pointer;
+      }
+      .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button span {
+        vertical-align: middle;
+      }
+
+    // Панель с информацией о лимитах выбранной комнаты
+    .content .classic-game .cg-container .controls .info {
+      height: 60px;
+    }
 
 
 
