@@ -28,6 +28,7 @@
  *    s0.7. Текущая ширина браузера клиента
  *    s0.8. Текущая и предыдущая величины прокрутки браузера
  *    s0.9. Количество залогиненных Steam-пользователей в системе
+ *    s0.10. Серверное время
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -194,6 +195,18 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 					// 3.3] Прокрутить container в конец
 					container.scrollTop = scrollHeight;
 					Ps.update(container);
+
+			});
+
+			// A4.3.4. Ежесекундное обновление серверного времени //
+			//----------------------------------------------------//
+			self.websocket.ws1.on('m9:servertime', function(data) {
+
+				// 1] Обновить серверное время в виде человеко-понятной строки
+				self.m.s0.servertime.human(data.data.data.secs);
+
+				// 2] Обновить серверное время в виде timestamp в секундах
+				self.m.s0.servertime.timestamp_s(Math.round(moment.utc(data.data.data.secs).unix()));
 
 			});
 
@@ -379,6 +392,21 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	// s0.9. Количество залогиненных Steam-пользователей в системе //
 	//-------------------------------------------------------------//
 	self.m.s0.logged_in_steam_users = ko.observable(layout_data.data.logged_in_steam_users);
+
+	//------------------------//
+	// s0.10. Серверное время //
+	//------------------------//
+	self.m.s0.servertime = {};
+
+		// 1] Серверное время в виде человеко-понятной строки //
+		//----------------------------------------------------//
+		// - Например: "2016-10-19 15:38:21"
+		self.m.s0.servertime.human = ko.observable("");
+
+		// 2] Серверное время в виде timestamp в секундах //
+		//------------------------------------------------//
+		// - Например: "1476891769"
+		self.m.s0.servertime.timestamp_s = ko.observable("");
 
 
 	//-----------------------------------------------------------//
