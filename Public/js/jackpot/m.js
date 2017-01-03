@@ -15,9 +15,12 @@
  * 		s1.1. Модель комнат, раундов, статусов, ставок, поставивших пользователей
  * 		s1.2. Модель табов с доп.разделами Jackpot
  * 		s1.3. Модель поставленных на данный момент вещей
+ *    s1.4. Модель интерфейса по распределению шансов в выбранной комнате
  *    s1.n. Индексы и вычисляемые значения
  *
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
+ * 			s1.n.2. Рассчитать оставшееся время до конца состояний Started, Pending, Winner, для choosen_room
+ *      s1.n.3. Перерасчитать модель для отрисовки кольца
  *
  * 	X. Подготовка к завершению
  *
@@ -207,7 +210,19 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//----------------------------------------------------------------//
 		self.m.s1.bank.indicator_percents = ko.observable(0);
 	
+	//---------------------------------------------------------------------//
+	// s1.4. Модель интерфейса по распределению шансов в выбранной комнате //
+	//---------------------------------------------------------------------//
+	self.m.s1.game.wheel = {};
+	
+		// 1] Данные по каждому игроку текущего раунд (кто, сколько в сумме поставил, какой цвет и т.д.) //
+		//-----------------------------------------------------------------------------------------------//
+		self.m.s1.game.wheel.data = ko.observableArray([]);
+		
+		// 2] Данные для текущего аутентифицированного игрока
+		self.m.s1.game.wheel.currentuser = ko.observable();
 
+	
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
@@ -691,6 +706,156 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			})();			
 			
 		});			
+	
+		// s1.n.3. Перерасчитать модель для отрисовки кольца //
+		//---------------------------------------------------//
+		ko.computed(function(){		
+	
+			// 1] Завершить, если отсутствуют необходимые ресурсы
+			if(!self.m.s1.game.choosen_room() || !self.m.s1.bank.sum()) return;
+
+			// 2] Очистить m.s1.game.wheel.data
+			self.m.s1.game.wheel.data.removeAll();
+
+			// 3] Получить короткую ссылку на bets текущего раунда выбранной комнаты
+			var bets = self.m.s1.game.choosen_room().rounds()[0].bets();
+
+			// 4] Наполнить m.s1.game.wheel.data
+			for(var i=0; i<bets.length; i++) {
+
+				// 4.1] Вычислить, ставил ли уже этот пользователь ранее
+				// - Если ставил, то получить ссылку на старую ставку.
+				var previous_bet = (function(){
+
+					for(var j=0; j<bets.length; j++) {
+						if(
+							bets[i].m5_users()[0].id() == bets[j].m5_users()[0].id() &&
+							i != j &&
+							bets[i].id() > bets[j].id()
+						)
+							return bets[j];
+					}
+
+				})();
+
+				// 4.2] Если не ставил, создать для него новую запись в m.s1.game.wheel.data
+				if(!previous_bet) {
+
+					// 1) Вычислить шансы пользователя на победу в текущем раунде, в выбранной комнате
+					// - Пока что записать 0.
+					var odds = (function(){
+						return (+bets[i].total_bet_amount() / +self.m.s1.game.curjackpot());
+					})();
+
+					// 2) Вычислить URL для аватара
+					var avatar_url = (function(){
+
+						// 2.1) Определить, есть ли уже порт у хоста в конце (через : )
+						var is_port_in_the_end = (function(){
+							if((/:[0-9]+$/i).test(layout_data.data.request.host)) return true;
+							return false;
+						})();
+
+						// 2.2) Если у хоста уже есть порт в конце (через : )
+						if(is_port_in_the_end)
+							return layout_data.data.request.secure + layout_data.data.request.host + "/public/M5/steam_avatars/" + bets[i].m5_users()[0].id() + '.jpg';
+
+						// 2.3) Если нет
+						else
+							return layout_data.data.request.secure + layout_data.data.request.host + ":" + layout_data.data.request.port + "/public/M5/steam_avatars/" + bets[i].m5_users()[0].id() + '.jpg'
+
+					})();
+
+					// 3) Подсчитать кол-во поставленных предметов
+					var itemscount = (function(){
+						var result = 0;
+						for(var j=0; j<bets[i].m8_items().length; j++) {
+							result = +result + 1;
+						}
+						return result;
+					})();
+
+					// 4) Добавить запись в m.s1.game.wheel.data
+					self.m.s1.game.wheel.data.push({
+						bets: 				ko.observableArray([bets[i]]),
+						user: 				ko.observable(bets[i].m5_users()[0]),
+						avatar: 			ko.observable(avatar_url),  //(bets[i].m5_users()[0].avatar_steam()),
+						sum: 					ko.observable(bets[i].total_bet_amount()),
+						odds: 				ko.observable(odds),
+						color: 				ko.observable(bets[i].bet_color_hex()),
+						bets_number: 	ko.observable(1),
+						p: 						ko.observable(""),
+						itemscount:   ko.observable(itemscount)
+					});
+
+				}
+
+				// 4.3] Если это не первая ставка пользователя в текущем раунде
+				// - То надо склеить её с предыдущей записью этого пользователя в m.s1.game.wheel.data
+				else {
+
+					// 1) Найти предыдущую запись этого пользователя в m.s1.game.wheel.data
+					var prev_user_wheel_data = (function(){
+						for(var j=0; j<self.m.s1.game.wheel.data().length; j++) {
+							if(previous_bet.m5_users()[0].id() == self.m.s1.game.wheel.data()[j].user().id())
+								return self.m.s1.game.wheel.data()[j];
+						}
+					})();
+
+					// 2) Подсчитать кол-во поставленных пользователем предметов в этой ставке
+					var itemscount = (function(){
+						var result = 0;
+						for(var j=0; j<bets[i].m8_items().length; j++) {
+							result = +result + 1;
+						}
+						return result;
+					})();
+
+					// 3) Добавить данные о новой ставке пользователя в prev_user_wheel_data
+					prev_user_wheel_data.bets.push(bets[i]);
+					prev_user_wheel_data.sum((function(){
+						return prev_user_wheel_data.sum() + +bets[i].total_bet_amount();
+					})());
+					prev_user_wheel_data.odds((function(){
+						return prev_user_wheel_data.odds() + ((+bets[i].total_bet_amount() / +self.m.s1.game.curjackpot()));
+					})());
+					prev_user_wheel_data.itemscount((function(){
+						return prev_user_wheel_data.itemscount() + +itemscount;
+					})());
+
+				}
+
+			}
+
+			// 5] Обновить данные для текущего аутентифицированного игрока
+			(function(){
+
+				// 5.1] Попробовать найти данные для текущего аутентифицированного пользователя
+				for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
+					if(self.m.s1.game.wheel.data()[i].user().id() == layoutmodel.m.s0.auth.user().id()) {
+						self.m.s1.game.wheel.currentuser(self.m.s1.game.wheel.data()[i]);
+						return;
+					}
+				}
+
+				// 5.2] Если данных нет, записать пустую строку
+				self.m.s1.game.wheel.currentuser("");
+
+			})();
+
+
+//			// 5] Обновить внешний вид кольца
+//			// - И записать соответствующие значения p в m.s1.game.wheel.data
+//			self.f.s0.update_wheel_view();
+//
+//			// 6] Если текущее состояние Lottery, запустить кручение колеса
+//			if(["Lottery", "Winner"].indexOf(self.m.s1.game.choosen_status()) != -1) {
+//				setTimeout(function(){
+//					self.f.s1.lottery(self.m.s1.game.choosen_room().rounds()[0].wheel_rotation_angle_origin(), null, null);
+//				}, 100);
+//			}
+			
+		});		
 			
 
 	//------------------------------//
