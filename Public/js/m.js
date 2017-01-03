@@ -416,7 +416,21 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
 			self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
 
-		})();		
+		})();
+
+		//-------------------------------------------------------------------------------//
+		// X1.6. Инициализировать perfect scrollbar для блока распред.шансов с аватарами //
+		//-------------------------------------------------------------------------------//
+		(function(){
+
+			Ps.initialize(document.getElementsByClassName('odds-avatars')[0], {
+				wheelSpeed: 2,
+				wheelPropagation: true,
+				minScrollbarLength: 20,
+				suppressScrollY: true
+			});
+
+		})();
 		
 
 	});

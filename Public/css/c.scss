@@ -30,6 +30,9 @@
   1.6. Счётчики предметов и времени текущего раунда
   1.7. Органы управления игрой для игрока
   1.8. Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
+  1.9. Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
+
+  1.11. Панель с информацией о текущем раунде
 
 //------------------------------------*/
 
@@ -67,8 +70,10 @@
       $cg_sizes_godds_height: 6px;        // Высота блока графического распределения шансов
 
       // Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
-      $cg_sizes_odds_height: 100px;       // Высота блока распределения шансов
+      $cg_sizes_odds_height: 108px;       // Высота блока распределения шансов
 
+      // Панель с информацией о текущем раунде
+      $cg_sizes_infopanel_height: 100px;  // Высота панели с информацией о текущем раунде
 
 
   //------------------------------------//
@@ -250,6 +255,7 @@
     .content .classic-game .cg-container .gamenum_and_bank .gamenum {
       display: inline-block;
       padding-right: 15px;
+      text-shadow: 1px 1px 1px rgb(44, 110, 47);
     }
     .content .classic-game .cg-container .gamenum_and_bank .gamenum span:nth-child(1) {}
     .content .classic-game .cg-container .gamenum_and_bank .gamenum span:nth-child(2) {
@@ -260,6 +266,7 @@
     .content .classic-game .cg-container .gamenum_and_bank .bank {
       display: inline-block;
       padding-left: 15px;
+      text-shadow: 1px 1px 1px rgb(44, 110, 47);
     }
     .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(1) {}
     .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(2) {
@@ -498,6 +505,7 @@
 
     // Общие стили
     .content .classic-game .cg-container .odds-avatars {
+      position: relative;
       height: $cg_sizes_odds_height;
       overflow: hidden;
       white-space: nowrap;
@@ -506,10 +514,86 @@
 
     // Стили одного блока (аватарка, цвет, шансы)
     .content .classic-game .cg-container .ava-color-odds {
+      position: relative;
       display: inline-block;
       width: 80px; height: 80px;
-      margin: 10px 6px;
+      margin: 10px 3px;
     }
+    .content .classic-game .cg-container .ava-color-odds>div {
+      position: absolute;
+    }
+
+    // Аватар
+    .content .classic-game .cg-container .ava-color-odds .avatar {
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .content .classic-game .cg-container .ava-color-odds .avatar img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    // Цветная полоска
+    .content .classic-game .cg-container .ava-color-odds .strip {
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    // Шансы
+    .content .classic-game .cg-container .ava-color-odds .odds {
+      bottom: 4px; left: 0;
+      background: black; opacity: 0.8;
+      line-height: 22px;
+      width: 100%; height: 22px;
+      text-align: center;
+      color: #2cb8d6;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    // Стили для perfect scrollbar
+    .content .classic-game .cg-container .ps-scrollbar-y-rail {
+      display: none;
+    }
+    .content .classic-game .cg-container .ps-scrollbar-x-rail {
+      background: transparent !important;
+    }
+    .content .classic-game .cg-container .ps-scrollbar-x-rail>div {
+      background: darken($cg_main_color, 5%) !important;
+      height: 6px !important;
+    }
+
+  //---------------------------------------------//
+  // 1.11. Панель с информацией о текущем раунде //
+  //---------------------------------------------//
+
+    // Общие стили
+    .content .classic-game .cg-container .infopanel {
+      position: relative;
+      height: $cg_sizes_infopanel_height;
+      overflow: hidden;
+      padding: 20px;
+      white-space: nowrap;
+      background: url('/public/D10009/assets/images/start.png') no-repeat 50px 23px rgba(38, 192, 113, 0.7);
+    }
+    .content .classic-game .cg-container .infopanel>div {
+      position: absolute;
+    }
+
+    // Призыв вносить депозиты
+    .content .classic-game .cg-container .infopanel .call4deposits {
+      top: 20; left: 0;
+      height: 30px; line-height: 30px;
+      width: 100%;
+      text-align: center;
+      font-size: 25px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 1px rgb(44, 110, 47);
+    }
+
+
 
 
 
