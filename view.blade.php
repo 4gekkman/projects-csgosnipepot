@@ -289,7 +289,8 @@
           <!-- 2.1] Информация о лимитах -->
           <!---------------------------*/ ?>
           <div class="limits">
-            <span>Минимальная сумма депозита 1 рубль. Максимальный депозит - 20 предметов.</span>
+            <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (m.s1.game.choosen_room().min_bet() + ' руб.') : ' не ограничена.')"></span>
+            <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>
           </div>
 
         </div>
