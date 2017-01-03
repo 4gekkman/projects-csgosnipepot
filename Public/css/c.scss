@@ -31,8 +31,9 @@
   1.7. Органы управления игрой для игрока
   1.8. Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
   1.9. Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
-
+  1.10. Ставки раунда
   1.11. Панель с информацией о текущем раунде
+  1.12. Условия использования, предупреждение о не аффилированности с Valve
 
 //------------------------------------*/
 
@@ -564,6 +565,150 @@
       height: 6px !important;
     }
 
+  //----------------------//
+  // 1.10. Ставки раунда  //
+  //----------------------//
+
+    // Контейнер
+    .content .classic-game .bets {
+      padding: 0 0 15px 0;
+    }
+
+    // Контейнер ставки
+    .content .classic-game .bets .bet-container {
+      background-color: #20252b;
+      //border-radius: 0 3px 3px 0;
+      border-radius: 3px;
+    }
+
+    // Стили информации о ставке
+    .content .classic-game .bets .bet-container .bet-info {
+      padding: 10px 20px;
+      position: relative;
+      height: 74px;
+      background: darken($cg_main_color, 5%);
+    }
+    .content .classic-game .bets .bet-container .bet-info .avatar {
+      position: absolute; top: 10px; left: 20px;
+      width: 54px;
+      height: 54px;
+      text-align: center;
+      background-color: #2f353b;
+    }
+    .content .classic-game .bets .bet-container .bet-info .avatar img {
+      display: inline-block;
+      width: 54px;
+      height: 54px;
+      max-width: 54px;
+      max-height: 54px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section {
+      padding-left: 65px;
+      color: #ddd;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .nickname {
+      color: #ddd;
+      cursor: pointer;
+      transition: all 0.5s ease;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .nickname:hover {
+      color: #64C119;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .bet-number {
+      cursor: default;
+      float: right;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section>div:nth-child(1) {
+      height: 27px;
+      line-height: 27px;
+      font-size: 18px;
+      //font-family: EffraBold, Effra, "PT Sans", Sans-Serif;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section>div:nth-child(1)>span:nth-child(1) {
+      //font-family: EffraBold, Effra, "PT Sans", Sans-Serif;
+      padding-right: 3px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .sum-odds-tickets {
+      height: 27px;
+      line-height: 27px;
+      font-size: 16px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .sum-odds-tickets span {
+      opacity: .5;
+      color: #ddd;
+      transition: all 0.5s ease;
+      cursor: default;
+    }
+
+    // Поставленные вещи
+    .content .classic-game .bets .bet-container .bets-items-cont {
+
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div {
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      margin-right: 17px;
+      margin-top: 15px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div:nth-child(5n) {
+      margin-right: 0;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-front {
+      width: 100px;
+      height: 100px;
+      border: solid 1px #32393f;
+      border-radius: 2px;
+      background-color: #2d3238;
+      text-align: center;
+      line-height: 100px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-front img {
+      display: inline-block;
+      max-width: 80px;
+      max-height: 80px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-front .price {
+      display: block;
+      font-size: 13px;
+      position: absolute; top: 0; left: 0;
+      color: #cfcfcf;
+      height: 20px;
+      border-radius: 2px;
+      background-color: #242424;
+      line-height: 20px;
+      padding: 0 5px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-back {
+      width: 100px;
+      height: 100px;
+      border: solid 1px #32393f;
+      border-radius: 2px;
+      background-color: #2d3238;
+      padding: 5px;
+      font-size: 13px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-back:before {
+      content: '';
+      display: inline-block;
+      height: 90px;
+      vertical-align: middle;
+      width: 1px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-back .name-of-item {
+      display: inline-block;
+      vertical-align: middle;
+      height: auto;
+      width: 90%;
+      color: #fff;
+      border-bottom: 1px solid #373c43;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }    
+
+
+
+
   //---------------------------------------------//
   // 1.11. Панель с информацией о текущем раунде //
   //---------------------------------------------//
@@ -593,9 +738,69 @@
       text-shadow: 1px 1px 1px rgb(44, 110, 47);
     }
 
+    // Кнопка "честная игра" и хэш раунда
 
+      // Общие стили
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash {
+        top: 50px; left: 0;
+        height: 30px; line-height: 30px;
+        width: 100%;
+        text-align: center;
+        user-select: none;
+      }
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash>div {
+        display: inline-block;
+      }
 
+      // Кнопка "Честная игра"
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .fair-button {
+        background: rgba(45, 78, 67, 0.3);
+        position: relative;
+        height: 30px;
+        padding: 0px 15px 0 32px;
+        margin-right: 20px;
+        border-radius: 6px;
+        border: solid 1px #31A26D;
+        font-size: 11px;
+        font-weight: 400;
+        color: #cefeea;
+        text-shadow: 0 2px 1px rgba(25, 67, 49, 0.26);
+        cursor: pointer;
+      }
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .fair-button i {
+        position: absolute; left: 0; top: 0;
+        height: 30px;
+        width: 30px;
+        background: url('/public/D10009/assets/icons/sprites.png') no-repeat -223px -74px;
+      }
 
+      // Хэш раунда
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash {
+        color: #000;
+      }
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash span:nth-child(2) {
+        border-bottom: 1px solid #222;
+      }
 
+  //---------------------------------------------------------------------------//
+  // 1.12. Условия использования, предупреждение о не аффилированности с Valve //
+  //---------------------------------------------------------------------------//
 
+    // Общие стили
+    .content .classic-game .termsofuse {
+      text-align: center;
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    // Заявление о не аффилированности
+    .content .classic-game .termsofuse .not-affilated-statement {
+      color: #9ea7b3;
+    }
+
+    // Правила использования
+    .content .classic-game .termsofuse .termslink a {
+      color: #1e96b0;
+      text-decoration: underline;
+    }
 

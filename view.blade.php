@@ -345,8 +345,113 @@
       <?php /*---------------------->
       <!-- 1.1.2.6. Ставки раунда -->
       <!------------------------*/ ?>
-      <div>
-        Ставки раунда
+      <div class="bets" data-bind="foreach: m.s1.game.curprev().current().bets.slice(0).reverse()">
+
+        <?php /*------>
+        <!-- Ставка -->
+        <!--------*/ ?>
+        <div class="bet-container" data-bind="style: {borderColor: bet_color_hex}">
+
+          <?php /*------------------->
+          <!-- Информация о ставке -->
+          <!---------------------*/ ?>
+          <div class="bet-info">
+
+            <?php /*------>
+            <!-- Аватар -->
+            <!--------*/ ?>
+            <div class="avatar">
+              <img data-bind="attr: {src: m5_users()[0].avatar_steam}" />
+            </div>
+
+            <?php /*--------------------->
+            <!-- Информационный раздел -->
+            <!-----------------------*/ ?>
+            <div class="info-section">
+
+              <?php /*------------------------->
+              <!-- Номер ставки и имя игрока -->
+              <!---------------------------*/ ?>
+              <div>
+
+                <!-- Номер ставки в раунде-->
+                <span class="bet-number" data-bind="text: '#' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>
+
+                <!-- Nickname игрока, сделавшего ставку-->
+                <a class="nickname" target="_blank" data-bind="text: m5_users()[0].nickname, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}" title="Перейти в профиль игрока в Steam"></a>
+
+              </div>
+
+              <?php /*---------------------------->
+              <!-- Сумма, шансы, номера билетов -->
+              <!------------------------------*/ ?>
+              <div class="sum-odds-tickets">
+
+                <!-- Сумма ставки и шансы выигрыша -->
+                <span class="sum" data-bind="text: '$' + (Math.round(total_bet_amount())/100)" title="Сумма ставки"></span>
+                <span>/</span>
+                <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 10000) / 100) + '%'" title="Шансы на победу ставки"></span>
+
+                <!-- Номера билетов -->
+                <div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">
+                  <span data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>
+                  <span>-</span>
+                  <span data-bind="text: m5_users()[0].pivot.tickets_to()"></span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /*----------------->
+          <!-- Поставленные вещи -->
+          <!-------------------*/ ?>
+          <div class="bets-items-cont" data-bind="foreach: m8_items()">
+
+            <?php /*----------------->
+            <!-- Поставленная вещь -->
+            <!-------------------*/ ?>
+            <div class="flip">
+
+              <?php /*----------------------------------->
+              <!-- Лицевая сторона (изображение, цена) -->
+              <!-------------------------------------*/ ?>
+              <div class="flip-front">
+
+                <?php /*----------->
+                <!-- Изображение -->
+                <!-------------*/ ?>
+                <img data-bind="attr: {src: steammarket_image}" />
+
+                <?php /*---->
+                <!-- Цена -->
+                <!------*/ ?>
+                <div class="price">
+                  <span data-bind="text: '$' + price()"></span>
+                </div>
+
+              </div>
+
+              <?php /*--------------------------->
+              <!-- Обратная сторона (описание) -->
+              <!-----------------------------*/ ?>
+              <div class="flip-back">
+
+                <?php /*----------------->
+                <!-- Название и ссылка -->
+                <!-------------------*/ ?>
+                <a class="name-of-item" target="_blank" data-bind="text: name, attr: {href: steammarket_link}"></a>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>        
+        
       </div>
 
       <?php /*---------------------------------------------->
@@ -359,6 +464,29 @@
         <!----------------------------*/ ?>
         <div class="call4deposits">
           <span>ИГРА НАЧАЛАСЬ! ВНОСИТЕ ДЕПОЗИТЫ!</span>
+        </div>
+
+        <?php /*------------------------------------->
+        <!-- 2] Кнопка "Честная игра" и хэш раунда -->
+        <!---------------------------------------*/ ?>
+        <div class="fair-button-and-hash">
+
+          <?php /*-------------------------->
+          <!-- 2.1] Кнопка "Честная игра" -->
+          <!----------------------------*/ ?>
+          <div class="fair-button">
+            <i></i>
+            <span>ЧЕСТНАЯ ИГРА</span>
+          </div>
+
+          <?php /*-------------------------->
+          <!-- 2.2] Кнопка "Честная игра" -->
+          <!----------------------------*/ ?>
+          <div class="hash">
+            <span data-bind="text: 'Хэш раунда: '"></span>
+            <span data-bind="text: m.s1.game.curprev().current().key_hash"></span>
+          </div>
+
         </div>
 
       </div>
@@ -377,8 +505,22 @@
   <?php /*------------------------------------------------------------------------>
   <!-- 1.2. Условия использования, предупреждение о не аффилированности с Valve -->
   <!--------------------------------------------------------------------------*/ ?>
-  <div>
-    Условия использования, предупреждение о не аффилированности с Valve
+  <div class="termsofuse">
+
+    <?php /*---------------------------------->
+    <!-- 1] Заявление о не аффилированности -->
+    <!------------------------------------*/ ?>
+    <div class="not-affilated-statement">
+      <span>CSGOHAP is NOT affiliated with VALVE corp</span>
+    </div>
+
+    <?php /*------------------------>
+    <!-- 2] Правила использования -->
+    <!--------------------------*/ ?>
+    <div class="termslink">
+      <a>Terms of service</a>
+    </div>
+
   </div>
 
   <?php /*-------------------------->
