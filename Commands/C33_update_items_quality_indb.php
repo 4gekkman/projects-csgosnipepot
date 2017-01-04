@@ -195,7 +195,7 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
       };
 
       // 4. Пробежаться по всем вещам в md2_items
-      \M8\Models\MD2_items::query()->chunk(10, function($items) USE ($get, $get_proxy, $update_tor_ip) {
+      \M8\Models\MD2_items::query()->chunk(40, function($items) USE ($get, $get_proxy, $update_tor_ip) {
         foreach ($items as $item) {
 
           // 4.1. Извлечь из $item ссылку на вещь в steammarket
@@ -237,7 +237,7 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
                 // Провести валидацию
                 $validator = r4_validate($result, [
                   "status"          => ["required", "in:200"],
-                  "body"            => ["required", "json"],
+                  "body"            => ["required"],
                 ]);
 
                 // Если удалось, вернуть $result
@@ -285,9 +285,11 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
             $pattern = '/g_rgAssets = (.*);/';
             preg_match($pattern, $html, $matches);
             if(!isset($matches[1]))
-              throw new \Exception('Не удалось найти g_rgAssets в ответном HTML.');
+              return "";
             $info = json_decode($matches[1], true);
             $type = call_user_func(function() USE ($info) {
+              if(!array_key_exists(730, $info) || !array_key_exists(2, $info[730]))
+                return "";
               foreach($info[730][2] as $item) {
                 return $item['type'];
               }
@@ -299,12 +301,11 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
 
           });
 
-          Log::info('ID: '.$item->id);
-          Log::info('Quality: '.$quality_info);
-          Log::info('-------');
-
           // 1.3. Определить качество
           $quality = call_user_func(function() USE ($quality_info) {
+
+            // 0] Если $quality_info пуст
+            if(empty($quality_info)) return "";
 
             // 1] Consumer Grade
             if(preg_match("/Consumer Grade/ui", $quality_info) != 0)
@@ -343,6 +344,11 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
 
           });
 
+          Log::info('ID: '.$item->id);
+          Log::info('Quality info: '.$quality_info);
+          Log::info('Quality: '.$quality);
+          Log::info('-------');
+
           // 1.4. Записать тип в БД, если его удалось определить
           if(!empty($quality)) {
             DB::beginTransaction();
@@ -352,6 +358,7 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
           }
 
         }
+        return;
       });
 
     } catch(\Exception $e) {
