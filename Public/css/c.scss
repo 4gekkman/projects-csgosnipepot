@@ -746,7 +746,6 @@
         height: 30px; line-height: 30px;
         width: 100%;
         text-align: center;
-        user-select: none;
       }
       .content .classic-game .cg-container .infopanel .fair-button-and-hash>div {
         display: inline-block;
@@ -766,6 +765,7 @@
         color: #cefeea;
         text-shadow: 0 2px 1px rgba(25, 67, 49, 0.26);
         cursor: pointer;
+        user-select: none;
       }
       .content .classic-game .cg-container .infopanel .fair-button-and-hash .fair-button i {
         position: absolute; left: 0; top: 0;
