@@ -350,12 +350,12 @@
         <?php /*------>
         <!-- Ставка -->
         <!--------*/ ?>
-        <div class="bet-container" data-bind="style: {borderColor: bet_color_hex}">
+        <div class="bet-container"">
 
           <?php /*------------------->
           <!-- Информация о ставке -->
           <!---------------------*/ ?>
-          <div class="bet-info">
+          <div class="bet-info" data-bind="style: {borderColor: bet_color_hex}">
 
             <?php /*------>
             <!-- Аватар -->
@@ -375,7 +375,14 @@
               <div>
 
                 <!-- Номер ставки в раунде-->
-                <span class="bet-number" data-bind="text: '#' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>
+                <div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">
+                  <span>Билеты от </span>
+                  <span class="ticketnumber" data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>
+                  <span> до </span>
+                  <span class="ticketnumber" data-bind="text: '#' + m5_users()[0].pivot.tickets_to()"></span>
+                </div>
+
+<!--                <span class="bet-number" data-bind="text: 'Ставка №' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>-->
 
                 <!-- Nickname игрока, сделавшего ставку-->
                 <a class="nickname" target="_blank" data-bind="text: m5_users()[0].nickname, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}" title="Перейти в профиль игрока в Steam"></a>
@@ -388,16 +395,16 @@
               <div class="sum-odds-tickets">
 
                 <!-- Сумма ставки и шансы выигрыша -->
-                <span class="sum" data-bind="text: '$' + (Math.round(total_bet_amount())/100)" title="Сумма ставки"></span>
-                <span>/</span>
                 <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 10000) / 100) + '%'" title="Шансы на победу ставки"></span>
+                <span>/</span>
+                <span class="sum" data-bind="text: (Math.round(total_bet_amount())/100) + 'руб.'" title="Сумма ставки"></span>
 
                 <!-- Номера билетов -->
-                <div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">
-                  <span data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>
-                  <span>-</span>
-                  <span data-bind="text: m5_users()[0].pivot.tickets_to()"></span>
-                </div>
+<!--                <div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">-->
+<!--                  <span data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>-->
+<!--                  <span>-</span>-->
+<!--                  <span data-bind="text: m5_users()[0].pivot.tickets_to()"></span>-->
+<!--                </div>-->
 
               </div>
 

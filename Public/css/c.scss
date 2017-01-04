@@ -443,6 +443,7 @@
         text-align: center;
         height: $cg_sizes_controls_height*.6;
         line-height: $cg_sizes_controls_height*.6;
+        user-select: none;
       }
       .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button {
         display: inline-block;
@@ -587,6 +588,7 @@
       position: relative;
       height: 74px;
       background: darken($cg_main_color, 5%);
+      border-right: 2px solid #000;
     }
     .content .classic-game .bets .bet-container .bet-info .avatar {
       position: absolute; top: 10px; left: 20px;
@@ -638,6 +640,12 @@
       color: #ddd;
       transition: all 0.5s ease;
       cursor: default;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .tickets {
+      float: right;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .tickets .ticketnumber {
+      color: $cg_colog_highlight;
     }
 
     // Поставленные вещи
