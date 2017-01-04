@@ -421,10 +421,15 @@
             <!-------------------*/ ?>
             <div class="bets-item tooltipstered" data-bind="attr: {title: name}">
 
+              <?php /*------------------------------------------->
+              <!-- Цветная полоска с цветом качества/категории -->
+              <!---------------------------------------------*/ ?>
+              <div class="strip"></div>
+
               <?php /*----------->
               <!-- Изображение -->
               <!-------------*/ ?>
-              <img data-bind="attr: {src: steammarket_image}" />
+              <img data-bind="attr: {src: $root.f.s1.get_steam_img_with_size(steammarket_image(), '80x55')}" />
 
               <?php /*---->
               <!-- Цена -->
