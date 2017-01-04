@@ -424,7 +424,9 @@
               <?php /*------------------------------------------->
               <!-- Цветная полоска с цветом качества/категории -->
               <!---------------------------------------------*/ ?>
-              <div class="strip"></div>
+              <div class="strip" data-bind="style: {background: $root.f.s1.get_cat_quality_item_color($data)}"></div>
+
+<!--              style: {borderColor: 'transparent ' +'#'+((category() != 'StatTrak™' && category() != '★') ? quality_color() : name_color())+ ' transparent' + ' transparent'}"-->
 
               <?php /*----------->
               <!-- Изображение -->
@@ -466,7 +468,7 @@
           <?php /*-------------------------->
           <!-- 2.1] Кнопка "Честная игра" -->
           <!----------------------------*/ ?>
-          <div class="fair-button">
+          <div class="fair-button" data-bind="click: f.s1.update_quality_test">
             <i></i>
             <span>ЧЕСТНАЯ ИГРА</span>
           </div>

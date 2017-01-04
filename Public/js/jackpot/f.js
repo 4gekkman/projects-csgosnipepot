@@ -18,6 +18,7 @@
  *    f.s1.fresh_game_data 								| s1.5. Получить и обработать свежие игровые данные
  *    f.s1.reload_page 										| s1.6. Перезагрузить страницу
  *    f.s1.get_steam_img_with_size        | s1.7. Получить URL на изображение скина в стим заданных размеров
+ *   	f.s1.get_cat_quality_item_color     | s1.8. Вычислить цвет для вещи в ставке (зависящий от категории и качетва)
  *
  *
  */
@@ -210,7 +211,49 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 	};
 
+	//---------------------------------------------------------------------------//
+	// s1.8. Вычислить цвет для вещи в ставке (зависящий от категории и качетва) //
+	//---------------------------------------------------------------------------//
+	f.s1.get_cat_quality_item_color = function(data) {
 
+
+		//console.log(ko.mapping.toJS(data));
+
+		// data.category() 			// категория
+		// data.name_color()    // цвет категории
+
+		//
+		// quality_color() 			// цвет качества
+
+		return 'red';
+
+	};
+
+
+
+	f.s1.update_quality_test = function(){
+
+		ajaxko(self, {
+			command: 	    "\\M8\\Commands\\C33_update_items_quality_indb",
+			from: 		    "f.s1.update_quality_test",
+			data: 		    {},
+			prejob:       function(config, data, event){
+
+			},
+			postjob:      function(data, params){},
+			ok_0:         function(data, params){
+
+				notify({msg: "Успех"});
+
+			},
+			ok_2: function(data, params){
+
+				notify({msg: data.data.errormsg});
+
+			}
+		});
+
+	};
 
 
 
