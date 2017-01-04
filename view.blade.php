@@ -289,7 +289,7 @@
           <!-- 2.1] Информация о лимитах -->
           <!---------------------------*/ ?>
           <div class="limits">
-            <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (m.s1.game.choosen_room().min_bet() + ' руб.') : ' не ограничена.')"></span>
+            <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.round(m.s1.game.choosen_room().min_bet())/100 + ' руб.') : ' не ограничена.')"></span>
             <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>
           </div>
 
@@ -369,42 +369,41 @@
             <!-----------------------*/ ?>
             <div class="info-section">
 
-              <?php /*------------------------->
-              <!-- Номер ставки и имя игрока -->
-              <!---------------------------*/ ?>
+              <?php /*---------------------------------->
+              <!-- Имя игрока и номера билетов ставки -->
+              <!------------------------------------*/ ?>
               <div>
 
-                <!-- Номер ставки в раунде-->
+                <!-- Номер ставки в раунде -->
                 <div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">
                   <span>Билеты от </span>
                   <span class="ticketnumber" data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>
                   <span> до </span>
                   <span class="ticketnumber" data-bind="text: '#' + m5_users()[0].pivot.tickets_to()"></span>
                 </div>
-
-<!--                <span class="bet-number" data-bind="text: 'Ставка №' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>-->
+                <!--<span class="bet-number" data-bind="text: 'Ставка №' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>-->
 
                 <!-- Nickname игрока, сделавшего ставку-->
-                <a class="nickname" target="_blank" data-bind="text: m5_users()[0].nickname, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}" title="Перейти в профиль игрока в Steam"></a>
+                <a class="nickname" target="_blank" data-bind="text: m5_users()[0].nickname"></a> <!--, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}" title="Перейти в профиль игрока в Steam"></a>-->
 
               </div>
 
-              <?php /*---------------------------->
-              <!-- Сумма, шансы, номера билетов -->
-              <!------------------------------*/ ?>
+              <?php /*------------>
+              <!-- Сумма, шансы -->
+              <!--------------*/ ?>
               <div class="sum-odds-tickets">
 
                 <!-- Сумма ставки и шансы выигрыша -->
                 <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 10000) / 100) + '%'" title="Шансы на победу ставки"></span>
                 <span>/</span>
-                <span class="sum" data-bind="text: (Math.round(total_bet_amount())/100) + 'руб.'" title="Сумма ставки"></span>
+                <span class="sum" data-bind="text: (Math.round(total_bet_amount())/100) + ' руб.'" title="Сумма ставки"></span>
 
                 <!-- Номера билетов -->
-<!--                <div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">-->
-<!--                  <span data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>-->
-<!--                  <span>-</span>-->
-<!--                  <span data-bind="text: m5_users()[0].pivot.tickets_to()"></span>-->
-<!--                </div>-->
+                <!--<div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">-->
+                <!--  <span data-bind="text: '#' + m5_users()[0].pivot.tickets_from()"></span>-->
+                <!--  <span>-</span>-->
+                <!--  <span data-bind="text: m5_users()[0].pivot.tickets_to()"></span>-->
+                <!--</div>-->
 
               </div>
 
@@ -420,37 +419,18 @@
             <?php /*----------------->
             <!-- Поставленная вещь -->
             <!-------------------*/ ?>
-            <div class="flip">
+            <div class="bets-item tooltipstered" data-bind="attr: {title: name}">
 
-              <?php /*----------------------------------->
-              <!-- Лицевая сторона (изображение, цена) -->
-              <!-------------------------------------*/ ?>
-              <div class="flip-front">
+              <?php /*----------->
+              <!-- Изображение -->
+              <!-------------*/ ?>
+              <img data-bind="attr: {src: steammarket_image}" />
 
-                <?php /*----------->
-                <!-- Изображение -->
-                <!-------------*/ ?>
-                <img data-bind="attr: {src: steammarket_image}" />
-
-                <?php /*---->
-                <!-- Цена -->
-                <!------*/ ?>
-                <div class="price">
-                  <span data-bind="text: '$' + price()"></span>
-                </div>
-
-              </div>
-
-              <?php /*--------------------------->
-              <!-- Обратная сторона (описание) -->
-              <!-----------------------------*/ ?>
-              <div class="flip-back">
-
-                <?php /*----------------->
-                <!-- Название и ссылка -->
-                <!-------------------*/ ?>
-                <a class="name-of-item" target="_blank" data-bind="text: name, attr: {href: steammarket_link}"></a>
-
+              <?php /*---->
+              <!-- Цена -->
+              <!------*/ ?>
+              <div class="price">
+                <span data-bind="text: price() + ' руб'"></span>
               </div>
 
             </div>

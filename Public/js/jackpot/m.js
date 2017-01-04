@@ -843,6 +843,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();
 
+			// 6] Переинициировать tooltipster
+			self.f.s0.tooltipster_init();
+
 
 //			// 5] Обновить внешний вид кольца
 //			// - И записать соответствующие значения p в m.s1.game.wheel.data

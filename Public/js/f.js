@@ -12,6 +12,7 @@
  *  s0. Функционал, доступный всему остальному функционалу
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
+ *    f.s0.tooltipster_init         | s0.2. Переинициализирует tooltipster
  *
  *  s1. Функционал игры Jackpot
  *  s2. ...
@@ -100,6 +101,34 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 				self.m.s0.txt_delay_save.is_unsaved_data(0);
 			};
 
+
+		//--------------------------------------//
+		// s0.2. Переинициализирует tooltipster //
+		//--------------------------------------//
+		f.s0.tooltipster_init = function(data, event) {
+
+			// 1] Подготовить конфигурационный объект
+			var config = {
+				theme: 'tooltipster-borderless',
+				side: 'top',
+				trigger: 'custom',
+				debug: false,
+				triggerOpen: {
+					mouseenter: true,
+					tap: true
+				},
+				triggerClose: {
+					click: true,
+					tap: true,
+					scroll: true,
+					mouseleave: true
+				}
+			};
+
+			// 2] Подключить tooltipster
+			$('.tooltipstered').tooltipster(config);
+
+		};
 
 
 	//----------------------------------------//

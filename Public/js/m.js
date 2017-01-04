@@ -431,6 +431,17 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			});
 
 		})();
+
+		//--------------------------------------------//
+		// X1.7. Активировать и настроить tooltipster //
+		//--------------------------------------------//
+		(function(){
+
+			$(document).ready(function(){
+				self.f.s0.tooltipster_init();
+			});
+
+		})();
 		
 
 	});
