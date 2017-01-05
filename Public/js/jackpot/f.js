@@ -216,44 +216,67 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//---------------------------------------------------------------------------//
 	f.s1.get_cat_quality_item_color = function(data) {
 
+		// 1] Получить качество для вещи data
+		var quality = data.quality();
 
-		//console.log(ko.mapping.toJS(data));
+		// 2] Получить инфу, является ли вещь StarTrack-вещью или ножом
+		var is_startrak = data.is_startrak();
+		var is_knife = data.is_knife();
 
-		// data.category() 			// категория
-		// data.name_color()    // цвет категории
+		// 3] Вернуть соответствующий этой вещи цвет
 
-		//
-		// quality_color() 			// цвет качества
+			// 3.1] Нож
+			if(is_knife == 1) return '#ffff00';
 
-		return 'red';
+			// 3.2] StarTrak
+			if(is_startrak == 1) return '#cf6a32';
 
-	};
+			// 3.3] Mil-Spec Grade
+			if(quality == 'Mil-Spec Grade') return '#4b69ff';
 
+			// 3.4] Restricted
+			if(quality == 'Restricted') return '#8847ff';
 
+			// 3.5] Classified
+			if(quality == 'Classified') return '#d32ce6';
 
-	f.s1.update_quality_test = function(){
+			// 3.6] Covert
+			if(quality == 'Covert') return '#eb4b4b';
 
-		ajaxko(self, {
-			command: 	    "\\M8\\Commands\\C33_update_items_quality_indb",
-			from: 		    "f.s1.update_quality_test",
-			data: 		    {},
-			prejob:       function(config, data, event){
-
-			},
-			postjob:      function(data, params){},
-			ok_0:         function(data, params){
-
-				notify({msg: "Успех"});
-
-			},
-			ok_2: function(data, params){
-
-				notify({msg: data.data.errormsg});
-
-			}
-		});
+			// 3.7] Прочие качества
+			return 'transparent';
 
 	};
+
+
+
+
+
+
+
+	//	f.s1.update_quality_test = function(){
+	//
+	//		ajaxko(self, {
+	//			command: 	    "\\M8\\Commands\\C33_update_items_quality_indb",
+	//			from: 		    "f.s1.update_quality_test",
+	//			data: 		    {},
+	//			prejob:       function(config, data, event){
+	//
+	//			},
+	//			postjob:      function(data, params){},
+	//			ok_0:         function(data, params){
+	//
+	//				notify({msg: "Успех"});
+	//
+	//			},
+	//			ok_2: function(data, params){
+	//
+	//				notify({msg: data.data.errormsg});
+	//
+	//			}
+	//		});
+	//
+	//	};
 
 
 

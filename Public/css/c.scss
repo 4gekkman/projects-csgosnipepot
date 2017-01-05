@@ -34,6 +34,7 @@
   1.10. Ставки раунда
   1.11. Панель с информацией о текущем раунде
   1.12. Условия использования, предупреждение о не аффилированности с Valve
+  1.13. Статистические данные
 
 //------------------------------------*/
 
@@ -52,7 +53,7 @@
       $cg_color_roombrd: #269a95;         // Цвет рамки интерфейса выбора комнаты
       $cg_color_choosencolor: #269a95;    // Цвет выбранного пункта меню
 
-      // Номер игры и банк
+      // Блоки стати
 
 
 
@@ -75,6 +76,10 @@
 
       // Панель с информацией о текущем раунде
       $cg_sizes_infopanel_height: 100px;  // Высота панели с информацией о текущем раунде
+
+      // Статистические данные
+      $cg_sizes_stats_width: 200px;      // Ширина панельки статистики
+      $cg_sizes_stats_height: 280px;     // Высота панельки статистики
 
 
   //------------------------------------//
@@ -572,7 +577,7 @@
 
     // Контейнер
     .content .classic-game .bets {
-      padding: 0 0 15px 0;
+      padding: 0;
     }
 
     // Контейнер ставки
@@ -852,4 +857,70 @@
       text-decoration: underline;
       cursor: pointer;
     }
+
+  //-----------------------------//
+  // 1.13. Статистические данные //
+  //-----------------------------//
+
+    // Общие стили
+    .content .classic-game .statistics {
+      position: relative;
+      margin-top: 50px;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+    .content .classic-game .statistics>div {
+      position: relative;
+      display: inline-block;
+      width: $cg_sizes_stats_width; height: $cg_sizes_stats_height;
+      margin-right: 20px;
+      background: darken($cg_main_color, 5%);
+      color: #ddd;
+    }
+
+    // Заголовочная часть
+    .content .classic-game .statistics>div .header {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: $cg_sizes_stats_height/6;
+      line-height: $cg_sizes_stats_height/6;
+      font-weight: bold;
+      font-size: 1.15em;
+    }
+
+    // Контентная часть
+    .content .classic-game .statistics>div .contentpart {
+      height: $cg_sizes_stats_height - $cg_sizes_stats_height/4;
+      //margin-top: $cg_sizes_stats_height/6;
+      background: $cg_main_color;
+    }
+
+    // Подвальная часть
+    .content .classic-game .statistics>div .footer {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: $cg_sizes_stats_height/4;
+    }
+
+    // Последний победитель
+    .content .classic-game .statistics .lastwinner {
+
+    }
+
+    // Счастливчик дня
+    .content .classic-game .statistics .luckyoftheday {
+
+    }
+    .content .classic-game .statistics .luckyoftheday .contentpart {
+      background: url('/public/D10009/assets/images/lucky-bg-v1.png') no-repeat -19px 0px
+    }
+
+    // Наибольшая ставка
+    .content .classic-game .statistics .thebiggetsbet {
+
+    }
+    .content .classic-game .statistics .thebiggetsbet .contentpart {
+      //background: url('/public/D10009/assets/images/dollars-bg-v1.jpg');
+    }
+
+
+
 
