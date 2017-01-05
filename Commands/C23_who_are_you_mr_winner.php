@@ -844,6 +844,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         $newwin->win_fact_cents             = $jackpot_total_sum_cents - $items2take['fee_cents_taken_fact'];
         $newwin->ready_state_sec            = "";
         $newwin->debt_balance_cents         = $debt_balance_cents_addition['newdebt'];
+        $newwin->winner_bets_items_cents    = $winner_bets_items_cents['cents'];
 
         // 3] Сохранить $newwin
         $newwin->save();

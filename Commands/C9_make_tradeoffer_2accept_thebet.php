@@ -435,7 +435,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       });
 
       // 11. Произвести проверку ставки на соответствие лимитам комнаты $room
-      call_user_func(function() USE ($room, $inventory) {
+      $sum = call_user_func(function() USE ($room, $inventory) {
 
         // 1] Получить последний раунд в комнате $room
         // - И удостовериться, что он существует
@@ -491,7 +491,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
             return $result;
           });
 
-        // 3] Проверить, соответствует ли $sum лимитам из $room_limits
+        // 4] Проверить, соответствует ли $sum лимитам из $room_limits
 
           // min_bet
           if($room_limits['min_bet'] != 0) {
@@ -505,7 +505,7 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
               throw new \Exception('Максимальная сумма ставки в этой комнате: '.$room_limits['max_bet'].' ¢.');
           }
 
-        // 4] Проверить, соответствует ли $count лимитам из $room_limits
+        // 5] Проверить, соответствует ли $count лимитам из $room_limits
 
           // min_items_per_bet
           if($room_limits['min_items_per_bet'] != 0) {
@@ -518,6 +518,9 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
             if($count > $room_limits['max_items_per_bet'])
               throw new \Exception('В этой комнате можно ставить максимум '.$room_limits['max_items_per_bet'].' вещей за 1-ну ставку.');
           }
+
+        // n] Вернуть сумму ставкп
+        return $sum;
 
       });
 
@@ -592,11 +595,12 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
       });
 
       // 13. Записать необходимую информацию о ставке в БД
-      call_user_func(function() USE ($user, $items2bet_market_names, $bot2acceptbet, $room, $inventory, $safecode, $tradeofferid) {
+      call_user_func(function() USE ($sum, $user, $items2bet_market_names, $bot2acceptbet, $room, $inventory, $safecode, $tradeofferid) {
 
         // 1] Создать новую ставку md3_bets
         $newbet = new \M9\Models\MD3_bets();
         $newbet->tradeofferid = $tradeofferid;
+        $newbet->sum_cents_at_bet_moment = $sum;
         $newbet->save();
 
         // 2] Связать её с пользователем $user через md2000
