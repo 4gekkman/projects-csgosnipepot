@@ -147,6 +147,8 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
      *  5. Извлечь все knife types и weapon models из БД
      *  6. Использовать $prices для наполнения локальной базы данных
      *  7. Отметить в MD6_price_update_bugs, что ошибок при обновлении не возникло
+     *  8. Сделать коммит
+     *  9. Обновить качество всех вещей в БД
      *
      *  N. Вернуть статус 0
      *
@@ -750,8 +752,16 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
 
       });
 
+      // 8. Сделать коммит
+      DB::commit();
 
-    DB::commit(); } catch(\Exception $e) {
+      // 9. Обновить качество всех вещей в БД
+      $result = runcommand('\M8\Commands\C33_update_items_quality_indb', []);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C15_update_prices_steammarket from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
