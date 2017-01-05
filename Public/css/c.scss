@@ -87,7 +87,9 @@
   //------------------------------------//
 
     // Внешний контейнер классической игры
-    .content .classic-game {}
+    .content .classic-game {
+      position: relative;
+    }
 
     // Внутренний контейнер классической игры
     .content .classic-game .cg-container {
@@ -876,6 +878,24 @@
       margin-right: 20px;
       background: darken($cg_main_color, 5%);
       color: #ddd;
+      vertical-align: middle;
+    }
+
+    // Стили для ширины окна бравзера более 1400px
+    @media screen and (min-width: 1680px) {
+      .content .classic-game .statistics {
+        position: absolute;
+        top: 0;
+        left: -230px;
+        width: 200px;
+        margin-top: 0;
+      }
+      .content .classic-game .statistics>div {
+        margin-bottom: 30px;
+      }
+      .content-column {
+        margin-left: 230px;
+      }
     }
 
     // Заголовочная часть
@@ -885,18 +905,39 @@
       line-height: $cg_sizes_stats_height/6;
       font-weight: bold;
       font-size: 1.15em;
+      z-index: 1;
     }
 
     // Контентная часть
     .content .classic-game .statistics>div .contentpart {
+      position: relative;
       height: $cg_sizes_stats_height - $cg_sizes_stats_height/4;
-      //margin-top: $cg_sizes_stats_height/6;
+      padding-top: $cg_sizes_stats_height/6;
       background: $cg_main_color;
+      text-align: center;
+    }
+    .content .classic-game .statistics>div .contentpart img {
+      display: inline-block;
+      margin-top: $cg_sizes_stats_height/14;
+      width: 80px;
+      height: 80px;
+    }
+    .content .classic-game .statistics>div .contentpart .nickname {
+      position: absolute;
+      bottom: 0; left: 0; width: 100%;
+      text-align: center;
+      height: $cg_sizes_stats_height/6;
+      line-height: $cg_sizes_stats_height/6;
+      font-weight: bold;
+      font-size: 1.15em;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     // Подвальная часть
     .content .classic-game .statistics>div .footer {
       position: absolute; bottom: 0; left: 0;
+      padding-top: $cg_sizes_stats_height*0.025;
       width: 100%; height: $cg_sizes_stats_height/4;
     }
 
@@ -904,6 +945,30 @@
     .content .classic-game .statistics .lastwinner {
 
     }
+    .content .classic-game .statistics .lastwinner .footer>div {
+      height: $cg_sizes_stats_height*0.1;
+      line-height: $cg_sizes_stats_height*0.1;
+      text-align: left;
+    }
+    .content .classic-game .statistics .lastwinner .footer .row {
+      margin: 0;
+    }
+    .content .classic-game .statistics .lastwinner .footer .row>div {
+      overflow: hidden;
+    }
+    .content .classic-game .statistics .lastwinner .footer .row>div:nth-child(1) {
+      padding-left: 15px;
+      color: #ccc;
+    }
+    .content .classic-game .statistics .lastwinner .footer .row>div:nth-child(2) {
+      padding-right: 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .content .classic-game .statistics .lastwinner .footer .odds {
+      color: $cg_colog_highlight !important;
+    }
+
 
     // Счастливчик дня
     .content .classic-game .statistics .luckyoftheday {
@@ -911,6 +976,29 @@
     }
     .content .classic-game .statistics .luckyoftheday .contentpart {
       background: url('/public/D10009/assets/images/lucky-bg-v1.png') no-repeat -19px 0px
+    }
+    .content .classic-game .statistics .luckyoftheday .footer>div {
+      height: $cg_sizes_stats_height*0.1;
+      line-height: $cg_sizes_stats_height*0.1;
+      text-align: left;
+    }
+    .content .classic-game .statistics .luckyoftheday .footer .row {
+      margin: 0;
+    }
+    .content .classic-game .statistics .luckyoftheday .footer .row>div {
+      overflow: hidden;
+    }
+    .content .classic-game .statistics .luckyoftheday .footer .row>div:nth-child(1) {
+      padding-left: 15px;
+      color: #ccc;
+    }
+    .content .classic-game .statistics .luckyoftheday .footer .row>div:nth-child(2) {
+      padding-right: 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .content .classic-game .statistics .luckyoftheday .footer .odds {
+      color: $cg_colog_highlight !important;
     }
 
     // Наибольшая ставка
@@ -920,7 +1008,27 @@
     .content .classic-game .statistics .thebiggetsbet .contentpart {
       //background: url('/public/D10009/assets/images/dollars-bg-v1.jpg');
     }
-
+    .content .classic-game .statistics .thebiggetsbet .footer>div {
+      height: $cg_sizes_stats_height*0.1;
+      line-height: $cg_sizes_stats_height*0.1;
+      text-align: left;
+    }
+    .content .classic-game .statistics .thebiggetsbet .footer .row {
+      margin: 0;
+      margin-top: $cg_sizes_stats_height*0.05;
+    }
+    .content .classic-game .statistics .thebiggetsbet .footer .row>div {
+      overflow: hidden;
+    }
+    .content .classic-game .statistics .thebiggetsbet .footer .row>div:nth-child(1) {
+      padding-left: 15px;
+      color: #ccc;
+    }
+    .content .classic-game .statistics .thebiggetsbet .footer .row>div:nth-child(2) {
+      padding-right: 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
 
 
 

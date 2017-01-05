@@ -541,12 +541,42 @@
       <!------------*/ ?>
       <div class="contentpart">
 
+        <?php /*----------->
+        <!-- 2.1] Аватар -->
+        <!-------------*/ ?>
+        <img src="http://localhost:3003/public/M5/steam_avatars/9.jpg"> <!-- data-bind="attr: {src: avatar}">-->
+
+        <?php /*------------>
+        <!-- 2.2] Никнэйм -->
+        <!--------------*/ ?>
+        <div class="nickname">
+          <span>gtmmm2011</span>
+        </div>
+
       </div>
 
       <?php /*--------->
       <!-- 3] Подвал -->
       <!-----------*/ ?>
-      <div class="footer"></div>
+      <div class="footer">
+
+        <?php /*------------>
+        <!-- 3.1] Выигрыш -->
+        <!--------------*/ ?>
+        <div class="row">
+          <div class="span50">Выигрыш:</div>
+          <div class="span50">65011 руб.</div>
+        </div>
+
+        <?php /*--------->
+        <!-- 3.2] Шанс -->
+        <!-----------*/ ?>
+        <div class="row">
+          <div class="span50">Шанс:</div>
+          <div class="span50 odds">0.34%</div>
+        </div>
+
+      </div>
 
     </div>
 
@@ -567,12 +597,42 @@
       <!------------*/ ?>
       <div class="contentpart">
 
+        <?php /*----------->
+        <!-- 2.1] Аватар -->
+        <!-------------*/ ?>
+        <img src="http://localhost:3003/public/M5/steam_avatars/9.jpg"> <!-- data-bind="attr: {src: avatar}">-->
+
+        <?php /*------------>
+        <!-- 2.2] Никнэйм -->
+        <!--------------*/ ?>
+        <div class="nickname">
+          <span>gtmmm2011</span>
+        </div>
+
       </div>
 
       <?php /*--------->
       <!-- 3] Подвал -->
       <!-----------*/ ?>
-      <div class="footer"></div>
+      <div class="footer">
+
+        <?php /*------------>
+        <!-- 3.1] Выигрыш -->
+        <!--------------*/ ?>
+        <div class="row">
+          <div class="span50">Выигрыш:</div>
+          <div class="span50">65011 руб.</div>
+        </div>
+
+        <?php /*--------->
+        <!-- 3.2] Шанс -->
+        <!-----------*/ ?>
+        <div class="row odds">
+          <div class="span50">Шанс:</div>
+          <div class="span50 odds">0.34%</div>
+        </div>
+
+      </div>
 
     </div>
 
@@ -593,12 +653,34 @@
       <!------------*/ ?>
       <div class="contentpart">
 
+        <?php /*----------->
+        <!-- 2.1] Аватар -->
+        <!-------------*/ ?>
+        <img src="http://localhost:3003/public/M5/steam_avatars/9.jpg"> <!-- data-bind="attr: {src: avatar}">-->
+
+        <?php /*------------>
+        <!-- 2.2] Никнэйм -->
+        <!--------------*/ ?>
+        <div class="nickname">
+          <span>gtmmm2011</span>
+        </div>
+
       </div>
 
       <?php /*--------->
       <!-- 3] Подвал -->
       <!-----------*/ ?>
-      <div class="footer"></div>
+      <div class="footer">
+
+        <?php /*---------------------->
+        <!-- 3.1] Наибольшая ставка -->
+        <!------------------------*/ ?>
+        <div class="row">
+          <div class="span50">Ставка:</div>
+          <div class="span50">65011 руб.</div>
+        </div>
+
+      </div>
 
     </div>
 
