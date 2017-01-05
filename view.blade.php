@@ -300,7 +300,7 @@
       <?php /*--------------------------------------------------------------------------->
       <!-- 1.1.2.4. Распределение шансов на выигрыш в текущем раунде (цвета и полоски) -->
       <!-----------------------------------------------------------------------------*/ ?>
-      <div class="odds-graphic" data-bind="foreach: m.s1.game.wheel.data">
+      <div class="odds-graphic" style="display: none" data-bind="foreach: m.s1.game.wheel.data, visible: m.s1.game.curprev().current().bets().length">
 
         <?php /*-------------------------------------->
         <!-- Полоска, графически отображающая шансы -->
@@ -312,7 +312,7 @@
       <?php /*---------------------------------------------------------------------------->
       <!-- 1.1.2.5. Распределение шансов на выигрыш в текущем раунде (аватарки и текст) -->
       <!------------------------------------------------------------------------------*/ ?>
-      <div class="odds-avatars"  data-bind="foreach: m.s1.game.wheel.data">
+      <div class="odds-avatars" style="display: none" data-bind="foreach: m.s1.game.wheel.data, visible: m.s1.game.curprev().current().bets().length">
 
         <?php /*---------------------------->
         <!-- Аватарка, цвет игрока, шансы -->
@@ -425,8 +425,6 @@
               <!-- Цветная полоска с цветом качества/категории -->
               <!---------------------------------------------*/ ?>
               <div class="strip" data-bind="style: {background: $root.f.s1.get_cat_quality_item_color($data)}"></div>
-
-<!--              style: {borderColor: 'transparent ' +'#'+((category() != 'StatTrak™' && category() != '★') ? quality_color() : name_color())+ ' transparent' + ' transparent'}"-->
 
               <?php /*----------->
               <!-- Изображение -->
