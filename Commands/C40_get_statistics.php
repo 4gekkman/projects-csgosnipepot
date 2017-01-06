@@ -270,9 +270,49 @@ class C40_get_statistics extends Job { // TODO: добавить "implements Sho
             $this->data['force'] == true
           ) {
 
-            // 1] Среди сегодняшних выигрышей найти оный с самым большим джекпотом
+            // 1] Получить счастливчика текущего дня
+            $luckyoftheday = call_user_func(function(){
 
-            // whereRaw('Date(created_at) = CURDATE()')
+              // 1.1] Получить все победы этого дня
+              $wins = \M9\Models\MD4_wins::with(['m5_users'])
+                  ->whereRaw('Date(created_at) = CURDATE()')
+                  ->whereRaw('(winner_bets_items_cents/jackpot_total_sum_cents)*100 <= 5')
+                  ->get();
+
+              // 1.2] Если коллекция $wins пуста, вернуть пустую строку
+              if(emptY($wins) || count($wins) == 0) return '';
+
+              // 1.3]
+
+
+              //write2log($wins, []);
+
+
+
+            });
+
+            // 2] Получить предыдущего счастливчика
+            // - Это не обязательно будет счастливчик предыдущего дня.
+            //   Вполне возможно, что за последнюю неделю вообще счастливчиков
+            //   не было.
+            $luckyoftheday_previous = call_user_func(function(){
+
+            });
+
+            // 3] Если $luckyoftheday не пуст
+            if(!empty($luckyoftheday)) {
+
+            }
+
+            // 4] Если $luckyoftheday пуст, а $luckyoftheday_previous не пуст
+            if(empty($luckyoftheday) && !empty($luckyoftheday_previous)) {
+
+            }
+
+            // 5] Если и $luckyoftheday, и $luckyoftheday_previous пусты
+            if(empty($luckyoftheday) && empty($luckyoftheday_previous)) {
+
+            }
 
           }
 
@@ -295,8 +335,10 @@ class C40_get_statistics extends Job { // TODO: добавить "implements Sho
               $result = "";
 
               // 1.2] Среди всех ставок найти наибольшую по сумме
+              // - За текущий день.
               $bet = \M9\Models\MD3_bets::with(['m5_users'])
                   ->whereRaw('sum_cents_at_bet_moment = (select max(`sum_cents_at_bet_moment`) from m9.md3_bets)')
+                  ->whereRaw('Date(created_at) = CURDATE()')
                   ->first();
 
               // 1.3] Если $bet не пуста
