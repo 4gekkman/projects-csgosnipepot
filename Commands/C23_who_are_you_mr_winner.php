@@ -165,6 +165,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  28. Сделать commit
      *  29. Обновить весь кэш процессинга выигрышей
      *  30. Обновить данные о выигрышах у победителя
+     *  31. Обновить статистику классической игры, и транслировать её
      *
      *  m] Отладочный массив логов
      *  n] Вернуть результат
@@ -932,22 +933,44 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
       // 30. Обновить данные о выигрышах у победителя
       // - Через websocket, по частному каналу
-      Event::fire(new \R2\Broadcast([
-        'channels' => ['m9:public:'],
-        'queue'    => 'm9_lottery_broadcasting',
-        'data'     => [
-          'task' => 'tradeoffer_wins_cancel',
-          'data' => [
-            'id_room'     => $this->data['id_room'],
-            'wins'        => [
-              "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: "",
-              "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
-              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
-              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: []
-            ]
+      //Event::fire(new \R2\Broadcast([
+      //  'channels' => ['m9:public:'],
+      //  'queue'    => 'm9_lottery_broadcasting',
+      //  'data'     => [
+      //    'task' => 'tradeoffer_wins_cancel',
+      //    'data' => [
+      //      'id_room'     => $this->data['id_room'],
+      //      'wins'        => [
+      //        "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: "",
+      //        "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
+      //        "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: [],
+      //        "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$winner_and_ticket['user_winner']['id']), true) ?: []
+      //      ]
+      //    ]
+      //  ]
+      //]));
+
+      // 31. Обновить статистику классической игры, и транслировать её
+      call_user_func(function(){
+
+        // 1] Обновить статистику и получить новые данные
+        $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
+          "force" => true
+        ]);
+        if($classicgame_statistics['status'] != 0)
+          throw new \Exception($classicgame_statistics['data']['errormsg']);
+
+        // 2] Транслировать свежую статистику через публичны канал всем пользователям
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:public'],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'classicgame_statistics_update',
+            'data' => $classicgame_statistics
           ]
-        ]
-      ]));
+        ]));
+
+      });
 
 
       // m] Отладочный массив логов

@@ -270,49 +270,61 @@ class C40_get_statistics extends Job { // TODO: добавить "implements Sho
             $this->data['force'] == true
           ) {
 
-            // 1] Получить счастливчика текущего дня
+            // 1] Получить данные по счастливчику дня
             $luckyoftheday = call_user_func(function(){
 
-              // 1.1] Получить все победы этого дня
-              $wins = \M9\Models\MD4_wins::with(['m5_users'])
-                  ->whereRaw('Date(created_at) = CURDATE()')
-                  ->whereRaw('(winner_bets_items_cents/jackpot_total_sum_cents)*100 <= 5')
-                  ->get();
+              // 1.1] Получить счастливчика текущего дня
+              $luckyoftheday_win = \M9\Models\MD4_wins::with(['m5_users'])
+                ->whereRaw('Date(created_at) = CURDATE()')
+                ->whereRaw('(winner_bets_items_cents/jackpot_total_sum_cents)*100 <= 5')
+                ->whereRaw('winner_bets_items_cents = (select max(`winner_bets_items_cents`) from m9.md4_wins)')
+                ->first();
 
-              // 1.2] Если коллекция $wins пуста, вернуть пустую строку
-              if(emptY($wins) || count($wins) == 0) return '';
+              // 1.2] Получить предыдущего счастливчика
+              // - Это не обязательно будет счастливчик предыдущего дня.
+              //   Вполне возможно, что за последнюю неделю вообще счастливчиков
+              //   не было.
+              $luckyoftheday_previous_win = \M9\Models\MD4_wins::with(['m5_users'])
+                ->whereRaw('(winner_bets_items_cents/jackpot_total_sum_cents)*100 <= 5')
+                ->whereRaw('winner_bets_items_cents = (select max(`winner_bets_items_cents`) from m9.md4_wins)')
+                ->orderBy('created_at', 'desc')->first();
 
-              // 1.3]
+              // 1.3] Если $luckyoftheday_win или $luckyoftheday_previous_win не пусты
+              if(!empty($luckyoftheday_win) || !empty($luckyoftheday_previous_win)) {
 
+                // 1) Получить выигрыш
+                $win = !empty($luckyoftheday_win) ? $luckyoftheday_win : $luckyoftheday_previous_win;
 
-              //write2log($wins, []);
+                // 2) Получить пользователя
+                $user = $win->m5_users[0];
 
+                // 3) Подсчитать шансы победителя
+                $odds = round(($win['winner_bets_items_cents']/$win['jackpot_total_sum_cents'])*100*100)/100;
 
+                // 4) Записать данные в $result
+                return [
+                  'id'                      => $user['id'],
+                  'nickname'                => $user['nickname'],
+                  'avatar_steam'            => $user['avatar_steam'],
+                  'jackpot_total_sum_cents' => $win['jackpot_total_sum_cents'],
+                  'odds'                    => $odds
+                ];
+
+              }
+
+              // 1.4] Если и $luckyoftheday_win, и $luckyoftheday_previous_win пусты
+              return [
+                'id'                      => '',
+                'nickname'                => '',
+                'avatar_steam'            => '',
+                'jackpot_total_sum_cents' => '',
+                'odds'                    => ''
+              ];
 
             });
 
-            // 2] Получить предыдущего счастливчика
-            // - Это не обязательно будет счастливчик предыдущего дня.
-            //   Вполне возможно, что за последнюю неделю вообще счастливчиков
-            //   не было.
-            $luckyoftheday_previous = call_user_func(function(){
-
-            });
-
-            // 3] Если $luckyoftheday не пуст
-            if(!empty($luckyoftheday)) {
-
-            }
-
-            // 4] Если $luckyoftheday пуст, а $luckyoftheday_previous не пуст
-            if(empty($luckyoftheday) && !empty($luckyoftheday_previous)) {
-
-            }
-
-            // 5] Если и $luckyoftheday, и $luckyoftheday_previous пусты
-            if(empty($luckyoftheday) && empty($luckyoftheday_previous)) {
-
-            }
+            // 2] Обновить кэш
+            Cache::put('m9:statistics:luckyoftheday', json_encode($luckyoftheday, JSON_UNESCAPED_UNICODE), 30);
 
           }
 
@@ -385,9 +397,9 @@ class C40_get_statistics extends Job { // TODO: добавить "implements Sho
       return [
         "status"  => 0,
         "data"    => [
-          "m9:statistics:lastwinners"   => Cache::get('m9:statistics:lastwinners'),
-          "m9:statistics:luckyoftheday" => Cache::get('m9:statistics:luckyoftheday'),
-          "m9:statistics:thebiggetsbet" => Cache::get('m9:statistics:thebiggetsbet')
+          "m9:statistics:lastwinners"   => json_decode(Cache::get('m9:statistics:lastwinners'), true),
+          "m9:statistics:luckyoftheday" => json_decode(Cache::get('m9:statistics:luckyoftheday'), true),
+          "m9:statistics:thebiggetsbet" => json_decode(Cache::get('m9:statistics:thebiggetsbet'), true)
         ]
       ];
 
