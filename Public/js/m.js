@@ -116,8 +116,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 				// 2] В зависимости от task выполнить соотв.метод
 				switch(task) {
-					case "fresh_game_data": 	self.f.s1.fresh_game_data(data.data.data.data); break;
-					case "reload_page": 		  self.f.s1.reload_page(data.data.data.data); break;
+					case "fresh_game_data": 							self.f.s1.fresh_game_data(data.data.data.data); break;
+					case "reload_page": 		  						self.f.s1.reload_page(data.data.data.data); break;
+					case "classicgame_statistics_update": self.f.s1.update_statistics(data.data.data.data.data); break;
 				}
 
 			});

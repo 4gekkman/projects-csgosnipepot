@@ -173,21 +173,30 @@ class Controller extends BaseController {
       // 5. Получить палитру цветов для игроков из конфига
       $palette = config('M9.palette');
 
+      // 6. Получить статистическую информацию по классической игре
+      $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
+        "force" => false
+      ]);
+      if($classicgame_statistics['status'] != 0)
+        throw new \Exception($classicgame_statistics['data']['errormsg']);
+
+
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
 
-        'document_locale'       => r1_get_doc_locale($this->packid),
-        'auth'                  => session('auth_cache') ?: '',
-        'packid'                => $this->packid,
-        'layoutid'              => $this->layoutid,
-        'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
-        'websockets_channel'    => Session::getId(),
-        'steam_tradeurl'        => $steam_tradeurl,
-        'rooms'                 => $allgamedata['data']['rooms'],
-        'choosen_room_id'       => $allgamedata['data']['choosen_room_id'],
-        'lottery_game_statuses' => $lottery_game_statuses_db,
-        'palette'               => $palette,
-        "servertime_s"          => \Carbon\Carbon::now()->timestamp,
+        'document_locale'         => r1_get_doc_locale($this->packid),
+        'auth'                    => session('auth_cache') ?: '',
+        'packid'                  => $this->packid,
+        'layoutid'                => $this->layoutid,
+        'websocket_server'        => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
+        'websockets_channel'      => Session::getId(),
+        'steam_tradeurl'          => $steam_tradeurl,
+        'rooms'                   => $allgamedata['data']['rooms'],
+        'choosen_room_id'         => $allgamedata['data']['choosen_room_id'],
+        'lottery_game_statuses'   => $lottery_game_statuses_db,
+        'palette'                 => $palette,
+        "servertime_s"            => \Carbon\Carbon::now()->timestamp,
+        "classicgame_statistics"  => $classicgame_statistics,
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
