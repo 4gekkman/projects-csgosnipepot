@@ -185,6 +185,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "bonus_domain_name"         => ["required", "string"],
         "bonus_firstbet" 			      => ["required", "min:0", "max:100"],
         "bonus_secondbet" 			    => ["required", "min:0", "max:100"],
+        "avatars_num_in_strip" 			=> ["required", "r4_between:10,500"],
 
       ]); if($validator['status'] == -1) {
 
