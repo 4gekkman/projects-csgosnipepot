@@ -633,6 +633,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.bonus_domain_name(data.bonus_domain_name());
 			self.m.s2.edit.bonus_firstbet(data.bonus_firstbet());
 			self.m.s2.edit.bonus_secondbet(data.bonus_secondbet());
+			self.m.s2.edit.avatars_num_in_strip(data.avatars_num_in_strip());
 
 			// 2] Загрузить данные для allow_only_types
 			var allow_only_types = JSON.parse(data.allow_only_types());
@@ -707,7 +708,8 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					bonus_domain: 						self.m.s2.edit.bonus_domain(),
 					bonus_domain_name: 				self.m.s2.edit.bonus_domain_name(),
 					bonus_firstbet: 					self.m.s2.edit.bonus_firstbet(),
-					bonus_secondbet: 					self.m.s2.edit.bonus_secondbet()
+					bonus_secondbet: 					self.m.s2.edit.bonus_secondbet(),
+					avatars_num_in_strip: 		self.m.s2.edit.avatars_num_in_strip()
 
 				},
 			  prejob:       function(config, data, event){},

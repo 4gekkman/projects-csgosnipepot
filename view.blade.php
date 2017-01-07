@@ -583,6 +583,28 @@
 
           </div>
 
+          <?php /*------------------------------------------------->
+          <!-- Настройки версии интерфейса с бегущими аватарками -->
+          <!---------------------------------------------------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Настройки версии интерфейса с бегущими аватарками</span>
+            </div>
+
+            <?php /* 1] avatars_num_in_strip -->
+            <!-----------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Кол-во аватарок в ленте</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.avatars_num_in_strip">
+              </div>
+            </div>
+
+          </div>
+
           <?php /*------>
           <!-- Бонусы -->
           <!--------*/ ?>
