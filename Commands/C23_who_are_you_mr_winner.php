@@ -937,7 +937,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       });
 
       // 29. Получить и записать значение для avatars_strip
-      call_user_func(function() USE ($room, $round) {
+      call_user_func(function() USE ($room, $round, $jackpot_total_sum_cents, $winner_and_ticket) {
 
         // 1] Получить итоговое кол-во аватарок в ленте
         $avatars_num = call_user_func(function() USE ($room) {
@@ -953,24 +953,90 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         });
 
-        // 2] Составить индекс игроков раунда и их шансов
+        // 2] Составить индекс игроков раунда, их шансов и кол-ва аватарок в ленте
         // - Он должен выглядеть так:
         //
         //  [
-        //    <id игрока>: <шанс игрока в процентах>,
-        //    <id игрока>: <шанс игрока в процентах>,
+        //    ['id' => <id игрока>, 'odds' => <шанс игрока в процентах>, 'num' => <кол-во его аватарок в полосе>]
+        //    ['id' => <id игрока>, 'odds' => <шанс игрока в процентах>, 'num' => <кол-во его аватарок в полосе>],
         //    ...
         //  ]
         //
-        $users_odds_index = call_user_func(function(){
+        $users_odds_index = call_user_func(function() USE ($round, $jackpot_total_sum_cents, $avatars_num) {
 
           // 2.1] Подготовить массив для результатов
           $index = [];
 
+          // 2.2] Наполнить $index
+          foreach($round['bets'] as $bet) {
+            foreach($bet['m5_users'] as $user) {
 
+              // 2.2.1] Вычислить шансы в % пользователя $user на победу
+              $odds = round(($bet['sum_cents_at_bet_moment']/$jackpot_total_sum_cents)*100*100)/100;
+
+              // 2.2.2] Вычислить кол-во аватарок в ленте от этого пользователя
+              // - Оно не может быть менее 1.
+              $num = round($avatars_num * ($odds/100));
+              if($num < 1) $num = 1;
+
+              // 2.2.n] Добавить данные в индекс
+              array_push($index, [
+                'id'   => $user['id'],
+                'odds' => $odds,
+                'num'  => $num
+              ]);
+
+            }
+          }
+
+          // 2.3] Отсортировать $index
+          // - Чтобы в начале шли пользователи с мЕньшими шансами.
+          usort($index, function($a, $b){ return $a['num'] > $b['num']; });
+          $index = array_values($index);
+
+          // 2.4] Вернуть $index
+          return $index;
 
         });
 
+        write2log('users_odds_index: '.$avatars_num);
+
+        write2log('users_odds_index:');
+        write2log($users_odds_index, []);
+
+        // 3] Сгенерировать avatars_strip
+        $avatars_strip = call_user_func(function() USE ($avatars_num, $users_odds_index, $winner_and_ticket) {
+
+          // 3.1] Подготовить массив для результатов
+          $result = [];
+
+          // 3.2] Наполнить $result
+          // - В $result не должно войти более $avatars_num записей
+          foreach($users_odds_index as $data) {
+            for($i=0; $i<count($data['num']); $i++) {
+              if(count($result) <= $avatars_num)
+                array_push($result, $data['id']);
+            }
+          }
+
+          // 3.3] Перемешать массив $result
+          shuffle($result);
+          $result = array_values($result);
+
+          // 3.4] На 100-е место (индекс 99) разместить ID победителя
+          $result[99] = $winner_and_ticket['user_winner']['id'];
+
+          // 3.n] Вернуть результат
+          return $result;
+
+        });
+
+        write2log('avatars_strip:');
+        write2log($avatars_strip, []);
+
+        // 4] Записать $avatars_strip в $round
+        $round->avatars_strip = json_encode($avatars_strip, JSON_PRETTY_PRINT);
+        $round->save();
 
       });
 
