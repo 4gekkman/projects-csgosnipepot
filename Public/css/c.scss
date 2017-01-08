@@ -27,14 +27,18 @@
   1.3. Стили шапки классической игры
   1.4. Стили интерфейса выбора комнаты в шапке игры
   1.5. Номер игры и банк
-  1.6. Счётчики предметов и времени текущего раунда
-  1.7. Органы управления игрой для игрока
-  1.8. Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
-  1.9. Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
-  1.10. Ставки раунда
-  1.11. Панель с информацией о текущем раунде
-  1.12. Условия использования, предупреждение о не аффилированности с Valve
-  1.13. Статистические данные
+  1.6. Панель интерфейса игрового процесса
+
+    1.6.1. Общие стили панели интерфейса игрового процесса
+    1.6.2. Счётчики предметов и времени текущего раунда
+    1.6.3. Органы управления игрой для игрока
+
+  1.7. Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
+  1.8. Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
+  1.9. Ставки раунда
+  1.10. Панель с информацией о текущем раунде
+  1.11. Условия использования, предупреждение о не аффилированности с Valve
+  1.12. Статистические данные
 
 //------------------------------------*/
 
@@ -257,6 +261,7 @@
       list-style: 80px;
       text-align: center;
       font-size: 2.1em;
+      border-bottom: 2px solid #2b3d45;
     }
 
     // Стили номера игры
@@ -285,211 +290,244 @@
     }
 
 
-  //---------------------------------------------------//
-  // 1.6. Счётчики предметов и времени текущего раунда //
-  //---------------------------------------------------//
+  //------------------------------------------//
+  // 1.6. Панель интерфейса игрового процесса //
+  //------------------------------------------//
 
-    // Общие стили
-    .content .classic-game .cg-container .counters {
-      height: 120px;
-      border-top: 2px solid lighten($cg_main_color, 5%);
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .content .classic-game .cg-container .counters>div {
-      display: inline-block;
-      vertical-align: middle;
-      height: 50px;
-      margin: 35px 50px;
-    }
-
-    // Счётчик вещей раунда
-    .content .classic-game .cg-container .counters .counter-items {
-      position: relative;
-      background: darken($cg_main_color, 5%);
-      margin-right: 10px;
-      border-radius: 4px;
-      width: 470px;
-    }
-    .content .classic-game .cg-container .counters .counter-items .indicator {
-      position: relative;
-      width: 25%;
-      height: 42px;
-      margin: 4px;
-      border-radius: 4px;
-      transition: all .5s ease;
-
-      background: rgb(217,89,32); /* Old browsers */
-      background: -moz-linear-gradient(left,  rgba(217,89,32,1) 0%, rgba(245,156,26,1) 50%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
-      background: -webkit-linear-gradient(left,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
-      background: linear-gradient(to right,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d95920', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
-    }
-    .content .classic-game .cg-container .counters .counter-items .indicator .knifes {
-      position: absolute; top: -20px; right: -50px;
-      width: 100px;
-      height: 85px;
-    }
-    .content .classic-game .cg-container .counters .counter-items .indicator .items-inbank-max {
-      position: absolute; top: 4px; right: -50px;
-      padding: 3px 8px;
-      color: #ffd38f;
-      font-size: 1.8em;
-      height: 34px;
-      line-height: 28px;
-      border-radius: 4px;
-      background-color: rgba(0,0,0,.6);
-    }
-
-    // Текст между счётчиками
-    .content .classic-game .cg-container .counters .text-between-counters {
-      width: 100px;
-      line-height: 50px;
-      margin-left: 0; margin-right: 0;
-      font-size: 1.1em;
-      text-align: center;
-    }
-
-    // Счётчик времени раунда
-    .content .classic-game .cg-container .counters .counter-time {
-      width: 180px;
-      margin-left: 10px;
-      line-height: 50px;
-      color: $cg_colog_highlight;
-    }
-    .content .classic-game .cg-container .counters .counter-time>div {
-      display: inline-block;
-      height: 50px;
-      line-height: 50px;
-      text-align: center;
-      vertical-align: middle;
-      font-size: 2.5em;
-      font-weight: bold;
-    }
-    .content .classic-game .cg-container .counters .counter-time>div:nth-child(1) {
-      width: 70px;
-      background: darken($cg_main_color, 5%);
-      border-radius: 4px;
-    }
-    .content .classic-game .cg-container .counters .counter-time>div:nth-child(2) {
-      width: 20px;
-      line-height: 45px;
-      padding-right: 1px;
-    }
-    .content .classic-game .cg-container .counters .counter-time>div:nth-child(3) {
-      width: 70px;
-      background: darken($cg_main_color, 5%);
-      border-radius: 4px;
-    }
-
-
-  //-----------------------------------------//
-  // 1.7. Органы управления игрой для игрока //
-  //-----------------------------------------//
-
-    // Общие стили
-    .content .classic-game .cg-container .controls {
-      height: $cg_sizes_controls_height;
-      background: darken($cg_main_color, 5%);
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    // Кол-во внесённых предметов, шанс, кнопка "Внести депозит"
+    //--------------------------------------------------------//
+    // 1.6.1. Общие стили панели интерфейса игрового процесса //
+    //--------------------------------------------------------//
 
       // Общие стили
-      .content .classic-game .cg-container .controls .status_and_button {
-        height: $cg_sizes_controls_height*.6;
+      .content .classic-game .cg-container .gameprocess {
+        height: 240px;
+        background: $cg_main_color;
       }
-      .content .classic-game .cg-container .controls .status_and_button>div {
+
+    //-----------------------------------------------------//
+    // 1.6.2. Счётчики предметов и времени текущего раунда //
+    //-----------------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .counters {
+        height: 120px;
+        //border-top: 2px solid lighten($cg_main_color, 5%);
+        overflow: hidden;
+        white-space: nowrap;
+        transition: all .2s ease;
+      }
+      .content .classic-game .cg-container .gameprocess .counters>div {
         display: inline-block;
-        width: 33.33333%;
-        height: $cg_sizes_controls_height*.6;
-        line-height: $cg_sizes_controls_height*.6;
         vertical-align: middle;
+        height: 50px;
+        margin: 35px 50px;
       }
 
-      // Количество внесённых предметов
-      .content .classic-game .cg-container .controls .status_and_button .items_info {
-        text-align: center;
-        color: #81D1F9;
-        font-size: 1.5em;
+      // Состояние lottery
+      .content .classic-game .cg-container .gameprocess .counters.lottery {
+        opacity: 0;
+        transform: translate3d(-260px,-40px,0) rotate(-5deg);
       }
 
-      // Шанс
-      .content .classic-game .cg-container .controls .status_and_button .chance {
+      // Состояние winner
+      .content .classic-game .cg-container .gameprocess .counters.winner {
+        opacity: 0;
+      }
+
+      // Счётчик вещей раунда
+      .content .classic-game .cg-container .gameprocess .counters .counter-items {
         position: relative;
-        text-align: center;
-        font-size: 1.5em;
+        background: darken($cg_main_color, 5%);
+        margin-right: 10px;
+        border-radius: 4px;
+        width: 470px;
       }
-      .content .classic-game .cg-container .controls .status_and_button .chance .arrows-left {
-        position: absolute;
-        top: $cg_sizes_controls_height*.3 - 10px;
-        left: 0;
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        background-image: url('/public/D10009/assets/icons/sprites.png');
-        background-repeat: no-repeat;
-        background-position: -93px -15px;
-      }
-      .content .classic-game .cg-container .controls .status_and_button .chance .arrows-right {
-        position: absolute;
-        top: $cg_sizes_controls_height*.3 - 10px;
-        right: 0;
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        background-image: url('/public/D10009/assets/icons/sprites.png');
-        background-repeat: no-repeat;
-        background-position: -93px -15px;
-      }
-
-      // Кнопка "Внести депозит"
-      .content .classic-game .cg-container .controls .status_and_button .make-a-bet {
-        text-align: center;
-        height: $cg_sizes_controls_height*.6;
-        line-height: $cg_sizes_controls_height*.6;
-        user-select: none;
-      }
-      .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button {
-        display: inline-block;
-        height: $cg_sizes_controls_height*.3;
-        line-height: $cg_sizes_controls_height*.3;
-        vertical-align: middle;
-        padding: 0 29px;
-        font-size: 1.5em;
-        background: #795349;
-        color: #fff;
-        border: 1px solid #E3764D;
-        cursor: pointer;
+      .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator {
+        position: relative;
+        width: 25%;
+        height: 42px;
+        margin: 4px;
+        border-radius: 4px;
         transition: all .5s ease;
+
+        background: rgb(217,89,32); /* Old browsers */
+        background: -moz-linear-gradient(left,  rgba(217,89,32,1) 0%, rgba(245,156,26,1) 50%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
+        background: -webkit-linear-gradient(left,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to right,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d95920', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
       }
-      .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button:hover {
-        background: rgba(252, 131, 86, 0.5)
+      .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .knifes {
+        position: absolute; top: -20px; right: -50px;
+        width: 100px;
+        height: 85px;
       }
-      .content .classic-game .cg-container .controls .status_and_button .make-a-bet .button span {
-        vertical-align: baseline;
+      .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .items-inbank-max {
+        position: absolute; top: 4px; right: -50px;
+        padding: 3px 8px;
+        color: #ffd38f;
+        font-size: 1.8em;
+        height: 34px;
+        line-height: 28px;
+        border-radius: 4px;
+        background-color: rgba(0,0,0,.6);
       }
 
-    // Панель с информацией о лимитах выбранной комнаты
-    .content .classic-game .cg-container .controls .info {
-      height: $cg_sizes_controls_height*.4;
-    }
-    .content .classic-game .cg-container .controls .info .limits {
-      height: $cg_sizes_controls_height*.2;
-      line-height: $cg_sizes_controls_height*.2;
-      margin: $cg_sizes_controls_height*.05 40px;
-      font-size: 1.1em;
-      text-align: center;
-      background-color: #573c46;
-      border: 1px solid #734857;
-      color: #fad8f1;
-    }
+      // Текст между счётчиками
+      .content .classic-game .cg-container .gameprocess .counters .text-between-counters {
+        width: 100px;
+        line-height: 50px;
+        margin-left: 0; margin-right: 0;
+        font-size: 1.1em;
+        text-align: center;
+      }
+
+      // Счётчик времени раунда
+      .content .classic-game .cg-container .gameprocess .counters .counter-time {
+        width: 180px;
+        margin-left: 10px;
+        line-height: 50px;
+        color: $cg_colog_highlight;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div {
+        display: inline-block;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 2.5em;
+        font-weight: bold;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(1) {
+        width: 70px;
+        background: darken($cg_main_color, 5%);
+        border-radius: 4px;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(2) {
+        width: 20px;
+        line-height: 45px;
+        padding-right: 1px;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(3) {
+        width: 70px;
+        background: darken($cg_main_color, 5%);
+        border-radius: 4px;
+      }
+
+
+    //-------------------------------------------//
+    // 1.6.3. Органы управления игрой для игрока //
+    //-------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .controls {
+        height: $cg_sizes_controls_height;
+        background: darken($cg_main_color, 5%);
+        overflow: hidden;
+        white-space: nowrap;
+        transition: all .2s ease;
+      }
+
+      // Скрытое состояние
+      .content .classic-game .cg-container .gameprocess .controls.hiddenpanel {
+        opacity: 0;
+        margin-top: 10px;
+      }
+
+      // Кол-во внесённых предметов, шанс, кнопка "Внести депозит"
+
+        // Общие стили
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button {
+          height: $cg_sizes_controls_height*.6;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button>div {
+          display: inline-block;
+          width: 33.33333%;
+          height: $cg_sizes_controls_height*.6;
+          line-height: $cg_sizes_controls_height*.6;
+          vertical-align: middle;
+        }
+
+        // Количество внесённых предметов
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .items_info {
+          text-align: center;
+          color: #81D1F9;
+          font-size: 1.5em;
+        }
+
+        // Шанс
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance {
+          position: relative;
+          text-align: center;
+          font-size: 1.5em;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-left {
+          position: absolute;
+          top: $cg_sizes_controls_height*.3 - 10px;
+          left: 0;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-right {
+          position: absolute;
+          top: $cg_sizes_controls_height*.3 - 10px;
+          right: 0;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+
+        // Кнопка "Внести депозит"
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet {
+          text-align: center;
+          height: $cg_sizes_controls_height*.6;
+          line-height: $cg_sizes_controls_height*.6;
+          user-select: none;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button {
+          display: inline-block;
+          height: $cg_sizes_controls_height*.3;
+          line-height: $cg_sizes_controls_height*.3;
+          vertical-align: middle;
+          padding: 0 29px;
+          font-size: 1.5em;
+          background: #795349;
+          color: #fff;
+          border: 1px solid #E3764D;
+          cursor: pointer;
+          transition: all .5s ease;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button:hover {
+          background: rgba(252, 131, 86, 0.5)
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button span {
+          vertical-align: baseline;
+        }
+
+      // Панель с информацией о лимитах выбранной комнаты
+      .content .classic-game .cg-container .gameprocess .controls .info {
+        height: $cg_sizes_controls_height*.4;
+      }
+      .content .classic-game .cg-container .gameprocess .controls .info .limits {
+        height: $cg_sizes_controls_height*.2;
+        line-height: $cg_sizes_controls_height*.2;
+        margin: $cg_sizes_controls_height*.05 40px;
+        font-size: 1.1em;
+        text-align: center;
+        background-color: #573c46;
+        border: 1px solid #734857;
+        color: #fad8f1;
+      }
 
 
   //-------------------------------------------------------------------------//
-  // 1.8. Распределение шансов на выигрыш в текущем раунде (цвета и полоски) //
+  // 1.7. Распределение шансов на выигрыш в текущем раунде (цвета и полоски) //
   //-------------------------------------------------------------------------//
 
     // Общие стили
@@ -509,7 +547,7 @@
     }
 
   //--------------------------------------------------------------------------//
-  // 1.9. Распределение шансов на выигрыш в текущем раунде (аватарки и текст) //
+  // 1.8. Распределение шансов на выигрыш в текущем раунде (аватарки и текст) //
   //--------------------------------------------------------------------------//
 
     // Общие стили
@@ -573,9 +611,9 @@
       height: 6px !important;
     }
 
-  //----------------------//
-  // 1.10. Ставки раунда  //
-  //----------------------//
+  //---------------------//
+  // 1.9. Ставки раунда  //
+  //---------------------//
 
     // Контейнер
     .content .classic-game .bets {
@@ -765,7 +803,7 @@
 
 
   //---------------------------------------------//
-  // 1.11. Панель с информацией о текущем раунде //
+  // 1.10. Панель с информацией о текущем раунде //
   //---------------------------------------------//
 
     // Общие стили
@@ -838,7 +876,7 @@
       }
 
   //---------------------------------------------------------------------------//
-  // 1.12. Условия использования, предупреждение о не аффилированности с Valve //
+  // 1.11. Условия использования, предупреждение о не аффилированности с Valve //
   //---------------------------------------------------------------------------//
 
     // Общие стили
@@ -861,7 +899,7 @@
     }
 
   //-----------------------------//
-  // 1.13. Статистические данные //
+  // 1.12. Статистические данные //
   //-----------------------------//
 
     // Общие стили
