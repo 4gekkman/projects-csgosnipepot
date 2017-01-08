@@ -162,10 +162,13 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  25. Добавить долг debt_balance_cents в таблици, и связать с выигрышем
      *  26. Записать код безопасности $safecode в md6_safecodes
      *  27. Связать $safecode и $newwin через md1014
-     *  28. Сделать commit
-     *  29. Обновить весь кэш процессинга выигрышей
-     *  30. Обновить данные о выигрышах у победителя
-     *  31. Обновить статистику классической игры, и транслировать её
+     *  28. Получить и записать значение для avatar_winner_stop_percents
+     *  29. Получить и записать значение для avatars_strip
+     *
+     *  x1. Сделать commit
+     *  x2. Обновить весь кэш процессинга выигрышей
+     *  x3. Обновить данные о выигрышах у победителя
+     *  x4. Обновить статистику классической игры, и транслировать её
      *
      *  m] Отладочный массив логов
      *  n] Вернуть результат
@@ -235,7 +238,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         // 5] Получить номер выигравшего билета
         // - От 0 до $lastbet_lastticket включительно.
-        $ticket_winner_number = random_int(0, $lastbet_lastticket);
+        $ticket_winner_number = (int)round($lastbet_lastticket * $round['key']);//random_int(0, $lastbet_lastticket);
 
         // 6] Найти пользователя, у которого билет $ticket_winner_number
         $user = call_user_func(function() USE ($round, $ticket_winner_number) {
@@ -921,17 +924,67 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       // 27. Связать $safecode и $newwin через md1014
       $newwin->safecodes()->attach($newsafecode->id);
 
-      // 28. Сделать commit
+      // 28. Получить и записать значение для avatar_winner_stop_percents
+      call_user_func(function() USE ($round) {
+
+        // 1] Получить случайное число от 5 до 95
+        $random = random_int(5, 95);
+
+        // 2] Записать $random в $round
+        $round->avatar_winner_stop_percents = $random;
+        $round->save();
+
+      });
+
+      // 29. Получить и записать значение для avatars_strip
+      call_user_func(function() USE ($room, $round) {
+
+        // 1] Получить итоговое кол-во аватарок в ленте
+        $avatars_num = call_user_func(function() USE ($room) {
+
+          // 1.1] Узнать, сколько аватарок должно быть в ленте
+          $avatars_num_in_strip = $room->avatars_num_in_strip;
+
+          // 1.2] Задать число дополнительных аватарок, которые будут в конце ленты
+          $avatars_num_in_strip_additional = 10;
+
+          // 1.n] Вернуть результат
+          return +$avatars_num_in_strip + +$avatars_num_in_strip_additional;
+
+        });
+
+        // 2] Составить индекс игроков раунда и их шансов
+        // - Он должен выглядеть так:
+        //
+        //  [
+        //    <id игрока>: <шанс игрока в процентах>,
+        //    <id игрока>: <шанс игрока в процентах>,
+        //    ...
+        //  ]
+        //
+        $users_odds_index = call_user_func(function(){
+
+          // 2.1] Подготовить массив для результатов
+          $index = [];
+
+
+
+        });
+
+
+      });
+
+      // x1. Сделать commit
       DB::commit();
 
-      // 29. Обновить весь кэш процессинга выигрышей
+      // x2. Обновить весь кэш процессинга выигрышей
       $result = runcommand('\M9\Commands\C25_update_wins_cache', [
         "all"   => true
       ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 30. Обновить данные о выигрышах у победителя
+      // x3. Обновить данные о выигрышах у победителя
       // - Через websocket, по частному каналу
       //Event::fire(new \R2\Broadcast([
       //  'channels' => ['m9:public:'],
@@ -950,7 +1003,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       //  ]
       //]));
 
-      // 31. Обновить статистику классической игры, и транслировать её
+      // x4. Обновить статистику классической игры, и транслировать её
       call_user_func(function(){
 
         // 1] Обновить статистику и получить новые данные
