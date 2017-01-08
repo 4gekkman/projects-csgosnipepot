@@ -976,7 +976,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
               // 2.2.2] Вычислить кол-во аватарок в ленте от этого пользователя
               // - Оно не может быть менее 1.
-              $num = round($avatars_num * ($odds/100));
+              $num = (int)round($avatars_num * ($odds/100));
               if($num < 1) $num = 1;
 
               // 2.2.n] Добавить данные в индекс
@@ -999,11 +999,6 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         });
 
-        write2log('users_odds_index: '.$avatars_num);
-
-        write2log('users_odds_index:');
-        write2log($users_odds_index, []);
-
         // 3] Сгенерировать avatars_strip
         $avatars_strip = call_user_func(function() USE ($avatars_num, $users_odds_index, $winner_and_ticket) {
 
@@ -1013,7 +1008,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           // 3.2] Наполнить $result
           // - В $result не должно войти более $avatars_num записей
           foreach($users_odds_index as $data) {
-            for($i=0; $i<count($data['num']); $i++) {
+            for($i=0; $i<$data['num']; $i++) {
               if(count($result) <= $avatars_num)
                 array_push($result, $data['id']);
             }
@@ -1030,9 +1025,6 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           return $result;
 
         });
-
-        write2log('avatars_strip:');
-        write2log($avatars_strip, []);
 
         // 4] Записать $avatars_strip в $round
         $round->avatars_strip = json_encode($avatars_strip, JSON_PRETTY_PRINT);
