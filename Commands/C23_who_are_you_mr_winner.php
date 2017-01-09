@@ -1009,7 +1009,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           // - В $result не должно войти более $avatars_num записей
           foreach($users_odds_index as $data) {
             for($i=0; $i<$data['num']; $i++) {
-              if(count($result) <= $avatars_num)
+              if(count($result) < $avatars_num)
                 array_push($result, $data['id']);
             }
           }
