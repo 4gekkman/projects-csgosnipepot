@@ -308,12 +308,10 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
 			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-
-
-
-
-				// m.s1.game.choosen_room_curround_winner()
-
+				if(self.m.s1.game.choosen_room_curround_winner())
+					return self.m.s1.game.choosen_room_curround_winner().nickname()
+				else
+					return '???';
 			}
 
 			// 1.2] В противном случае
@@ -328,7 +326,10 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
 			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-
+				if(self.m.s1.game.choosen_room().rounds()[0].key())
+					return self.m.s1.game.choosen_room().rounds()[0].key();
+				else
+					return '???';
 			}
 
 			// 1.2] В противном случае
