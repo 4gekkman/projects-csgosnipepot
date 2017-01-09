@@ -59,8 +59,11 @@
       $cg_color_roombrd: #269a95;         // Цвет рамки интерфейса выбора комнаты
       $cg_color_choosencolor: #269a95;    // Цвет выбранного пункта меню
 
-      // Блоки стати
-
+      // Победный билет, победил игрок, число раунда
+      $cg_color_winblock_base: #b1b1b1;
+      $cg_color_winblock_ticket: #34B07D;
+      $cg_color_winblock_winner: #E4D33A;
+      $cg_color_winblock_number: #81D1F9;
 
 
     // 2] Переменные размеров
@@ -573,11 +576,92 @@
         border-top: 1px solid $cg_colog_highlight;
       }
 
+      // Скрытое состояние
+      .content .classic-game .cg-container .gameprocess .lw-panel.hiddenpanel {
+        bottom: -80px;
+        opacity: 0;
+      }
+
       // Стрелочка, указывающая на победителя
       .content .classic-game .cg-container .gameprocess .lw-panel .arrow {
         position: absolute; top: -8px; left: calc(50% - 7.5px);
       }
 
+      // Победный билет, победил игрок, число раунда
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo {
+        position: absolute; top: 10px; left: 20px;
+        font-size: 1.2em;
+        color: $cg_color_winblock_base;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .ticket span:nth-child(2) {
+        color: $cg_color_winblock_ticket;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .winner span:nth-child(2) {
+        color: $cg_color_winblock_winner;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .number span:nth-child(2) {
+        color: $cg_color_winblock_number;
+      }
+
+      // Текущий банк игры
+      .content .classic-game .cg-container .gameprocess .lw-panel .bank {
+        position: absolute; top: 78px; left: 20px;
+        background: #000;
+        font-size: 2em;
+        color: #fff;
+        border-radius: 3px;
+        padding: 0 10px;
+      }
+
+      // Счётчик времени до начала следующего раунда
+
+        // Общие стили
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter-time {
+          position: absolute; top: 10px; right: 20px;
+        }
+
+        // Стили описания счётчика
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter-time .counterdesc {
+          display: inline-block;
+          width: 180px;
+          text-align: right;
+          padding-right: 15px;
+          line-height: 50px;
+          font-size: 1.2em;
+          color: $cg_color_winblock_base;
+        }
+
+        // Стили самого счётчика
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter {
+          display: inline-block;
+          width: 180px;
+          line-height: 50px;
+          color: $cg_colog_highlight;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div {
+          display: inline-block;
+          height: 50px;
+          line-height: 50px;
+          text-align: center;
+          vertical-align: middle;
+          font-size: 2.5em;
+          font-weight: bold;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(1) {
+          width: 70px;
+          background: darken($cg_main_color, 5%);
+          border-radius: 4px;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(2) {
+          width: 20px;
+          line-height: 45px;
+          padding-right: 1px;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(3) {
+          width: 70px;
+          background: darken($cg_main_color, 5%);
+          border-radius: 4px;
+        }
 
 
 

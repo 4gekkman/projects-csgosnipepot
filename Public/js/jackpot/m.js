@@ -18,6 +18,7 @@
  *    s1.4. Модель интерфейса по распределению шансов в выбранной комнате
  *    s1.5. Модель статистики классической игры
  *    s1.6. Модель полосы аватаров текущего раунда выбранной комнаты
+ *    s1.7. Победный билет, победитель, число для текущего раунда выбранной комнаты
  *    s1.n. Индексы и вычисляемые значения
  *
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
@@ -245,7 +246,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 3.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
 			// - Промотать полосу к финальной позиции, указывающей на победителя.
-			if(['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) != -1) {
+			if(['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 
 				// 3.1.1] Ширина аватара в px с учётом отступа справа
 				var avatarwidth_origin = 80;
@@ -282,6 +283,60 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		});
 
+	//-------------------------------------------------------------------------------//
+	// s1.7. Победный билет, победитель, число для текущего раунда выбранной комнаты //
+	//-------------------------------------------------------------------------------//
+	self.m.s1.game.lwpanel = {};
+
+		// 1] Победный билет
+		self.m.s1.game.lwpanel.ticket = ko.computed(function(){
+
+			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
+			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+				return '#' + self.m.s1.game.choosen_room().rounds()[0].ticket_winner_number();
+			}
+
+			// 1.2] В противном случае
+			else {
+				return '???';
+			}
+
+		});
+
+		// 2] Имя победителя раунда
+		self.m.s1.game.lwpanel.winner = ko.computed(function(){
+
+			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
+			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+
+
+
+
+				// m.s1.game.choosen_room_curround_winner()
+
+			}
+
+			// 1.2] В противном случае
+			else {
+				return '???';
+			}
+
+		});
+
+		// 3] Число текущего раунда
+		self.m.s1.game.lwpanel.number = ko.computed(function(){
+
+			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
+			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+
+			}
+
+			// 1.2] В противном случае
+			else {
+				return '???';
+			}
+
+		});
 
 
 
@@ -600,7 +655,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			(function(){
 
 				// 1] Если нет необходимых ресурсов, ничего не делать
-				if(!self.m.s1.game.choosen_room()) return;
+				if(!self.m.s1.game.choosen_room() || !self.m.s1.game.choosen_room().rounds() || !self.m.s1.game.choosen_room().rounds()[0].avatars_strip()) return;
 
 				// 2] Удалить всё из self.m.s1.game.strip.avatars
 				self.m.s1.game.strip.avatars.removeAll();
