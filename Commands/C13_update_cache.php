@@ -491,7 +491,19 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
                   // 2) Удалить лишние свойства
                   foreach($value_arr['rounds'] as &$round) {
-                    $round['key'] = "";
+
+                    // key
+
+                      // 1] Если статус раунда lottery или winner, не затирать key
+                      if(in_array($round['rounds_statuses'][0]['status'], ['Lottery', 'Winner'])) {
+
+                      }
+
+                      // 2] В противном случае, затирать
+                      else
+                        $round['key'] = "";
+
+                    // прочие
                     foreach($round['bets'] as &$bet) {
                       $bet['m8_bots'] = [];
                       foreach($bet['m5_users'] as &$user) {
