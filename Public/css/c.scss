@@ -32,6 +32,8 @@
     1.6.1. Общие стили панели интерфейса игрового процесса
     1.6.2. Счётчики предметов и времени текущего раунда
     1.6.3. Органы управления игрой для игрока
+    1.6.4. Бегущая полоса с аватарками
+    1.6.5. Инфо-панель для состояний "Lottery" и "Winner"
 
   1.7. Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
   1.8. Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
@@ -300,6 +302,7 @@
 
       // Общие стили
       .content .classic-game .cg-container .gameprocess {
+        position: relative;
         height: 240px;
         background: $cg_main_color;
       }
@@ -322,7 +325,7 @@
         height: 50px;
         margin: 35px 50px;
       }
- 
+
       // Состояние lottery
       .content .classic-game .cg-container .gameprocess .counters.lottery {
         opacity: 0;
@@ -524,6 +527,35 @@
         border: 1px solid #734857;
         color: #fad8f1;
       }
+
+    //------------------------------------//
+    // 1.6.4. Бегущая полоса с аватарками //
+    //------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .strip-avatars {
+        position: absolute; top: 0; left: 0;
+        height: 120px; width: 100%;
+      }
+
+    //--------------------------------------------------------//
+    // 1.6.5. Инфо-панель для состояний "Lottery" и "Winner"  //
+    //--------------------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .lw-panel {
+        position: absolute; bottom: 0; left: 0;
+        height: 120px; width: 100%;
+        border-top: 1px solid $cg_colog_highlight;
+      }
+
+      // Стрелочка, указывающая на победителя
+      .content .classic-game .cg-container .gameprocess .lw-panel .arrow {
+        position: absolute; top: -8px; left: calc(50% - 7.5px);
+      }
+
+
+
 
 
   //-------------------------------------------------------------------------//

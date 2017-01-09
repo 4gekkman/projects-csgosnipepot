@@ -518,7 +518,28 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();
 
+			//-----------------------------------------------------------//
+			// s1.n.14. Индекс игроков текущего раунда выбранной комнаты //
+			//-----------------------------------------------------------//
+			// - По ID игрока можно получить ссылку на него в m.s1.game
+			(function(){
 
+				
+
+
+//				// 1. Подготовить объект для результатов
+//				var results = {};
+//
+//				// 2. Заполнить results
+//				for(var i=0; i<self.m.s1.maintabs.list().length; i++) {
+//					results[self.m.s1.maintabs.list()[i].name()] = self.m.s1.maintabs.list()[i];
+//				}
+//
+//				// 3. Вернуть results
+//				return results;
+
+
+			})();
 
 
 		}); 	// .extend({rateLimit: 10, method: "notifyWhenChangesStop"});
