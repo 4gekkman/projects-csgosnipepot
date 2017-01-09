@@ -314,7 +314,19 @@
         <?php /*-------------------------------------->
         <!-- 1.1.2.2.3. Бегущая полоса с аватарками -->
         <!----------------------------------------*/ ?>
-        <div class="strip-avatars">
+        <div class="strip-avatars" data-bind="css: {hiddenpanel: (['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) == -1)}">
+
+          <?php /*------------------------------------------------------------->
+          <!-- Непосредственно контейнер (кот.движется) для полоски аватарок -->
+          <!---------------------------------------------------------------*/ ?>
+          <div class="moving_cont" data-bind="foreach: m.s1.game.strip.avatars, style: {width: m.s1.game.strip.width()+'px', transform: m.s1.game.strip.currentpos}">
+
+            <?php /*--------------------->
+            <!-- Аватарка в контейнере -->
+            <!-----------------------*/ ?>
+            <img data-bind="attr: {src: $data}">
+
+          </div>
 
         </div>
 

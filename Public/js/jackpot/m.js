@@ -17,6 +17,7 @@
  * 		s1.3. Модель поставленных на данный момент вещей
  *    s1.4. Модель интерфейса по распределению шансов в выбранной комнате
  *    s1.5. Модель статистики классической игры
+ *    s1.6. Модель полосы аватаров текущего раунда выбранной комнаты
  *    s1.n. Индексы и вычисляемые значения
  *
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
@@ -227,6 +228,62 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 	// s1.5. Модель статистики классической игры //
 	//-------------------------------------------//
 	self.m.s1.game.statistics = ko.mapping.fromJS(server.data.classicgame_statistics.data);
+
+	//----------------------------------------------------------------//
+	// s1.6. Модель полосы аватаров текущего раунда выбранной комнаты //
+	//----------------------------------------------------------------//
+	self.m.s1.game.strip = {};
+
+		// 1] Сама полоса аватаров
+		self.m.s1.game.strip.avatars = ko.observableArray([]);
+
+		// 2] Ширина полосы аватаров
+		self.m.s1.game.strip.width = ko.observableArray(0);
+
+		// 3] Текущая позиция полосы с учётом avatar_winner_stop_percents
+		self.m.s1.game.strip.currentpos = ko.computed(function(){
+
+			// 3.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
+			// - Промотать полосу к финальной позиции, указывающей на победителя.
+			if(['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) != -1) {
+
+				// 3.1.1] Ширина аватара в px с учётом отступа справа
+				var avatarwidth_origin = 80;
+				var avatarrightmargin = 2;
+				var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
+
+				// 3.1.2] Получить ширину всей ленты
+				var width = self.m.s1.game.strip.width();
+
+				// 3.1.3] Получить поправку для установки позиции в конец ленты
+				var endfix = (6*avatarwidth)-62;
+
+				// 3.1.4] Вычислить позицию в начале 100-го аватара (победителя)
+				var winnerpos = width - endfix - (11*avatarwidth);
+
+				// 3.1.5] Получить значение
+				var avatar_winner_stop_percents = self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
+
+				// 3.1.6] Вычислить позицию с учётом avatar_winner_stop_percents
+				var winnerpos_final = winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100);
+
+				// 3.1.n] Вернуть результаты
+				return 'translate3d(-'+winnerpos_final+'px, 0px, 0px)';
+
+			}
+
+			// 3.2] Если же состояние любое другое
+			// - Вернуть полосу в исходную позицию
+			else {
+
+				return 'translate3d(880px, 0px, 0px)';
+
+			}
+
+		});
+
+
+
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
@@ -522,22 +579,48 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// s1.n.14. Индекс игроков текущего раунда выбранной комнаты //
 			//-----------------------------------------------------------//
 			// - По ID игрока можно получить ссылку на него в m.s1.game
+			self.m.s1.indexes.users_avatars = (function(){
+
+				// 1. Подготовить объект для результатов
+				var results = {};
+
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
+					results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i].avatar();
+				}
+
+				// 3. Вернуть results
+				return results;
+
+			})();
+
+			//-----------------------------------------------------------------------------//
+			// s1.n.15. Наполнить модель полосы аватаров текущего раунда выбранной комнаты //
+			//-----------------------------------------------------------------------------//
 			(function(){
 
-				
+				// 1] Если нет необходимых ресурсов, ничего не делать
+				if(!self.m.s1.game.choosen_room()) return;
 
+				// 2] Удалить всё из self.m.s1.game.strip.avatars
+				self.m.s1.game.strip.avatars.removeAll();
 
-//				// 1. Подготовить объект для результатов
-//				var results = {};
-//
-//				// 2. Заполнить results
-//				for(var i=0; i<self.m.s1.maintabs.list().length; i++) {
-//					results[self.m.s1.maintabs.list()[i].name()] = self.m.s1.maintabs.list()[i];
-//				}
-//
-//				// 3. Вернуть results
-//				return results;
+				// 3] Получить массив с ID пользователей ленты аватаров
+				var avatars_strip_ids = JSON.parse(self.m.s1.game.choosen_room().rounds()[0].avatars_strip());
 
+				// 4] Наполнить m.s1.game.strip.avatars
+				for(var i=0; i<avatars_strip_ids.length; i++) {
+					self.m.s1.game.strip.avatars.push(self.m.s1.indexes.users_avatars[avatars_strip_ids[i]]);
+				}
+
+			})();
+
+			//-----------------------------------------------------------------------------//
+			// s1.n.16. Расчитать ширину полосы аватаров текущего раунда выбранной комнаты //
+			//-----------------------------------------------------------------------------//
+			(function(){
+
+				self.m.s1.game.strip.width(self.m.s1.game.strip.avatars().length*80 + self.m.s1.game.strip.avatars().length*2);
 
 			})();
 
