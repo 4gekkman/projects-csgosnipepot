@@ -773,9 +773,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// Длительность состояния Started (значение room_round_duration_sec), в секундах
 				var Tl_started = +self.m.s1.game.choosen_room().room_round_duration_sec();
-				var Tl_pending = +self.m.s1.game.choosen_room().pending_duration_s() + 5;
-				var Tl_lottery = +Math.round(self.m.s1.game.choosen_room().lottery_duration_ms()/1000);
-				var Tl_winner = self.m.s1.game.choosen_room().winner_duration_s() + 5;
+				var Tl_pending = +self.m.s1.game.choosen_room().pending_duration_s();// + 5;
+				var Tl_lottery = +Math.round(self.m.s1.game.choosen_room().lottery_duration_ms()/1000) + +self.m.s1.game.timeleft_winner.sec() + 5;
+				var Tl_winner = +self.m.s1.game.choosen_room().winner_duration_s();// + 10;
 
 			// 3] Вычислить результаты
 			(function(){
@@ -901,7 +901,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					}
 
 					// 2) Если состояние раунда "Lottery"
-					if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+					else {
 
 						// Определить значение
 						var value = (+Ts + +Tl_lottery) - +Tn;
@@ -992,7 +992,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				(function(){
 
 					// Определить значение
-					var value = +self.m.s1.game.timeleft_lottery.sec();// + +self.m.s1.game.timeleft_winner.sec();
+					var value = +self.m.s1.game.timeleft_lottery.sec() + +self.m.s1.game.timeleft_winner.sec();
 
 					// Если оно <= 0
 					if(value <= 0) {
