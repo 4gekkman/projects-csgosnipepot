@@ -805,8 +805,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 					// 1) Если состояние раунда не "Pending"
 					if(['Pending'].indexOf(self.m.s1.game.choosen_status()) == -1) {
-						self.m.s1.game.timeleft_pending.sec("0");
-						self.m.s1.game.timeleft_pending.human("00:00:00");
+						self.m.s1.game.timeleft_pending.sec(Tl_pending);
+						self.m.s1.game.timeleft_pending.human(moment.utc((Tl_pending)).format("HH:mm:ss"));
 						return;
 					}
 
