@@ -19,6 +19,7 @@
  *    s1.5. Модель статистики классической игры
  *    s1.6. Модель полосы аватаров текущего раунда выбранной комнаты
  *    s1.7. Победный билет, победитель, число для текущего раунда выбранной комнаты
+ *    s1.8. Серверный timestamp, рассчитывающийся на клиенте, синхронизирующийся с сервером
  *    s1.n. Индексы и вычисляемые значения
  *
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
@@ -390,6 +391,34 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		});
 
+	//---------------------------------------------------------------------------------------//
+	// s1.8. Серверный timestamp, рассчитывающийся на клиенте, синхронизирующийся с сервером //
+	//---------------------------------------------------------------------------------------//
+	self.m.s1.game.time = {};
+
+		// 1] Сколько секунд прошло с момента загрузки документа
+		self.m.s1.game.time.gone_s = ko.observable(0);
+
+		// 2] Расчёт текущего серверного unix timestamp
+		self.m.s1.game.time.ts = ko.computed(function(){
+
+			// 2.1] Получить результирующее время
+			var result = +layout_data.data.servertime_s + +self.m.s1.game.time.gone_s();
+
+			// 2.2] Получить TS, который приходит с сервера
+			var server_ts = layoutmodel.m.s0.servertime.timestamp_s();
+
+			// 2.3] Если result отстал, подвести
+			// - Но не подводить, если текущий статус Lottery или Winner
+			if(result < server_ts && ['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) == -1) {
+				self.m.s1.game.time.gone_s(+server_ts - +layout_data.data.servertime_s);
+				result = +layout_data.data.servertime_s + +self.m.s1.game.time.gone_s();
+			}
+
+			// 2.4] Вернуть result
+			return result;
+
+		});
 
 
 	//--------------------------------------//
@@ -781,7 +810,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				})();
 
 				// Текущее серверное время, timestamp в секундах
-				var Tn = layoutmodel.m.s0.servertime.timestamp_s();
+				var Tn = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();
 
 				// Длительность состояния Started (значение room_round_duration_sec), в секундах
 				var Tl_started = +self.m.s1.game.choosen_room().room_round_duration_sec();
@@ -946,15 +975,15 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				// 3.5] Вычислить результаты для Winner
 				(function(){
 
-					// 1) Если состояние раунда не "Created", "First bet, "Started" или "Pending"
-					if(['Created', 'First bet', 'Started', 'Pending'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+					// 1) Если состояние раунда не "First bet, "Started" или "Pending"
+					if(['First bet', 'Started', 'Pending'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 						self.m.s1.game.timeleft_winner.sec("0");
 						self.m.s1.game.timeleft_winner.human("00:00:00");
 						return;
 					}
 
 					// 2) Если состояние раунда "Lottery"
-					if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+					if(['Lottery', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 						self.m.s1.game.timeleft_winner.sec(Tl_winner);
 						self.m.s1.game.timeleft_winner.human("00:00:00");
 						return;

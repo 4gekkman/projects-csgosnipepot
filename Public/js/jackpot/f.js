@@ -187,7 +187,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				// 5.1] Если для cur_room_data пришли данные с состоянием Lottery
 				// - А текущий статус выбранной комнаты Pending
-				if(newstatus == "Lottery" && self.m.s1.game.choosen_room()['rounds']()[0]['rounds_statuses']()[0].status() == "Pending") {
+				if(newstatus == "Lottery") {
 
 					// Если время пришло, обновить клиент
 					if(self.m.s1.game.timeleft_final.sec() == 0)
@@ -220,7 +220,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				// 5.2] Если для cur_room_data пришли данные с состоянием Winner
 				// - А текущий статус выбранной комнаты Lottery
-				else if(newstatus == "Winner" && self.m.s1.game.choosen_room()['rounds']()[0]['rounds_statuses']()[0].status() == "Lottery") {
+				else if(newstatus == "Winner") {
+
+					console.log("111");
+					console.log('m.s1.game.timeleft_lottery.sec = '+self.m.s1.game.timeleft_lottery.sec());
 
 					// Если время пришло, обновить клиент
 					if(self.m.s1.game.timeleft_lottery.sec() == 0)
@@ -251,9 +254,21 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				}
 
-				// 5.2] Если для cur_room_data пришли данные с состоянием Created || First bet || Started
+				// 5.3] Если для cur_room_data пришли данные с состоянием Created || First bet || Started
 				// - А текущий статус выбранной комнаты Winner
-				else if(newstatus != 'Winner' && self.m.s1.game.choosen_room()['rounds']()[0]['rounds_statuses']()[0].status() == "Winner") {
+				else if(newstatus == "Finished") {
+
+					console.log("222");
+					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
+
+				}
+
+				// 5.3] Если для cur_room_data пришли данные с состоянием Created
+				// - А текущий статус выбранной комнаты Finished
+				else if(newstatus == "Created") {
+
+					console.log("333");
+					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
 
 					// Если время пришло, обновить клиент
 					if(self.m.s1.game.timeleft_winner.sec() == 0)
@@ -287,6 +302,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 5.n] Выполнить функцию update, е
 				else
 					update();
+
+			console.log('newstatus = '+newstatus);
 
 		})();
 
