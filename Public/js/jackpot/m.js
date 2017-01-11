@@ -410,7 +410,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 2.3] Если result отстал, подвести
 			// - Но не подводить, если текущий статус Lottery или Winner
-			if(result < server_ts && ['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) == -1) {
+			if(result < server_ts) { // && ['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) == -1) {
 				self.m.s1.game.time.gone_s(+server_ts - +layout_data.data.servertime_s);
 				result = +layout_data.data.servertime_s + +self.m.s1.game.time.gone_s();
 			}
@@ -761,7 +761,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			})();
 
 
-		}); 	// .extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"}); 	// .extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// s1.n.2. Рассчитать оставшееся время до конца состояний Started, Pending, Winner, для choosen_room //
 		//---------------------------------------------------------------------------------------------------//
@@ -1073,7 +1073,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();			
 			
-		});			
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});;
 	
 		// s1.n.3. Перерасчитать модель для отрисовки кольца //
 		//---------------------------------------------------//
@@ -1226,7 +1226,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 //				}, 100);
 //			}
 			
-		});		
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 			
 
 	//------------------------------//

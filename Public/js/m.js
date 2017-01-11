@@ -422,16 +422,16 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		//-------------------------------------------------------------------------------//
 		// X1.6. Инициализировать perfect scrollbar для блока распред.шансов с аватарами //
 		//-------------------------------------------------------------------------------//
-		(function(){
-
-			Ps.initialize(document.getElementsByClassName('odds-avatars')[0], {
-				wheelSpeed: 2,
-				wheelPropagation: true,
-				minScrollbarLength: 20,
-				suppressScrollY: true
-			});
-
-		})();
+//		(function(){
+//
+//			Ps.initialize(document.getElementsByClassName('odds-avatars')[0], {
+//				wheelSpeed: 2,
+//				wheelPropagation: true,
+//				minScrollbarLength: 20,
+//				suppressScrollY: true
+//			});
+//
+//		})();
 
 		//--------------------------------------------//
 		// X1.7. Активировать и настроить tooltipster //

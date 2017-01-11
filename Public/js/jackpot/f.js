@@ -202,9 +202,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// 1) Получить базовое значение
 							var result = self.m.s1.game.timeleft_final.sec()*1000;
 
-							// 2) Если result > 500, вычесть из него 500
-							if(result > 500)
-								result = +result - 500;
+							// 2) Если result > 3000, вычесть из него 3000
+							if(result > 3000)
+								result = +result - 3000;
 
 							// n) Вернуть результат
 							return result;
@@ -238,9 +238,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// 1) Получить базовое значение
 							var result = self.m.s1.game.timeleft_lottery.sec()*1000;
 
-							// 2) Если result > 500, вычесть из него 500
-							if(result > 500)
-								result = +result - 500;
+							// 2) Если result > 3000, вычесть из него 3000
+							if(result > 3000)
+								result = +result - 3000;
 
 							// n) Вернуть результат
 							return result;
@@ -283,9 +283,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// 1) Получить базовое значение
 							var result = self.m.s1.game.timeleft_winner.sec()*1000;
 
-							// 2) Если result > 500, вычесть из него 500
-							if(result > 500)
-								result = +result - 500;
+							// 2) Если result > 2000, вычесть из него 2000
+							//if(result > 2000)
+							//	result = +result - 2000;
 
 							// n) Вернуть результат
 							return result;
@@ -299,9 +299,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				}
 
-				// 5.n] Выполнить функцию update, е
-				else
+				// 5.n] Выполнить функцию update
+				else {
+					console.log("Просто update");
 					update();
+				}
 
 			console.log('newstatus = '+newstatus);
 
