@@ -49,7 +49,7 @@
          url('/public/L10003/assets/fonts/regular/bold.ttf') format('truetype'),
          url('/public/L10003/assets/fonts/regular/bold.svg#PTsansBold') format('svg');
 }
-* {
+*, html, body {
   font-family: PTsansRegular, "PT Sans", Sans-Serif;
 }
 
@@ -286,7 +286,7 @@
   // 1.2. Переменные цветов
 
     // Общие
-    $color_body_bg:           #26262c;  // Фон
+    $color_body_bg:           #2A3D4B;  // Фон
     $color_mainFontColor:     #fff;     // Главный общий цвет шрифта
 
     // Скролл бар
@@ -639,7 +639,7 @@
 
     // Стиль выбранного пункта меню
     .menu .items .item.choosen {
-      color: #f6e52d;
+      color: #59b0db;
       background: #0e1214 !important;
     }
 
@@ -874,11 +874,11 @@
       line-height: 0.9em;
       font-weight: 400;
       cursor: default;
-      font-size: .9em;
+      font-size: 1em;
+      color: #fff;
     }
     .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(1) {
-      font-weight: bold;
-      color: #647685;
+      color: #59b0db;
       line-height: 25px;
       white-space: nowrap;
       overflow: hidden;
