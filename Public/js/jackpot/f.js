@@ -135,14 +135,32 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 2. Распарсить json с данными
 		var data = tryParseJSON(jsondata.rooms);
 
-		// 3. Обновить данные
-		(function(){
+		// 3. Запланировать обновление данных
+		// - Для каждой комнаты раздельно.
+		(function(){ for(var i=0; i<data.length; i++) {
 
-			// 1] Подготовить функцию, обновляющую данные в game.rooms
-			var update = function(data, self){
+			// 1] Получить ссылку на комнату, которую надо обновить
+			var room2update = self.m.s1.indexes.rooms[data[i].id];
 
-				// 1.1] Обновить данные в rooms данными rooms_new_data
-				self.m.s1.game.rooms(ko.mapping.fromJS(data)());
+			// 2] Если room2update отсутствует, перейти к следующей итерации
+			if(!room2update) continue;
+
+			// 3] Подготовить функцию, обновляющую данные комнаты room2update
+			var update = function(data, self, room2update){
+
+				// 3.1] Обновить свежими данными комнату room2update
+				for(var key in room2update) {
+
+					// 3.1.1] Если свойство не своё, пропускаем
+					if(!room2update.hasOwnProperty(key)) continue;
+
+					// 3.1.2] Если св-ва key нет в data, пропускаем
+					if(!data[key]) continue;
+
+					// 3.1.3] Обновить св-во key в room2update данными из data
+					room2update[key](ko.mapping.fromJS(data[key])());
+
+				}
 
 				// 1.2] Обновить ссылку на choosen_room
 				self.m.s1.game.choosen_room((function(){
@@ -161,156 +179,281 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 1.3] Обновить значение m.s1.game.choosen_status
 				self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
-			}.bind(null, data, self);
+			}.bind(null, data[i], self, room2update);
 
-			// 2] Составить индекс комнат в data
-			var roomsindex = (function(){
+			// 4] Рассчитать моменты, когда надо включать то или иное состояние
+			// - Конкретно для комнаты room2update.
+			var switchtimes = (function(){
 
-				// 1. Подготовить объект для результатов
-				var results = {};
+				// 4.1] Текущее серверное время, unix timestamp в секундах
+				var timestamp_s = layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
-				// 2. Заполнить results
-				for(var i=0; i<data.length; i++) {
-					results[data[i].id] = data[i];
-				}
+				// 4.2] Время начала состояния Started, unix timestamp в секундах
+				var started_at_s = Math.round(moment.utc(room2update.rounds()[0].started_at()).unix());
 
-				// 3. Вернуть results
-				return results;
+				// 4.3] Получить данные по длительности различных состояний из конфига выбранной комнаты
+				// - В секундах.
+				var durations = {};
 
-			}());
+					// Started
+					durations.started = +room2update.room_round_duration_sec() + 5;
 
-			// 3] Получить ссылку на текущую выбранную комнату из roomsindex
-			var choosen_room_id = self.m.s1.game.choosen_room() ? self.m.s1.game.choosen_room().id() : server.data.choosen_room_id;
-			var cur_room_data = roomsindex[choosen_room_id];
+					// Pending
+					durations.pending = room2update.pending_duration_s();
 
-			// 4] Получить название нового статуса комнаты
-			var newstatus = cur_room_data['rounds'][0]['rounds_statuses'][0]['status'];
+					// Lottery
+					durations.lottery = +room2update.lottery_duration_ms()/1000 + 5;
 
-			// 5] В зависимости от условия, выполнить функцию update
+					// Winner
+					durations.winner = +room2update.winner_duration_s() + 5;
 
-				// 5.1] Если для cur_room_data пришли данные с состоянием Lottery
-				// - А текущий статус выбранной комнаты Pending
+				// 4.4] Произвести расчёты
+				var st = {};
+
+					// Когда надо переключить в Pending
+					st.pending = moment.utc(+started_at_s + +durations.started);
+
+					// Когда надо переключить в Lottery
+					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
+
+					// Когда надо переключить в Winner
+					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
+
+					// Когда надо переключить в Started
+					st.started = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
+
+				// 4.n] Вернуть результаты
+				return st;
+
+			})();
+
+			// 5] Получить название нового статуса комнаты
+			var newstatus = data[i]['rounds'][0]['rounds_statuses'][0]['status'];
+
+			// 6] В зависимости от условия, выполнить или запланировать выполнение функции update
+
+				// 6.1] Если для room2update пришли данные с состоянием Lottery
 				if(newstatus == "Lottery") {
 
-					// Если время пришло, обновить клиент
-					if(self.m.s1.game.timeleft_final.sec() == 0)
+					// 6.1.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
+
+					// 6.1.2] Если timestamp_s >= switchtimes.lottery
+					// - Выполнить update прямо сейчас.
+					if(timestamp_s >= switchtimes.lottery)
 						update();
 
-					// Если время ещё не пришло, установить setTimeout
-					else {
-
-						// Определить время, на которое исполнение будет отложено
-						var delay = (function(){
-
-							// 1) Получить базовое значение
-							var result = self.m.s1.game.timeleft_final.sec()*1000;
-
-							// 2) Если result > 3000, вычесть из него 3000
-							if(result > 3000)
-								result = +result - 3000;
-
-							// n) Вернуть результат
-							return result;
-
-						})();
-
-						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
-						setTimeout(update, delay);
-
-					}
+					// 6.1.3] В ином случае, запланировать выполнение update
+					// - На момент времени switchtimes.lottery.
+					else
+						self.f.s1.queue_add(switchtimes.lottery, update);
 
 				}
 
-				// 5.2] Если для cur_room_data пришли данные с состоянием Winner
-				// - А текущий статус выбранной комнаты Lottery
-				else if(newstatus == "Winner") {
+				// 6.2] Если для room2update пришли данные с состоянием Winner
+				if(newstatus == "Winner") {
 
-					console.log("111");
-					console.log('m.s1.game.timeleft_lottery.sec = '+self.m.s1.game.timeleft_lottery.sec());
+					// 6.1.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
-					// Если время пришло, обновить клиент
-					if(self.m.s1.game.timeleft_lottery.sec() == 0)
+					// 6.1.2] Если timestamp_s >= switchtimes.lottery
+					// - Выполнить update прямо сейчас.
+					if(timestamp_s >= switchtimes.winner)
 						update();
 
-					// Если время ещё не пришло, установить setTimeout
-					else {
-
-						// Определить время, на которое исполнение будет отложено
-						var delay = (function(){
-
-							// 1) Получить базовое значение
-							var result = self.m.s1.game.timeleft_lottery.sec()*1000;
-
-							// 2) Если result > 3000, вычесть из него 3000
-							if(result > 3000)
-								result = +result - 3000;
-
-							// n) Вернуть результат
-							return result;
-
-						})();
-
-						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
-						setTimeout(update, delay);
-
-					}
+					// 6.1.3] В ином случае, запланировать выполнение update
+					// - На момент времени switchtimes.lottery.
+					else
+						self.f.s1.queue_add(switchtimes.winner, update);
 
 				}
 
-				// 5.3] Если для cur_room_data пришли данные с состоянием Created || First bet || Started
-				// - А текущий статус выбранной комнаты Winner
-				else if(newstatus == "Finished") {
-
-					console.log("222");
-					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
-
-				}
-
-				// 5.3] Если для cur_room_data пришли данные с состоянием Created
-				// - А текущий статус выбранной комнаты Finished
-				else if(newstatus == "Created") {
-
-					console.log("333");
-					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
-
-					// Если время пришло, обновить клиент
-					if(self.m.s1.game.timeleft_winner.sec() == 0)
-						update();
-
-					// Если время ещё не пришло, установить setTimeout
-					else {
-
-						// Определить время, на которое исполнение будет отложено
-						var delay = (function(){
-
-							// 1) Получить базовое значение
-							var result = self.m.s1.game.timeleft_winner.sec()*1000;
-
-							// 2) Если result > 2000, вычесть из него 2000
-							//if(result > 2000)
-							//	result = +result - 2000;
-
-							// n) Вернуть результат
-							return result;
-
-						})();
-
-						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
-						setTimeout(update, delay);
-
-					}
-
-				}
-
-				// 5.n] Выполнить функцию update
-				else {
-					console.log("Просто update");
+				// 6.n] Выполнить функцию update
+				else
 					update();
-				}
 
-			console.log('newstatus = '+newstatus);
+		}})();
 
-		})();
+
+
+
+
+//		// 3. Обновить данные
+//		(function(){
+//
+//			// 1] Подготовить функцию, обновляющую данные в game.rooms
+//			var update = function(data, self){
+//
+//				// 1.1] Обновить данные в rooms данными rooms_new_data
+//				self.m.s1.game.rooms(ko.mapping.fromJS(data)());
+//
+//				// 1.2] Обновить ссылку на choosen_room
+//				self.m.s1.game.choosen_room((function(){
+//
+//					// Получить имя текущей выбранной комнаты
+//					var name = self.m.s1.game.choosen_room().name();
+//
+//					// Сделать выбранной комнату с name из game.rooms
+//					for(var i=0; i<self.m.s1.game.rooms().length; i++) {
+//						if(self.m.s1.game.rooms()[i].name() == name)
+//							return self.m.s1.game.rooms()[i];
+//					}
+//
+//				})());
+//
+//				// 1.3] Обновить значение m.s1.game.choosen_status
+//				self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
+//
+//			}.bind(null, data, self);
+//
+//			// 2] Составить индекс комнат в data
+//			var roomsindex = (function(){
+//
+//				// 1. Подготовить объект для результатов
+//				var results = {};
+//
+//				// 2. Заполнить results
+//				for(var i=0; i<data.length; i++) {
+//					results[data[i].id] = data[i];
+//				}
+//
+//				// 3. Вернуть results
+//				return results;
+//
+//			}());
+//
+//			// 3] Получить ссылку на текущую выбранную комнату из roomsindex
+//			var choosen_room_id = self.m.s1.game.choosen_room() ? self.m.s1.game.choosen_room().id() : server.data.choosen_room_id;
+//			var cur_room_data = roomsindex[choosen_room_id];
+//
+//			// 4] Получить название нового статуса комнаты
+//			var newstatus = cur_room_data['rounds'][0]['rounds_statuses'][0]['status'];
+//
+//			// 5] В зависимости от условия, выполнить функцию update
+//
+//				// 5.1] Если для cur_room_data пришли данные с состоянием Lottery
+//				// - А текущий статус выбранной комнаты Pending
+//				if(newstatus == "Lottery") {
+//
+//					// Если время пришло, обновить клиент
+//					if(self.m.s1.game.timeleft_final.sec() == 0)
+//						update();
+//
+//					// Если время ещё не пришло, установить setTimeout
+//					else {
+//
+//						// Определить время, на которое исполнение будет отложено
+//						var delay = (function(){
+//
+//							// 1) Получить базовое значение
+//							var result = self.m.s1.game.timeleft_final.sec()*1000;
+//
+//							// 2) Если result > 3000, вычесть из него 3000
+//							if(result > 3000)
+//								result = +result - 3000;
+//
+//							// n) Вернуть результат
+//							return result;
+//
+//						})();
+//
+//						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
+//						setTimeout(update, delay);
+//
+//					}
+//
+//				}
+//
+//				// 5.2] Если для cur_room_data пришли данные с состоянием Winner
+//				// - А текущий статус выбранной комнаты Lottery
+//				else if(newstatus == "Winner") {
+//
+//					console.log("111");
+//					console.log('m.s1.game.timeleft_lottery.sec = '+self.m.s1.game.timeleft_lottery.sec());
+//
+//					// Если время пришло, обновить клиент
+//					if(self.m.s1.game.timeleft_lottery.sec() == 0)
+//						update();
+//
+//					// Если время ещё не пришло, установить setTimeout
+//					else {
+//
+//						// Определить время, на которое исполнение будет отложено
+//						var delay = (function(){
+//
+//							// 1) Получить базовое значение
+//							var result = self.m.s1.game.timeleft_lottery.sec()*1000;
+//
+//							// 2) Если result > 3000, вычесть из него 3000
+//							if(result > 3000)
+//								result = +result - 3000;
+//
+//							// n) Вернуть результат
+//							return result;
+//
+//						})();
+//
+//						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
+//						setTimeout(update, delay);
+//
+//					}
+//
+//				}
+//
+//				// 5.3] Если для cur_room_data пришли данные с состоянием Created || First bet || Started
+//				// - А текущий статус выбранной комнаты Winner
+//				else if(newstatus == "Finished") {
+//
+//					console.log("222");
+//					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
+//
+//				}
+//
+//				// 5.3] Если для cur_room_data пришли данные с состоянием Created
+//				// - А текущий статус выбранной комнаты Finished
+//				else if(newstatus == "Created") {
+//
+//					console.log("333");
+//					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
+//
+//					// Если время пришло, обновить клиент
+//					if(self.m.s1.game.timeleft_winner.sec() == 0)
+//						update();
+//
+//					// Если время ещё не пришло, установить setTimeout
+//					else {
+//
+//						// Определить время, на которое исполнение будет отложено
+//						var delay = (function(){
+//
+//							// 1) Получить базовое значение
+//							var result = self.m.s1.game.timeleft_winner.sec()*1000;
+//
+//							// 2) Если result > 2000, вычесть из него 2000
+//							//if(result > 2000)
+//							//	result = +result - 2000;
+//
+//							// n) Вернуть результат
+//							return result;
+//
+//						})();
+//
+//						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
+//						setTimeout(update, delay);
+//
+//					}
+//
+//				}
+//
+//				// 5.n] Выполнить функцию update
+//				else {
+//					console.log("Просто update");
+//					update();
+//				}
+//
+//			console.log('newstatus = '+newstatus);
+//
+//		})();
 
 	};
 

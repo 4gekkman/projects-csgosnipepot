@@ -458,7 +458,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			self.m.s1.game.counters.main.hours = ko.observable(0);
 
 		// 2] Delta в секундах, на которую будет отставать "отстающий" счётчик
-		self.m.s1.game.counters.delta = ko.observable(0);
+		self.m.s1.game.counters.delta = ko.observable(5);
 
 		// 3] Счётчик до начала розыгрыша (производный от единого счётчика)
 		self.m.s1.game.counters.lottery = {};
@@ -844,16 +844,16 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			var durations = {};
 
 				// Started
-				durations.started = self.m.s1.game.choosen_room().room_round_duration_sec();
+				durations.started = +self.m.s1.game.choosen_room().room_round_duration_sec() + 5;
 
 				// Pending
 				durations.pending = self.m.s1.game.choosen_room().pending_duration_s();
 
 				// Lottery
-				durations.lottery = self.m.s1.game.choosen_room().lottery_duration_ms()/1000;
+				durations.lottery = +self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + 5;
 
 				// Winner
-				durations.winner = self.m.s1.game.choosen_room().winner_duration_s();
+				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + 5;
 
 			// 3] Вычислить исходные значения для производных единого счётчика
 			// - Для cединого счётчика.
@@ -908,16 +908,16 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				var switchtimes = {};
 
 					// Когда надо переключить в Pending
-					switchtimes.pending = Math.round(moment.utc().unix(+started_at_s + +durations.started))
+					switchtimes.pending = moment.utc(+started_at_s + +durations.started);
 
 					// Когда надо переключить в Lottery
-					switchtimes.lottery = Math.round(moment.utc().unix(+started_at_s + +durations.started + +durations.pending))
+					switchtimes.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
 					// Когда надо переключить в Winner
-					switchtimes.winner = Math.round(moment.utc().unix(+started_at_s + +durations.started + +durations.pending + +durations.lottery))
+					switchtimes.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
 
 					// Когда надо переключить в Started
-					switchtimes.started = Math.round(moment.utc().unix(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner))
+					switchtimes.started = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
 
 				// 4.4] Время конце игры, unix timestamp в секундах
 				var gameover_at_s = switchtimes.started;
@@ -933,337 +933,33 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					self.m.s1.game.counters.main.minutes(moment.utc(value_main*1000).format("mm"));
 					self.m.s1.game.counters.main.hours(moment.utc(value_main*1000).format("HH"));
 
+				// 4.6] На основании значения счётчика до начала розыгрыша
 
-//				// 4.5] Вычислить значения счётчиков
-//				var values = {};
-//
-//					// Вычислить значение единого счётчика
-//					values.main = (gameover_at_s-timestamp_s) > 0 ? (gameover_at_s-timestamp_s) : 0;
-//
-//					// Вычислить значение счётчика начала розыгрыша
-//					values.lottery = (switchtimes.lottery-timestamp_s) > 0 ? (switchtimes.lottery-timestamp_s) : 0;
-//
-//					// Вычислить значение счётчика начала новой игры
-//					values.newgame = (function(){
-//						if(timestamp_s < switchtimes.lottery) return 0;
-//						else {
-//							return (switchtimes.started-timestamp_s) > 0 ? (switchtimes.started-timestamp_s) : 0;
-//						}
-//					})();
-//
-//				// 4.6] Установить значения счётчиков
+					// Значение
+					var value_lottery = self.m.s1.game.counters.main.sec() - durations.lottery - durations.winner;
+					if(value_lottery < 0) value_lottery = 0;
 
+					// Записать
+					self.m.s1.game.counters.lottery.sec(value_lottery);
+					self.m.s1.game.counters.lottery.seconds(moment.utc(value_lottery*1000).format("ss"));
+					self.m.s1.game.counters.lottery.minutes(moment.utc(value_lottery*1000).format("mm"));
+					self.m.s1.game.counters.lottery.hours(moment.utc(value_lottery*1000).format("HH"));
+
+				// 4.7] На основании значения счётчика до начала розыгрыша
+
+					// Значение
+					var value_newgame = self.m.s1.game.counters.main.sec();
+					if(value_newgame < 0) value_newgame = 0;
+
+					// Записать
+					self.m.s1.game.counters.newgame.sec(value_newgame);
+					self.m.s1.game.counters.newgame.seconds(moment.utc(value_newgame*1000).format("ss"));
+					self.m.s1.game.counters.newgame.minutes(moment.utc(value_newgame*1000).format("mm"));
+					self.m.s1.game.counters.newgame.hours(moment.utc(value_newgame*1000).format("HH"));
 
 
 			}
 
-
-//			// 1] Если отсутствуют необходимые ресурсы, записать нулевые значения и завершить
-//			if(!self.m.s1.game.choosen_room() || !self.m.s1.game.choosen_room().rounds()[0]) {
-//
-//				// Started
-//				self.m.s1.game.timeleft.sec("0");
-//				self.m.s1.game.timeleft.human("00:00:00");
-//
-//				// Pending
-//				self.m.s1.game.timeleft_pending.sec("0");
-//				self.m.s1.game.timeleft_pending.human("00:00:00");
-//
-//				// Lottery
-//				self.m.s1.game.timeleft_lottery.sec("0");
-//				self.m.s1.game.timeleft_lottery.human("00:00:00");
-//
-//				// Winner
-//				self.m.s1.game.timeleft_winner.sec("0");
-//				self.m.s1.game.timeleft_winner.human("00:00:00");
-//
-//				// Завершить
-//				return;
-//
-//			}
-//
-//			// 2] Записать необходимые для расчётов значения в короткие переменные
-//
-//				// Время начала состояния "Started/Pending/Winner" раунда (started_at), в секундах
-//				// - В зависимости от того, в каком состоянии сейчас находится раунд.
-//				var Ts = (function(){
-//
-//					// 1] Вычислить размер добавки
-//					var add = (function(){
-//						if(self.m.s1.game.choosen_status() == "Lottery") return 5;
-//						if(self.m.s1.game.choosen_status() == "Winner") return 10;
-//						return 0;
-//					})();
-//
-//					// 2] Вернуть результат
-//					return Math.round( +moment.utc(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].pivot.started_at()).unix() + +add);
-//
-//				})();
-//
-//				// Текущее серверное время, timestamp в секундах
-//				var Tn = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();
-//
-//				// Длительность состояния Started (значение room_round_duration_sec), в секундах
-//				var Tl_started = +self.m.s1.game.choosen_room().room_round_duration_sec();
-//				var Tl_pending = +self.m.s1.game.choosen_room().pending_duration_s() + 5;
-//				var Tl_lottery = +Math.round(self.m.s1.game.choosen_room().lottery_duration_ms()/1000) + 10;
-//				var Tl_winner = +self.m.s1.game.choosen_room().winner_duration_s() + 5;
-//
-//			// 3] Вычислить результаты
-//			(function(){
-//
-//				// 3.1] Если лимит на длительность состояний не установлен
-//				if(Tl_started == "0") {
-//					self.m.s1.game.timeleft.sec("∞");
-//					self.m.s1.game.timeleft.human("∞");
-//					self.m.s1.game.timeleft.seconds("∞");
-//					self.m.s1.game.timeleft.minutes("∞");
-//					self.m.s1.game.timeleft.hours("∞");
-//					return;
-//				}
-//				if(Tl_pending == "0") {
-//					self.m.s1.game.timeleft_pending.sec("∞");
-//					self.m.s1.game.timeleft_pending.human("∞");
-//					return;
-//				}
-//				if(Tl_winner == "0") {
-//					self.m.s1.game.timeleft_winner.sec("∞");
-//					self.m.s1.game.timeleft_winner.human("∞");
-//					return;
-//				}
-//
-//				// 3.2] Вычислить результаты для timeleft
-//				(function(){
-//
-//					// 1) Если состояние раунда "Created" или "First bet"
-//					if(['Created', 'First bet'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//						self.m.s1.game.timeleft.sec(Tl_started);
-//						self.m.s1.game.timeleft.human(moment.utc(Tl_started*1000).format("HH:mm:ss"));
-//						self.m.s1.game.timeleft.seconds(moment.utc(Tl_started*1000).format("ss"));
-//						self.m.s1.game.timeleft.minutes(moment.utc(Tl_started*1000).format("mm"));
-//						self.m.s1.game.timeleft.hours(moment.utc(Tl_started*1000).format("HH"));
-//						return;
-//					}
-//
-//					// 2) Если состояние раунда "Lottery", "Winner" или "Finished"
-//					if(['Pending', 'Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//						self.m.s1.game.timeleft.sec("0");
-//						self.m.s1.game.timeleft.human("00:00:00");
-//						self.m.s1.game.timeleft.seconds("00");
-//						self.m.s1.game.timeleft.minutes("00");
-//						self.m.s1.game.timeleft.hours("00");
-//						return;
-//					}
-//
-//					// 3) Если состояние раунда "Started" или "Pending"
-//					if(['Started'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//
-//						// Определить значение
-//						var value = (+Ts + +Tl_started) - +Tn;
-//
-//						// Если оно <= 0
-//						// - То есть, раунд (состояние Started) уже закончился
-//						if(value <= 0) {
-//							self.m.s1.game.timeleft.sec("0");
-//							self.m.s1.game.timeleft.human("00:00:00");
-//							self.m.s1.game.timeleft.seconds("00");
-//							self.m.s1.game.timeleft.minutes("00");
-//							self.m.s1.game.timeleft.hours("00");
-//						}
-//
-//						// Если оно > 0
-//						// - То есть, раунд (состояние Started) ещё не закончился
-//						else {
-//							self.m.s1.game.timeleft.sec(value);
-//							self.m.s1.game.timeleft.human(moment.utc((value)*1000).format("HH:mm:ss"));
-//							self.m.s1.game.timeleft.seconds(moment.utc(value*1000).format("ss"));
-//							self.m.s1.game.timeleft.minutes(moment.utc(value*1000).format("mm"));
-//							self.m.s1.game.timeleft.hours(moment.utc(value*1000).format("HH"));
-//						}
-//
-//						// Завершить
-//						return;
-//
-//					}
-//
-//				})();
-//
-//				// 3.3] Вычислить результаты для Pending
-//				(function(){
-//
-//					// 1) Если состояние раунда 'Created', 'First bet', 'Started'
-//					if(['Created', 'First bet', 'Started'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//						self.m.s1.game.timeleft_pending.sec(Tl_pending);
-//						self.m.s1.game.timeleft_pending.human("00:00:00");
-//						return;
-//					}
-//
-//					// 2) Если состояние раунда 'Lottery'
-//					if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//						self.m.s1.game.timeleft_pending.sec("0");
-//						self.m.s1.game.timeleft_pending.human("00:00:00");
-//						return;
-//					}
-//
-//					// 2) Если состояние раунда "Pending"
-//					if(['Pending'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//
-//						// Определить значение
-//						var value = (+Ts + +Tl_pending) - +Tn;
-//
-//						// Если оно <= 0
-//						// - То есть, состояние Pending уже закончилось
-//						if(value <= 0) {
-//							self.m.s1.game.timeleft_pending.sec("0");
-//							self.m.s1.game.timeleft_pending.human("00:00:00");
-//						}
-//
-//						// Если оно > 0
-//						// - То есть, состояние Pending ещё не закончилось
-//						else {
-//							self.m.s1.game.timeleft_pending.sec(value);
-//							self.m.s1.game.timeleft_pending.human(moment.utc((value)).format("HH:mm:ss"));
-//						}
-//
-//					}
-//
-//				})();
-//
-//				// 3.4] Вычислить результаты для Lottery
-//				(function(){
-//
-//					// 1) Если состояние раунда не "Lottery"
-//					if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) == -1) {
-//						self.m.s1.game.timeleft_lottery.sec("0");
-//						self.m.s1.game.timeleft_lottery.human("00:00:00");
-//						return;
-//					}
-//
-//					// 2) Если состояние раунда "Lottery"
-//					else {
-//
-//						// Определить значение
-//						var value = (+Ts + +Tl_lottery) - +Tn;
-//
-//						// Если оно <= 0
-//						// - То есть, состояние Lottery уже закончилось
-//						if(value <= 0) {
-//							self.m.s1.game.timeleft_lottery.sec("0");
-//							self.m.s1.game.timeleft_lottery.human("00:00:00");
-//						}
-//
-//						// Если оно > 0
-//						// - То есть, состояние Lottery ещё не закончилось
-//						else {
-//							self.m.s1.game.timeleft_lottery.sec(value);
-//							self.m.s1.game.timeleft_lottery.human(moment.utc((value)).format("HH:mm:ss"));
-//						}
-//
-//					}
-//
-//				})();
-//
-//				// 3.5] Вычислить результаты для Winner
-//				(function(){
-//
-//					// 1) Если состояние раунда не "First bet, "Started" или "Pending"
-//					if(['First bet', 'Started', 'Pending'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//						self.m.s1.game.timeleft_winner.sec("0");
-//						self.m.s1.game.timeleft_winner.human("00:00:00");
-//						return;
-//					}
-//
-//					// 2) Если состояние раунда "Lottery"
-//					if(['Lottery', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//						self.m.s1.game.timeleft_winner.sec(Tl_winner);
-//						self.m.s1.game.timeleft_winner.human("00:00:00");
-//						return;
-//					}
-//
-//					// 3) Если состояние раунда "Winner"
-//					if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-//
-//						// Определить значение
-//						var value = (+Ts + +Tl_winner) - +Tn;
-//
-//						// Если оно <= 0
-//						// - То есть, состояние Winner уже закончилось
-//						if(value <= 0) {
-//							self.m.s1.game.timeleft_winner.sec("0");
-//							self.m.s1.game.timeleft_winner.human("00:00:00");
-//						}
-//
-//						// Если оно > 0
-//						// - То есть, состояние Winner ещё не закончилось
-//						else {
-//							self.m.s1.game.timeleft_winner.sec(value);
-//							self.m.s1.game.timeleft_winner.human(moment.utc((value)).format("HH:mm:ss"));
-//						}
-//
-//					}
-//
-//				})();
-//
-//				// 3.6] Вычислить результаты для timeleft_final
-//				(function(){
-//
-//					// Определить значение
-//					var value = +self.m.s1.game.timeleft.sec() + +self.m.s1.game.timeleft_pending.sec();
-//
-//					// Если оно <= 0
-//					if(value <= 0) {
-//						self.m.s1.game.timeleft_final.sec("0");
-//						self.m.s1.game.timeleft_final.human("00:00:00");
-//						self.m.s1.game.timeleft_final.seconds("00");
-//						self.m.s1.game.timeleft_final.minutes("00");
-//						self.m.s1.game.timeleft_final.hours("00");
-//					}
-//
-//					// Если оно > 0
-//					else {
-//						self.m.s1.game.timeleft_final.sec(value);
-//						self.m.s1.game.timeleft_final.human(moment.utc((value)*1000).format("HH:mm:ss"));
-//						self.m.s1.game.timeleft_final.seconds(moment.utc(value*1000).format("ss"));
-//						self.m.s1.game.timeleft_final.minutes(moment.utc(value*1000).format("mm"));
-//						self.m.s1.game.timeleft_final.hours(moment.utc(value*1000).format("HH"));
-//					}
-//
-//					// Завершить
-//					return;
-//
-//				})();
-//
-//				// 3.7] Вычислить результаты для timeleft2start_final
-//				(function(){
-//
-//					// Определить значение
-//					var value = +self.m.s1.game.timeleft_lottery.sec() + +self.m.s1.game.timeleft_winner.sec();
-//
-//					// Если оно <= 0
-//					if(value <= 0) {
-//						self.m.s1.game.timeleft2start_final.sec("0");
-//						self.m.s1.game.timeleft2start_final.human("00:00:00");
-//						self.m.s1.game.timeleft2start_final.seconds("00");
-//						self.m.s1.game.timeleft2start_final.minutes("00");
-//						self.m.s1.game.timeleft2start_final.hours("00");
-//					}
-//
-//					// Если оно > 0
-//					else {
-//						self.m.s1.game.timeleft2start_final.sec(value);
-//						self.m.s1.game.timeleft2start_final.human(moment.utc((value)*1000).format("HH:mm:ss"));
-//						self.m.s1.game.timeleft2start_final.seconds(moment.utc(value*1000).format("ss"));
-//						self.m.s1.game.timeleft2start_final.minutes(moment.utc(value*1000).format("mm"));
-//						self.m.s1.game.timeleft2start_final.hours(moment.utc(value*1000).format("HH"));
-//					}
-//
-//					// Завершить
-//					return;
-//
-//				})();
-//
-//			})();
-			
 		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});;
 	
 		// s1.n.3. Перерасчитать модель для отрисовки кольца //
