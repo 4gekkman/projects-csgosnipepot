@@ -31,17 +31,26 @@
 // А. Шрифты //
 //-----------//
 
-//@font-face {
-//    font-family: 'Effra';
-//    src: url('/public/L10002/assets/fonts/EffraNormal/DaltonMaagEffra.eot');
-//    src: url('/public/L10002/assets/fonts/EffraNormal/DaltonMaagEffra.eot') format('embedded-opentype'),
-//         url('/public/L10002/assets/fonts/EffraNormal/DaltonMaagEffra.woff2') format('woff2'),
-//         url('/public/L10002/assets/fonts/EffraNormal/DaltonMaagEffra.woff') format('woff'),
-//         url('/public/L10002/assets/fonts/EffraNormal/DaltonMaagEffra.ttf') format('truetype'),
-//         url('/public/L10002/assets/fonts/EffraNormal/DaltonMaagEffra.svg#Effra') format('svg');
-//}
+@font-face {
+    font-family: 'PTsansRegular';
+    src: url('/public/L10003/assets/fonts/regular/regular.eot');
+    src: url('/public/L10003/assets/fonts/regular/regular.eot') format('embedded-opentype'),
+         url('/public/L10003/assets/fonts/regular/regular.woff2') format('woff2'),
+         url('/public/L10003/assets/fonts/regular/regular.woff') format('woff'),
+         url('/public/L10003/assets/fonts/regular/regular.ttf') format('truetype'),
+         url('/public/L10003/assets/fonts/regular/regular.svg#PTsansRegular') format('svg');
+}
+@font-face {
+    font-family: 'PTsansBold';
+    src: url('/public/L10003/assets/fonts/regular/bold.eot');
+    src: url('/public/L10003/assets/fonts/regular/bold.eot') format('embedded-opentype'),
+         url('/public/L10003/assets/fonts/regular/bold.woff2') format('woff2'),
+         url('/public/L10003/assets/fonts/regular/bold.woff') format('woff'),
+         url('/public/L10003/assets/fonts/regular/bold.ttf') format('truetype'),
+         url('/public/L10003/assets/fonts/regular/bold.svg#PTsansBold') format('svg');
+}
 * {
-  font-family: "PT Sans", Sans-Serif;
+  font-family: PTsansRegular, "PT Sans", Sans-Serif;
 }
 
 
