@@ -109,6 +109,7 @@ View::composer('L10003::layout', function($view) {
     'logged_in_steam_users' => Redis::get('active_connections_number'),
     'messages'              => $messages,
     'chat_main'             => $chat_main,
+    'servertime_s'          => \Carbon\Carbon::now()->timestamp,
   ], JSON_UNESCAPED_UNICODE));
 
 
