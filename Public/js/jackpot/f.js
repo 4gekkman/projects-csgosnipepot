@@ -20,6 +20,9 @@
  *    f.s1.get_steam_img_with_size        | s1.7. Получить URL на изображение скина в стим заданных размеров
  *   	f.s1.get_cat_quality_item_color     | s1.8. Вычислить цвет для вещи в ставке (зависящий от категории и качетва)
  *    f.s1.update_statistics              | s1.9. Обновить модель статистики свежими данными с сервера
+ *    f.s1.queue_add                      | s1.10. Добавить задачу в очередь
+ *    f.s1.queue_processor                | s1.11. Выполняется ежесекундно, выполнить все задачи из очереди, чьё время пришло
+ *
  *
  *
  */
@@ -381,6 +384,40 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		ko.mapping.fromJS(data, self.m.s1.game.statistics);
 
 	};
+
+	//----------------------------------//
+	// s1.10. Добавить задачу в очередь //
+	//----------------------------------//
+	f.s1.queue_add = function(unixtimestamp, func){
+		self.m.s1.game.queue.push({
+			unixtimestamp: unixtimestamp,
+			func: func
+		});
+	};
+
+	//-----------------------------------------------------------------------------------//
+	// s1.11. Выполняется ежесекундно, выполнить все задачи из очереди, чьё время пришло //
+	//-----------------------------------------------------------------------------------//
+	f.s1.queue_processor = function(){
+
+		// Получить текущий серверный unix timestamp в мс
+		var ts = layoutmodel.m.s0.servertime.timestamp_s();
+
+		// Пробежаться по очереди, выполнить функции, чье время пришло
+		// - Выполнять эти функции, удалять из очереди
+		for(var i=0; i<self.m.s1.game.queue().length; i++) {
+			if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
+				self.m.s1.game.queue()[i].func();
+				self.m.s1.game.queue.remove(function(item){
+					if(item.func == self.m.s1.game.queue()[i].func) return true;
+				});
+			}
+		}
+
+	};
+
+
+
 
 
 

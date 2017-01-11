@@ -247,11 +247,11 @@
           <!---------------------------*/ ?>
           <div class="counter-time">
             <div>
-              <span data-bind="text: m.s1.game.timeleft_final.minutes"></span>
+              <span data-bind="text: m.s1.game.counters.main.minutes"></span>
             </div>
             <div>:</div>
             <div>
-              <span data-bind="text: m.s1.game.timeleft_final.seconds"></span>
+              <span data-bind="text: m.s1.game.counters.main.seconds"></span>
             </div>
           </div>
 
@@ -396,11 +396,11 @@
             <div class="counter">
 
               <div>
-                <span data-bind="text: m.s1.game.timeleft2start_final.minutes"></span>
+                <span data-bind="text: m.s1.game.counters.main.minutes"></span>
               </div>
               <div>:</div>
               <div>
-                <span data-bind="text: m.s1.game.timeleft2start_final.seconds"></span>
+                <span data-bind="text: m.s1.game.counters.main.seconds"></span>
               </div>
 
             </div>
