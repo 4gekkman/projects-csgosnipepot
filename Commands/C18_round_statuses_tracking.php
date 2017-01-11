@@ -506,6 +506,15 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
           }
 
+          // 9] Если новый статус - Started
+          if($suitable_room_status['name'] == "Started") {
+
+            // Наполнить поле started_at у раунда
+            $lastround->started_at = $params['current_server_time']->toDateTimeString();
+            $lastround->save();
+
+          }
+
         }
 
       }
