@@ -55,7 +55,7 @@
       $cg_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
 
       // Шапка
-      $cg_color_header_bg: #182328;       // Цвет фона шапки классической игры
+      $cg_color_header_bg: #1B2934;       // Цвет фона шапки классической игры
       $cg_color_roombrd: #269a95;         // Цвет рамки интерфейса выбора комнаты
       $cg_color_choosencolor: #269a95;    // Цвет выбранного пункта меню
 
@@ -81,7 +81,7 @@
       $cg_sizes_godds_height: 6px;        // Высота блока графического распределения шансов
 
       // Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
-      $cg_sizes_odds_height: 108px;       // Высота блока распределения шансов
+      $cg_sizes_odds_height: 100px;       // Высота блока распределения шансов
 
       // Панель с информацией о текущем раунде
       $cg_sizes_infopanel_height: 100px;  // Высота панели с информацией о текущем раунде
@@ -104,7 +104,7 @@
     .content .classic-game .cg-container {
       margin-top: 15px;
       border-radius: 6px;
-      background: $cg_main_color;
+      background: #284351;
     }
 
   //------------------------------------//
@@ -114,7 +114,7 @@
     // Общие стили шапки классической игры
     .content .classic-game .cg-container .header {
       position: relative;
-      background: darken($cg_main_color, 5%);
+      background: #1B2934;
       height: $cg_color_header_height;
     }
 
@@ -127,7 +127,7 @@
       text-align: left;
       color: #fff;
       cursor: pointer;
-      background: darken($cg_main_color, 5%);
+      background: #1B2934;
       transition: all .5s ease;
     }
     .content .classic-game .cg-container .header .logo_and_name:hover {
@@ -144,6 +144,7 @@
     .content .classic-game .cg-container .header .logo_and_name span {
       font-size: 1.5em;
       vertical-align: middle;
+      font-weight: 600;
     }
 
     // Кнопка "История"
@@ -151,14 +152,14 @@
       position: absolute; right: 0; top: 0;
       height: $cg_color_header_height;
       //width: 33.333333333%;
-      border-left: 1px solid $cg_main_color;
+      border-left: 1px solid #212f35;
       line-height: $cg_color_header_height;
       font-size: 1.5em;
       padding: 0 $cg_color_header_height/3;
       text-align: right;
       cursor: pointer;
       color: #fff;
-      background: darken($cg_main_color, 5%);
+      background: #1B2934;
       transition: all .2s ease;
     }
     .content .classic-game .cg-container .header .history-button:hover {
@@ -199,7 +200,7 @@
       transition: all .2s ease-in-out;
     }
     .content .classic-game .cg-container .header .choose-room:hover {
-      background: darken($cg_main_color, 10%);
+      //background: darken($cg_main_color, 10%);
     }
 
     // Название выбранной комнаты
@@ -264,17 +265,18 @@
     .content .classic-game .cg-container .gamenum_and_bank {
       height: 80px;
       line-height: 80px;
-      list-style: 80px;
+      //list-style: 80px;
       text-align: center;
       font-size: 2.1em;
-      border-bottom: 2px solid #2b3d45;
+      border-bottom: 2px solid #2F5463;
     }
 
     // Стили номера игры
     .content .classic-game .cg-container .gamenum_and_bank .gamenum {
       display: inline-block;
-      padding-right: 15px;
-      text-shadow: 1px 1px 1px rgb(44, 110, 47);
+      padding: 0 20px;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.26);
+      font-weight: 600;
     }
     .content .classic-game .cg-container .gamenum_and_bank .gamenum span:nth-child(1) {}
     .content .classic-game .cg-container .gamenum_and_bank .gamenum span:nth-child(2) {
@@ -284,8 +286,10 @@
     // Стили банка
     .content .classic-game .cg-container .gamenum_and_bank .bank {
       display: inline-block;
+      text-transform: uppercase;
       padding-left: 15px;
-      text-shadow: 1px 1px 1px rgb(44, 110, 47);
+      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.26);
+      font-weight: 600;
     }
     .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(1) {}
     .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(2) {
@@ -308,7 +312,7 @@
       .content .classic-game .cg-container .gameprocess {
         position: relative;
         height: 240px;
-        background: $cg_main_color;
+        background: #284351;
       }
 
     //-----------------------------------------------------//
@@ -344,7 +348,7 @@
       // Счётчик вещей раунда
       .content .classic-game .cg-container .gameprocess .counters .counter-items {
         position: relative;
-        background: darken($cg_main_color, 5%);
+        background: #1B2934;
         margin-right: 10px;
         border-radius: 4px;
         width: 470px;
@@ -369,11 +373,11 @@
         height: 85px;
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .items-inbank-max {
-        position: absolute; top: 4px; right: -50px;
-        padding: 3px 8px;
+        position: absolute; top: 7px; right: -42px;
+        padding: 0px 2px;
         color: #ffd38f;
         font-size: 1.8em;
-        height: 34px;
+        height: 28px;
         line-height: 28px;
         border-radius: 4px;
         background-color: rgba(0,0,0,.6);
@@ -406,7 +410,7 @@
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(1) {
         width: 70px;
-        background: darken($cg_main_color, 5%);
+        background: #1B2934;
         border-radius: 4px;
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(2) {
@@ -416,7 +420,7 @@
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(3) {
         width: 70px;
-        background: darken($cg_main_color, 5%);
+        background: #1B2934;
         border-radius: 4px;
       }
 
@@ -428,7 +432,7 @@
       // Общие стили
       .content .classic-game .cg-container .gameprocess .controls {
         height: $cg_sizes_controls_height;
-        background: darken($cg_main_color, 5%);
+        background: #183440;
         overflow: hidden;
         white-space: nowrap;
         transition: all .2s ease;
@@ -458,14 +462,14 @@
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .items_info {
           text-align: center;
           color: #81D1F9;
-          font-size: 1.5em;
+          font-size: 1.3em;
         }
 
         // Шанс
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance {
           position: relative;
           text-align: center;
-          font-size: 1.5em;
+          font-size: 1.3em;
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-left {
           position: absolute;
@@ -500,10 +504,10 @@
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button {
           display: inline-block;
           height: $cg_sizes_controls_height*.3;
-          line-height: $cg_sizes_controls_height*.3;
+          line-height: $cg_sizes_controls_height*.29;
           vertical-align: middle;
           padding: 0 29px;
-          font-size: 1.5em;
+          font-size: 1.2em;
           background: #795349;
           color: #fff;
           border: 1px solid #E3764D;
@@ -525,7 +529,7 @@
         height: $cg_sizes_controls_height*.2;
         line-height: $cg_sizes_controls_height*.2;
         margin: $cg_sizes_controls_height*.05 40px;
-        font-size: 1.1em;
+        font-size: 1em;
         text-align: center;
         background-color: #573c46;
         border: 1px solid #734857;
@@ -828,6 +832,8 @@
     }
     .content .classic-game .bets .bet-container .bet-info .info-section .tickets {
       float: right;
+      font-size: 16px;
+      margin-top: 14px;
     }
     .content .classic-game .bets .bet-container .bet-info .info-section .tickets .ticketnumber {
       color: $cg_colog_highlight;

@@ -414,7 +414,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// - Но не подводить, если текущий статус Lottery или Winner
 			if(result < server_ts) { // && ['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) == -1) {
 				self.m.s1.game.time.gone_s(+server_ts - +layout_data.data.servertime_s);
-				result = +layout_data.data.servertime_s + +self.m.s1.game.time.gone_s();
+				result = +layout_data.data.servertime_s;
 			}
 
 			// 2.4] Вернуть result
@@ -853,7 +853,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				durations.lottery = +self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + 5;
 
 				// Winner
-				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + 5;
+				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + 9;
 
 			// 3] Вычислить исходные значения для производных единого счётчика
 			// - Для cединого счётчика.
@@ -899,7 +899,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			if(['Started', 'Pending', 'Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 
 				// 4.1] Текущее серверное время, unix timestamp в секундах
-				var timestamp_s = layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
+				var timestamp_s = self.m.s1.game.time.ts(); //layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
 				// 4.2] Время начала состояния Started, unix timestamp в секундах
 				var started_at_s = Math.round(moment.utc(self.m.s1.game.choosen_room().rounds()[0].started_at()).unix());

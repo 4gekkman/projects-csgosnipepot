@@ -228,7 +228,7 @@
               <!-- Информация о кол-ве поставленных предметов -->
               <!--------------------------------------------*/ ?>
               <div class="items-inbank-max">
-                <span data-bind="text: m.s1.bank.items_sorted().length + ($root.m.s1.game.choosen_room().max_items_per_round() != '0' ? (' / ' + $root.m.s1.game.choosen_room().max_items_per_round()) : '')"></span>
+                <span data-bind="text: m.s1.bank.items_sorted().length + ($root.m.s1.game.choosen_room().max_items_per_round() != '0' ? ('/' + $root.m.s1.game.choosen_room().max_items_per_round()) : '')"></span>
               </div>
 
             </div>
