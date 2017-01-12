@@ -238,33 +238,53 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
+					console.log('timestamp_s = '+timestamp_s);
+					console.log('switchtimes.lottery = '+switchtimes.lottery);
+					console.log('---');
+
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.lottery)
+					if(timestamp_s >= switchtimes.lottery) {
+						console.log('newstatus = '+newstatus);
+						console.log('Now');
 						update();
+					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else
+					else {
+						console.log('newstatus = '+newstatus);
+						console.log('Delay');
 						self.f.s1.queue_add(switchtimes.lottery, update);
+					}
 
 				}
 
 				// 6.2] Если для room2update пришли данные с состоянием Winner
-				if(newstatus == "Winner") {
+				else if(newstatus == "Winner") {
 
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
+					console.log('timestamp_s = '+timestamp_s);
+					console.log('switchtimes.lottery = '+switchtimes.lottery);
+					console.log('---');
+
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.winner)
+					if(timestamp_s >= switchtimes.winner) {
+						console.log('newstatus = '+newstatus);
+						console.log('Now');
 						update();
+					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else
+					else {
+						console.log('newstatus = '+newstatus);
+						console.log('Delay');
 						self.f.s1.queue_add(switchtimes.winner, update);
+					}
 
 				}
 
@@ -272,188 +292,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				else
 					update();
 
+
 		}})();
 
-
-
-
-
-//		// 3. Обновить данные
-//		(function(){
-//
-//			// 1] Подготовить функцию, обновляющую данные в game.rooms
-//			var update = function(data, self){
-//
-//				// 1.1] Обновить данные в rooms данными rooms_new_data
-//				self.m.s1.game.rooms(ko.mapping.fromJS(data)());
-//
-//				// 1.2] Обновить ссылку на choosen_room
-//				self.m.s1.game.choosen_room((function(){
-//
-//					// Получить имя текущей выбранной комнаты
-//					var name = self.m.s1.game.choosen_room().name();
-//
-//					// Сделать выбранной комнату с name из game.rooms
-//					for(var i=0; i<self.m.s1.game.rooms().length; i++) {
-//						if(self.m.s1.game.rooms()[i].name() == name)
-//							return self.m.s1.game.rooms()[i];
-//					}
-//
-//				})());
-//
-//				// 1.3] Обновить значение m.s1.game.choosen_status
-//				self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
-//
-//			}.bind(null, data, self);
-//
-//			// 2] Составить индекс комнат в data
-//			var roomsindex = (function(){
-//
-//				// 1. Подготовить объект для результатов
-//				var results = {};
-//
-//				// 2. Заполнить results
-//				for(var i=0; i<data.length; i++) {
-//					results[data[i].id] = data[i];
-//				}
-//
-//				// 3. Вернуть results
-//				return results;
-//
-//			}());
-//
-//			// 3] Получить ссылку на текущую выбранную комнату из roomsindex
-//			var choosen_room_id = self.m.s1.game.choosen_room() ? self.m.s1.game.choosen_room().id() : server.data.choosen_room_id;
-//			var cur_room_data = roomsindex[choosen_room_id];
-//
-//			// 4] Получить название нового статуса комнаты
-//			var newstatus = cur_room_data['rounds'][0]['rounds_statuses'][0]['status'];
-//
-//			// 5] В зависимости от условия, выполнить функцию update
-//
-//				// 5.1] Если для cur_room_data пришли данные с состоянием Lottery
-//				// - А текущий статус выбранной комнаты Pending
-//				if(newstatus == "Lottery") {
-//
-//					// Если время пришло, обновить клиент
-//					if(self.m.s1.game.timeleft_final.sec() == 0)
-//						update();
-//
-//					// Если время ещё не пришло, установить setTimeout
-//					else {
-//
-//						// Определить время, на которое исполнение будет отложено
-//						var delay = (function(){
-//
-//							// 1) Получить базовое значение
-//							var result = self.m.s1.game.timeleft_final.sec()*1000;
-//
-//							// 2) Если result > 3000, вычесть из него 3000
-//							if(result > 3000)
-//								result = +result - 3000;
-//
-//							// n) Вернуть результат
-//							return result;
-//
-//						})();
-//
-//						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
-//						setTimeout(update, delay);
-//
-//					}
-//
-//				}
-//
-//				// 5.2] Если для cur_room_data пришли данные с состоянием Winner
-//				// - А текущий статус выбранной комнаты Lottery
-//				else if(newstatus == "Winner") {
-//
-//					console.log("111");
-//					console.log('m.s1.game.timeleft_lottery.sec = '+self.m.s1.game.timeleft_lottery.sec());
-//
-//					// Если время пришло, обновить клиент
-//					if(self.m.s1.game.timeleft_lottery.sec() == 0)
-//						update();
-//
-//					// Если время ещё не пришло, установить setTimeout
-//					else {
-//
-//						// Определить время, на которое исполнение будет отложено
-//						var delay = (function(){
-//
-//							// 1) Получить базовое значение
-//							var result = self.m.s1.game.timeleft_lottery.sec()*1000;
-//
-//							// 2) Если result > 3000, вычесть из него 3000
-//							if(result > 3000)
-//								result = +result - 3000;
-//
-//							// n) Вернуть результат
-//							return result;
-//
-//						})();
-//
-//						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
-//						setTimeout(update, delay);
-//
-//					}
-//
-//				}
-//
-//				// 5.3] Если для cur_room_data пришли данные с состоянием Created || First bet || Started
-//				// - А текущий статус выбранной комнаты Winner
-//				else if(newstatus == "Finished") {
-//
-//					console.log("222");
-//					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
-//
-//				}
-//
-//				// 5.3] Если для cur_room_data пришли данные с состоянием Created
-//				// - А текущий статус выбранной комнаты Finished
-//				else if(newstatus == "Created") {
-//
-//					console.log("333");
-//					console.log('m.s1.game.timeleft_winner.sec = '+self.m.s1.game.timeleft_winner.sec());
-//
-//					// Если время пришло, обновить клиент
-//					if(self.m.s1.game.timeleft_winner.sec() == 0)
-//						update();
-//
-//					// Если время ещё не пришло, установить setTimeout
-//					else {
-//
-//						// Определить время, на которое исполнение будет отложено
-//						var delay = (function(){
-//
-//							// 1) Получить базовое значение
-//							var result = self.m.s1.game.timeleft_winner.sec()*1000;
-//
-//							// 2) Если result > 2000, вычесть из него 2000
-//							//if(result > 2000)
-//							//	result = +result - 2000;
-//
-//							// n) Вернуть результат
-//							return result;
-//
-//						})();
-//
-//						// Запланировать выполнение ф-ии update с отсрочкой в delay мс
-//						setTimeout(update, delay);
-//
-//					}
-//
-//				}
-//
-//				// 5.n] Выполнить функцию update
-//				else {
-//					console.log("Просто update");
-//					update();
-//				}
-//
-//			console.log('newstatus = '+newstatus);
-//
-//		})();
 
 	};
 
@@ -544,7 +385,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	f.s1.queue_processor = function(){
 
 		// Получить текущий серверный unix timestamp в мс
-		var ts = layoutmodel.m.s0.servertime.timestamp_s();
+		var ts = self.m.s1.game.time.ts(); //layoutmodel.m.s0.servertime.timestamp_s();
 
 		// Пробежаться по очереди, выполнить функции, чье время пришло
 		// - Выполнять эти функции, удалять из очереди
