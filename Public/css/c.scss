@@ -298,7 +298,7 @@
     $color_header_opacity:    .85;      // Полупрозрачность шапки
 
     // Главное левое меню
-    $color_mainmenu_bg:       #1b2934;  // Фон главного левого меню
+    $color_mainmenu_bg:       #223340;  // Фон главного левого меню
     $color_mm_toogle_bg:      transparent; // Фон переключателя ширины
 
     // Правый чат
@@ -620,7 +620,7 @@
       font-size: 34px;
     }
     .menu:not(.menu-hidden) .items .item:hover {
-      background: #0e1214 !important;
+      background: #172125 !important;
     }
     .menu.menu-hidden .items .item:hover {
       width: $sizes_mainmenu_width;
@@ -640,7 +640,7 @@
     // Стиль выбранного пункта меню
     .menu .items .item.choosen {
       color: #59b0db;
-      background: #0e1214 !important;
+      background: #172125 !important;
     }
 
     // Контент пункта меню
@@ -889,7 +889,9 @@
     .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(2) {
       padding-right: 5px;
       padding-bottom: 12px;
+      -webkit-transition: all .5s ease;
       transition: all .5s ease;
+      line-height: 14px;
     }
     .chat-right-container .chat .chat-messages .chat-message .avatarka {
       text-align: center;
