@@ -298,15 +298,15 @@
     $color_header_opacity:    .85;      // Полупрозрачность шапки
 
     // Главное левое меню
-    $color_mainmenu_bg:       #212f35;  // Фон главного левого меню
+    $color_mainmenu_bg:       #1b2934;  // Фон главного левого меню
     $color_mm_toogle_bg:      transparent; // Фон переключателя ширины
 
     // Правый чат
-    $color_rightchat_bg:      #212f35;  // Фон правого чата
-    $color_rc_controls_bg:    #17232a;  // Фон панели управления правым чатом
+    $color_rightchat_bg:      rgb(40, 67, 81);  // Фон правого чата
+    $color_rc_controls_bg:    #183440;  // Фон панели управления правым чатом
     $color_rcbut_bg:          #212f35;  // Фон кнопки раскрытия правого чата
     $color_rcbut_color:       #ddd;     // Цвет иконки и текста кнопки раскрытия правого чата
-    $color_rc_msgbg_big:      #233238;  // Цвет фона сообщений большой версии чата
+    $color_rc_msgbg_big:      #2a4655;  // Цвет фона сообщений большой версии чата
     $color_rc_min_bord:       #1e2b30;  // Цвет нижнего бордера сообщений минимизированного чата
 
 
@@ -660,9 +660,9 @@
     // Контейнер счётчика пользователей
     .menu .users-counter {
       height: $sizes_mainmenu_itemh/1.5; width: 100%;
-      border-top: 1px solid #161f24;
+      border-top: 2px solid #2F5463;
       text-align: center;
-      line-height: $sizes_mainmenu_itemh/1.5;
+      line-height: $sizes_mainmenu_itemh/1.6;
       color: #aaa;
       font-size: 1.1em;
     }

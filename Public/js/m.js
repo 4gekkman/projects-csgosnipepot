@@ -456,7 +456,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-shopping',
 			icon_url:   '',
 			title:      'Магазин',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		},
@@ -465,7 +465,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-account',
 			icon_url:   '',
 			title:      'Профиль',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		},
@@ -474,7 +474,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-account-multiple',
 			icon_url:   '',
 			title:      'Партнёрка',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		},
@@ -483,7 +483,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-star-outline',
 			icon_url:   '',
 			title:      'ТОП игроков',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		},
@@ -492,7 +492,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-information-outline',
 			icon_url:   '',
 			title:      'F.A.Q.',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		},
@@ -501,7 +501,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-help-circle-outline',
 			icon_url:   '',
 			title:      'Тех.поддержка',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		},
@@ -510,7 +510,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			icon_mdi:   'mdi-coin',
 			icon_url:   '',
 			title:      'Free coins',
-			bg_color:   '#212f35',
+			bg_color:   '#1b2934',
 			brd_color:  'transparent',
 			visible:    true
 		}
