@@ -60,7 +60,7 @@
       $cg_color_choosencolor: #269a95;    // Цвет выбранного пункта меню
 
       // Победный билет, победил игрок, число раунда
-      $cg_color_winblock_base: #b1b1b1;
+      $cg_color_winblock_base: #fff;
       $cg_color_winblock_ticket: #34B07D;
       $cg_color_winblock_winner: #E4D33A;
       $cg_color_winblock_number: #81D1F9;
@@ -659,7 +659,7 @@
         }
         .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(1) {
           width: 70px;
-          background: darken($cg_main_color, 5%);
+          background: #1b2934;
           border-radius: 4px;
         }
         .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(2) {
@@ -669,7 +669,7 @@
         }
         .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(3) {
           width: 70px;
-          background: darken($cg_main_color, 5%);
+          background: #1b2934;
           border-radius: 4px;
         }
 
@@ -768,6 +768,7 @@
     // Контейнер
     .content .classic-game .bets {
       padding: 0;
+      background: #183440;
     }
 
     // Контейнер ставки
@@ -854,12 +855,11 @@
       display: inline-block;
       width: 100px;
       height: 100px;
-      margin-right: 18px;
       margin-top: 15px;
       text-align: center;
       line-height: 100px;
       cursor: help;
-      background: lighten($cg_main_color, 3%);
+      background: #1e404f;
       border: 1px solid #182328;
     }
     .content .classic-game .bets .bet-container .bets-items-cont .bets-item img {
@@ -868,13 +868,14 @@
       max-height: 85px;
       margin-bottom: 25px;
       vertical-align: middle;
+      margin-top: -7px;
     }
     .content .classic-game .bets .bet-container .bets-items-cont .bets-item .price {
       position: absolute; bottom: 0; left: 0;
       width: 100%; height: 25px;
       line-height: 25px;
       font-size: 1.1em;
-      color: #81D1F9;
+      color: #28adcb;
       opacity: .8;
       cursor: text;
       text-align: center;
@@ -1112,7 +1113,7 @@
     }
     .content .classic-game .statistics>div .contentpart img {
       display: inline-block;
-      margin-top: $cg_sizes_stats_height/14;
+      margin-top: 12.92857px;
       width: 80px;
       height: 80px;
     }
