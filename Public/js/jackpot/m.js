@@ -855,7 +855,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + 9;
 
 			// 3] Вычислить исходные значения для производных единого счётчика
-			// - Для cединого счётчика.
+			// - Для единого счётчика.
 			// - Для счётчика начала розыгрыша.
 			// - Для счётчика начала новой игры.
 			var start = {};

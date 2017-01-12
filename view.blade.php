@@ -314,7 +314,7 @@
         <?php /*-------------------------------------->
         <!-- 1.1.2.2.3. Бегущая полоса с аватарками -->
         <!----------------------------------------*/ ?>
-        <div class="strip-avatars" data-bind="if: m.s1.game.choosen_room, css: {hiddenpanel: (['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) == -1)}">
+        <div class="strip-avatars" data-bind="if: m.s1.game.choosen_room, css: {hiddenpanel: (['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) == -1), downpanel: (['Started', 'Pending'].indexOf(m.s1.game.choosen_status()) != -1)}">
 
           <?php /*------------------------------------------------------------->
           <!-- Непосредственно контейнер (кот.движется) для полоски аватарок -->
@@ -549,7 +549,8 @@
               <!-- Цена -->
               <!------*/ ?>
               <div class="price">
-                <span data-bind="text: price() + ' руб'"></span>
+                <span data-bind="text: price"></span>
+                <span class="rub" data-bind="text: 'руб'"></span>
               </div>
 
             </div>

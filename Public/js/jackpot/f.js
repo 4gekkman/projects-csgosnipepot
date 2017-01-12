@@ -238,25 +238,15 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
-					console.log('timestamp_s = '+timestamp_s);
-					console.log('switchtimes.lottery = '+switchtimes.lottery);
-					console.log('---');
-
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.lottery) {
-						console.log('newstatus = '+newstatus);
-						console.log('Now');
+					if(timestamp_s >= switchtimes.lottery)
 						update();
-					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else {
-						console.log('newstatus = '+newstatus);
-						console.log('Delay');
+					else
 						self.f.s1.queue_add(switchtimes.lottery, update);
-					}
 
 				}
 
@@ -266,32 +256,21 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
-					console.log('timestamp_s = '+timestamp_s);
-					console.log('switchtimes.lottery = '+switchtimes.lottery);
-					console.log('---');
-
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.winner) {
-						console.log('newstatus = '+newstatus);
-						console.log('Now');
+					if(timestamp_s >= switchtimes.winner)
 						update();
-					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else {
-						console.log('newstatus = '+newstatus);
-						console.log('Delay');
+					else
 						self.f.s1.queue_add(switchtimes.winner, update);
-					}
 
 				}
 
 				// 6.n] Выполнить функцию update
 				else
 					update();
-
 
 		}})();
 
