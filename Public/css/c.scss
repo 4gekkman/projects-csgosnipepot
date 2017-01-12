@@ -449,13 +449,13 @@
 
         // Общие стили
         .content .classic-game .cg-container .gameprocess .controls .status_and_button {
-          height: $cg_sizes_controls_height*.6;
+          height: $cg_sizes_controls_height; //$cg_sizes_controls_height*.6;
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button>div {
           display: inline-block;
           width: 33.33333%;
-          height: $cg_sizes_controls_height*.6;
-          line-height: $cg_sizes_controls_height*.6;
+          height: $cg_sizes_controls_height; //$cg_sizes_controls_height*.6;
+          line-height: $cg_sizes_controls_height; // $cg_sizes_controls_height*.6;
           vertical-align: middle;
         }
 
@@ -474,7 +474,7 @@
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-left {
           position: absolute;
-          top: $cg_sizes_controls_height*.3 - 10px;
+          top: $cg_sizes_controls_height*0.5 - 10px; //$cg_sizes_controls_height*.3 - 10px;
           left: 0;
           display: inline-block;
           width: 24px;
@@ -485,7 +485,7 @@
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-right {
           position: absolute;
-          top: $cg_sizes_controls_height*.3 - 10px;
+          top: $cg_sizes_controls_height*.5 - 10px; //$cg_sizes_controls_height*.3 - 10px;
           right: 0;
           display: inline-block;
           width: 24px;

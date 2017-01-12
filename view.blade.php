@@ -297,17 +297,17 @@
           <?php /*--------------------------------------------------->
           <!-- 2] Панель с информацией о лимитах выбранной комнаты -->
           <!-----------------------------------------------------*/ ?>
-          <div class="info" data-bind="if: m.s1.game.choosen_room">
-
-            <?php /*------------------------->
-            <!-- 2.1] Информация о лимитах -->
-            <!---------------------------*/ ?>
-            <div class="limits">
-              <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.round(m.s1.game.choosen_room().min_bet())/100 + ' руб.') : ' не ограничена.')"></span>
-              <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>
-            </div>
-
-          </div>
+          <!--          <div class="info" data-bind="if: m.s1.game.choosen_room">-->
+          <!---->
+          <!--            --><?php ///*------------------------->
+          //            <!-- 2.1] Информация о лимитах -->
+          //            <!---------------------------*/ ?>
+          <!--            <div class="limits">-->
+          <!--              <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.round(m.s1.game.choosen_room().min_bet())/100 + ' руб.') : ' не ограничена.')"></span>-->
+          <!--              <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>-->
+          <!--            </div>-->
+          <!---->
+          <!--          </div>-->
 
         </div>
 
