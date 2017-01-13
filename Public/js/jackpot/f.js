@@ -23,6 +23,7 @@
  *    f.s1.queue_add                      | s1.10. Добавить задачу в очередь
  *    f.s1.queue_processor                | s1.11. Выполняется ежесекундно, выполнить все задачи из очереди, чьё время пришло
  * 		f.s1.bezier 												| s1.12. Порт кривой Безье на JS
+ *    f.s1.lottery                        | s1.13. Анимация ленты аватарок с помощью JS
  *
  *
  */
@@ -234,8 +235,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// Когда надо переключить в Winner
 					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
 
-					// Когда надо переключить в Started
-					st.started = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
+					// Когда надо переключить в Created
+					st.created = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
 
 				// 4.n] Вернуть результаты
 				return st;
@@ -245,6 +246,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// 5] Получить название нового статуса комнаты
 			var newstatus = data[i]['rounds'][0]['rounds_statuses'][0]['status'];
 
+			if(data[i].id == 2) console.log('---');
+			if(data[i].id == 2) console.log('newstatus = '+newstatus);
+
 			// 6] В зависимости от условия, выполнить или запланировать выполнение функции update
 
 				// 6.1] Если для room2update пришли данные с состоянием Lottery
@@ -253,15 +257,22 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
+					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2) console.log('switchtimes.lottery = '+switchtimes.lottery);
+
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.lottery)
+					if(timestamp_s >= switchtimes.lottery) {
+						if(data[i].id == 2)console.log('Update now');
 						update();
+					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else
+					else {
+						if(data[i].id == 2) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.lottery, update);
+					}
 
 				}
 
@@ -271,21 +282,60 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
+					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2) console.log('switchtimes.winner = '+switchtimes.winner);
+
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.winner)
+					if(timestamp_s >= switchtimes.winner) {
+						if(data[i].id == 2) console.log('Update now');
 						update();
+					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else
+					else {
+						if(data[i].id == 2) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.winner, update);
+					}
+
+				}
+
+				// 6.3] Если для room2update пришли данные с состоянием Finished
+				else if(newstatus == "Finished") {
+
+				}
+
+				// 6.4] Если для room2update пришли данные с состоянием Winner
+				else if(newstatus == "Created") {
+
+					// 6.4.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
+
+					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2) console.log('switchtimes.created = '+switchtimes.created);
+
+					// 6.4.2] Если timestamp_s >= switchtimes.created
+					// - Выполнить update прямо сейчас.
+					if(timestamp_s >= switchtimes.created) {
+						if(data[i].id == 2) console.log('Update now');
+						update();
+					}
+
+					// 6.4.3] В ином случае, запланировать выполнение update
+					// - На момент времени switchtimes.lottery.
+					else {
+						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(switchtimes.created, update);
+					}
 
 				}
 
 				// 6.n] Выполнить функцию update
-				else
+				else {
+					if(data[i].id == 2) console.log('Update now');
 					update();
+				}
 
 		}})();
 
@@ -627,8 +677,128 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		};
 	})();
 
+	//---------------------------------------------//
+	// s1.13. Анимация ленты аватарок с помощью JS //
+	//---------------------------------------------//
+	f.s1.lottery = function(){ setTimeout(function(){
 
+		// 1. Если установлен тип анимации не 'js', завершить
+		if(self.m.s1.animation.choosen_type().name() != 'js') return;
 
+		// 2. Получить временные параметры
+		// - Общее время розыгрыша, сколько уже прошло, сколько осталось
+		var times = (function(){
+
+			// 1] Время начала состояния Started, unix timestamp в секундах
+			var started_at_s = Math.round(moment.utc(self.m.s1.game.choosen_room().rounds()[0].started_at()).unix());
+
+			// 2] Получить данные по длительности различных состояний из конфига выбранной комнаты
+			// - В секундах.
+			var durations = {};
+
+				// Started
+				durations.started = +self.m.s1.game.choosen_room().room_round_duration_sec() + +self.m.s1.game.choosen_room().started_client_delta_s();
+
+				// Pending
+				durations.pending = +self.m.s1.game.choosen_room().pending_duration_s() + +self.m.s1.game.choosen_room().pending_client_delta_s();
+
+				// Lottery
+				durations.lottery = +self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + +self.m.s1.game.choosen_room().lottery_client_delta_ms()/1000;
+
+				// Winner
+				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + +self.m.s1.game.choosen_room().winner_client_delta_s();
+
+			// 3] Время начала состояния lottery
+			var lottery_start = moment.utc(+started_at_s + +durations.started + +durations.pending);
+
+			// 4] Время конца состояния lottery
+			var lottery_end = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
+
+			// 5] Получить текущий серверный timestamp в секундах
+			var timestamp_s = self.m.s1.game.time.ts();
+
+			// 6] Вычислить значение для passed_s
+			var passed_s = (function(){
+
+				// 6.1] Если значение в пределах от 0 до durations.lottery
+				if(timestamp_s - lottery_start >= 0 && timestamp_s - lottery_start <= durations.lottery)
+					return timestamp_s - lottery_start;
+
+				// 6.2] Если значение меньше 0, то взять 0
+				else if(timestamp_s - lottery_start < 0)
+					return 0;
+
+				// 6.3] Еслиз начение больше durations.lottery, взять durations.lottery
+				else if(timestamp_s - lottery_start > durations.lottery)
+					return durations.lottery;
+
+			})();
+
+			// 7] Вычислить значение для left_s
+			var left_s = (function(){
+
+				// 7.1] Если значение в пределах от 0 до durations.lottery
+				if(lottery_end - timestamp_s >= 0 && lottery_end - timestamp_s <= durations.lottery)
+					return lottery_end - timestamp_s;
+
+				// 7.2] Если значение меньше 0, то взять 0
+				else if(lottery_end - timestamp_s < 0)
+					return 0;
+
+				// 7.3] Еслиз начение больше durations.lottery, взять durations.lottery
+				else if(lottery_end - timestamp_s > durations.lottery)
+					return durations.lottery;
+
+			})();
+
+			// n] Вернуть результаты
+			return {
+				duration: durations.lottery,
+				passed_s: passed_s,
+				left_s: left_s
+			};
+
+		})();
+
+		// 3. Получить текущее время, время окончания розыгрыша
+		var currenttime = Date.now();
+		var futuretime = +currenttime + times.left_s*1000;
+
+		// 4. Найти и получить DOM-элемент полосы аватаров
+		var strip = $('.strip-avatars .moving_cont');
+
+		// 5. Подготовить обработчик для проведения анимации розыгрыша
+		var handler = function handler(strip, futuretime, times) {
+
+			// 1] Получить длительность состояния lottery в мс
+			var lottery_duration_ms = +self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms();
+
+			// 2] Получить прогресс по Безье
+			var progress = self.m.s1.animation.bezier.get((lottery_duration_ms - (futuretime - Date.now()))/lottery_duration_ms);
+
+			// 3] Получить разницу между final_px и start_px
+			var path_px = self.m.s1.game.strip.final_px - self.m.s1.game.strip.start_px;
+
+			// 4] Получить позицию в px, которую надо установить
+			var position2set_px = self.m.s1.game.strip.start_px + path_px * progress;
+
+			// 5] Установить позицию position2set_px
+			strip.css('transform', 'translate3d(-'+position2set_px+'px, 0px, 0px)');
+
+			// n] Если дошли до конца
+			if(((Date.now() > futuretime) && interval)) {
+
+				// n.1) Удалить интервал
+				clearInterval(interval);
+
+			}
+
+		};
+
+		// n] Запустить розыгрыш
+		var interval = setInterval(handler, 25, strip, futuretime, times);
+
+	}, 500); };
 
 
 

@@ -303,35 +303,49 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 2] Ширина полосы аватаров
 		self.m.s1.game.strip.width = ko.observableArray(0);
 
-		// 3] Текущая позиция полосы с учётом avatar_winner_stop_percents
+		// 3] Исходная позиция полосы аватаров
+		self.m.s1.game.strip.start_px = ko.observable(880);
+
+		// 4] Финальная позиция полосы аватаров
+		self.m.s1.game.strip.final_px = ko.computed(function(){
+
+			// 4.1] Если отсутствуют необходимые ресурсы, вернуть 0
+			if(!self.m.s1.game.choosen_room())
+				return 0;
+
+			// 4.2] Ширина аватара в px с учётом отступа справа
+			var avatarwidth_origin = 80;
+			var avatarrightmargin = 2;
+			var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
+
+			// 4.3] Получить ширину всей ленты
+			var width = self.m.s1.game.strip.width();
+
+			// 4.4] Получить поправку для установки позиции в конец ленты
+			var endfix = (6*avatarwidth)-62;
+
+			// 4.5] Вычислить позицию в начале 100-го аватара (победителя)
+			var winnerpos = width - endfix - (11*avatarwidth);
+
+			// 4.6] Получить значение
+			var avatar_winner_stop_percents = self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
+
+			// 4.7] Вычислить позицию с учётом avatar_winner_stop_percents
+			var winnerpos_final = winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100);
+
+			// 4.n] Вернуть результаты
+			return winnerpos_final;
+
+		});
+
+		// 5] Текущая позиция полосы с учётом avatar_winner_stop_percents
 		self.m.s1.game.strip.currentpos = ko.computed(function(){
 
-			// 3.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
+			// 5.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
 			// - Промотать полосу к финальной позиции, указывающей на победителя.
 			if(['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 
-				// 3.1.1] Ширина аватара в px с учётом отступа справа
-				var avatarwidth_origin = 80;
-				var avatarrightmargin = 2;
-				var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
-
-				// 3.1.2] Получить ширину всей ленты
-				var width = self.m.s1.game.strip.width();
-
-				// 3.1.3] Получить поправку для установки позиции в конец ленты
-				var endfix = (6*avatarwidth)-62;
-
-				// 3.1.4] Вычислить позицию в начале 100-го аватара (победителя)
-				var winnerpos = width - endfix - (11*avatarwidth);
-
-				// 3.1.5] Получить значение
-				var avatar_winner_stop_percents = self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
-
-				// 3.1.6] Вычислить позицию с учётом avatar_winner_stop_percents
-				var winnerpos_final = winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100);
-
-				// 3.1.n] Вернуть результаты
-				return 'translate3d(-'+winnerpos_final+'px, 0px, 0px)';
+				return 'translate3d(-'+self.m.s1.game.strip.final_px()+'px, 0px, 0px)';
 
 			}
 
