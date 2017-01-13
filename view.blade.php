@@ -545,16 +545,49 @@
               </div>
             </div>
 
-            <?php /* 6] lottery_duration_ms -->
-            <!----------------------------*/ ?>
+            <?php /* 6] offers_timeout_sec -->
+            <!---------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Время жизни состояния Lottery, мс</div>
+              <div class="col-sm-5 control-label">Таймаут офферов ботов игрокам, с</div>
               <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.lottery_duration_ms">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.offers_timeout_sec">
               </div>
             </div>
 
-            <?php /* 7] pending_duration_s -->
+          </div>
+
+          <?php /*------------------->
+          <!-- Настройки таймингов -->
+          <!---------------------*/ ?>
+          <div class="form-horizontal">
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+              <span>Настройки таймингов</span>
+            </div>
+            <hr>
+
+            <?php /* 1] room_round_duration_sec -->
+            <!--------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Время жизни состояния Started, с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.room_round_duration_sec">
+              </div>
+            </div>
+
+            <?php /* 2] started_client_delta_s -->
+            <!--------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Клиентская дельта состояния Started, с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.started_client_delta_s">
+              </div>
+            </div>
+            <hr>
+
+            <?php /* 3] pending_duration_s -->
             <!---------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Время жизни состояния Pending, с</div>
@@ -563,7 +596,36 @@
               </div>
             </div>
 
-            <?php /* 8] winner_duration_s -->
+            <?php /* 4] pending_client_delta_s -->
+            <!-------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Клиентская дельта состояния Pending, с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.pending_client_delta_s">
+              </div>
+            </div>
+            <hr>
+
+            <?php /* 5] lottery_duration_ms -->
+            <!----------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Время жизни состояния Lottery, мс</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.lottery_duration_ms">
+              </div>
+            </div>
+
+            <?php /* 6] lottery_client_delta_ms -->
+            <!--------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Клиентская дельта состояния Lottery, мс</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.lottery_client_delta_ms">
+              </div>
+            </div>
+            <hr>
+
+            <?php /* 7] winner_duration_s -->
             <!--------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Время жизни состояния Winner, с</div>
@@ -572,14 +634,15 @@
               </div>
             </div>
 
-            <?php /* 9] offers_timeout_sec -->
-            <!---------------------------*/ ?>
+            <?php /* 8] winner_client_delta_s -->
+            <!-------------------------------*/ ?>
             <div class="form-group">
-              <div class="col-sm-5 control-label">Таймаут офферов ботов игрокам, с</div>
+              <div class="col-sm-5 control-label">Клиентская дельта состояния Winner, с</div>
               <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.offers_timeout_sec">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.winner_client_delta_s">
               </div>
             </div>
+            <hr>
 
           </div>
 
@@ -731,16 +794,7 @@
               <span>Лимиты и ограничения</span>
             </div>
 
-            <?php /* 1] room_round_duration_sec | Длительность раунда, сек -->
-            <!-----------------------------------------------------------*/ ?>
-            <div class="form-group">
-              <div class="col-sm-5 control-label">Длительность раунда, сек</div>
-              <div class="col-sm-7">
-                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.room_round_duration_sec">
-              </div>
-            </div>
-
-            <?php /* 2] min_bet | MIN ставка игрока, ¢ -->
+            <?php /* 1] min_bet | MIN ставка игрока, ¢ -->
             <!---------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MIN ставка игрока, ¢</div>
@@ -749,7 +803,7 @@
               </div>
             </div>
 
-            <?php /* 3] max_bet | MAX ставка игрока, ¢ -->
+            <?php /* 2] max_bet | MAX ставка игрока, ¢ -->
             <!---------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MAX ставка игрока, ¢</div>
@@ -758,7 +812,7 @@
               </div>
             </div>
 
-            <?php /* 4] max_bets_per_round | MAX кол-во ставок игроком за раунд -->
+            <?php /* 3] max_bets_per_round | MAX кол-во ставок игроком за раунд -->
             <!----------------------------------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MAX кол-во ставок игроком за раунд</div>
@@ -767,7 +821,7 @@
               </div>
             </div>
 
-            <?php /* 5] max_round_jackpot | MAX банк раунда, ¢ -->
+            <?php /* 4] max_round_jackpot | MAX банк раунда, ¢ -->
             <!-----------------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MAX банк раунда, ¢</div>
@@ -776,7 +830,7 @@
               </div>
             </div>
 
-            <?php /* 6] min_items_per_bet | MIN кол-во предметов в ставке -->
+            <?php /* 5] min_items_per_bet | MIN кол-во предметов в ставке -->
             <!----------------------------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MIN кол-во предметов в ставке</div>
@@ -785,7 +839,7 @@
               </div>
             </div>
 
-            <?php /* 7] max_items_per_bet | MAX кол-во предметов в ставке -->
+            <?php /* 6] max_items_per_bet | MAX кол-во предметов в ставке -->
             <!----------------------------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MAX кол-во предметов в ставке</div>
@@ -794,7 +848,7 @@
               </div>
             </div>
 
-            <?php /* 8] max_items_per_round | MAX кол-во предметов в раунде -->
+            <?php /* 7] max_items_per_round | MAX кол-во предметов в раунде -->
             <!------------------------------------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">MAX кол-во предметов в раунде</div>

@@ -634,6 +634,10 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			self.m.s2.edit.bonus_firstbet(data.bonus_firstbet());
 			self.m.s2.edit.bonus_secondbet(data.bonus_secondbet());
 			self.m.s2.edit.avatars_num_in_strip(data.avatars_num_in_strip());
+			self.m.s2.edit.started_client_delta_s(data.started_client_delta_s());
+			self.m.s2.edit.pending_client_delta_s(data.pending_client_delta_s());
+			self.m.s2.edit.lottery_client_delta_ms(data.lottery_client_delta_ms());
+			self.m.s2.edit.winner_client_delta_s(data.winner_client_delta_s());
 
 			// 2] Загрузить данные для allow_only_types
 			var allow_only_types = JSON.parse(data.allow_only_types());
@@ -709,7 +713,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					bonus_domain_name: 				self.m.s2.edit.bonus_domain_name(),
 					bonus_firstbet: 					self.m.s2.edit.bonus_firstbet(),
 					bonus_secondbet: 					self.m.s2.edit.bonus_secondbet(),
-					avatars_num_in_strip: 		self.m.s2.edit.avatars_num_in_strip()
+					avatars_num_in_strip: 		self.m.s2.edit.avatars_num_in_strip(),
+					started_client_delta_s: 	self.m.s2.edit.started_client_delta_s(),
+					pending_client_delta_s: 	self.m.s2.edit.pending_client_delta_s(),
+					lottery_client_delta_ms: 	self.m.s2.edit.lottery_client_delta_ms(),
+					winner_client_delta_s: 		self.m.s2.edit.winner_client_delta_s(),
 
 				},
 			  prejob:       function(config, data, event){},
