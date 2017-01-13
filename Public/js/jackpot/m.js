@@ -129,9 +129,16 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 10.1] Параметры кривой Безье //
 			//------------------------------//
-			self.m.s1.game.bezier.params = [.17, .01, 0, 1];
+			self.m.s1.game.bezier.params = [.32, .64, .45, 1];
 
-			// 10.2] Параметры кривой Безье //
+			// 10.2] Готовое значение cubic-bezier для CSS //
+			//---------------------------------------------//
+			self.m.s1.game.bezier.cssvalue = ko.computed(function(){
+				var p = self.m.s1.game.bezier.params;
+				return "cubic-bezier("+p[0]+","+p[1]+","+p[2]+","+p[3]+")";
+			});
+
+			// 10.3] Параметры кривой Безье //
 			//------------------------------//
 			// - Примеры:
 			// 		self.m.s1.game.bezier.get(.2);
@@ -541,6 +548,32 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			}
 
 		});
+	
+		// 4] Работа с кривой Безье и вращением колеса //
+		//----------------------------------------------//
+		self.m.s1.animation.bezier = {};
+
+			// 4.1] Параметры кривой Безье //
+			//-----------------------------//
+			self.m.s1.animation.bezier.params = [.17, .01, 0, 1];
+
+			// 4.2] Параметры кривой Безье //
+			//-----------------------------//
+			// - В качестве time указывается число от 0 до 1, обозначающее прогресс от 0 до 100%.
+			// - Примеры:
+			// 		self.m.s1.animation.bezier.get(.2);
+			// 		self.m.s1.animation.bezier.get(.6);
+			// 		self.m.s1.animation.bezier.get(.9);
+			self.m.s1.animation.bezier.get = function(time){
+				return self.f.s1.bezier.cubicBezier(
+						self.m.s1.game.bezier.params[0],
+						self.m.s1.game.bezier.params[1],
+						self.m.s1.game.bezier.params[2],
+						self.m.s1.game.bezier.params[3],
+						time,
+						+self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms()
+				);
+			};	
 
 
 
@@ -910,16 +943,16 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			var durations = {};
 
 				// Started
-				durations.started = +self.m.s1.game.choosen_room().room_round_duration_sec() + 5;
+				durations.started = +self.m.s1.game.choosen_room().room_round_duration_sec() + +self.m.s1.game.choosen_room().started_client_delta_s();
 
 				// Pending
-				durations.pending = self.m.s1.game.choosen_room().pending_duration_s();
+				durations.pending = +self.m.s1.game.choosen_room().pending_duration_s() + +self.m.s1.game.choosen_room().pending_client_delta_s();
 
 				// Lottery
-				durations.lottery = +self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + 5;
+				durations.lottery = +self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + +self.m.s1.game.choosen_room().lottery_client_delta_ms()/1000;
 
 				// Winner
-				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + 9;
+				durations.winner = +self.m.s1.game.choosen_room().winner_duration_s() + +self.m.s1.game.choosen_room().winner_client_delta_s();
 
 			// 3] Вычислить исходные значения для производных единого счётчика
 			// - Для единого счётчика.
@@ -982,11 +1015,11 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					// Когда надо переключить в Winner
 					switchtimes.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
 
-					// Когда надо переключить в Started
-					switchtimes.started = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
+					// Когда надо переключить в Created
+					switchtimes.created = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
 
-				// 4.4] Время конце игры, unix timestamp в секундах
-				var gameover_at_s = switchtimes.started;
+				// 4.4] Время конца игры, unix timestamp в секундах
+				var gameover_at_s = switchtimes.created;
 
 				// 4.5] Вычислить и записать значение единого счётчика
 
