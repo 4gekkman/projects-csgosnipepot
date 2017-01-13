@@ -187,6 +187,11 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "bonus_secondbet" 			    => ["required", "min:0", "max:100"],
         "avatars_num_in_strip" 			=> ["required", "r4_between:10,500"],
 
+        "started_client_delta_s"   => ["required", "regex:/^[0-9]+$/ui"],
+        "pending_client_delta_s"   => ["required", "regex:/^[0-9]+$/ui"],
+        "lottery_client_delta_ms"  => ["required", "regex:/^[0-9]+$/ui"],
+        "winner_client_delta_s"    => ["required", "regex:/^[0-9]+$/ui"],
+
       ]); if($validator['status'] == -1) {
 
         throw new \Exception($validator['data']);
