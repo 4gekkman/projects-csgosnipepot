@@ -107,6 +107,21 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Выбрать кликнутую комнату
 		self.m.s1.game.choosen_room(data);
 
+		// 2] Наполнить модель m.s1.animation.circumstances
+		// - Если m.s1.game.choosen_room() не пуста.
+		if(self.m.s1.game.choosen_room()) {
+
+			// 2.1] Номер раунда
+			self.m.s1.animation.circumstances.round_number(self.m.s1.game.choosen_room().rounds()[0].id());
+
+			// 2.2] Какой был серверный unix timestamp в секундах
+			self.m.s1.animation.circumstances.timestamp_s(self.m.s1.game.time.ts());
+
+			// 2.3] Какой был статус того раунда, чей номер указан
+			self.m.s1.animation.circumstances.round_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status());
+
+		}
+
 	};
 	
 	//--------------------------------------------------//

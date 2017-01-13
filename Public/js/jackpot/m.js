@@ -22,6 +22,7 @@
  *    s1.8. Очередь задач для исполнения при достижении указанных timestamp'ов
  *    s1.9. Серверный timestamp, рассчитывающийся на клиенте, синхронизирующийся с сервером
  *    s1.10. Счётчики раундов для каждой комнаты
+ *    s1.11. Модель анимации ленты аватаров текущей комнаты
  *    s1.n. Индексы и вычисляемые значения
  *
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
@@ -482,6 +483,71 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			self.m.s1.game.counters.newgame.hours = ko.observable("00");
 
 
+	//-------------------------------------------------------//
+	// s1.11. Модель анимации ленты аватаров текущей комнаты //
+	//-------------------------------------------------------//
+	self.m.s1.animation = {};
+
+		// 1] При каких обстоятельствах была открыта выбранная комната
+		// - Timestamp, статус и номер раунда
+		self.m.s1.animation.circumstances = {};
+
+			// 1.1] Номер раунда
+			self.m.s1.animation.circumstances.round_number = ko.observable(0);
+
+			// 1.2] Какой был серверный unix timestamp в секундах
+			self.m.s1.animation.circumstances.timestamp_s = ko.observable(0);
+
+			// 1.3] Какой был статус того раунда, чей номер указан
+			self.m.s1.animation.circumstances.round_status = ko.observable(0);
+
+		// 2] Возможные типы моделей анимаций
+		self.m.s1.animation.types = ko.mapping.fromJS([
+			{
+				name: 'css',
+				description: 'Анимация посредствам CSS transition.'
+			},
+			{
+				name: 'js',
+				description: 'Анимация посредствам функции cubic-bezier через JS.'
+			}
+		]);
+
+		// 3] Выбранный для текущего раунда выбранной комнаты типа анимации
+		// - По умолчанию выбираем CSS-анимацию.
+		// - Но если комната открыта в состояниях Lottery/Winner, то JS-анимацию.
+		self.m.s1.animation.choosen_type = ko.computed(function(){
+
+			// 3.1] Если нет необходимых для вычислений ресурсов, то CSS
+			if(!self.m.s1.game.choosen_room() || !self.m.s1.animation.circumstances.round_number() || !self.m.s1.animation.circumstances.round_status())
+				return self.m.s1.animation.types()[0];
+
+
+			// 3.2] Если номер текущего раунда не равен round_number, то CSS
+			if(self.m.s1.game.choosen_room().rounds()[0].id() != self.m.s1.animation.circumstances.round_number())
+				return self.m.s1.animation.types()[0];
+
+			// 3.3] Если же равен:
+			else {
+
+				// 3.3.1] Если статус не 'Lottery', 'Winner' или 'Finished', то css
+				if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.animation.circumstances.round_status()) == -1)
+					return self.m.s1.animation.types()[0];
+
+				// 3.3.2] В противном случае, JS
+				else
+					return self.m.s1.animation.types()[1];
+
+			}
+
+		});
+
+
+
+
+
+
+
 
 
 	//--------------------------------------//
@@ -516,14 +582,15 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			}());
 
-			//---------------------------------------------//
-			// s1.n.3. Если комната не выбрана, выбрать её //
-			//---------------------------------------------//
+			//-----------------------------------------------------------------------//
+			// s1.n.3. Если комната не выбрана, выбрать её функцией f.s1.choose_room //
+			//-----------------------------------------------------------------------//
 			(function(){
 
 				if(!self.m.s1.game.choosen_room()) {
-					if(server.data.choosen_room_id != 0)
-						self.m.s1.game.choosen_room(self.m.s1.indexes.rooms[server.data.choosen_room_id]);
+					if(server.data.choosen_room_id != 0) {
+						self.f.s1.choose_room(self.m.s1.indexes.rooms[server.data.choosen_room_id]);
+					}
 				}
 
 			})();
