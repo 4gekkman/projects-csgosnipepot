@@ -25,9 +25,11 @@
  *    s1.11. Модель анимации ленты аватаров текущей комнаты
  *    s1.n. Индексы и вычисляемые значения
  *
+ *      s1.n.A. Состояние текущего раунда
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
  * 			s1.n.2. Рассчитать значения всех счётчиков для выбранной комнаты и текущего раунда
  *      s1.n.3. Перерасчитать модель для отрисовки кольца
+ * 			s1.n.4. Управление текущей позицией
  *
  * 	X. Подготовка к завершению
  *
@@ -116,7 +118,15 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		// 8] Состояние текущего раунда //
 		//------------------------------//
-		self.m.s1.game.choosen_status = ko.observable("");
+		self.m.s1.game.choosen_status = ko.computed(function(){
+
+			// 1] Проверить наличие необходимых ресурсов
+			if(!self.m.s1.game.curprev().current().rounds_statuses) return "";
+
+			// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
+			return self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status();
+
+		});
 
 		// 9] Палитра цветов для игроков текущего раунда //
 		//-----------------------------------------------//
@@ -339,25 +349,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		});
 
 		// 5] Текущая позиция полосы с учётом avatar_winner_stop_percents
-		self.m.s1.game.strip.currentpos = ko.computed(function(){
+		self.m.s1.game.strip.currentpos = ko.observable("0");
 
-			// 5.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
-			// - Промотать полосу к финальной позиции, указывающей на победителя.
-			if(['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-
-				return 'translate3d(-'+self.m.s1.game.strip.final_px()+'px, 0px, 0px)';
-
-			}
-
-			// 3.2] Если же состояние любое другое
-			// - Вернуть полосу в исходную позицию
-			else {
-
-				return 'translate3d(880px, 0px, 0px)';
-
-			}
-
-		});
 
 	//-------------------------------------------------------------------------------//
 	// s1.7. Победный билет, победитель, число для текущего раунда выбранной комнаты //
@@ -589,11 +582,19 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				);
 			};	
 
+		// 5] Вкл/Выкл css-анимацию
+		self.m.s1.game.strip.is_css_animation_on = ko.observable(true);
 
+		// 6] Длительность анимации ленты аватаров
+		self.m.s1.game.strip.duration = ko.computed(function(){
 
+			if(self.m.s1.game.strip.is_css_animation_on() == true && self.m.s1.game.choosen_room())
+				return (+self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + +self.m.s1.game.choosen_room().lottery_client_delta_ms()/1000) +  's';
 
+			else
+				return '0s';
 
-
+		});
 
 
 
@@ -605,9 +606,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//-------------------------------------------------------------------//
 		ko.computed(function(){
 
-			//---------------------------------------//
-			// s1.n.1. Объект-контейнер для индексов //
-			//---------------------------------------//
+			//----------------------------------//
+			// 1] Объект-контейнер для индексов //
+			//----------------------------------//
 			self.m.s1.indexes = {};
 
 			//-----------------------//
@@ -749,18 +750,18 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();
 
-			//---------------------------------------------//
-			// s1.n.9. Вычислить состояние текущего раунда //
-			//---------------------------------------------//
-			(function(){
-
-				// 1] Проверить наличие необходимых ресурсов
-				if(!self.m.s1.game.curprev().current().rounds_statuses) return;
-
-				// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
-				self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
-
-			})();
+			////---------------------------------------------//
+			//// s1.n.9. Вычислить состояние текущего раунда //
+			////---------------------------------------------//
+			//(function(){
+			//
+			//	// 1] Проверить наличие необходимых ресурсов
+			//	if(!self.m.s1.game.curprev().current().rounds_statuses) return;
+			//
+			//	// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
+			//	self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
+			//
+			//})();
 
 			//-------------------------------//
 			// s1.n.10. Индекс главных табов //
@@ -1227,7 +1228,47 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 //			}
 			
 		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
-			
+
+		// s1.n.4. Управление текущей позицией //
+		//-------------------------------------//
+		ko.computed(function(){
+
+			// 1] Если отсутствуют необходимые ресурсы, завершить
+			if(!self.m.s1.animation.choosen_type()) return;
+
+			// 2] Если управление анимацией осуществляется с помощью CSS
+			if(self.m.s1.animation.choosen_type().name() == 'css') {
+
+				// 2.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
+				// - Промотать полосу к финальной позиции, указывающей на победителя.
+				if(['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) != -1)
+					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+
+				// 2.2] Если же состояние любое другое
+				// - Вернуть полосу в исходную позицию
+				else
+					self.m.s1.game.strip.currentpos(880);
+
+				// 2.3] Включить css-анимацию
+				self.m.s1.game.strip.is_css_animation_on(true);
+
+			}
+
+			// 4] Если управление анимацией осуществляется с помощью JS
+			if(self.m.s1.animation.choosen_type().name() == 'js') {
+
+				// 4.1] Выключить css-анимацию
+				self.m.s1.game.strip.is_css_animation_on(false);
+
+				// 4.2] Запустить js-анимацию
+				setTimeout(self.f.s1.lottery, 50);
+
+			}
+
+		});
+
+
+
 
 	//------------------------------//
 	// 			        		 	          //

@@ -319,7 +319,7 @@
           <?php /*------------------------------------------------------------->
           <!-- Непосредственно контейнер (кот.движется) для полоски аватарок -->
           <!---------------------------------------------------------------*/ ?>
-          <div class="moving_cont" data-bind="foreach: m.s1.game.strip.avatars, style: {width: m.s1.game.strip.width()+'px', transform: m.s1.game.strip.currentpos, transitionDuration: (+m.s1.game.choosen_room().lottery_duration_ms()/1000 + +m.s1.game.choosen_room().lottery_client_delta_ms()/1000) +  's', transitionTimingFunction: m.s1.game.bezier.cssvalue}">
+          <div class="moving_cont" data-bind="foreach: m.s1.game.strip.avatars, style: {width: m.s1.game.strip.width()+'px', transform: 'translate3d('+(-m.s1.game.strip.currentpos())+'px, 0px, 0px)', transitionDuration: m.s1.game.strip.duration, transitionTimingFunction: m.s1.game.bezier.cssvalue}">
 
             <?php /*--------------------->
             <!-- Аватарка в контейнере -->

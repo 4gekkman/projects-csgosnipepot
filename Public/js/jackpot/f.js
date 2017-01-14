@@ -193,7 +193,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				})());
 
 				// 1.3] Обновить значение m.s1.game.choosen_status
-				self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
+				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
 			}.bind(null, data[i], self, room2update);
 
@@ -271,7 +271,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// - На момент времени switchtimes.lottery.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.lottery, update);
+						self.f.s1.queue_add(switchtimes.lottery, update, 'Lottery fresh data delayed update in room #'+data[i].id);
 					}
 
 				}
@@ -293,10 +293,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
-					// - На момент времени switchtimes.lottery.
+					// - На момент времени switchtimes.winner.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.winner, update);
+						self.f.s1.queue_add(switchtimes.winner, update, 'Winner fresh data delayed update in room #'+data[i].id);
 					}
 
 				}
@@ -323,10 +323,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					}
 
 					// 6.4.3] В ином случае, запланировать выполнение update
-					// - На момент времени switchtimes.lottery.
+					// - На момент времени switchtimes.created.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update);
+						self.f.s1.queue_add(switchtimes.created, update, 'Created fresh data delayed update in room #'+data[i].id);
 					}
 
 				}
@@ -416,11 +416,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//----------------------------------//
 	// s1.10. Добавить задачу в очередь //
 	//----------------------------------//
-	f.s1.queue_add = function(unixtimestamp, func){
+	f.s1.queue_add = function(unixtimestamp, func, description){
 		self.m.s1.game.queue.push({
 			unixtimestamp: unixtimestamp,
-			func: func
+			func: func,
+			description: description
 		});
+
+		console.log('---');
+		console.log(ko.mapping.toJS(self.m.s1.game.queue));
+
 	};
 
 	//-----------------------------------------------------------------------------------//
@@ -435,6 +440,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// - Выполнять эти функции, удалять из очереди
 		for(var i=0; i<self.m.s1.game.queue().length; i++) {
 			if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
+				console.log('Исполнение:');
+				console.log(self.m.s1.game.queue()[i].description());
+				console.log(self.m.s1.game.queue()[i].timestamp());
 				self.m.s1.game.queue()[i].func();
 				self.m.s1.game.queue.remove(function(item){
 					if(item.func == self.m.s1.game.queue()[i].func) return true;
@@ -753,22 +761,42 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// n] Вернуть результаты
 			return {
-				duration: durations.lottery,
-				passed_s: passed_s,
-				left_s: left_s
+				passed_s: passed_s, 		// 5
+				left_s: 	left_s, 			// 10
+				duration: durations.lottery
 			};
 
 		})();
 
-		// 3. Получить текущее время, время окончания розыгрыша
+		// 4. Получить текущее время, время окончания розыгрыша
 		var currenttime = Date.now();
 		var futuretime = +currenttime + times.left_s*1000;
 
-		// 4. Найти и получить DOM-элемент полосы аватаров
-		var strip = $('.strip-avatars .moving_cont');
+		// 4. Установить в исходную позицию ленту аватаров
+		(function(){
+
+			// 1] Выключить css-анимацию
+			//self.m.s1.game.strip.is_css_animation_on(false);
+
+			// 2] Получить прогресс по Безье
+			var progress = self.m.s1.animation.bezier.get(times.passed_s/times.duration);
+
+			// 3] Получить разницу между final_px и start_px
+			var path_px = self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px();
+
+			// 4] Получить позицию в px, которую надо установить
+			var position2set_px = self.m.s1.game.strip.start_px() + path_px * progress;
+
+			// 5] Установить позицию position2set_px
+			self.m.s1.game.strip.currentpos(position2set_px);
+
+			// 4.n. Включить css-анимацию
+			//self.m.s1.game.strip.is_css_animation_on(true);
+
+		})();
 
 		// 5. Подготовить обработчик для проведения анимации розыгрыша
-		var handler = function handler(strip, futuretime, times) {
+		var handler = function handler(futuretime, times) {
 
 			// 1] Получить длительность состояния lottery в мс
 			var lottery_duration_ms = +self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms();
@@ -777,13 +805,13 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			var progress = self.m.s1.animation.bezier.get((lottery_duration_ms - (futuretime - Date.now()))/lottery_duration_ms);
 
 			// 3] Получить разницу между final_px и start_px
-			var path_px = self.m.s1.game.strip.final_px - self.m.s1.game.strip.start_px;
+			var path_px = self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px();
 
 			// 4] Получить позицию в px, которую надо установить
-			var position2set_px = self.m.s1.game.strip.start_px + path_px * progress;
+			var position2set_px = self.m.s1.game.strip.start_px() + path_px * progress;
 
 			// 5] Установить позицию position2set_px
-			strip.css('transform', 'translate3d(-'+position2set_px+'px, 0px, 0px)');
+			self.m.s1.game.strip.currentpos(position2set_px);
 
 			// n] Если дошли до конца
 			if(((Date.now() > futuretime) && interval)) {
@@ -796,7 +824,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		};
 
 		// n] Запустить розыгрыш
-		var interval = setInterval(handler, 25, strip, futuretime, times);
+		var interval = setInterval(handler, 25, futuretime, times);
 
 	}, 500); };
 
