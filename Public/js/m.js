@@ -342,7 +342,10 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//----------------------------------------------------------------//
 	self.m.s2.notif_tradeurl = {};
 
-		// 1] Торговая ссылка аутентифицированного пользователя
+		// 1] Торговая ссылка пользователя, которая пришла с сервера при загрузке документа
+		self.m.s2.notif_tradeurl.tradeurl_server = ko.observable(server.data.steam_tradeurl);
+
+		// 2] Торговая ссылка аутентифицированного пользователя
 		self.m.s2.notif_tradeurl.tradeurl = ko.observable(server.data.steam_tradeurl);
 
 

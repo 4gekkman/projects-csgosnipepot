@@ -178,6 +178,9 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					// 1] Сообщить, торговый URL успешно сохранён
 					toastr.success("Ваш торговый URL принят и сохранён.", "Успех");
 
+					// 2] Записать новый торговый URL в self.m.s2.notif_tradeurl.tradeurl_server
+					self.m.s2.notif_tradeurl.tradeurl_server(self.m.s2.notif_tradeurl.tradeurl);
+
 				},
 				ok_2:         function(data, params){
 

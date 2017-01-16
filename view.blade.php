@@ -75,7 +75,7 @@
   A1. Уведомление для тех, кто не ввёл свой Steam Trade URL
 
 -------------------*/ ?>
-<div class="notifications-zone" data-bind="visible: (layoutmodel.m.s1.selected_subdoc().uri() == '/')"> <!-- && m.s0.auth.is_anon() == 0 && !m.s2.notif_tradeurl.tradeurl() -->
+<div class="notifications-zone" data-bind="visible: (layoutmodel.m.s1.selected_subdoc().uri() == '/' && m.s0.auth.is_anon() == 0 && !m.s2.notif_tradeurl.tradeurl_server())">
 
   <?php /*--------------------------------------------------------->
   <!-- A1. Уведомление для тех, кто не ввёл свой Steam Trade URL -->

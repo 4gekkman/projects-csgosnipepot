@@ -285,14 +285,30 @@ class Controller extends BaseController {
         // - Безопасная обёртка для команды изменения trade url
         if($key == 'D10009:1') { try {
 
-          // 1. Выполнить команду
+          //// 1. Получить "Partner ID" и "Token" из торгового URL
+          //$partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
+          //  "trade_url" => Input::get('data')['steam_tradeurl']
+          //]);
+          //if($partner_and_token['status'] != 0)
+          //  throw new \Exception($partner_and_token['data']['errormsg']);
+          //
+          //// 2. Получить steamname и steamid по торговому URL
+          //$result = runcommand('\M8\Commands\C30_get_steamname_and_steamid_by_tradeurl', [
+          //  "id_bot" => \M8\Models\MD1_bots::query()->first()->id,
+          //  "partner" => $partner_and_token['data']['partner'],
+          //  "token" => $partner_and_token['data']['token']
+          //]);
+          //if($result['status'] != 0)
+          //  throw new \Exception($result['data']['errormsg']);
+
+          // 3. Выполнить команду
           $result = runcommand('\M5\Commands\C70_save_steam_tradeurl', [
             "steam_tradeurl" => Input::get('data')['steam_tradeurl'],
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 2. Вернуть результаты
+          // 4. Вернуть результаты
           return $result;
 
         } catch(\Exception $e) {
