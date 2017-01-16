@@ -29,7 +29,7 @@
  * 			s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ...
  * 			s1.n.2. Рассчитать значения всех счётчиков для выбранной комнаты и текущего раунда
  *      s1.n.3. Перерасчитать модель для отрисовки кольца
- * 			s1.n.4. Управление текущей позицией
+ * 			s1.n.4. Управление текущей позицией и св-вом transform
  *
  * 	X. Подготовка к завершению
  *
@@ -351,6 +351,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 5] Текущая позиция полосы с учётом avatar_winner_stop_percents
 		self.m.s1.game.strip.currentpos = ko.observable("0");
 
+		// 6] Значение свойства transform полосы
+		self.m.s1.game.strip.transform = ko.observable('none');
+
 
 	//-------------------------------------------------------------------------------//
 	// s1.7. Победный билет, победитель, число для текущего раунда выбранной комнаты //
@@ -532,27 +535,29 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// - Но если комната открыта в состояниях Lottery/Winner, то JS-анимацию.
 		self.m.s1.animation.choosen_type = ko.computed(function(){
 
-			// 3.1] Если нет необходимых для вычислений ресурсов, то CSS
-			if(!self.m.s1.game.choosen_room() || !self.m.s1.animation.circumstances.round_number() || !self.m.s1.animation.circumstances.round_status())
-				return self.m.s1.animation.types()[0];
+			return self.m.s1.animation.types()[1];
 
-
-			// 3.2] Если номер текущего раунда не равен round_number, то CSS
-			if(self.m.s1.game.choosen_room().rounds()[0].id() != self.m.s1.animation.circumstances.round_number())
-				return self.m.s1.animation.types()[0];
-
-			// 3.3] Если же равен:
-			else {
-
-				// 3.3.1] Если статус не 'Lottery', 'Winner' или 'Finished', то css
-				if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.animation.circumstances.round_status()) == -1)
-					return self.m.s1.animation.types()[0];
-
-				// 3.3.2] В противном случае, JS
-				else
-					return self.m.s1.animation.types()[1];
-
-			}
+//			// 3.1] Если нет необходимых для вычислений ресурсов, то CSS
+//			if(!self.m.s1.game.choosen_room() || !self.m.s1.animation.circumstances.round_number() || !self.m.s1.animation.circumstances.round_status())
+//				return self.m.s1.animation.types()[0];
+//
+//
+//			// 3.2] Если номер текущего раунда не равен round_number, то CSS
+//			if(self.m.s1.game.choosen_room().rounds()[0].id() != self.m.s1.animation.circumstances.round_number())
+//				return self.m.s1.animation.types()[0];
+//
+//			// 3.3] Если же равен:
+//			else {
+//
+//				// 3.3.1] Если статус не 'Lottery', 'Winner' или 'Finished', то css
+//				if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.animation.circumstances.round_status()) == -1)
+//					return self.m.s1.animation.types()[0];
+//
+//				// 3.3.2] В противном случае, JS
+//				else
+//					return self.m.s1.animation.types()[1];
+//
+//			}
 
 		});
 	
@@ -596,6 +601,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		});
 
+		// 7] Список комнат, в которых сейчас работает функция f.m1.lottery
+		// - То есть, повторно запускать её в этих комнатах не следует.
+		self.m.s1.game.strip.rooms_with_working_animation = ko.observableArray([]);
 
 
 	//--------------------------------------//
@@ -1229,41 +1237,47 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			
 		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
-		// s1.n.4. Управление текущей позицией //
-		//-------------------------------------//
+		// s1.n.4. Управление текущей позицией и св-вом transform //
+		//--------------------------------------------------------//
 		ko.computed(function(){
 
-			// 1] Если отсутствуют необходимые ресурсы, завершить
-			if(!self.m.s1.animation.choosen_type()) return;
+			self.m.s1.game.choosen_room();
+			if(self.m.s1.game.choosen_status() == 'Lottery')
+				setTimeout(self.f.s1.lottery, 100);
+			if(['Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1)
+				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 
-			// 2] Если управление анимацией осуществляется с помощью CSS
-			if(self.m.s1.animation.choosen_type().name() == 'css') {
-
-				// 2.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
-				// - Промотать полосу к финальной позиции, указывающей на победителя.
-				if(['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) != -1)
-					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
-
-				// 2.2] Если же состояние любое другое
-				// - Вернуть полосу в исходную позицию
-				else
-					self.m.s1.game.strip.currentpos(880);
-
-				// 2.3] Включить css-анимацию
-				self.m.s1.game.strip.is_css_animation_on(true);
-
-			}
-
-			// 4] Если управление анимацией осуществляется с помощью JS
-			if(self.m.s1.animation.choosen_type().name() == 'js') {
-
-				// 4.1] Выключить css-анимацию
-				self.m.s1.game.strip.is_css_animation_on(false);
-
-				// 4.2] Запустить js-анимацию
-				setTimeout(self.f.s1.lottery, 50);
-
-			}
+//			// 1] Если отсутствуют необходимые ресурсы, завершить
+//			if(!self.m.s1.animation.choosen_type()) return;
+//
+//			// 2] Если управление анимацией осуществляется с помощью CSS
+//			if(self.m.s1.animation.choosen_type().name() == 'css') {
+//
+//				// 2.1] Если состояние текущего раунда в выбранной комнате Lottery/Winner
+//				// - Промотать полосу к финальной позиции, указывающей на победителя.
+//				if(['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) != -1)
+//					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+//
+//				// 2.2] Если же состояние любое другое
+//				// - Вернуть полосу в исходную позицию
+//				else
+//					self.m.s1.game.strip.currentpos(880);
+//
+//				// 2.3] Включить css-анимацию
+//				self.m.s1.game.strip.is_css_animation_on(true);
+//
+//			}
+//
+//			// 4] Если управление анимацией осуществляется с помощью JS
+//			if(self.m.s1.animation.choosen_type().name() == 'js') {
+//
+//				// 4.1] Выключить css-анимацию
+//				self.m.s1.game.strip.is_css_animation_on(false);
+//
+//				// 4.2] Запустить js-анимацию
+//				setTimeout(self.f.s1.lottery, 50);
+//
+//			}
 
 		});
 

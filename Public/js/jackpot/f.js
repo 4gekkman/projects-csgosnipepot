@@ -109,8 +109,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		if(!data) return;
 
 		// 2] Если статус комнаты data - Lottery - выключить css-анимацию
-		//if(data.rounds()[0].rounds_statuses()[0].status() == 'Lottery')
-		//	self.m.s1.game.strip.is_css_animation_on(false);
+		if(['Lottery', 'Winner', 'Finished'].indexOf(data.rounds()[0].rounds_statuses()[0].status() == 'Lottery') != -1)
+			self.m.s1.game.strip.is_css_animation_on(false);
 
 		// 3] Выбрать кликнутую комнату
 		self.m.s1.game.choosen_room(data);
@@ -811,7 +811,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		var currenttime = Date.now();
 		var futuretime = +currenttime + times.left_s*1000;
 
-		// 4. Установить в исходную позицию ленту аватаров
+		// 5. Установить в исходную позицию ленту аватаров
 		(function(){
 
 			// 1] Выключить css-анимацию
@@ -834,7 +834,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		})();
 
-		// 5. Подготовить обработчик для проведения анимации розыгрыша
+		// 6. Подготовить обработчик для проведения анимации розыгрыша
 		var handler = function handler(futuretime, times) {
 
 			// 1] Получить длительность состояния lottery в мс
@@ -858,12 +858,30 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// n.1) Удалить интервал
 				clearInterval(interval);
 
+				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
+					return item == self.m.s1.game.choosen_room().id();
+				});
+
 			}
 
 		};
 
 		// n] Запустить розыгрыш
+
+		//if(self.m.s1.game.strip.rooms_with_working_animation().indexOf(self.m.s1.game.choosen_room().id()) != -1) return;
+
+		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
+			//if(self.m.s1.game.choosen_room().id() == self.m.s1.game.strip.rooms_with_working_animation()[i].id_room)
+			//	return;
+			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
+		}
+		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
+
 		var interval = setInterval(handler, 25, futuretime, times);
+		self.m.s1.game.strip.rooms_with_working_animation.push({
+			id_room: self.m.s1.game.choosen_room().id(),
+			interval: interval
+		});
 
 	}, 500); };
 
