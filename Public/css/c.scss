@@ -134,7 +134,7 @@
       color: lighten($cg_color_choosencolor, 30%);
     }
     .content .classic-game .cg-container .header .logo_and_name.choosen {
-      color: $cg_color_choosencolor;
+      color: #59b0db;
     }
     .content .classic-game .cg-container .header .logo_and_name i {
       font-size: 2.5em;
@@ -150,12 +150,12 @@
     // Кнопка "История"
     .content .classic-game .cg-container .header .history-button {
       position: absolute; right: 0; top: 0;
-      height: $cg_color_header_height;
+      height: 50px;
       //width: 33.333333333%;
       border-left: 1px solid #212f35;
-      line-height: $cg_color_header_height;
-      font-size: 1.5em;
-      padding: 0 $cg_color_header_height/3;
+      line-height: 50px;
+      font-size: 1.2em;
+      padding: 0 16.66667px;
       text-align: right;
       cursor: pointer;
       color: #fff;
@@ -163,7 +163,7 @@
       transition: all .2s ease;
     }
     .content .classic-game .cg-container .header .history-button:hover {
-      color: lighten($cg_color_choosencolor, 30%);
+      color: #59b0db;
     }
     .content .classic-game .cg-container .header .history-button.choosen {
       color: $cg_color_choosencolor;
@@ -177,12 +177,12 @@
     .content .classic-game .cg-container .header .choose-room {
       position: absolute; top: 0;
       left: 0; right: 0;
-      margin-left: auto; margin-right: auto;
+      margin: 5.5px auto;
       width: 33.333333333%;
       overflow: hidden;
-      margin-top: $cg_color_header_height*0.15;
-      margin-bottom: $cg_color_header_height*0.15;
-      line-height: $cg_color_header_height*0.7;
+      //margin-top: $cg_color_header_height*0.15;
+      //margin-bottom: $cg_color_header_height*0.15;
+      line-height: 35px;
       text-align: center;
       border: 1px solid #f6e52d;
       border-radius: 4px;
@@ -190,8 +190,8 @@
       font-size: 1.5em;
       vertical-align: middle;
       cursor: pointer;
-      background: $cg_color_header_bg;
-      z-index: 10;
+      background: #1b2934;
+      z-index: 2;
       -o-transition-delay: 0.2s;
       -webkit-transition-delay: 0.2s;
       -moz-transition-delay: 0.2s;
@@ -355,12 +355,13 @@
         width: 470px;
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator {
-        position: relative;
+        position: absolute; top: 0;
         width: 25%;
-        height: 42px;
-        margin: 4px;
-        border-radius: 4px;
-        transition: all .5s ease;
+        height: 50px;
+        //margin: 4px;
+        border-radius: 0px 500px 700px 0px;
+        transition: all 1s ease;
+        border: 6.5px solid #1B2934;
 
         background: rgb(217,89,32); /* Old browsers */
         background: -moz-linear-gradient(left,  rgba(217,89,32,1) 0%, rgba(245,156,26,1) 50%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
@@ -369,18 +370,19 @@
         filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d95920', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .knifes {
-        position: absolute; top: -20px; right: -50px;
-        width: 100px;
-        height: 85px;
+        position: absolute; top: 0; right: 0px;
+        width: 101px;
+        height: 86px;
+        margin: -30px -60px 0 0;
       }
       .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .items-inbank-max {
-        position: absolute; top: 7px; right: -42px;
-        padding: 0px 2px;
+        position: absolute; top: 5px; right: -43px;
+        padding: 0 2px;
         color: #ffd38f;
         font-size: 1.8em;
         height: 28px;
         line-height: 28px;
-        border-radius: 4px;
+        border-radius: 5px;
         background-color: rgba(0,0,0,.6);
       }
 

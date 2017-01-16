@@ -866,22 +866,22 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		};
 
-		// n] Запустить розыгрыш
-
-		//if(self.m.s1.game.strip.rooms_with_working_animation().indexOf(self.m.s1.game.choosen_room().id()) != -1) return;
-
+		// 7. Остановить все предыдущие анимации
 		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
-			//if(self.m.s1.game.choosen_room().id() == self.m.s1.game.strip.rooms_with_working_animation()[i].id_room)
-			//	return;
 			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
 		}
 		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
 
-		var interval = setInterval(handler, 25, futuretime, times);
-		self.m.s1.game.strip.rooms_with_working_animation.push({
-			id_room: self.m.s1.game.choosen_room().id(),
-			interval: interval
-		});
+		// n. Запустить розыгрыш
+
+			// n.1. Запустить
+			var interval = setInterval(handler, 25, futuretime, times);
+
+			// n.2. Добавить в реестр
+			self.m.s1.game.strip.rooms_with_working_animation.push({
+				id_room: self.m.s1.game.choosen_room().id(),
+				interval: interval
+			});
 
 	}, 500); };
 
