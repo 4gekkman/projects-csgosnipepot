@@ -15,7 +15,9 @@
  *    f.s0.tooltipster_init         | s0.2. Переинициализирует tooltipster
  *
  *  s1. Функционал игры Jackpot
- *  s2. ...
+ *  s2. Функционал зоны уведомлений
+ *
+ * 		f.s2.save_steam_tradeurl 			| s2.1. Сохранить Steam Trade URL
  *
  *
  */
@@ -137,6 +139,60 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 	// 			         					                //
 	//----------------------------------------//
 	f.s1 = Object.create(ModelFunctionsJackpot).constructor(self, f);
+
+
+	//--------------------------------------------//
+	// 			        		 			                    //
+	// 			 s2. Функционал зоны уведомлений			//
+	// 			         					                    //
+	//--------------------------------------------//
+	f.s2 = {};
+
+		//---------------------------------//
+		// s2.1. Сохранить Steam Trade URL //
+		//---------------------------------//
+		f.s2.save_steam_tradeurl = function(data, event){
+
+			// 1] Если поле со Steam URL пусто, сообщит и завершить
+			if(!self.m.s2.notif_tradeurl.tradeurl()) {
+				toastr.info("Сначала введите свой торговый URL в Steam. Потом нажмите кнопку 'Сохранить'.", "Торговый URL пуст");
+				return;
+			}
+
+			// 2] Отправить запрос
+			ajaxko(self, {
+				key: 	    		"D10009:1",
+				from: 		    "ajaxko",
+				data: 		    {
+					steam_tradeurl: self.m.s2.notif_tradeurl.tradeurl()
+				},
+				prejob:       function(config, data, event){
+
+					// 1] Сообщить, что идёт сохранение нового trade url
+					toastr.info("Произвожу проверку введённого торгового URL в Steam...", "Идёт проверка");
+
+				},
+				postjob:      function(data, params){},
+				ok_0:         function(data, params){
+
+					// 1] Сообщить, торговый URL успешно сохранён
+					toastr.success("Ваш торговый URL принят и сохранён.", "Успех");
+
+				},
+				ok_2:         function(data, params){
+
+					// 1] Сообщить, что ведён неверный Steam URL
+					toastr.error("Мы проверили введённый вами торговый URL. И оказалось, что он неправильный. Перепроверьте его, и попробуйте ещё раз.", "Неверный торговый URL", {
+						timeOut: 					"15000",
+						extendedTimeOut: 	"15000"
+					});
+
+				}
+			});
+
+		};
+
+
 
 
 

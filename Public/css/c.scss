@@ -41,6 +41,7 @@
   1.10. Панель с информацией о текущем раунде
   1.11. Условия использования, предупреждение о не аффилированности с Valve
   1.12. Статистические данные
+  1.13. Зона уведомлений
 
 //------------------------------------*/
 
@@ -206,6 +207,7 @@
     // Название выбранной комнаты
     .content .classic-game .cg-container .header .choose-room .choosen-name {
       height: $cg_color_header_height*0.7;
+      line-height: 37px;
     }
     .content .classic-game .cg-container .header .choose-room i {
       position: absolute; top: 0; right: 0;
@@ -1230,6 +1232,103 @@
       font-weight: bold;
       font-size: 1.1em;
     }
+
+  //------------------------//
+  // 1.13. Зона уведомлений //
+  //------------------------//
+
+    //--------------------------------------//
+    // 1.13.1. Общие стили зоны уведомлений //
+    //--------------------------------------//
+
+      // Общие стили
+      .content .notifications-zone {
+        position: relative;
+        background: #333;
+        margin-bottom: 20px;
+      }
+
+    //----------------------------------------------//
+    // 1.13.2. Общие стили любой панели уведомления //
+    //----------------------------------------------//
+    .content .notifications-zone .notification {
+      width: 100%;
+      margin-top: 20px;
+      min-height: 20px;
+      background-color: #1b2934;
+    }
+
+    //-------------------------------------------------------------------//
+    // 1.13.3. Стили панели уведомлений об отсутствующей Steam Trade URL //
+    //-------------------------------------------------------------------//
+
+      // Общие стили
+      .content .notifications-zone .notification.tradeurl {
+        height: 120px;
+        font-size: 1.15em;
+        color: #fff;
+      }
+
+      // Строка №1: заголовок
+      .content .notifications-zone .notification.tradeurl .head {
+        height: 40px;
+        line-height: 40px;
+        margin: 0 20px;
+        font-weight: 700;
+      }
+
+      // Строка №2: инпут и кнопка
+      .content .notifications-zone .notification.tradeurl .input_and_button {
+        height: 40px;
+        line-height: 40px;
+        margin: 0 20px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .content .notifications-zone .notification.tradeurl .input_and_button input {
+        display: inline-block;
+        height: 40px;
+        line-height: 40px;
+        background: #284351;
+        border-radius: 4px;
+        width: 80%;
+        overflow: hidden;
+        outline: 0;
+        border: 0;
+        padding: 0 15px;
+      }
+      .content .notifications-zone .notification.tradeurl .input_and_button button {
+        position: relative;
+        display: inline-block;
+        width: 17%;
+        background: #59b0db;
+        margin-left: 20px;
+        border-radius: 4px;
+        height: 40px;
+        line-height: 40px;
+        border: 0;
+        outline: 0;
+        transition: all .5s ease;
+      }
+      .content .notifications-zone .notification.tradeurl .input_and_button button:hover {
+        background: lighten(#59b0db, 5%);
+      }
+
+      // Строка №3: подсказка
+      .content .notifications-zone .notification.tradeurl .hint {
+        height: 40px;
+        line-height: 40px;
+        margin: 0 20px;
+      }
+      .content .notifications-zone .notification.tradeurl .hint a {
+        cursor: pointer;
+        text-decoration: underline;
+        color: #59b0db;
+        transition: all .5s ease;
+      }
+      .content .notifications-zone .notification.tradeurl .hint a:hover {
+        color: lighten(#59b0db, 5%);
+      }
 
 
 

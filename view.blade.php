@@ -47,6 +47,8 @@
 <!--------------------------->
 Оглавление
 
+  A. Зона уведомлений
+
   1. Classic game
   2. Double game
   3. Coinflip
@@ -63,6 +65,58 @@
 <?php /*-------------------------->
 <!-- Контентный столбец (860px) -->
 <!----------------------------*/ ?> <div class="content-column">
+
+
+<?php /*------------------->
+<!-- A. Зона уведомлений -->
+<!------------------------->
+Подоглавление:
+
+  A1. Уведомление для тех, кто не ввёл свой Steam Trade URL
+
+-------------------*/ ?>
+<div class="notifications-zone" data-bind="visible: (layoutmodel.m.s1.selected_subdoc().uri() == '/')"> <!-- && m.s0.auth.is_anon() == 0 && !m.s2.notif_tradeurl.tradeurl() -->
+
+  <?php /*--------------------------------------------------------->
+  <!-- A1. Уведомление для тех, кто не ввёл свой Steam Trade URL -->
+  <!-----------------------------------------------------------*/ ?>
+  <div class="notification tradeurl">
+
+    <?php /*------------>
+    <!-- 1] Заголовок -->
+    <!--------------*/ ?>
+    <div class="head">
+      <span>Ссылка на обмен в Steam:</span>
+    </div>
+
+    <?php /*----------------->
+    <!-- 2] Input и кнопка -->
+    <!-------------------*/ ?>
+    <div class="input_and_button">
+
+      <?php /*---------->
+      <!-- 2.1] Input -->
+      <!------------*/ ?>
+      <input type="text" placeholder="Введите ссылку на обмен" data-bind="textInput: m.s2.notif_tradeurl.tradeurl">
+
+      <?php /*----------->
+      <!-- 2.2] Кнопка -->
+      <!-------------*/ ?>
+      <button data-bind="click: f.s2.save_steam_tradeurl">Сохранить</button>
+
+    </div>
+
+    <?php /*------------>
+    <!-- 3] Подсказка -->
+    <!--------------*/ ?>
+    <div class="hint">
+      <a target="_blank" href="http://steamcommunity.com/my/tradeoffers/privacy#trade_offer_access_url">Нажмите здесь</a>
+      <span> для получения ссылки на обмен</span>
+    </div>
+
+  </div>
+
+</div>
 
 
 <?php /*--------------->

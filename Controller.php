@@ -19,8 +19,8 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   D10009:1              (v)      Описание
- *                  POST-API2   D10009:2              (v)      Описание
+ *                  POST-API1   D10009:1                   Безопасная обёртка для команды изменения trade url
+ *                  POST-API2   D10009:2                   Описание
  *
  *
  *
@@ -279,14 +279,34 @@ class Controller extends BaseController {
       // - А в $key прислать ключ-код номер операции.
       if(!empty($key) && empty($command)) {
 
-        //-----------------------------//
+        //---------------------------------//
         // Нестандартная операция D10009:1 //
-        //-----------------------------//
-        if($key == 'D10009:1') {
+        //---------------------------------//
+        // - Безопасная обёртка для команды изменения trade url
+        if($key == 'D10009:1') { try {
 
+          // 1. Выполнить команду
+          $result = runcommand('\M5\Commands\C70_save_steam_tradeurl', [
+            "steam_tradeurl" => Input::get('data')['steam_tradeurl'],
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
 
+          // 2. Вернуть результаты
+          return $result;
 
-        }
+        } catch(\Exception $e) {
+          $errortext = 'Invoking of command D10009:D10009:1 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          Log::info($errortext);
+          write2log($errortext, ['M9', 'D10009:D10009:1']);
+          return [
+            "status"  => -2,
+            "data"    => [
+              "errortext" => $errortext,
+              "errormsg" => $e->getMessage()
+            ]
+          ];
+        }}
 
 
       }
