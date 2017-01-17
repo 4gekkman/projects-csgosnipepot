@@ -75,12 +75,12 @@
   A1. Уведомление для тех, кто не ввёл свой Steam Trade URL
 
 -------------------*/ ?>
-<div class="notifications-zone" data-bind="visible: (layoutmodel.m.s1.selected_subdoc().uri() == '/' && m.s0.auth.is_anon() == 0 && !m.s2.notif_tradeurl.tradeurl_server())">
+<div class="notifications-zone">
 
   <?php /*--------------------------------------------------------->
   <!-- A1. Уведомление для тех, кто не ввёл свой Steam Trade URL -->
   <!-----------------------------------------------------------*/ ?>
-  <div class="notification tradeurl">
+  <div class="notification tradeurl" data-bind="visible: (layoutmodel.m.s1.selected_subdoc().uri() == '/' && m.s0.auth.is_anon() == 0 && !m.s2.notif_tradeurl.tradeurl_server())">
 
     <?php /*------------>
     <!-- 1] Заголовок -->
@@ -325,7 +325,7 @@
             <!-- 1.1] Кол-во внесённых предметов -->
             <!---------------------------------*/ ?>
             <div class="items_info">
-              <span data-bind="text: 'Вы внесли предметов: '+(m.s1.game.wheel.currentuser() ? m.s1.game.wheel.currentuser().itemscount() : '0')"></span>
+              <span data-bind="text: 'Вы внесли предметов: '+m.s1.bank.itemsnum()"></span>
             </div>
 
             <?php /*--------------------------------->
@@ -333,7 +333,7 @@
             <!-----------------------------------*/ ?>
             <div class="chance">
               <span class="arrows-left"></span>
-              <span data-bind="text: 'Ваш шанс: '+(m.s1.game.wheel.currentuser() ? Math.round(m.s1.game.wheel.currentuser().odds()*100*100)/100 : '0')+'%'"></span>
+              <span data-bind="text: 'Ваш шанс: '+m.s1.bank.bets()+'%'"></span>
               <span class="arrows-right"></span>
             </div>
 

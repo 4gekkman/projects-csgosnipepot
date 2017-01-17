@@ -98,7 +98,7 @@
 
     // Внешний контейнер классической игры
     .content .classic-game {
-      position: relative;
+
     }
 
     // Внутренний контейнер классической игры
@@ -1087,13 +1087,14 @@
         top: 0;
         left: -230px;
         width: 200px;
-        margin-top: 0;
+        margin-top: 20px;
       }
       .content .classic-game .statistics>div {
         margin-bottom: 30px;
       }
       .content-column {
         margin-left: 230px;
+        position: relative;
       }
     }
 
