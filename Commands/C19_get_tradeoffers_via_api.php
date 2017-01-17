@@ -14,7 +14,11 @@
  *
  *    [
  *      "data" => [
- *
+ *        id_bot              | [обязат.] ID бота, от которого слать запрос
+ *        active_only         | [не обязат.] [по умолч: 0] Только активные офферы
+ *        get_sent_offers     | [не обязат.] [по умолч: 0] Только отправленные офферы
+ *        get_received_offers | [не обязат.] [по умолч: 0] Только полученные офферы
+ *        get_descriptions    | [не обязат.] [по умолч: 0] Получать инфу о вещах в оффере
  *      ]
  *    ]
  *
@@ -136,10 +140,11 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти модель бота с id_bot
-     *  3. Проверить наличие у бота API-ключа
-     *  4. Подготовить массив параметров для запроса
-     *  5. Осуществить запрос торговых предложений
+     *  2. Назначить значения по умолчанию
+     *  3. Попробовать найти модель бота с id_bot
+     *  4. Проверить наличие у бота API-ключа
+     *  5. Подготовить массив параметров для запроса
+     *  6. Осуществить запрос торговых предложений
      *
      *  N. Вернуть статус 0
      *
@@ -153,39 +158,61 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "id_bot"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "activeonly"          => ["required", "regex:/^[01]{1}$/ui"],
+        "active_only"         => ["regex:/^[01]{1}$/ui"],
+        "get_sent_offers"     => ["regex:/^[01]{1}$/ui"],
+        "get_received_offers" => ["regex:/^[01]{1}$/ui"],
+        "get_descriptions"    => ["regex:/^[01]{1}$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
+//Log::info(runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ['id_bot' => 8, 'active_only' => 1, 'get_received_offers' => 1]));
+      // 2. Назначить значения по умолчанию
 
-      // 2. Попробовать найти модель бота с id_bot
+        // active_only
+        if(!array_key_exists('active_only', $this->data))
+          $this->data['active_only'] = 0;
+
+        // get_sent_offers
+        if(!array_key_exists('get_sent_offers', $this->data))
+          $this->data['get_sent_offers'] = 0;
+
+        // get_received_offers
+        if(!array_key_exists('get_received_offers', $this->data))
+          $this->data['get_received_offers'] = 0;
+
+        // get_descriptions
+        if(!array_key_exists('get_descriptions', $this->data))
+          $this->data['get_descriptions'] = 0;
+
+      // 3. Попробовать найти модель бота с id_bot
       $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
       if(empty($bot))
         throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
 
-      // 3. Проверить наличие у бота API-ключа
+      // 4. Проверить наличие у бота API-ключа
       $apikey = $bot->apikey;
       if(empty($apikey))
         throw new \Exception('У бота с ID = '.$this->data['id_bot'].' не указан API-ключ.');
 
-      // 4. Подготовить массив параметров для запроса
+      // 5. Подготовить массив параметров для запроса
       $params = call_user_func(function() USE ($apikey) {
 
         $results = [
           "key"                   => $apikey,
-          "get_sent_offers"       => 1,
-          "get_received_offers"   => 1,
-          "activeonly"            => $this->data['activeonly'],
+          "get_sent_offers"       => $this->data['get_sent_offers'],
+          "get_received_offers"   => $this->data['get_received_offers'],
+          "active_only"           => $this->data['active_only'],
+          "get_descriptions"      => $this->data['get_descriptions']
         ];
-        if($this->data['activeonly'] == 1)
+        if($this->data['active_only'] == 1)
           $results["time_historical_cutoff"] = time();
         return $results;
 
       });
 
-      // 5. Осуществить запрос торговых предложений
+      // 6. Осуществить запрос торговых предложений
 
-        // 5.1. Запросить
+        // 6.1. Запросить
         $tradeoffers = call_user_func(function() USE ($bot, $params){
 
           // 1] Осуществить запрос
@@ -205,21 +232,21 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
 
         });
 
-        // 5.2. Если код ответа не 200, сообщить и завершить
+        // 6.2. Если код ответа не 200, сообщить и завершить
         if($tradeoffers->getStatusCode() != 200)
           throw new \Exception('Unexpected response from Steam: code '.$tradeoffers->getStatusCode());
 
-        // 5.3. Провести валидацию $tradeoffers->getBody()
+        // 6.3. Провести валидацию $tradeoffers->getBody()
         $validator = r4_validate(['body'=>$tradeoffers->getBody()], [
           "body"              => ["required", "json"],
         ]); if($validator['status'] == -1) {
           throw new \Exception($validator['data']);
         }
 
-        // 5.4. Получить из $tradeoffers строку с HTML из ответа
+        // 6.4. Получить из $tradeoffers строку с HTML из ответа
         $json = json_decode($tradeoffers->getBody(), true);
 
-      // 6. Вернуть результаты
+      // 7. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
