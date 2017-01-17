@@ -182,6 +182,12 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
     //--------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      function milliseconds() {
+        $mt = explode(' ', microtime());
+        return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+      }
+      $start = milliseconds();
+
       // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
 
@@ -1111,6 +1117,11 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       //Log::info("Winner bets items:");
       //Log::info(collect($winner_bets_items_cents['items'])->pluck('name')->toArray());
       //throw new \Exception('Stop!');
+
+
+
+      write2log('n] '.(milliseconds()-$start));
+
 
       // n] Вернуть результат
       return [
