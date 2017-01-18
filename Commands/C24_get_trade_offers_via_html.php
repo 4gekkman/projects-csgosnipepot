@@ -275,7 +275,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
         return $html;
 
       });
-
+Log::info($html);
       // 4. Извлечь торговые предложения из $html
       // - Формат результата должен совпадать с форматом при извлечении через API.
       // - Он должен быть такой:
