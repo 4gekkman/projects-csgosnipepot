@@ -705,7 +705,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
       // 6.1. Очистить md1003, удалить всё из md5_commands, сбросить автоинкремент
 
-        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+        // 1] Проверить, существует ли класс \M1\Models\MD5_commands
         if(!class_exists('\M1\Models\MD5_commands')) {
           DB::rollback();
           throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD5_commands" не существует.');
