@@ -140,7 +140,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
      *  2. Получить коллекцию всех включенных комнат
      *  3. Получить куку пользователя с ID включенной комнаты
      *  4. Добавить доп.свойства всем ставкам всех комнат
-     *  5. Добавить доп.свойства всем комнат
+     *  5. Добавить доп.свойства всем комнатам
      *
      *  N. Вернуть статус 0
      *
@@ -449,7 +449,7 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
         }
       });
 
-      // 5. Добавить доп.свойства всем комнат
+      // 5. Добавить доп.свойства всем комнатам
       // - Сначала преобразовав коллекцию $rooms в массив
       call_user_func(function() USE (&$rooms) {
 
@@ -465,7 +465,6 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
             $cache = json_decode(Cache::get('processing:bets:active'), true);
           else
             $cache = json_decode(Cache::get('processing:bets:active:safe'), true);
-
 
           // 1.2] Получить информацию о пользователе
           $user = json_decode(session('auth_cache'), true);
