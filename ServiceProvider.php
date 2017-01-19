@@ -128,7 +128,8 @@
           '\M9\Console\T9_update_tor_ip',
           '\M9\Console\T10_check_active_offers_type2',
           '\M9\Console\T11_process_active_offers_type2',
-          '\M9\Console\T12_decline_offer_type2'
+          '\M9\Console\T12_decline_offer_type2',
+          '\M9\Console\T13_accept_offer_type2'
         ];
 
         // Регистрация команд в методе register

@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Decline offer type 2
+ *    - Accept offer type 2
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C1_decline_offer_type2 extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C44_accept_offer_type2 extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -152,10 +152,10 @@ class C1_decline_offer_type2 extends Job { // TODO: добавить "implements
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_decline_offer_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C44_accept_offer_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C1_decline_offer_type2']);
+        write2log($errortext, ['M9', 'C44_accept_offer_type2']);
         return [
           "status"  => -2,
           "data"    => [
