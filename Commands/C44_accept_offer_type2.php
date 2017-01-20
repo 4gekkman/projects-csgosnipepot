@@ -142,13 +142,13 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------//
+    // Accept offer type 2 //
+    //---------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      // ...
+      Log::info('C44_accept_offer_type2');
 
 
     DB::commit(); } catch(\Exception $e) {

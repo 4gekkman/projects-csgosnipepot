@@ -189,8 +189,9 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
           // 3.1.2. Обновить кэш
           // - Если он отсутствует, или если параметр force == true
           if(
-            (!Cache::has('processing:bets:active') || empty($cache) || count($cache) == 0) ||
-            $this->data['force'] == true
+            ((!Cache::has('processing:bets:active') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true) &&
+            config('M9.is_bets_system_type1_on') == true
           ) {
 
             // Обновить этот кэш, если в параметрах указано, что его надо обновить

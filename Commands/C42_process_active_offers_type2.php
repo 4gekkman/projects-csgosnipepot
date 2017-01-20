@@ -142,13 +142,13 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------//
+    // Process active offers of type 2 //
+    //---------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      // ...
+      Log::info('C42_process_active_offers_type2');
 
 
     DB::commit(); } catch(\Exception $e) {

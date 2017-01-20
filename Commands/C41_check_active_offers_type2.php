@@ -142,13 +142,13 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //---------------------------------------//
+    // Check if new incoming offers appeared //
+    //---------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      // ...
+      Log::info('C41_check_active_offers_type2');
 
 
     DB::commit(); } catch(\Exception $e) {

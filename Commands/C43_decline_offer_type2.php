@@ -142,13 +142,13 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
      *
      */
 
-    //-------------------------------------//
-    // 1.  //
-    //-------------------------------------//
+    //----------------------//
+    // Decline offer type 2 //
+    //----------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      // ...
+      Log::info('C43_decline_offer_type2');
 
 
     DB::commit(); } catch(\Exception $e) {

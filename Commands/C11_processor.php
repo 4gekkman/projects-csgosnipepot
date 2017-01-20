@@ -145,12 +145,19 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *  Б. Если $queue не пуста, завершить
      *
      *  C13_update_cache                            | 1. Обновить весь кэш, но для каждого, только если он отсутствует
+     *
+     *  --- Система ставок, тип 1 ---
      *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
      *  C19_active_offers_expiration_tracking       | 3. Отслеживать срок годности активных ставок
      *  C20_notify_users_about_offers_time2deadline | 4. Оповещать игроков о секундах до истечения их активных офферов
-     *  C21_deffered_bets_tracking                  | 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-     *  C18_round_statuses_tracking                 | 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-     *  C17_new_rounds_provider                     | 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+     *
+     *  --- Система ставок, тип 2 ---
+     *  C41_check_active_offers_type2               | 5. [Тип2] Проверять, не поступили ли новые входящие офферы
+     *  C42_process_active_offers_type2             | 6. [Тип2] Обрабатывть уже найденные активные входящие офферы
+     *
+     *  C21_deffered_bets_tracking                  | 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+     *  C18_round_statuses_tracking                 | 8. Отслеживать изменение статусов текущих раундов всех вкл.комнат
+     *  C17_new_rounds_provider                     | 9. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
      *
      *  В. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
      *  N. Вернуть статус 0
@@ -181,32 +188,52 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         ], 0, ['on'=>true, 'name'=>$queue]);
 
 
-        // 2. Отслеживать изменения статусов активных офферов
-        runcommand('\M9\Commands\C14_active_offers_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
+        // Эти команды выполнять, только если система ставок типа 1 включена
+        if(config('M9.is_bets_system_type1_on') == true) {
+
+          // 2. Отслеживать изменения статусов активных офферов
+          runcommand('\M9\Commands\C14_active_offers_tracking', [],
+              0, ['on'=>true, 'name'=>$queue]);
 
 
-        // 3. Отслеживать срок годности активных ставок
-        runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
+          // 3. Отслеживать срок годности активных ставок
+          runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
+              0, ['on'=>true, 'name'=>$queue]);
 
 
-        // 4. Оповещать игроков о секундах до истечения их активных офферов
-        runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
-            0, ['on'=>true, 'name'=>$queue]);
+          // 4. Оповещать игроков о секундах до истечения их активных офферов
+          runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
+              0, ['on'=>true, 'name'=>$queue]);
+
+        }
 
 
-        // 5. Отслеживать судьбу всех перенесённых на следующий раунд ставок
+        // Эти команды выполнять, только если система ставок типа 2 включена
+        if(config('M9.is_bets_system_type2_on') == true) {
+
+          // 5. [Тип2] Проверять, не поступили ли новые входящие офферы
+          runcommand('\M9\Commands\C41_check_active_offers_type2', [],
+              0, ['on'=>true, 'name'=>$queue]);
+
+
+          // 6. [Тип2] Обрабатывть уже найденные активные входящие офферы
+          runcommand('\M9\Commands\C42_process_active_offers_type2', [],
+              0, ['on'=>true, 'name'=>$queue]);
+
+        }
+
+
+        // 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
         runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
             0, ['on'=>true, 'name'=>$queue]);
 
 
-        // 6. Отслеживать изменение статусов текущих раундов всех вкл.комнат
+        // 8. Отслеживать изменение статусов текущих раундов всех вкл.комнат
         runcommand('\M9\Commands\C18_round_statuses_tracking', [],
             0, ['on'=>true, 'name'=>$queue]);
 
 
-        // 7. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
+        // 9. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
         runcommand('\M9\Commands\C17_new_rounds_provider', [],
             0, ['on'=>true, 'name'=>$queue]);
 
