@@ -148,7 +148,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      Log::info('C44_accept_offer_type2');
+      //Log::info('C44_accept_offer_type2');
 
 
     DB::commit(); } catch(\Exception $e) {
