@@ -534,52 +534,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 		})();
 
-		//-------------------------------------------------------------------------------//
-		// X1.11. Выяснить, можно ли торговать с текущим пользователем (escrow и прочее) //
-		//-------------------------------------------------------------------------------//
-		// - Инициировать эти значения параметрами из конфига выбранной комнаты.
-		(function(){
-
-			// 1] Если пользователь не аутентифицирован, то торговать нельзя
-			if(!self.m.s0.is_logged_in()) self.m.s0.istradable(false);
-
-			// 2] Если же он аутентифицирован
-			else {
-
-				// 2.1] Отправить запрос
-				ajaxko(self, {
-					key: 	    		"D10009:2",
-					from: 		    "ajaxko",
-					data: 		    {
-						choosen_room_id: server.data.choosen_room_id
-					},
-					prejob:       function(config, data, event){
-
-
-					},
-					postjob:      function(data, params){},
-					ok_0:         function(data, params){
-
-						// 1]
-						console.log(data);
-						toastr.success("Успех");
-
-					},
-					ok_2:         function(data, params){
-
-						// 1]
-						console.log(data);
-						toastr.error("Неудача");
-
-					}
-				});
-
-			}
-
-
-		})();
-
-
 
 
 	});

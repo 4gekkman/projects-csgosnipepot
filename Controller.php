@@ -20,7 +20,7 @@
  * Нестандартные POST-операции
  *
  *                  POST-API1   D10009:1                   Безопасная обёртка для команды изменения trade url
- *                  POST-API2   D10009:2                   Запрос клиента о том, всё ли в порядке с escrow указанного игрока
+ *                  POST-API2   D10009:2
  *
  *
  *
@@ -321,67 +321,6 @@ class Controller extends BaseController {
               "errortext" => $errortext,
               "errormsg" => $e->getMessage()
             ]
-          ];
-        }}
-
-        //---------------------------------//
-        // Нестандартная операция D10009:2 //
-        //---------------------------------//
-        // - Запрос клиента о том, всё ли в порядке с escrow указанного игрока
-        if($key == 'D10009:2') { try {
-
-          // 1. Провести валидацию входящих параметров
-          $validator = r4_validate(Input::get('data'), [
-            "choosen_room_id" => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-          ]); if($validator['status'] == -1) {
-            throw new \Exception($validator['data']);
-          }
-
-          // 2. Получить первого связанного с choosen_room_id бота
-          $bot = \M8\Models\MD1_bots::whereHas('m9_rooms', function($query){
-            $query->where('id', Input::get('data')['choosen_room_id']);
-          })->first();
-
-          // 3. Получить аутентификационную информацию о пользователе
-          $auth = json_decode(session('auth_cache'), true);
-
-          // 4. Получить steam_tradeurl пользователя
-          $steam_tradeurl = $auth['user']['steam_tradeurl'];
-
-          // 5. Получить partner и token из steam_tradeurl
-          $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
-            "trade_url" => $steam_tradeurl
-          ]);
-          $partner = $partner_and_token['data']['partner'];
-          $token = $partner_and_token['data']['token'];
-
-          // 6. Получить информацию о escrow пользователя
-          $escrow = runcommand('\M8\Commands\C23_check_escrow_hold_days', [
-            "id_bot"    => $bot['id'],
-            "partner"   => $partner,
-            "token"     => $token
-          ]);
-          $could_trade = $escrow['data']['could_trade'];
-
-          // 7.
-
-
-
-          Log::info($steam_tradeurl);
-
-
-
-          return [
-            "status"  => 0,
-            "data"    => "success"
-          ];
-
-        } catch(\Exception $e) {
-
-
-          return [
-            "status"  => 0,
-            "data"    => "error"
           ];
         }}
 
