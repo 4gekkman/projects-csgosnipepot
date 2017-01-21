@@ -145,6 +145,9 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
      *         processing:bets:active:<id пользователя>:<id комнаты>
      *    3.2. processing:bets:accepted
      *    3.3. processing:rooms
+     *    3.4. processing:bets_type2:active +
+     *         processing:bets_type2:active:<id пользователя> +
+     *         processing:bets_type2:active:<id пользователя>:<id комнаты>
      *
      *  N. Вернуть статус 0
      *
@@ -198,8 +201,10 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
             if(in_array("processing:bets:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
 
               // 1] Получить все ставки со статусом Active
+              // - Но брать только ставки типа 1.
               // - Включая все их связи.
               $active_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+                ->where('type', 1)
                 ->whereHas('bets_statuses', function($query){
                   $query->where('status', 'Active');
                 })
@@ -527,6 +532,159 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
           }
 
+        // 3.4. processing:bets_type2:active + processing:bets_type2:active:<id пользователя> + processing:bets_type2:active:<id пользователя>
+
+          // 3.4.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:bets_type2:active'), true);
+
+          // 3.4.2. Обновить кэш
+          // - Если он отсутствует, или если параметр force == true
+          if(
+            ((!Cache::has('processing:bets_type2:active') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true) &&
+            config('M9.is_bets_system_type2_on') == true
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:bets_type2:active", $this->data['cache2update']) == true || $this->data['all'] == true) {
+
+              // 1] Получить все ставки со статусом Active
+              // - Но брать только ставки типа 2.
+              // - Включая все их связи.
+              $active_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+                ->where('type', 2)
+                ->whereHas('bets_statuses', function($query){
+                  $query->where('status', 'Active');
+                })
+                ->get();
+
+              // 2] Обновить полную (не safe) версию кэша
+              call_user_func(function() USE (&$active_bets) {
+
+                // 2.1] Записать JSON с $active_bets в кэш
+                Cache::put('processing:bets_type2:active', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 2.2] Пробежаться по $cache, и записать индивидуальный кэш активных ставок (пользователь)
+
+                  // 2.2.1] Получить не повторяющийся список ID пользователей, которые есть в $active_bets
+                  $users_ids = call_user_func(function() USE ($active_bets) {
+                    $result = [];
+                    foreach($active_bets as $bet) {
+                      $id_user = $bet['m5_users'][0]['id'];
+                      if(!in_array($id_user, $result))
+                        array_push($result, $id_user);
+                    }
+                    return $result;
+                  });
+
+                  // 2.2.2] Получить для каждого $users_ids свой массив с активными ставками
+                  $users_active_bets = call_user_func(function() USE ($users_ids, $active_bets) {
+                    $result = [];
+                    foreach($users_ids as $id) {
+                      foreach($active_bets as $bet) {
+                        $id_user = $bet['m5_users'][0]['id'];
+                        if($id_user == $id) {
+                          if(!array_key_exists($id_user, $result)) $result[$id_user] = [];
+                          array_push($result[$id_user], $bet);
+                        }
+                      }
+                    }
+                    return $result;
+                  });
+
+                  // 2.2.3] Записать $users_active_bets в кэш
+                  foreach($users_active_bets as $id_user => $bets) {
+                    Cache::tags(['processing:bets_type2:active:personal'])->put('processing:bets_type2:active:'.$id_user, json_encode($bets, JSON_UNESCAPED_UNICODE), 30);
+                  }
+
+                // 2.3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок (пользователь + комната)
+                foreach($active_bets as $bet) {
+                  $id_user = $bet['m5_users'][0]['id'];
+                  $id_room = $bet['rooms'][0]['id'];
+                  Cache::tags(['processing:bets_type2:active:personal'])->put('processing:bets_type2:active:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
+                }
+
+                // 2.4] Если $active_bets пуст, сбросить весь персонализированный кэш
+                if(count($active_bets) == 0) {
+                  Cache::tags(['processing:bets_type2:active:personal'])->flush();
+                }
+
+              });
+
+              // 3] Обновить безопасную (safe) версию кэша
+              call_user_func(function() USE (&$active_bets) {
+
+                // 3.1] Получить версию коллекции $active_bets с отфильтрованной секретной информацией
+                // - Что должно быть вырезано цензурой:
+                //
+                //    • Полностью m8_bots.
+                //
+                $active_bets->transform(function($value, $key){
+
+                  // 1) Удалить m8_bots из $value
+                  $value_arr = $value->toArray();
+                  $value_arr['m8_bots'] = [];
+
+                  // 2) Вернуть $value_arr
+                  return $value_arr;
+
+                });
+
+                // 3.2] Записать JSON с $active_bets в кэш
+                Cache::put('processing:bets_type2:active:safe', json_encode($active_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+                // 3.3] Пробежаться по $cache, и записать индивидуальный кэш активных ставок (пользователь)
+
+                  // 3.3.1] Получить не повторяющийся список ID пользователей, которые есть в $active_bets
+                  $users_ids = call_user_func(function() USE ($active_bets) {
+                    $result = [];
+                    foreach($active_bets as $bet) {
+                      $id_user = $bet['m5_users'][0]['id'];
+                      if(!in_array($id_user, $result))
+                        array_push($result, $id_user);
+                    }
+                    return $result;
+                  });
+
+                  // 3.3.2] Получить для каждого $users_ids свой массив с активными ставками
+                  $users_active_bets = call_user_func(function() USE ($users_ids, $active_bets) {
+                    $result = [];
+                    foreach($users_ids as $id) {
+                      foreach($active_bets as $bet) {
+                        $id_user = $bet['m5_users'][0]['id'];
+                        if($id_user == $id) {
+                          if(!array_key_exists($id_user, $result)) $result[$id_user] = [];
+                          array_push($result[$id_user], $bet);
+                        }
+                      }
+                    }
+                    return $result;
+                  });
+
+                  // 3.3.3] Записать $users_active_bets в кэш
+                  foreach($users_active_bets as $id_user => $bets) {
+                    Cache::tags(['processing:bets_type2:active:personal:safe'])->put('processing:bets_type2:active:safe:'.$id_user, json_encode($bets, JSON_UNESCAPED_UNICODE), 30);
+                  }
+
+                // 3.4] Пробежаться по $cache, и записать индивидуальный кэш активных ставок (пользователь + комната)
+                foreach($active_bets as $bet) {
+                  $id_user = $bet['m5_users'][0]['id'];
+                  $id_room = $bet['rooms'][0]['id'];
+                  Cache::tags(['processing:bets_type2:active:personal:safe'])->put('processing:bets_type2:active:safe:'.$id_user.':'.$id_room, json_encode($bet, JSON_UNESCAPED_UNICODE), 30);
+                }
+
+                // 3.5] Если $active_bets пуст, сбросить весь персонализированный кэш
+                if(count($active_bets) == 0) {
+                  Cache::tags(['processing:bets_type2:active:personal:safe'])->flush();
+                }
+
+              });
+
+
+            }
+
+          }      
+      
 
 
     DB::commit(); } catch(\Exception $e) {

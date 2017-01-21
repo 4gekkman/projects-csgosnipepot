@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The game processor, fires at every game tick, every second
+ *    - Looking in steamm missed incoming offers for all bots of all rooms and write them down to database
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C11_processor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C45_offers_toothcomb_type2 extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -133,163 +133,29 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
   {
 
     /**
-     * Примечания
-     *
-     *  ▪ Сама команда C11_processor на каждом тике добавляется в очередь "processor_main".
-     *  ▪ Все команды выполняются по очереди либо в "processor_hard" (продакшн), либо в smallbroadcast (отладка)
-     *  ▪ Очереди "main" и "hard" обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
-     *
      * Оглавление
      *
-     *  А. Подготовить имя очереди, которая будет обрабатывать команды
-     *  Б. Если $queue не пуста, завершить
+     *  1.
      *
-     *  C13_update_cache                            | 1. Обновить весь кэш, но для каждого, только если он отсутствует
      *
-     *  --- Система ставок, тип 1 ---
-     *  C14_active_offers_tracking                  | 2. Отслеживать изменения статусов активных офферов
-     *  C19_active_offers_expiration_tracking       | 3. Отслеживать срок годности активных ставок
-     *  C20_notify_users_about_offers_time2deadline | 4. Оповещать игроков о секундах до истечения их активных офферов
-     *
-     *  --- Система ставок, тип 2 ---
-     *  C41_check_active_offers_type2               | 5. [Тип2] Проверять, не поступили ли новые входящие офферы
-     *  C42_process_active_offers_type2             | 6. [Тип2] Обрабатывть уже найденные активные входящие офферы
-     *
-     *  C21_deffered_bets_tracking                  | 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-     *  C18_round_statuses_tracking                 | 8. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-     *  C17_new_rounds_provider                     | 9. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-     *
-     *  В. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
-     *  Г. Если это первая итерация, послать всем клиентам команду перезагрузиться
-     *  Д. Записывать в кэш дату и время последнего и предпоследнего выполнения команды processor
-     *  E. Искать "пропущенные" из-за обстоятельств или сбоев активные входящие офферы для всех ботов
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------------//
-    // The game processor, fires at every game tick, every second //
-    //------------------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // А. Подготовить имя очереди, которая будет обрабатывать команды
-      $queues = [
-        "prod"  => "processor_hard",   // Продакшн
-        "dev"   => "smallbroadcast"    // Отладка
-      ];
-      $queue = $queues['prod'];
-
-      // Б. Если $queue не пуста, и C14 не выполняется, завершить
-      // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
-      $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      if($queue_count == 0) {
-
-        // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-        runcommand('\M9\Commands\C13_update_cache', [
-          "all"   => true,
-          "force" => false
-        ], 0, ['on'=>true, 'name'=>$queue]);
+    //----------------------------------------------------------------------------------------------------//
+    // Looking in steamm missed incoming offers for all bots of all rooms and write them down to database //
+    //----------------------------------------------------------------------------------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-        // Эти команды выполнять, только если система ставок типа 1 включена
-        if(config('M9.is_bets_system_type1_on') == true) {
-
-          // 2. Отслеживать изменения статусов активных офферов
-          runcommand('\M9\Commands\C14_active_offers_tracking', [],
-              0, ['on'=>true, 'name'=>$queue]);
+      // ...
 
 
-          // 3. Отслеживать срок годности активных ставок
-          runcommand('\M9\Commands\C19_active_offers_expiration_tracking', [],
-              0, ['on'=>true, 'name'=>$queue]);
-
-
-          // 4. Оповещать игроков о секундах до истечения их активных офферов
-          runcommand('\M9\Commands\C20_notify_users_about_offers_time2deadline', [],
-              0, ['on'=>true, 'name'=>$queue]);
-
-        }
-
-
-        // Эти команды выполнять, только если система ставок типа 2 включена
-        if(config('M9.is_bets_system_type2_on') == true) {
-
-          // 5. [Тип2] Проверять, не поступили ли новые входящие офферы
-          runcommand('\M9\Commands\C41_check_active_offers_type2', [],
-              0, ['on'=>true, 'name'=>$queue]);
-
-
-          // 6. [Тип2] Обрабатывть уже найденные активные входящие офферы
-          runcommand('\M9\Commands\C42_process_active_offers_type2', [],
-              0, ['on'=>true, 'name'=>$queue]);
-
-        }
-
-
-        // 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-        runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 8. Отслеживать изменение статусов текущих раундов всех вкл.комнат
-        runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 9. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
-        runcommand('\M9\Commands\C17_new_rounds_provider', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-      }
-
-      // В. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
-      // - Но выполнять только в том случае, если предыдущая закончила выполняться.
-      $cache = json_decode(Cache::get('m9:processing:c35_executing'), true);
-      $bets_active = json_decode(Cache::get('processing:bets:active'), true);
-      if(empty($cache) || !is_array($cache) || count($cache) == 0) {
-        if(!empty($bets_active))
-          runcommand('\M9\Commands\C35_offers_toothcomb', [],
-              0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
-      }
-
-      // Г. Если это первая итерация, послать всем клиентам команду перезагрузиться
-      // - Поскольку, их CSRF-токены недействительны.
-      $last_datetime = Cache::get('m9:processing:last_datetime');
-      if(empty($last_datetime)) {
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:public'],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'reload_page',
-            'data' => [
-
-            ]
-          ]
-        ]));
-      }
-
-      // Д. Записывать в кэш дату и время последнего и предпоследнего выполнения команды processor
-      Cache::put('m9:processing:prev_datetime', Cache::get('m9:processing:last_datetime'), 300);
-      Cache::put('m9:processing:last_datetime', \Carbon\Carbon::now()->toDateTimeString(), 300);
-
-      // E. Искать "пропущенные" из-за обстоятельств или сбоев активные входящие офферы для всех ботов
-      // - Но выполнять только в том случае, если предыдущая закончила выполняться.
-      $cache = json_decode(Cache::get('m9:processing:c45_executing'), true);
-      if(empty($cache) || !is_array($cache) || count($cache) == 0) {
-        if(config('M9.is_bets_system_type2_on') == true)
-          runcommand('\M9\Commands\C45_offers_toothcomb_type2', [],
-              0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
-      }
-
-
-      //Log::info('Processor');
-
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C11_processor from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C45_offers_toothcomb_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C11_processor']);
+        write2log($errortext, ['M9', 'C45_offers_toothcomb_type2']);
         return [
           "status"  => -2,
           "data"    => [
