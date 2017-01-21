@@ -419,10 +419,19 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
                 // 1.3] Наполнить $result
                 foreach($rooms as $room) {
+
+                  // Последний раунд
                   $lastround = \M9\Models\MD2_rounds::whereHas('rooms', function($queue) USE ($room) {
                     $queue->where('id', $room['id']);
                   })->orderBy('id', 'desc')->first();
                   array_push($result, $lastround['id']);
+
+                  // Предпоследний раунд
+                  $penultround = \M9\Models\MD2_rounds::whereHas('rooms', function($queue) USE ($room) {
+                    $queue->where('id', $room['id']);
+                  })->orderBy('id', 'desc')->skip(1)->first();
+                  array_push($result, $penultround['id']);
+
                 }
 
                 // 1.n] Вернуть $result
@@ -436,7 +445,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
               // - И вместе со всеми связанными данными текущего раунда.
               $rooms = \M9\Models\MD1_rooms::with(["m8_bots", "bet_accepting_modes",
                   "rounds" => function($query) USE ($all_rooms_last_round_ids) {
-                    $query->whereIn('id', $all_rooms_last_round_ids);
+                    $query->whereIn('id', $all_rooms_last_round_ids)->orderBy('created_at', 'desc');
                   },
                   //"bets",
                   "rounds.rounds_statuses",
