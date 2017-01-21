@@ -200,7 +200,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
     DB::commit(); } catch(\Exception $e) {
         DB::rollback();
-        Log::info('Parsing for md1_packtypes have ended with error: '.$e->getMessage());
+        Log::info('Parsing for md1_packtypes have ended on line '.$e->getLine().' with error: '.$e->getMessage());
         return [
           "status"  => -2,
           "data"    => 'Parsing for md1_packtypes have ended with error: '.$e->getMessage()
