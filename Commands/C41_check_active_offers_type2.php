@@ -150,116 +150,147 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
     //---------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить актуальную информацию по всем вкл.комнатам и последним раундам
-      $rooms = json_decode(Cache::get('processing:rooms'), true);
-      if(empty($rooms))
-        throw new Exception('Отсутствует кэш processing:rooms');
-
-      // 2. Для каждой комнаты получить ID бота, обслуживающего предыдущий раунд
-      // - По ID комнаты можно будет узнать ID бота, обслуживающего предыдущий раунд.
-      // - Если ID бота найти не удалось, там будет пустая строка.
-      $rooms_penultimate_round_bot_ids = call_user_func(function() USE ($rooms) {
-
-        // 1] Подготовить массив для результата
-        $results = [];
-
-        // 2] Наполнить $results
-        foreach($rooms as $room) {
-          if(count($room['rounds']) >= 2) {
-            $results[$room['id']] = $room['rounds'][1]['bets'][0]['m8_bots'][0]['id'];
-          }
-          else {
-            $results[$room['id']] = '';
-          }
-        }
-
-        // n] Вернуть результат
-        return $results;
-
-      });
-
-      // 3. Получить массив ID ботов, обслуживающих текущий раунд во всех включенных комнатах
-      // - По ID комнаты можно будет узнать ID бота, обслуживающего текущий раунд.
-      // - Если ID бота найти не удалось, там будет пустая строка.
-      $bot_ids = call_user_func(function() USE ($rooms, $rooms_penultimate_round_bot_ids) {
-
-        // 1] Подготовить массив для результатов
-        $ids = [];
-
-        // 2] Наполнить $bot_ids
-        foreach($rooms as $room) {
-
-          // 2.1] Получить массив ID всех ботов, обслуживающих комнату $room
-          $room_bot_ids = collect($room['m8_bots'])->pluck('id')->toArray();
-
-          // 2.2] Если $room_bot_ids пуст, записать пустую строку в $ids
-          if(empty($room_bot_ids) || count($room_bot_ids) == 0)
-            $ids[$room['id']] = '';
-
-          // 2.3] В противном случае
-          else {
-
-            // 2.3.1] Получить ID бота, обслуживающего $room в предыдущем раунде
-            $penult_bot_id = $rooms_penultimate_round_bot_ids[$room['id']];
-
-            // 2.3.2] Если $penult_bot_id пуст, добавить в $ids первого из $room_bot_ids
-            if(empty($penult_bot_id))
-              $ids[$room['id']] = $room_bot_ids[0];
-
-            // 2.3.3] В противном случае
-            else {
-
-              // 2.3.3.1] Найти позицию вхождения $penult_bot_id в $room_bot_ids
-              $pos = array_search($penult_bot_id, $room_bot_ids);
-
-              // 2.3.3.2] Если $pos не найдена, добавить в $ids первого из $room_bot_ids
-              if(empty($pos))
-                $ids[$room['id']] = $room_bot_ids[0];
-
-              // 2.3.3.3] В противном случае
-              else {
-
-                // 2.3.3.3.1] Если $pos последняя, добавить в $ids первого из $room_bot_ids
-                if((count($room_bot_ids))-1 == $pos)
-                  $ids[$room['id']] = $room_bot_ids[0];
-
-                // 2.3.3.3.1] Если же не последняя, добавить следующую
-                else
-                  $ids[$room['id']] = $room_bot_ids[+$pos+1];
-
-              }
-
-            }
-
-          }
-
-        }
-
-        // n] Вернуть результаты
-        return $ids;
-
-      });
-
-      // 4. Каждым ботом из (3) запросить через API и обработать свежие данные по активным входящим офферам
-      foreach($bot_ids as $id_bot) {
-
-        // 4.1. Получить все активные входящие офферы для бота $id_bot
-        $active_incoming_offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', [
-          'id_bot' => $id_bot,
-          'active_only' => 1,
-          'get_received_offers' => 1,
-          'get_descriptions' => 1
-        ]);
-        if($active_incoming_offers['status'] != 0)
-          throw new \Exception($active_incoming_offers['data']['errormsg']);
-
-        Log::info($active_incoming_offers);
-
-
-
-
-
-      }
+//      // 1. Получить актуальную информацию по всем вкл.комнатам и последним раундам
+//      $rooms = json_decode(Cache::get('processing:rooms'), true);
+//      if(empty($rooms))
+//        throw new Exception('Отсутствует кэш processing:rooms');
+//
+//      // 2. Для каждой комнаты получить ID бота, обслуживающего предыдущий раунд
+//      // - По ID комнаты можно будет узнать ID бота, обслуживающего предыдущий раунд.
+//      // - Если ID бота найти не удалось, там будет пустая строка.
+//      $rooms_penultimate_round_bot_ids = call_user_func(function() USE ($rooms) {
+//
+//        // 1] Подготовить массив для результата
+//        $results = [];
+//
+//        // 2] Наполнить $results
+//        foreach($rooms as $room) {
+//          if(count($room['rounds']) >= 2) {
+//            $results[$room['id']] = $room['rounds'][1]['bets'][0]['m8_bots'][0]['id'];
+//          }
+//          else {
+//            $results[$room['id']] = '';
+//          }
+//        }
+//
+//        // n] Вернуть результат
+//        return $results;
+//
+//      });
+//
+//      // 3. Получить массив ID ботов, обслуживающих текущий раунд во всех включенных комнатах
+//      // - По ID комнаты можно будет узнать ID бота, обслуживающего текущий раунд.
+//      // - Если ID бота найти не удалось, там будет пустая строка.
+//      $bot_ids = call_user_func(function() USE ($rooms, $rooms_penultimate_round_bot_ids) {
+//
+//        // 1] Подготовить массив для результатов
+//        $ids = [];
+//
+//        // 2] Наполнить $bot_ids
+//        foreach($rooms as $room) {
+//
+//          // 2.1] Получить массив ID всех ботов, обслуживающих комнату $room
+//          $room_bot_ids = collect($room['m8_bots'])->pluck('id')->toArray();
+//
+//          // 2.2] Если $room_bot_ids пуст, записать пустую строку в $ids
+//          if(empty($room_bot_ids) || count($room_bot_ids) == 0)
+//            $ids[$room['id']] = '';
+//
+//          // 2.3] В противном случае
+//          else {
+//
+//            // 2.3.1] Получить ID бота, обслуживающего $room в предыдущем раунде
+//            $penult_bot_id = $rooms_penultimate_round_bot_ids[$room['id']];
+//
+//            // 2.3.2] Если $penult_bot_id пуст, добавить в $ids первого из $room_bot_ids
+//            if(empty($penult_bot_id))
+//              $ids[$room['id']] = $room_bot_ids[0];
+//
+//            // 2.3.3] В противном случае
+//            else {
+//
+//              // 2.3.3.1] Найти позицию вхождения $penult_bot_id в $room_bot_ids
+//              $pos = array_search($penult_bot_id, $room_bot_ids);
+//
+//              // 2.3.3.2] Если $pos не найдена, добавить в $ids первого из $room_bot_ids
+//              if(empty($pos))
+//                $ids[$room['id']] = $room_bot_ids[0];
+//
+//              // 2.3.3.3] В противном случае
+//              else {
+//
+//                // 2.3.3.3.1] Если $pos последняя, добавить в $ids первого из $room_bot_ids
+//                if((count($room_bot_ids))-1 == $pos)
+//                  $ids[$room['id']] = $room_bot_ids[0];
+//
+//                // 2.3.3.3.1] Если же не последняя, добавить следующую
+//                else
+//                  $ids[$room['id']] = $room_bot_ids[+$pos+1];
+//
+//              }
+//
+//            }
+//
+//          }
+//
+//        }
+//
+//        // n] Вернуть результаты
+//        return $ids;
+//
+//      });
+//
+//      // 4. Каждым ботом из (3) запросить через API и обработать свежие данные по активным входящим офферам
+//      foreach($bot_ids as $id_bot) {
+//
+//        // 4.1. Получить все активные входящие офферы для бота $id_bot
+//        $active_incoming_offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', [
+//          'id_bot' => $id_bot,
+//          'active_only' => 1,
+//          'get_received_offers' => 1,
+//          'get_descriptions' => 1
+//        ]);
+//        if($active_incoming_offers['status'] != 0) {
+//
+//          // 1] Получить домен из конфига
+//          $domain = config('M8.api_keys_default_domain') ?: 'csgogames.com';
+//
+//          // 2] Произвести замену API-ключа для бота $id_bot
+//          $result = runcommand('\M8\Commands\C11_bot_set_apikey', [
+//            "id_bot"  => $id_bot,
+//            "force"   => 1,
+//            "domain"  => $domain
+//          ]);
+//          if($result['status'] != 0) {
+//
+//            // Сообщить
+//            $errortext = 'Invoking of command C11_bot_set_apikey from M-package M8 have ended on line with error: '.$result['data']['errormsg'];
+//            Log::info($errortext);
+//            write2log($errortext, ['M8', 'C11_bot_set_apikey']);
+//
+//          }
+//
+//          // 3] Сообщить
+//          $errortext = 'Invoking of command C41_check_active_offers_type2 from M-package M9 have ended on line with error: '.$active_incoming_offers['data']['errormsg'];
+//          Log::info($errortext);
+//          write2log($errortext, ['M9', 'C41_check_active_offers_type2']);
+//
+//          // 4] Перейти к следующей итерации
+//          continue;
+//
+//        }
+//
+//
+//
+//
+//
+//        Log::info($active_incoming_offers);
+//
+//
+//
+//
+//
+//      }
 
 
 
