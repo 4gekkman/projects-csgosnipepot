@@ -14,7 +14,9 @@
  *
  *    [
  *      "data" => [
- *
+ *        "id_bot",
+ *        "force",
+ *        "domain"
  *      ]
  *    ]
  *

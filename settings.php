@@ -83,6 +83,9 @@ return [
       // - Turn on/off extracting of lowest price from Steam Market history
       'check_lowest_price_on_market' => true,
 
+      // 5.11] Какой домен использовать для API-ключей по умолчанию (если у бота он не задан)
+      'api_keys_default_domain' => 'csgohap.ru',
+
 
     //--------------------------------//
     // 6] Настройка списков в БД      //
