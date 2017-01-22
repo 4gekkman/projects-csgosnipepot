@@ -146,6 +146,17 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
      *    4.4. Получить все активные офферы типа 2
      *    4.5. Отфильтровать из $offers те офферы, которые уже есть в $active_offers_type2
      *    4.6. Добавить все офферы из $offers в БД
+     *      4.6.1. Начать транзакцию
+     *      4.6.2. Создать новый экземпляр ставки
+     *      4.6.3. Назначить ставке $newbet статус Active
+     *      4.6.4. Связать $newbet с $room
+     *      4.6.5. Связать $newbet с пользователем
+     *      4.6.6. Связать $newbet с ботом
+     *      4.6.7. Связать $newbet с вещами из ставки
+     *      4.6.8. Сохранить $newbet
+     *      4.6.9. Подтвердить транзакцию
+     *      4.6.10. Обновить весь кэш
+     *      4.6.11. Уведомить пользователя $user по частному каналу, что его оффер в обработке
      *
      *  N. Вернуть статус 0
      *
@@ -154,7 +165,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
     //---------------------------------------//
     // Check if new incoming offers appeared //
     //---------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить актуальную информацию по всем вкл.комнатам и последним раундам
       $rooms = json_decode(Cache::get('processing:rooms'), true);
@@ -356,139 +367,181 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
 
         // 4.5. Отфильтровать из $offers те офферы, которые уже есть в $active_offers_type2
         $offers = array_values(array_filter($offers, function($value) USE ($active_offers_type2) {
-          return !in_array($value['tradeofferid'], $active_offers_type2);
+          return !in_array($value['tradeofferid'], collect($active_offers_type2)->pluck('tradeofferid')->toArray());
         }));
 
         // 4.6. Добавить все офферы из $offers в БД
         foreach($offers as $offer) {
 
-          // 4.6.1. Создать новый экземпляр ставки
+          // 4.6.1. Начать транзакцию
+          DB::beginTransaction();
+
+          // 4.6.2. Создать новый экземпляр ставки
           $newbet = new \M9\Models\MD3_bets();
+          $newbet->type = 2;
+          $newbet->tradeofferid = $offer['tradeofferid'];
+          $newbet->sum_cents_at_bet_moment = "";
+          $newbet->escrow_end_date = call_user_func(function() USE ($offer) {
 
-          // 4.6.1. Если оффер 100% будет отклонён
-          // - С непустым items_to_give, или не нулевым escrow_end_date
-          if(
-            (array_key_exists('escrow_end_date', $offer) && $offer['escrow_end_date'] != 0) ||
-            (array_key_exists('items_to_give', $offer) && count($offer['items_to_give']) != 0)
-          ) {
+            if(array_key_exists('escrow_end_date', $offer) && $offer['escrow_end_date'] != 0)
+              return 1;
 
-            // Наполнить $newbet
-            $newbet->type = 2;
-            $newbet->tradeofferid = $offer['tradeofferid'];
-            $newbet->sum_cents_at_bet_moment = "";
-            $newbet->escrow_end_date = 1;
-            $newbet->items_to_give = 1;
+            else
+              return 0;
 
-            // Сохранить $newbet
+          });
+          $newbet->items_to_give = call_user_func(function() USE ($offer) {
 
+            if(array_key_exists('items_to_give', $offer) && count($offer['items_to_give']) != 0)
+              return 1;
 
-            // Перейти к следующей итерации
+            else
+              return 0;
 
+          });
+          $newbet->save();
+
+          // 4.6.3. Назначить ставке $newbet статус Active
+
+            // 1] Получить статус "Active" из md8_bets_statuses
+            $status = \M9\Models\MD8_bets_statuses::find(2);
+
+            // 2] Связать $newbet с $status
+            // - Не забыв указать expired_at
+            if(!$newbet->bets_statuses->contains($status->id)) $newbet->bets_statuses()->attach($status->id);
+
+          // 4.6.4. Связать $newbet с $room
+          if(!$newbet->rooms->contains($id_room)) $newbet->rooms()->attach($id_room);
+
+          // 4.6.5. Связать $newbet с пользователем
+          // - Но номера билетов пока не указывать.
+
+            // 1] Получить steamid приславшего оффер пользователя
+            $steamid = 76561197960265728 + $offer['accountid_other'];
+
+            // 2] Получить пользователя, приславшего ставку
+            $user = \M5\Models\MD1_users::where('ha_provider_uid', $steamid)->first();
+
+            // 3] Если $user найден, связать его с $newbet
+            if(!empty($user)) {
+              if(!$newbet->m5_users->contains($user->id)) $newbet->m5_users()->attach($user->id);
+            }
+
+          // 4.6.6. Связать $newbet с ботом
+          if(!$newbet->m8_bots->contains($id_bot)) $newbet->m8_bots()->attach($id_bot);
+
+          // 4.6.7. Связать $newbet с вещами из ставки
+
+            // 1] Получить массив market names вещей, с которыми надо связать
+            $items2bet_market_names = call_user_func(function() USE ($offer) {
+
+              // 1.1] Подготовить массив для результатов
+              $results = [];
+
+              // 1.2] Наполнить $results
+              foreach($offer['items_to_receive'] as $item) {
+                array_push($results, $item['market_name']);
+              }
+
+              // 1.n] Вернуть результаты
+              return $results;
+
+            });
+
+            // 2] Получить коллекцию вещей $items2bet_market_names из m8.md2_items
+            $items = \M8\Models\MD2_items::whereIn('name', $items2bet_market_names)->get();
+
+            // 3] Проверить, каких вещей из $items2bet_market_names не хватает в $items
+            // - Результат вернуть в виде массив market names не хватающих вещей
+            $items_missed = call_user_func(function() USE ($items2bet_market_names, $items) {
+
+              // 3.1] Подготовить массив для результатов
+              $results = [];
+
+              // 3.2] Наполнить $results
+              foreach($items2bet_market_names as $item1) {
+                foreach($items as $item2) {
+                  if($item1 == $item2->name) continue 2;
+                }
+                array_push($results, $item1);
+              }
+
+              // 3.n] Вернуть результаты
+              return $results;
+
+            });
+
+            // 4] Если $items_missed не пуст
+            if(!empty($items_missed)) {
+
+              // Записать в ставку, что есть не найденные вещи, сделать коммит, и перейти к след.итерации
+              $newbet->unknown_items = json_encode($items_missed, JSON_UNESCAPED_UNICODE);
+              $newbet->save();
+              DB::commit();
+              continue;
+
+            }
+
+            // 5] Если $items_missed пуст, связать с $newbet все вещи из $items
+            else {
+              foreach($items as $item) {
+
+                if(!$newbet->m8_items->contains($item->id)) $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100)]);
+
+              }
+            }
+
+          // 4.6.8. Подсчитать и записать общую сумму ставки в центах
+
+            // 1] Подсчитать
+            $sum_cents_at_bet_moment = call_user_func(function() USE ($items) {
+
+              $result = 0;
+              foreach($items as $item) {
+                $result = +$result + +$item->price;
+              }
+              return round($result*100);
+
+            });
+
+            // 2] Записать
+            $newbet->sum_cents_at_bet_moment = $sum_cents_at_bet_moment;
+
+          // 4.6.8. Сохранить $newbet
+          $newbet->save();
+
+          // 4.6.9. Подтвердить транзакцию
+          DB::commit();
+
+          // 4.6.10. Обновить весь кэш
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "cache2update" => ["processing:bets_type2:active"]
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 4.6.11. Уведомить пользователя $user по частному каналу, что его оффер в обработке
+          if(!empty($user)) {
+
+            Event::fire(new \R2\Broadcast([
+              'channels' => ['m9:private:'.$user->id],
+              'queue'    => 'm9_lottery_broadcasting',
+              'data'     => [
+                'task' => 'update_inventory',
+                'data' => [
+                  'tradeofferid' => $offer['tradeofferid']
+                ]
+              ]
+            ]));
 
           }
 
-          // 4.6.n. Сохранить $newbet
-          $newbet->save();
-
         }
-
-
-
-      // - Отклонять офферы, у которых есть непустое поле items_to_give
-      // - Отклонять офферы, у которых escrow_end_date не равен 0
-
-
-
-        // - Получить комнату, в которой игрок хочет сделать ставку
-        // - Получить из
-
-
-
-
-        Log::info($offers);
-
-        //$active_incoming_offers['data']['tradeoffers']['trade_offers_received']
-        //$active_incoming_offers['data']['tradeoffers']['descriptions']
-
-        //$active_incoming_offers['data']['descriptions'][i]['appid']
-        //$active_incoming_offers['data']['descriptions'][i]['classid']
-        //$active_incoming_offers['data']['descriptions'][i]['instanceid']
-        //$active_incoming_offers['data']['descriptions'][i]['market_name']
-
-
-        // Общие соображения
-        // - Отклонять офферы, у которых есть непустое поле items_to_give
-        // - Отклонять офферы, у которых escrow_end_date не равен 0
-        // - Нас интересуют только офферы, у которых trade_offer_state == 2
-
-        // Как искать market name скина из оффера в descriptions
-        // - Инфа о присланных скинах лежит в поле items_to_receive оффера.
-        // - Среди прочих, там есть св-ва: appid, classid, instanceid.
-        // - По ним можно находить описание соответствующего скина.
-        // - Из описания нам нужно брать только market_name.
-
-        //
-
 
       }
 
 
-
-
-
-
-
-
-
-
-//
-//      // 2. Получить массив ID ботов, обслуживающих текущий раунд во всех включенных комнатах
-//      $bot_ids = call_user_func(function() USE ($rooms) {
-//
-//        // 1] Подготовить массив для результатов
-//        $ids = [];
-//
-//        // 2] Получить
-//        foreach($rooms as $room) {
-//          foreach($room['rounds'] as $round) {
-//            foreach($round['bets'] as $bet) {
-//              foreach($bet['m8_bots'] as $bot) {
-//                if(!in_array($bot['id'], $ids))
-//                  array_push($ids, $bot['id']);
-//              }
-//            }
-//          }
-//        }
-//
-//        // n] Вернуть результаты
-//        return $ids;
-//
-//      });
-//
-//      Log::info($bot_ids);
-//
-//
-//
-//      // - Нам надо определить, какой бот обслуживает текущий раунд
-//      // - Для этого смотрим ставки предыдущего раунда, с какими ботами связаны
-//      // - Берём последнюю ставку, и смотрим ID её бота.
-//      // - Извлекаем всех ботов, связанных с комнатой текущего раунда.
-//      // - Если найденный бот последний среди них, берём первого.
-//      //   А если не последний, берём следующего.
-//      //   А если его среди них нет, берём первого.
-//
-//
-//
-//
-//      // 2. Получить инфу о текущих активных офферах типа 2
-//      $bets_active = json_decode(Cache::get('processing:bets_type2:active'), true);
-//
-//
-
-
-
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C41_check_active_offers_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
