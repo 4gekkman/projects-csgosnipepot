@@ -471,7 +471,24 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
 
             });
 
-            // 4] Если $items_missed не пуст
+            // 4] Получить индекс assetid_users вещей, с которыми надо связать $newbet
+            // - По market name вещи можно получить assetid
+            $assetid_users_index = call_user_func(function() USE ($offer) {
+
+              // 1.1] Подготовить массив для результатов
+              $results = [];
+
+              // 1.2] Наполнить $results
+              foreach($offer['items_to_receive'] as $item) {
+                $results[$item['market_name']] = $item['assetid'];
+              }
+
+              // 1.n] Вернуть результаты
+              return $results;
+
+            });
+
+            // 5] Если $items_missed не пуст
             if(!empty($items_missed)) {
 
               // Записать в ставку, что есть не найденные вещи, сделать коммит, и перейти к след.итерации
@@ -482,11 +499,11 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
 
             }
 
-            // 5] Если $items_missed пуст, связать с $newbet все вещи из $items
+            // 6] Если $items_missed пуст, связать с $newbet все вещи из $items
             else {
               foreach($items as $item) {
 
-                if(!$newbet->m8_items->contains($item->id)) $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100)]);
+                if(!$newbet->m8_items->contains($item->id)) $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100), 'assetid_users' => $assetid_users_index[$item->name]]);
 
               }
             }
@@ -539,7 +556,6 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
         }
 
       }
-
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C41_check_active_offers_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

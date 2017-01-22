@@ -135,7 +135,22 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить список активных офферов 2-го типа
+     *  2. Если $active_offers_type2 не пуст, обработать их
+     *    2.1. Составить чеклист причин отменить $offer
+     *    2.2. Вычислить кол-во предметов в ставке, и её сумму в центах
+     *    2.3. Получить все необходимые лимиты комнаты, связанной с $offer
+     *    2.4. Пройтись по $checklist и проверить каждый пункт
+     *
+     *      • Проверяем №1 в $checklist: запрос вещей бота
+     *      • Проверяем №2 в $checklist: не нулевой escrow
+     *      • Проверяем №3 в $checklist: вещи не опознаны
+     *      • Проверяем №4 в $checklist: оффер от анонима
+     *      • Проверяем №5 в $checklist: недостаточно предметов для ставки
+     *      • Проверяем №6 в $checklist: слишком много предметов для ставки
+     *      • Проверяем №7 в $checklist: сумма ставки слишком мала
+     *      • Проверяем №8 в $checklist: сумма ставки слишком велика
+     *
      *
      *
      *  N. Вернуть статус 0
@@ -147,6 +162,273 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
     //---------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить список активных офферов 2-го типа
+      // - Если таковых нет, завершить.
+      $active_offers_type2 = json_decode(Cache::get('processing:bets_type2:active'), true);
+
+      // 2. Если $active_offers_type2 не пуст, обработать их
+      if(!empty($active_offers_type2) || count($active_offers_type2) != 0) {
+        foreach($active_offers_type2 as $offer) {
+
+          // 2.1. Составить чеклист причин отменить $offer
+          // - Если хоть 1-на из них true, отменяем.
+          $checklist = [
+
+            // 1] Запрос вещей бота
+            'items_to_give' => [
+              'verdict' => false,
+              'desc'    => 'Вы запросили вещи нашего бота в своём торговом предложении.'
+            ],
+
+            // 2] Не нулевой escrow
+            'escrow_end_date' => [
+              'verdict' => false,
+              'desc'    =>  'Если наш бот примет ваше торговое предложение, оно будет "заморожено" в escrow, что неприемлимо. '.
+                            'Начиная с 09.12.15 все обмены в системе Steam необходимо подтверждать с помощью мобильного аутентификатора Steam, который привязан к аккаунту не менее 7 дней.'.
+                            'В противном случае обмены «замораживаются» на 72 часа для безопасности пользователей. Наш бот принимает только те обмены, которые подтверждены с помощью мобильного аутентификатора Steam. Подробнее вы можете почитать на https://csgo.com/news/568-srochnoe-ob-yavlenie-dlya-vseh-pol-zovateley-marketa/'
+            ],
+
+            // 3] Вещи не опознаны
+            'unknown_items' => [
+              'verdict' => false,
+              'desc'    =>  'Наш бот не смог опознать некоторые вещи из вашего торгового предложения. А именно: '
+            ],
+
+            // 4] Оффер от анонима
+            'unknown_user' => [
+              'verdict' => false,
+              'desc'    =>  'Торговое предложение прислал не аутентифицированный пользователь'
+            ],
+
+            // 5] Недостаточно предметов для ставки
+            'min_items_per_bet' => [
+              'verdict' => false,
+              'desc'    => 'Недостаточно предметов для ставки в выбранной комнате. Минимум предметов: '
+            ],
+
+            // 6] Слишком много предметов для ставки
+            'max_items_per_bet' => [
+              'verdict' => false,
+              'desc'    => 'Вы пытаетесь поставить слишком много предметов в одной ставке в выбранной комнате. Максимум предметов: '
+            ],
+
+            // 7] Сумма ставки слишком мала
+            'min_bet' => [
+              'verdict' => false,
+              'desc'    => 'Сумма ставки слишком мала. Минимум: '
+            ],
+
+            // 8] Сумма ставки слишком велика
+            'max_bet' => [
+              'verdict' => false,
+              'desc'    => 'Сумма ставки слишком велика. Максимум: '
+            ],
+
+          ];
+
+          // 2.2. Вычислить кол-во предметов в ставке, и её сумму в центах
+          $count_and_sum = call_user_func(function() USE ($offer) {
+
+            // 1] Сумма в центах
+            $sum = call_user_func(function() USE ($offer) {
+              $result = 0;
+              foreach($offer['m8_items'] as $item) {
+                $result = +$result + +$item['pivot']['item_price_at_bet_time'];
+              }
+              return $result;
+            });
+
+            // 2] Количество вещей
+            $count = call_user_func(function() USE ($offer) {
+              $result = 0;
+              foreach($offer['m8_items'] as $item) {
+                $result = +$result + 1;
+              }
+              return $result;
+            });
+
+            // 3] Вернуть результаты
+            return [
+              'sum'   => $sum,
+              'count' => $count
+            ];
+
+          });
+
+          // 2.3. Получить все необходимые лимиты комнаты, связанной с $offer
+          $room_limits = call_user_func(function() USE ($offer) {
+
+            // 1] Получить связанную с $offer комнату
+            $room = $offer['rooms']['0'];
+
+            // 2] Вернуть результаты
+            return [
+              "min_items_per_bet" => $room['min_items_per_bet'],  // MIN кол-во предметов в ставке
+              "max_items_per_bet" => $room['max_items_per_bet'],  // MAX кол-во предметов в ставке
+              "min_bet"           => $room['min_bet'],            // MIN ставка игрока
+              "max_bet"           => $room['max_bet'],            // MAX ставка игрока
+            ];
+
+          });
+
+          // 2.4. Пройтись по $checklist и проверить каждый пункт
+          call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
+
+            // Проверяем №1 в $checklist: запрос вещей бота
+            call_user_func(function() USE (&$checklist, $offer) {
+
+              // 1] Если в оффере есть запрос вещей бота
+              if(!empty($offer['items_to_give']))
+                $checklist['items_to_give']['verdict'] = true;
+
+            });
+
+            // Проверяем №2 в $checklist: не нулевой escrow
+            call_user_func(function() USE (&$checklist, $offer) {
+
+              // 1] Если в оффере есть запрос вещей бота
+              if(!empty($offer['escrow_end_date']))
+                $checklist['escrow_end_date']['verdict'] = true;
+
+            });
+
+            // Проверяем №3 в $checklist: вещи не опознаны
+            call_user_func(function() USE (&$checklist, $offer) {
+
+              // 1] Извлечь информацию unknown_items в виде массива
+              $unknown_items = json_decode($offer['unknown_items'], true);
+
+              // 2] Если в оффере есть неопознанные вещи
+              if(!empty($unknown_items) && is_array($unknown_items)) {
+
+                // 1.1] Установить verdict равным true
+                $checklist['unknown_items']['verdict'] = true;
+
+                // 1.2] Добавить список этих вещей в описание
+                $checklist['unknown_items']['desc'] = $checklist['unknown_items']['desc'] .
+                    implode(', ', $unknown_items);
+
+              }
+
+            });
+
+            // Проверяем №4 в $checklist: оффер от анонима
+            call_user_func(function() USE (&$checklist, $offer) {
+
+              // 1] Если оффер не связан ни с одним известным системе пользователем
+              if(!array_key_exists('m5_users', $offer) || !is_array($offer['m5_users']) || count($offer['m5_users']) == 0)
+                $checklist['unknown_user']['verdict'] = true;
+
+            });
+
+            // Проверяем №5 в $checklist: недостаточно предметов для ставки
+            call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
+
+              // 1] Если недостаточно предметов для ставки
+              if($count_and_sum['count'] < $room_limits['min_items_per_bet']) {
+
+                // 1.1] Установить verdict равным true
+                $checklist['min_items_per_bet']['verdict'] = true;
+
+                // 1.2] Добавить лимит в описание
+                $checklist['min_items_per_bet']['desc'] = $checklist['min_items_per_bet']['desc'] . $room_limits['min_items_per_bet'];
+
+              }
+
+            });
+
+            // Проверяем №6 в $checklist: слишком много предметов для ставки
+            call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
+
+              // 1] Если слишком много предметов для ставки
+              if($count_and_sum['count'] > $room_limits['max_items_per_bet']) {
+
+                // 1.1] Установить verdict равным true
+                $checklist['max_items_per_bet']['verdict'] = true;
+
+                // 1.2] Добавить лимит в описание
+                $checklist['max_items_per_bet']['desc'] = $checklist['max_items_per_bet']['desc'] . $room_limits['max_items_per_bet'];
+
+              }
+
+            });
+
+            // Проверяем №7 в $checklist: сумма ставки слишком мала
+            call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
+
+              // 1] Если сумма ставки слишком мала
+              if($count_and_sum['sum'] < $room_limits['min_bet']) {
+
+                // 1.1] Установить verdict равным true
+                $checklist['min_bet']['verdict'] = true;
+
+                // 1.2] Добавить лимит в описание
+                $checklist['min_bet']['desc'] = $checklist['min_bet']['desc'] . $room_limits['min_bet'] . ' центов.';
+
+              }
+
+            });
+
+            // Проверяем №8 в $checklist: сумма ставки слишком велика
+            call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
+
+              // 1] Если сумма ставки слишком велика
+              if($count_and_sum['sum'] > $room_limits['max_bet']) {
+
+                // 1.1] Установить verdict равным true
+                $checklist['max_bet']['verdict'] = true;
+
+                // 1.2] Добавить лимит в описание
+                $checklist['max_bet']['desc'] = $checklist['max_bet']['desc'] . $room_limits['max_bet'] . ' центов.';
+
+              }
+
+            });
+
+          });
+
+          // 2.5.
+
+          Log::info($checklist);
+
+
+
+        }
+      }
+
+
+
+
+      //Log::info($active_offers_type2);
+
+
+
+
+
+
+
+
+
+      // Список причин для отмены оффера
+      // - Есть непустое поле items_to_give
+      // - Escrow_end_date не равен 0
+      // - Есть unknown_items
+      // - Не связан ни с одним пользователем (значит, это левый оффер от не вошедшего пользователя)
+      // - Не вписывается в лимиты комнаты.
+
+
+
+      // Чек-лист причин для отмены
+      // - Если хоть 1 причина есть, вызываем decline.
+      // - Если ни 1-й причины нет, вызываем accept.
+
+
+
+
+
+
+
+
       // Общие соображения
       // - Нас интересуют только офферы, у которых trade_offer_state == 2
       //
@@ -156,7 +438,6 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
       // - У которых escrow_end_date не равен 0
       // - У которых есть unknown_items
       // - Которые не связаны ни с одним пользователем (значит, это левый оффер от не вошедшего пользователя)
-      // -
 
 
     DB::commit(); } catch(\Exception $e) {
