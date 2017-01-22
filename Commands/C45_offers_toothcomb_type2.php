@@ -135,7 +135,7 @@ class C45_offers_toothcomb_type2 extends Job { // TODO: добавить "implem
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить и проверить входящие данные
      *
      *
      *  N. Вернуть статус 0
@@ -147,8 +147,6 @@ class C45_offers_toothcomb_type2 extends Job { // TODO: добавить "implem
     //----------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-
-      // ...
 
 
     DB::commit(); } catch(\Exception $e) {

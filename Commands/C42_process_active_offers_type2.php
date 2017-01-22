@@ -151,7 +151,9 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
      *      • Проверяем №7 в $checklist: сумма ставки слишком мала
      *      • Проверяем №8 в $checklist: сумма ставки слишком велика
      *
-     *
+     *    2.5. На основании $checklist составить итоговый вердикт об $offer
+     *    2.6. Если вердикт положительный, принять оффер
+     *    2.7. Если вердикт отрицательный, отклонить оффер
      *
      *  N. Вернуть статус 0
      *
@@ -176,12 +178,14 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
 
             // 1] Запрос вещей бота
             'items_to_give' => [
+              'code'    => 1,
               'verdict' => false,
-              'desc'    => 'Вы запросили вещи нашего бота в своём торговом предложении.'
+              'desc'    => 'Вы запросили вещи нашего бота в своём торговом предложении, что неприемлимо.'
             ],
 
             // 2] Не нулевой escrow
             'escrow_end_date' => [
+              'code'    => 2,
               'verdict' => false,
               'desc'    =>  'Если наш бот примет ваше торговое предложение, оно будет "заморожено" в escrow, что неприемлимо. '.
                             'Начиная с 09.12.15 все обмены в системе Steam необходимо подтверждать с помощью мобильного аутентификатора Steam, который привязан к аккаунту не менее 7 дней.'.
@@ -190,36 +194,42 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
 
             // 3] Вещи не опознаны
             'unknown_items' => [
+              'code'    => 3,
               'verdict' => false,
               'desc'    =>  'Наш бот не смог опознать некоторые вещи из вашего торгового предложения. А именно: '
             ],
 
             // 4] Оффер от анонима
             'unknown_user' => [
+              'code'    => 4,
               'verdict' => false,
               'desc'    =>  'Торговое предложение прислал не аутентифицированный пользователь'
             ],
 
             // 5] Недостаточно предметов для ставки
             'min_items_per_bet' => [
+              'code'    => 5,
               'verdict' => false,
               'desc'    => 'Недостаточно предметов для ставки в выбранной комнате. Минимум предметов: '
             ],
 
             // 6] Слишком много предметов для ставки
             'max_items_per_bet' => [
+              'code'    => 6,
               'verdict' => false,
               'desc'    => 'Вы пытаетесь поставить слишком много предметов в одной ставке в выбранной комнате. Максимум предметов: '
             ],
 
             // 7] Сумма ставки слишком мала
             'min_bet' => [
+              'code'    => 7,
               'verdict' => false,
               'desc'    => 'Сумма ставки слишком мала. Минимум: '
             ],
 
             // 8] Сумма ставки слишком велика
             'max_bet' => [
+              'code'    => 8,
               'verdict' => false,
               'desc'    => 'Сумма ставки слишком велика. Максимум: '
             ],
@@ -387,11 +397,74 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
 
           });
 
-          // 2.5.
+          // 2.5. На основании $checklist составить итоговый вердикт об $offer
+          // - Во-первых, принимать ли этот оффер, или нет.
+          // - Во-вторых, если нет, то каковы коды и описания ошибок.
+          $offer_final_verdict = call_user_func(function() USE ($checklist) {
 
-          Log::info($checklist);
+            // 1] Принимать ли этот оффер, или нет
+            $accept = call_user_func(function() USE ($checklist) {
 
+              $result = true;
+              foreach($checklist as $point) {
+                if($point['verdict'] == true) {
+                  $result = false;
+                  break;
+                }
+              }
+              return $result;
 
+            });
+
+            // 2] Коды ошибок и их описания
+            $codes_and_errors = call_user_func(function() USE ($checklist) {
+              $result = [];
+              foreach($checklist as $key => $point) {
+                if($point['verdict'] == true) {
+                  array_push($result, [
+                    'code' => $point['code'],
+                    'desc' => $point['desc']
+                  ]);
+                }
+              }
+              return $result;
+            });
+
+            // n] Вернуть результаты
+            return [
+              'verdict'           => $accept,
+              'codes_and_errors'  => $codes_and_errors
+            ];
+
+          });
+
+          // 2.6. Если вердикт положительный, принять оффер
+          if($offer_final_verdict['verdict'] == true) {
+
+            $result = runcommand('\M9\Commands\C44_accept_offer_type2', [
+              "betid"             => $offer['id'],
+              "tradeofferid"      => $offer['tradeofferid'],
+              "id_user"           => $offer['m5_users'][0]['id'],
+              "id_room"           => $offer['rooms'][0]['id'],
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+          }
+
+          // 2.7. Если вердикт отрицательный, отклонить оффер
+          if($offer_final_verdict['verdict'] == false) {
+
+            $result = runcommand('\M9\Commands\C43_decline_offer_type2', [
+              "betid"             => $offer['id'],
+              "tradeofferid"      => $offer['tradeofferid'],
+              "id_user"           => $offer['m5_users'][0]['id'],
+              "id_room"           => $offer['rooms'][0]['id'],
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
+
+          }
 
         }
       }

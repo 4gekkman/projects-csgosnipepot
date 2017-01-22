@@ -135,7 +135,7 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить и проверить входящие данные
      *
      *
      *  N. Вернуть статус 0
@@ -147,8 +147,27 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
     //----------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить и проверить входящие данные
+      $validator = r4_validate($this->data, [
 
-      //Log::info('C43_decline_offer_type2');
+        "betid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+
+      ]); if($validator['status'] == -1) {
+
+        throw new \Exception($validator['data']);
+
+      }
+
+
+      // Примерный план действий
+      // - Отправить запрос на приём оффера от имени бота, и продолжать в случае успеха.
+      // - Затем просто применить команду m9.c15 (на всяк.случай проверить её, всё ли подходит)
+
+
+      Log::info('C43_decline_offer_type2');
 
 
     DB::commit(); } catch(\Exception $e) {
