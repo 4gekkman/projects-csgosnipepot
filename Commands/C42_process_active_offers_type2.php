@@ -148,7 +148,10 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      //Log::info('C42_process_active_offers_type2');
+      // Общие соображения
+      // - Отклонять офферы, у которых есть непустое поле items_to_give
+      // - Отклонять офферы, у которых escrow_end_date не равен 0
+      // - Нас интересуют только офферы, у которых trade_offer_state == 2
 
 
     DB::commit(); } catch(\Exception $e) {

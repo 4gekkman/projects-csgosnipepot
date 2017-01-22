@@ -171,7 +171,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           $result = [];
 
           // 2] Получить из $room последний раунд
-          $result['lastround'] = $room['rounds'][count($room['rounds']) - 1];
+          //$result['lastround'] = $room['rounds'][count($room['rounds']) - 1];
+          $result['lastround'] = $room['rounds'][0];
 
           // 3] Получить массив-текущий-статус для lastround
           $result['lastround_status'] = $result['lastround']['rounds_statuses'][count($result['lastround']['rounds_statuses']) - 1];
