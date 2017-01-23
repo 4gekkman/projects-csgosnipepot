@@ -885,6 +885,13 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 	}, 500); };
 
+	//---------------------------------------------//
+	// s1.14. Анимация ленты аватарок с помощью JS //
+	//---------------------------------------------//
+	f.s1.onclick_handler = function() {
+		if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('https://steamcommunity.com/tradeoffer/'+tradeofferid);
+		else popupCenter('https://steamcommunity.com/tradeoffer/'+tradeofferid,'steam','800','600');
+	};
 
 
 
