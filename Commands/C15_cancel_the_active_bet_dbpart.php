@@ -165,6 +165,7 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
         "another_status_id" => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "codes_and_errors"  => ["json"],
 
       ]); if($validator['status'] == -1) {
 
@@ -210,8 +211,9 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
         'data'     => [
           'task' => 'tradeoffer_cancel',
           'data' => [
-            'id_room'     => $this->data['id_room'],
-            'bets_active' => [] //json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
+            'id_room'           => $this->data['id_room'],
+            'codes_and_errors'  => array_key_exists('codes_and_errors', $this->data) ? $this->data['codes_and_errors'] : '',
+            'bets_active'       => [] //json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
           ]
         ]
       ]));

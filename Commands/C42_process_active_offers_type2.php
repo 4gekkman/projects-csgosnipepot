@@ -457,9 +457,11 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
 
             $result = runcommand('\M9\Commands\C43_decline_offer_type2', [
               "betid"             => $offer['id'],
+              "botid"             => $offer['m8_bots'][0]['id'],
               "tradeofferid"      => $offer['tradeofferid'],
               "id_user"           => $offer['m5_users'][0]['id'],
               "id_room"           => $offer['rooms'][0]['id'],
+              "codes_and_errors"  => json_encode($offer_final_verdict['codes_and_errors'], JSON_UNESCAPED_UNICODE)
             ]);
             if($result['status'] != 0)
               throw new \Exception($result['data']['errormsg']);
@@ -468,49 +470,6 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
 
         }
       }
-
-
-
-
-      //Log::info($active_offers_type2);
-
-
-
-
-
-
-
-
-
-      // Список причин для отмены оффера
-      // - Есть непустое поле items_to_give
-      // - Escrow_end_date не равен 0
-      // - Есть unknown_items
-      // - Не связан ни с одним пользователем (значит, это левый оффер от не вошедшего пользователя)
-      // - Не вписывается в лимиты комнаты.
-
-
-
-      // Чек-лист причин для отмены
-      // - Если хоть 1 причина есть, вызываем decline.
-      // - Если ни 1-й причины нет, вызываем accept.
-
-
-
-
-
-
-
-
-      // Общие соображения
-      // - Нас интересуют только офферы, у которых trade_offer_state == 2
-      //
-
-      // Какие офферы отклонять
-      // - У которых есть непустое поле items_to_give
-      // - У которых escrow_end_date не равен 0
-      // - У которых есть unknown_items
-      // - Которые не связаны ни с одним пользователем (значит, это левый оффер от не вошедшего пользователя)
 
 
     DB::commit(); } catch(\Exception $e) {

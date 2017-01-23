@@ -14,7 +14,10 @@
  *
  *    [
  *      "data" => [
- *
+ *        betid
+ *        tradeofferid
+ *        id_user
+ *        id_room
  *      ]
  *    ]
  *
@@ -136,7 +139,9 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
      * Оглавление
      *
      *  1. Получить и проверить входящие данные
-     *
+     *  2. Получить статус Declined
+     *  3. Отклонить оффер tradeofferid
+     *  4. В случае успешного отклонения, внести изменения в БД
      *
      *  N. Вернуть статус 0
      *
@@ -151,9 +156,11 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
       $validator = r4_validate($this->data, [
 
         "betid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "botid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "codes_and_errors"  => ["required", "json"],
 
       ]); if($validator['status'] == -1) {
 
@@ -161,14 +168,58 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
 
       }
 
+      // 2. Получить статус Declined
+      $status_declined = \M9\Models\MD8_bets_statuses::where('status', 'Declined')->first();
+      if(empty($status_declined))
+        throw new \Exception('Не удалось найти статус Declined в m9.md8_bets_statuses');
 
-      // Примерный план действий
-      // - Отправить запрос на приём оффера от имени бота, и продолжать в случае успеха.
-      // - Затем просто применить команду m9.c15 (на всяк.случай проверить её, всё ли подходит)
+      // 3. Отклонить оффер tradeofferid
+      $decline_result = runcommand('\M8\Commands\C29_decline_trade_offer', [
+        "id_bot"        => $this->data['botid'],
+        "id_tradeoffer" => $this->data['tradeofferid']
+      ]);
+      Log::info($decline_result);
 
+      // 4. В случае успешного отклонения, внести изменения в БД
+      // - Успешное, это когда: нет ошибки и вернулся не пустой $result['data']['tradeofferid'],
+      //                        либо ошибка есть, но в response лежит ['success'] == 11
+      // - Команда также обновит весь кэш, и пошлёт по частному каналу уведомление игроку.
+      if(
 
-      Log::info('C43_decline_offer_type2');
+          // Если удалось отклонить оффер без ошибок
+          (
+            $decline_result['status'] == 0 &&
+            !empty($decline_result) &&
+            array_key_exists('data', $decline_result) &&
+            array_key_exists('tradeofferid', $decline_result['data']) &&
+            !empty($result['data']['tradeofferid']) &&
+            $result['data']['tradeofferid'] == $this->data['tradeofferid']
+          ) ||
 
+          // Если оффер уже был ранее отклонён (steam прислал код 11)
+          (
+            !empty($decline_result) &&
+            $decline_result['status'] != 0 &&
+            array_key_exists('data', $decline_result) &&
+            array_key_exists('response', $decline_result['data']) &&
+            array_key_exists('success', $decline_result['data']['response']) &&
+            $decline_result['data']['response']['success'] == 11
+          )
+
+      ) {
+
+        $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
+          "betid"             => $this->data['betid'],
+          "tradeofferid"      => $this->data['tradeofferid'],
+          "another_status_id" => $status_declined->id,
+          "id_user"           => $this->data['id_user'],
+          "id_room"           => $this->data['id_room'],
+          "codes_and_errors"  => $this->data['id_room'],
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C43_decline_offer_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
