@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        id_bot
+ *        id_tradeoffer
  *      ]
  *    ]
  *
@@ -166,7 +167,6 @@ class C29_decline_trade_offer extends Job { // TODO: добавить "implement
       // 3. Осуществить запрос к steam и отклонить указанное торговое предложение
 
         // 3.1. Запросить
-        $response = call_user_func(function() USE ($bot){
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
@@ -180,13 +180,24 @@ class C29_decline_trade_offer extends Job { // TODO: добавить "implement
             ],
             "ref"             => 'https://steamcommunity.com/tradeoffer/'.$this->data['id_tradeoffer'].'/'
           ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
 
-          // 2] Вернуть результаты (guzzle response)
-          return $result['data']['response'];
+          // 2] Если запрос был неудачен и response присутствует
+          if($result['status'] != 0 && array_key_exists('response', $result['data'])) {
 
-        });
+            return [
+              "status"  => -2,
+              "data"    => [
+                "success"       => false,
+                "tradeofferid"  => "",
+                "status"        => $result['data']['response']->getStatusCode(),
+                "response"      => json_decode($result['data']['response']->getBody(), true)
+              ]
+            ];
+
+          }
+
+          // 3] Если запрос был удачен, вернуть результаты (guzzle response)
+          else $response = $result['data']['response'];
 
         // 3.2. Если код ответа не 200, сообщить и завершить
         if($response->getStatusCode() != 200)
