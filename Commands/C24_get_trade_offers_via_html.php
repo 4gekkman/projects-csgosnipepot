@@ -846,7 +846,7 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
 
               // n.1.1] Если mode = 1, то добавлять ТП только, если trade_offer_state == 2
               if($this->data['mode'] == 1) {
-                if($tradeoffer['trade_offer_state'] == '2' || $tradeoffer['trade_offer_state'] == '9' || $tradeoffer['trade_offer_state'] == '11')
+                //if($tradeoffer['trade_offer_state'] == '2' || $tradeoffer['trade_offer_state'] == '9' || $tradeoffer['trade_offer_state'] == '11')
                   array_push($tradeoffers['trade_offers_received'], $tradeoffer);
               }
 
