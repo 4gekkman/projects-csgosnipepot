@@ -267,6 +267,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
           'get_received_offers' => 1,
           'get_descriptions' => 1
         ]);
+
         if($active_incoming_offers['status'] != 0) {
 
           // 1] Получить домен из конфига
@@ -333,11 +334,20 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
 
               // 3.2.2] Найти соответствующий descriptions
               $description = call_user_func(function() USE ($active_incoming_offers, $appid, $instanceid, $classid) {
+
+                // Если descriptions не передан, вернуть пустую строку
+                if(!array_key_exists('descriptions', $active_incoming_offers['data']['tradeoffers']))
+                  return "";
+
+                // А если передан, найти
                 foreach($active_incoming_offers['data']['tradeoffers']['descriptions'] as $description) {
                   if($appid == $description['appid'] && $instanceid == $description['instanceid'] && $classid == $description['classid'])
                     return $description;
                 }
+
+                // Если найти не удалось, вернуть пустую строку
                 return "";
+
               });
 
               // 3.2.3] Если $description не найден, записать пустой market name

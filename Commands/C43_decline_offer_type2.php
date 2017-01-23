@@ -210,84 +210,164 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
       // - Если он не активен, внести соотв.изменения в БД
       else {
 
-        // 5.1. Подготовить массив $bots_ids
+        // 4.1. Подготовить массив $bots_ids
         $bots_ids = [$this->data['botid']];
 
-        // 5.2. Получить список не активных incoming offers через HTTP для бота botid
-        $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
+        // 4.2. Получить список не активных incoming offers через HTTP для бота botid
 
-          // 1] Подготовить массив для результата
-          $result = [];
+          // Получить
+          $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
 
-          // 2] Наполнить $result
-          for($i=0; $i<count($bots_ids); $i++) {
+            // 1] Подготовить массив для результата
+            $result = [];
 
-            // 2.1] Получить ID i-го бота
-            $id_bot = $bots_ids[$i];
+            // 2] Наполнить $result
+            for($i=0; $i<count($bots_ids); $i++) {
 
-            // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
-            // - Что означают коды:
-            //
-            //    -3    // Не удалось получить ответ от Steam
-            //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
-            //    0     // Успех, найденный оффер доступен по ключу offer
-            //
-            $offers_http = call_user_func(function() USE ($id_bot) {
+              // 2.1] Получить ID i-го бота
+              $id_bot = $bots_ids[$i];
 
-              // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
-              $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>1]);
+              // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
+              // - Что означают коды:
+              //
+              //    -3    // Не удалось получить ответ от Steam
+              //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+              //    0     // Успех, найденный оффер доступен по ключу offer
+              //
+              $offers_http = call_user_func(function() USE ($id_bot) {
 
-              // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
-              $offers['data']['tradeoffers']['trade_offers_received'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_received'], function($item){
-                if($item['trade_offer_state'] != 2) return true;
-                else return false;
-              }));
+                // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
+                $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>1]);
 
-              // 2.2.3] Если получить ответ от Steam не удалось
-              if($offers['status'] != 0)
+                // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+                $offers['data']['tradeoffers']['trade_offers_received'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_received'], function($item){
+                  if($item['trade_offer_state'] != 2) return true;
+                  else return false;
+                }));
+
+                // 2.2.3] Если получить ответ от Steam не удалось
+                if($offers['status'] != 0)
+                  return [
+                    "code"   => -3,
+                    "offers"  => ""
+                  ];
+
+                // 2.2.4] Если trade_offers_sent отсутствуют в ответе
+                if(!array_key_exists('trade_offers_received', $offers['data']['tradeoffers']))
+                  return [
+                    "code"   => -2,
+                    "offers"  => ""
+                  ];
+
+                // 2.2.5] Вернуть offers
                 return [
-                  "code"   => -3,
-                  "offers"  => ""
+                  "code"    => 0,
+                  "offers"  => $offers
                 ];
 
-              // 2.2.4] Если trade_offers_sent отсутствуют в ответе
-              if(!array_key_exists('trade_offers_received', $offers['data']['tradeoffers']))
-                return [
-                  "code"   => -2,
-                  "offers"  => ""
-                ];
+              });
 
-              // 2.2.5] Вернуть offers
-              return [
-                "code"    => 0,
-                "offers"  => $offers
-              ];
+              // 2.3] Если $offers_http['code'] == 0
+              // - Записать данные в $result и перейти к следующей итерации
+              if($offers_http['code'] == 0) {
+                $result[$id_bot] = $offers_http['offers'];
+                continue;
+              }
 
-            });
-
-            // 2.3] Если $offers_http['code'] == 0
-            // - Записать данные в $result и перейти к следующей итерации
-            if($offers_http['code'] == 0) {
-              $result[$id_bot] = $offers_http['offers'];
-              continue;
             }
+
+            // 3] Вернуть результат
+            return $result;
+
+          });
+
+          // Добавить $bots_not_active_offers_by_id в кэш, если trade_offers_received не пуст
+          // - С ключем: m9:bots_not_active_offers:<bot_id>
+          if(!empty($bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received']))
+            Cache::put('m9:bots_not_active_offers:'.$this->data['botid'], json_encode($bots_not_active_offers_by_id, JSON_UNESCAPED_UNICODE), 30);
+
+          // А если trade_offers_received пуст, попробовать достать $bots_not_active_offers_by_id из кэша
+          else {
+
+            // 1] Получить кэш
+            $cache = json_decode(Cache::get('m9:bots_not_active_offers:'.$this->data['botid']), true);
+
+            // 2] Если trade_offers_received не пуст, записать содержимое кэша в $bots_not_active_offers_by_id
+            if(!empty($cache[$this->data['botid']]['data']['tradeoffers']['trade_offers_received']))
+              $bots_not_active_offers_by_id = $cache;
 
           }
 
-          // 3] Вернуть результат
-          return $result;
+        // 4.3. Проверить, есть ли tradeofferid среди $bots_not_active_offers_by_id
+        // - И какой у него статус.
+        $is_offer_not_active = call_user_func(function() USE ($bots_not_active_offers_by_id) {
+
+          // 1] Получить все недавно ставшие не активными входящие офферы
+          $trade_offers_received = $bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received'];
+
+          // 2] Получить массив tradeofferid недавно ставших неактивными офферов
+          if(!empty($trade_offers_received) && count($trade_offers_received) > 0)
+            $tradeofferids = collect($bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received'])
+                ->pluck('tradeofferid')->toArray();
+          else
+            $tradeofferids = [];
+
+          // 3] Попробовать найти tradeofferid в $tradeofferids
+
+            // 3.1] Вычислить позицию
+            $pos = array_search($this->data['tradeofferid'], $tradeofferids);
+
+            // 3.2] Если $pos не false, получить оффер
+            if(!empty($pos))
+              $offer = $trade_offers_received[$pos];
+            else
+              $offer = '';
+
+          // n] Вернуть результаты
+          if(!empty($offer))
+            return [
+              'verdict' => true,
+              'trade_offer_state' => $offer['trade_offer_state']
+            ];
+          else
+            return [
+              'verdict' => false,
+              'trade_offer_state' => ""
+            ];
 
         });
 
-        // 5.3. Проверить, нет ли tradeofferid среди $bots_not_active_offers_by_id
+        // 4.4. Если оффер не активен, и принят, применяем C16
+        if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] == 3) {
 
-        Log::info($bots_not_active_offers_by_id);
+          $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+            "betid"             => $this->data['betid'],
+            "tradeofferid"      => $this->data['tradeofferid'],
+            "id_user"           => $this->data['id_user'],
+            "id_room"           => $this->data['id_room'],
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
 
+        }
 
+        // 4.5. Если оффер не активен, и статус отличается от 3, применяем C15
+        if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] != 3) {
 
+          $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
+            "betid"             => $this->data['betid'],
+            "tradeofferid"      => $this->data['tradeofferid'],
+            "another_status_id" => 7,
+            "id_user"           => $this->data['id_user'],
+            "id_room"           => $this->data['id_room'],
+            "codes_and_errors"  => "",
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+        }
 
       }
-
 
 
     DB::commit(); } catch(\Exception $e) {
