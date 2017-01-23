@@ -443,6 +443,8 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
 
             $result = runcommand('\M9\Commands\C44_accept_offer_type2', [
               "betid"             => $offer['id'],
+              "botid"             => $offer['m8_bots'][0]['id'],
+              "partnerid"         => $offer['m5_users'][0]['ha_provider_uid'] - 76561197960265728,
               "tradeofferid"      => $offer['tradeofferid'],
               "id_user"           => $offer['m5_users'][0]['id'],
               "id_room"           => $offer['rooms'][0]['id'],

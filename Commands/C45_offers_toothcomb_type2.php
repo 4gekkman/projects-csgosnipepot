@@ -149,6 +149,13 @@ class C45_offers_toothcomb_type2 extends Job { // TODO: добавить "implem
 
 
 
+      // - Запрашивать историю для Incoming Offers
+      // - Проверять статусы офферов, которые значатся в БД, как активные
+      // - Если статус изменился, применять команду C43 или C44.
+
+
+
+
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C45_offers_toothcomb_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();

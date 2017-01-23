@@ -136,7 +136,9 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
      * Оглавление
      *
      *  1. Получить и проверить входящие данные
-     *
+     *  2. Принять оффер tradeofferid
+     *  3. В случае успешного принятия, внести изменения в БД
+     *  4. В случае неудачного принятия, принять меры
      *
      *  N. Вернуть статус 0
      *
@@ -151,6 +153,8 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
       $validator = r4_validate($this->data, [
 
         "betid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "botid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "partnerid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
@@ -161,17 +165,116 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
 
       }
 
+      // 2. Принять оффер tradeofferid
+      $accept_result = runcommand('\M8\Commands\C28_accept_trade_offer', [
+        "id_bot"        => $this->data['botid'],
+        "id_tradeoffer" => $this->data['tradeofferid'],
+        "id_partner"    => $this->data['partnerid'],
+      ]);
 
-      // Примерный план действий
-      // - Отправить запрос на приём оффера от имени бота, и продолжать в случае успеха.
-      // - Затем просто применить команду m9.c16 (на всяк.случай проверить её, всё ли подходит)
+      // 3. В случае успешного принятия, внести изменения в БД
+      // - Успешное, это когда: нет ошибки и вернулся не пустой $result['data']['tradeofferid'].
+      // - Команда также обновит весь кэш, и пошлёт по частному каналу уведомление игроку.
+//      if (
+//        $accept_result['status'] == 0 &&
+//        !empty($accept_result) &&
+//        array_key_exists('data', $accept_result) &&
+//        array_key_exists('tradeid', $accept_result['data']) &&
+//        !empty($accept_result['data']['tradeid'])
+//      ) {
+//
+//        $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+//          "betid"             => $this->data['betid'],
+//          "tradeofferid"      => $this->data['tradeofferid'],
+//          "id_user"           => $this->data['id_user'],
+//          "id_room"           => $this->data['id_room'],
+//        ]);
+//        if($result['status'] != 0)
+//          throw new \Exception($result['data']['errormsg']);
+//
+//      }
+
+      // 4. В случае неудачного принятия, принять меры
+      // - Проверить статус оффера через HTTP.
+      // - Если он не активен, внести соотв.изменения в БД
+      //else {
+
+        // 4.1. Подготовить массив $bots_ids
+        $bots_ids = [$this->data['botid']];
+
+        // 4.2. Получить список не активных incoming offers через HTTP для бота botid
+        $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
+
+          // 1] Подготовить массив для результата
+          $result = [];
+
+          // 2] Наполнить $result
+          for($i=0; $i<count($bots_ids); $i++) {
+
+            // 2.1] Получить ID i-го бота
+            $id_bot = $bots_ids[$i];
+
+            // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
+            // - Что означают коды:
+            //
+            //    -3    // Не удалось получить ответ от Steam
+            //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+            //    0     // Успех, найденный оффер доступен по ключу offer
+            //
+            $offers_http = call_user_func(function() USE ($id_bot) {
+
+              // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
+              $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>1]);
+
+              // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+              $offers['data']['tradeoffers']['trade_offers_received'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_received'], function($item){
+                if($item['trade_offer_state'] != 2) return true;
+                else return false;
+              }));
+
+              // 2.2.3] Если получить ответ от Steam не удалось
+              if($offers['status'] != 0)
+                return [
+                  "code"   => -3,
+                  "offers"  => ""
+                ];
+
+              // 2.2.4] Если trade_offers_sent отсутствуют в ответе
+              if(!array_key_exists('trade_offers_received', $offers['data']['tradeoffers']))
+                return [
+                  "code"   => -2,
+                  "offers"  => ""
+                ];
+
+              // 2.2.5] Вернуть offers
+              return [
+                "code"    => 0,
+                "offers"  => $offers
+              ];
+
+            });
+
+            // 2.3] Если $offers_http['code'] == 0
+            // - Записать данные в $result и перейти к следующей итерации
+            if($offers_http['code'] == 0) {
+              $result[$id_bot] = $offers_http['offers'];
+              continue;
+            }
+
+          }
+
+          // 3] Вернуть результат
+          return $result;
+
+        });
+
+        // 4.3. Проверить, нет ли tradeofferid среди $bots_not_active_offers_by_id
+
+        Log::info($bots_not_active_offers_by_id);
 
 
 
-
-
-
-      Log::info('C44_accept_offer_type2');
+      //}
 
 
     DB::commit(); } catch(\Exception $e) {

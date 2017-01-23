@@ -142,6 +142,7 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
      *  2. Получить статус Declined
      *  3. Отклонить оффер tradeofferid
      *  4. В случае успешного отклонения, внести изменения в БД
+     *  5. В случае неудачного отклонения, принять меры
      *
      *  N. Вернуть статус 0
      *
@@ -178,34 +179,17 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
         "id_bot"        => $this->data['botid'],
         "id_tradeoffer" => $this->data['tradeofferid']
       ]);
-      Log::info($decline_result);
 
       // 4. В случае успешного отклонения, внести изменения в БД
-      // - Успешное, это когда: нет ошибки и вернулся не пустой $result['data']['tradeofferid'],
-      //                        либо ошибка есть, но в response лежит ['success'] == 11
+      // - Успешное, это когда: нет ошибки и вернулся не пустой $result['data']['tradeofferid'].
       // - Команда также обновит весь кэш, и пошлёт по частному каналу уведомление игроку.
       if(
-
-          // Если удалось отклонить оффер без ошибок
-          (
-            $decline_result['status'] == 0 &&
-            !empty($decline_result) &&
-            array_key_exists('data', $decline_result) &&
-            array_key_exists('tradeofferid', $decline_result['data']) &&
-            !empty($result['data']['tradeofferid']) &&
-            $result['data']['tradeofferid'] == $this->data['tradeofferid']
-          ) ||
-
-          // Если оффер уже был ранее отклонён (steam прислал код 11)
-          (
-            !empty($decline_result) &&
-            $decline_result['status'] != 0 &&
-            array_key_exists('data', $decline_result) &&
-            array_key_exists('response', $decline_result['data']) &&
-            array_key_exists('success', $decline_result['data']['response']) &&
-            $decline_result['data']['response']['success'] == 11
-          )
-
+        $decline_result['status'] == 0 &&
+        !empty($decline_result) &&
+        array_key_exists('data', $decline_result) &&
+        array_key_exists('tradeofferid', $decline_result['data']) &&
+        !empty($decline_result['data']['tradeofferid']) &&
+        $decline_result['data']['tradeofferid'] == $this->data['tradeofferid']
       ) {
 
         $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
@@ -214,12 +198,97 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
           "another_status_id" => $status_declined->id,
           "id_user"           => $this->data['id_user'],
           "id_room"           => $this->data['id_room'],
-          "codes_and_errors"  => $this->data['id_room'],
+          "codes_and_errors"  => $this->data['codes_and_errors'],
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
       }
+
+      // 5. В случае неудачного отклонения, принять меры
+      // - Проверить статус оффера через HTTP.
+      // - Если он не активен, внести соотв.изменения в БД
+      else {
+
+        // 5.1. Подготовить массив $bots_ids
+        $bots_ids = [$this->data['botid']];
+
+        // 5.2. Получить список не активных incoming offers через HTTP для бота botid
+        $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
+
+          // 1] Подготовить массив для результата
+          $result = [];
+
+          // 2] Наполнить $result
+          for($i=0; $i<count($bots_ids); $i++) {
+
+            // 2.1] Получить ID i-го бота
+            $id_bot = $bots_ids[$i];
+
+            // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
+            // - Что означают коды:
+            //
+            //    -3    // Не удалось получить ответ от Steam
+            //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+            //    0     // Успех, найденный оффер доступен по ключу offer
+            //
+            $offers_http = call_user_func(function() USE ($id_bot) {
+
+              // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
+              $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>1]);
+
+              // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+              $offers['data']['tradeoffers']['trade_offers_received'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_received'], function($item){
+                if($item['trade_offer_state'] != 2) return true;
+                else return false;
+              }));
+
+              // 2.2.3] Если получить ответ от Steam не удалось
+              if($offers['status'] != 0)
+                return [
+                  "code"   => -3,
+                  "offers"  => ""
+                ];
+
+              // 2.2.4] Если trade_offers_sent отсутствуют в ответе
+              if(!array_key_exists('trade_offers_received', $offers['data']['tradeoffers']))
+                return [
+                  "code"   => -2,
+                  "offers"  => ""
+                ];
+
+              // 2.2.5] Вернуть offers
+              return [
+                "code"    => 0,
+                "offers"  => $offers
+              ];
+
+            });
+
+            // 2.3] Если $offers_http['code'] == 0
+            // - Записать данные в $result и перейти к следующей итерации
+            if($offers_http['code'] == 0) {
+              $result[$id_bot] = $offers_http['offers'];
+              continue;
+            }
+
+          }
+
+          // 3] Вернуть результат
+          return $result;
+
+        });
+
+        // 5.3. Проверить, нет ли tradeofferid среди $bots_not_active_offers_by_id
+
+        Log::info($bots_not_active_offers_by_id);
+
+
+
+
+      }
+
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C43_decline_offer_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
