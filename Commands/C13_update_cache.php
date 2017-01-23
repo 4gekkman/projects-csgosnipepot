@@ -500,9 +500,17 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                 //
                 $rooms->transform(function($value, $key){
 
-                  // 1) Удалить m8_bots из $value
+                  // 0) Подготовить $value_arr
                   $value_arr = $value->toArray();
-                  $value_arr['m8_bots'] = [];
+
+                  // 1) Обрезать m8_bots
+                  foreach($value_arr['m8_bots'] as &$bot) {
+                    foreach($bot as $key => &$val) {
+                      if(!in_array($key, ['id', 'login', 'trade_url'])) {
+                        unset($bot[$key]);
+                      }
+                    }
+                  }
 
                   // 2) Удалить лишние свойства
                   foreach($value_arr['rounds'] as &$round) {
@@ -520,10 +528,20 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
                     // прочие
                     foreach($round['bets'] as &$bet) {
-                      $bet['m8_bots'] = [];
+
+                      // Обрезать m8_bots
+                      foreach($bet['m8_bots'] as &$bot) {
+                        foreach($bot as $key => &$val) {
+                          if(!in_array($key, ['id', 'login', 'trade_url']))
+                            unset($bot[$key]);
+                        }
+                      }
+
+                      // Обрезать m5_users
                       foreach($bet['m5_users'] as &$user) {
                         $user['adminnote'] = "";
                       }
+
                     }
                   }
 

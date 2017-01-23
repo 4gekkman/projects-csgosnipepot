@@ -275,8 +275,6 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
 
           });
 
-          Log::info($bots_not_active_offers_by_id);
-
           // Добавить $bots_not_active_offers_by_id в кэш, если trade_offers_received не пуст
           // - С ключем: m9:bots_not_active_offers:<bot_id>
           if(!empty($bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received']))
@@ -314,7 +312,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
             $pos = array_search($this->data['tradeofferid'], $tradeofferids);
 
             // 3.2] Если $pos не false, получить оффер
-            if(!empty($pos))
+            if($pos != false)
               $offer = $trade_offers_received[$pos];
             else
               $offer = '';
