@@ -960,22 +960,76 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			//--------------------------------------------------------------------------------------------------//
 			(function(){
 
-				// 1] Получить ID бота, обслуживающего предыдущий раунд
+				// 0] Если нет необходимых ресурсов, завершить
+				if(!m.s1.game.choosen_room()) return;
+
+				// 2] Получить ID бота, обслуживающего предыдущий раунд
 				var penultimate_bot_id = (function(){
 
-					// 1.1] Если предыдущего раунда нет
+					// 2.1] Если предыдущего раунда нет
 					if(self.m.s1.game.choosen_room().rounds().length < 2)
 						return "";
 
-					// 1.2] Если предыдущий раунд есть
+					// 2.2] Если предыдущий раунд есть
 					else
-						return self.m.s1.game.choosen_room().rounds()[1].bets()[0].m8_bots()[0].id()
+						return self.m.s1.game.choosen_room().rounds()[1].bets()[0].m8_bots()[0].id();
 
 				})();
 
+				// 3] Получить массив всех ботов, обслуживающих текущую комнату
+				var room_bots = (function(){
+					var results = [];
+					for(var i=0; i<self.m.s1.game.choosen_room().m8_bots().length; i++) {
+						results.push(self.m.s1.game.choosen_room().m8_bots()[i]);
+					}
+					return results;
+				})();
 
-				// m.s1.game.choosen_room().m8_bots()
-				// m.s1.game.current_bot
+				// 4] Если room_bot пуст, записать пустой URL и завершить
+				if(room_bots.length == 0) {
+					self.m.s1.game.current_bot('');
+					return;
+				}
+
+				// 5] Если penultimate_bot_id пуста, добавить URL первого из room_bots
+				if(!penultimate_bot_id) {
+					self.m.s1.game.current_bot(room_bots[0].trade_url());
+					return;
+				}
+
+				// 6] Получить бота, обслуживающего текущий раунд
+				var current_bot = (function(){
+
+ 					// 4.1] Найти позицию вхождения penultimate_bot_id в room_bot
+					var pos = (function(){
+						var result = '';
+						for(var i=0; i<room_bots.length; i++) {
+							if(room_bots[i].id() == penultimate_bot_id) return i;
+						}
+						return result;
+					})();
+
+					// 4.2] Если pos пуста, взять первого из room_bots
+					if(!pos)
+						return room_bots[0];
+
+					// 4.3] В противном случае
+					else {
+
+						// 4.3.1] Если pos последняя, выбрать первого из room_bots
+						if((room_bots.length-1) == pos)
+							return room_bots[0];
+
+						// 4.3.2] Если не последняя
+						else
+							return room_bots[+pos+1];
+
+					}
+
+				})();
+
+				// n] Записать trade_url current_bot в current_bot
+				self.m.s1.game.current_bot(current_bot.trade_url());
 
 			})();
 

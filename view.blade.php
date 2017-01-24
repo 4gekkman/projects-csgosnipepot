@@ -341,7 +341,7 @@
             <!-- 1.3] Кнопка "Внести депозит" -->
             <!------------------------------*/ ?>
             <div class="make-a-bet">
-              <div class="button">
+              <div class="button" data-bind="click: f.s1.onclick_handler">
                 <span>Внести депозит</span>
               </div>
             </div>

@@ -139,8 +139,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 					// 2] В зависимости от task выполнить соотв.метод
 					switch(task) {
 						//case "tradeoffer_expire_secs": 	self.f.s6.tradeoffer_expire_secs(data.data.data.data); break;
-						//case "tradeoffer_cancel": 			self.f.s6.tradeoffer_cancel(data.data.data.data); break;
-						//case "tradeoffer_accepted": 		self.f.s6.tradeoffer_accepted(data.data.data.data); break;
+						case "tradeoffer_cancel": 			self.f.s1.tradeoffer_cancel(data.data.data.data); break;
+						case "tradeoffer_accepted": 		self.f.s1.tradeoffer_accepted(data.data.data.data); break;
+						case "tradeoffer_processing": 	self.f.s1.tradeoffer_processing(data.data.data.data); break;
 						//case "active_offers_update": 		self.f.s6.active_offers_update(data.data.data.data); break;
 						//case "update_inventory": 				self.f.s0.update_inventory_data(data.data.data.data.inventory.data.rgDescriptions); break;
 
