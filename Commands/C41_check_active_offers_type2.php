@@ -554,7 +554,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
               'channels' => ['m9:private:'.$user->id],
               'queue'    => 'm9_lottery_broadcasting',
               'data'     => [
-                'task' => 'update_inventory',
+                'task' => 'tradeoffer_processing',
                 'data' => [
                   'tradeofferid' => $offer['tradeofferid']
                 ]

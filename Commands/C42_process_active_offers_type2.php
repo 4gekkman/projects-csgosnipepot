@@ -162,7 +162,7 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
     //---------------------------------//
     // Process active offers of type 2 //
     //---------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить список активных офферов 2-го типа
       // - Если таковых нет, завершить.
@@ -474,9 +474,8 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
       }
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C42_process_active_offers_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M9', 'C42_process_active_offers_type2']);
         return [

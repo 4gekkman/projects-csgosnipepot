@@ -212,12 +212,12 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
           'task' => 'tradeoffer_cancel',
           'data' => [
             'id_room'           => $this->data['id_room'],
+            'tradeofferid'      => $this->data['tradeofferid'],
             'codes_and_errors'  => array_key_exists('codes_and_errors', $this->data) ? $this->data['codes_and_errors'] : '',
             'bets_active'       => [] //json_decode(Cache::tags(['processing:bets:active:personal'])->get('processing:bets:active:'.$this->data['id_user']), true) ?: [],
           ]
         ]
       ]));
-
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C15_cancel_the_active_bet_dbpart from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

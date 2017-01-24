@@ -151,7 +151,7 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
     //----------------------//
     // Decline offer type 2 //
     //----------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
@@ -370,9 +370,8 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
       }
 
 
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C43_decline_offer_type2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M9', 'C43_decline_offer_type2']);
         return [
