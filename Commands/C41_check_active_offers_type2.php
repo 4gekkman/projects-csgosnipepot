@@ -449,8 +449,10 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
               $results = [];
 
               // 1.2] Наполнить $results
-              foreach($offer['items_to_receive'] as $item) {
-                array_push($results, $item['market_name']);
+              if(array_key_exists('items_to_receive', $offer)) {
+                foreach($offer['items_to_receive'] as $item) {
+                  array_push($results, $item['market_name']);
+                }
               }
 
               // 1.n] Вернуть результаты
@@ -489,8 +491,10 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
               $results = [];
 
               // 1.2] Наполнить $results
-              foreach($offer['items_to_receive'] as $item) {
-                $results[$item['market_name']] = $item['assetid'];
+              if(array_key_exists('items_to_receive', $offer)) {
+                foreach($offer['items_to_receive'] as $item) {
+                  $results[$item['market_name']] = $item['assetid'];
+                }
               }
 
               // 1.n] Вернуть результаты
