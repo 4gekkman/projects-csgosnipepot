@@ -312,7 +312,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
             $pos = array_search($this->data['tradeofferid'], $tradeofferids);
 
             // 3.2] Если $pos не false, получить оффер
-            if($pos != false)
+            if($pos !== false)
               $offer = $trade_offers_received[$pos];
             else
               $offer = '';

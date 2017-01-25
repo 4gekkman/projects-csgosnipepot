@@ -318,7 +318,7 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
             $pos = array_search($this->data['tradeofferid'], $tradeofferids);
 
             // 3.2] Если $pos не false, получить оффер
-            if($pos != false)
+            if($pos !== false)
               $offer = $trade_offers_received[$pos];
             else
               $offer = '';
