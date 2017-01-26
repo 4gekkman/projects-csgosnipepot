@@ -243,113 +243,113 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       // - Действовать через pivot->assetid_bots, или через updateExistingPivot
       //   не получается, т.к. система находит все связи с одинаковыми id_item
       //   и id_bet, и записывает значение во все связи, а не в одну.
-      call_user_func(function() USE (&$bet, $busy_assetids) {
-
-        // 1] Получить список всех связанных с $bet скинов
-        $bet_items = $bet->m8_items;
-
-        // 2] Получить Steam ID бота, связанного с $bet
-        $bet_bot_steamid = $bet->m8_bots[0]['steamid'];
-
-        // 3] Получить инвентарь бота, связанного с $bet
-        $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
-          "steamid" => $bet_bot_steamid,
-          "force"   => true
-        ]);
-        if($bet_bot_inventory['status'] != 0)
-          throw new \Exception($bet_bot_inventory['data']['errormsg']);
-
-        // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
-        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory, $busy_assetids){
-
-          // 4.1] Составить итоговый массив всех связей с m8_items для $bet
-          // - В формате:
-          //
-          //  [
-          //    id_bet
-          //    id_item
-          //    item_price_at_bet_time
-          //    assetid_users
-          //    assetid_bots
-          //  ]
-          //
-          $rels = call_user_func(function() USE (&$bet, &$bet_items, &$bet_bot_inventory, $busy_assetids) {
-
-            // 4.1.1] Подготовить массив для результатов
-            $results = [];
-
-            // 4.1.2] Подготовить массив для assetid_users и assetid_bots
-            // - Уже найденных в $bet_bot_inventory скинов.
-            $assetids_found = [];
-            $assetid_users_arr = [];
-
-            // 4.1.3] Наполнить $results
-            foreach($bet_items as &$item) {
-
-              // 1) Если assetid_users item'а уже в $assetid_users_arr
-              // - Перейти к следующей итерации.
-              if(in_array($item->pivot->assetid_users, $assetid_users_arr))
-                continue;
-
-              // 2) Добавить assetid_users item'а в $assetid_users_arr
-              array_push($assetid_users_arr, $item->pivot->assetid_users);
-
-              // 3) Найти в $bet_bot_inventory соотв.вещь, и добавить значение в $results
-              call_user_func(function() USE (&$results, &$bet_items, &$bet, &$item, &$assetids_found, &$assetid_users_arr, &$bet_bot_inventory, $busy_assetids) {
-                foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
-                  if($item_in_inventory['market_hash_name'] == $item['name']) {
-
-                    if(!in_array($item_in_inventory["assetid"], $assetids_found) && !in_array($item_in_inventory["assetid"], $busy_assetids)) {
-
-                      // 3.1) Добавить assetid в $assetids_found
-                      array_push($assetids_found, $item_in_inventory["assetid"]);
-
-                      // 3.2) Добавить значение в $results
-                      array_push($results, [
-                        "id_bet"                  => $bet->id,
-                        "id_item"                 => $item['id'],
-                        "item_price_at_bet_time"  => $item['pivot']['item_price_at_bet_time'],
-                        "assetid_users"           => $item['pivot']['assetid_users'],
-                        "assetid_bots"            => $item_in_inventory["assetid"]
-                      ]);
-
-                      // 3.3) Завершить цикл
-                      break;
-
-                    }
-
-                  }
-                }
-              });
-
-            }
-
-            // 4.1.n] Вернуть результаты
-            return $results;
-
-          });
-
-          // 4.2] Если $rels пуст, завершить с ошибкой
-          if(empty($rels) || count($rels) == 0)
-            throw new \Exception('Не удалось получить связи между ставкой и её вещами, которые нужно пересоздавать для добавления assetid_bots. По всей видимости, инвентарь, получаемый через Steam API ещё не обновился, и принятые вещи ещё там не появились.');
-
-          // 4.3] Сделать detach для всех связей между $bet и m8_items
-          $bet->m8_items()->detach();
-
-          // 4.4] Сделать attach всех связей $rels между $bet и m8_items
-          call_user_func(function() USE (&$rels, &$bet, &$bet_items) {
-            foreach($rels as $rel) {
-              $bet->m8_items()->attach($rel['id_item'], [
-                "item_price_at_bet_time" => $rel['item_price_at_bet_time'],
-                "assetid_users"          => $rel['assetid_users'],
-                "assetid_bots"           => $rel['assetid_bots']
-              ]);
-            }
-          });
-
-        });
-
-      });
+//      call_user_func(function() USE (&$bet, $busy_assetids) {
+//
+//        // 1] Получить список всех связанных с $bet скинов
+//        $bet_items = $bet->m8_items;
+//
+//        // 2] Получить Steam ID бота, связанного с $bet
+//        $bet_bot_steamid = $bet->m8_bots[0]['steamid'];
+//
+//        // 3] Получить инвентарь бота, связанного с $bet
+//        $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
+//          "steamid" => $bet_bot_steamid,
+//          "force"   => true
+//        ]);
+//        if($bet_bot_inventory['status'] != 0)
+//          throw new \Exception($bet_bot_inventory['data']['errormsg']);
+//
+//        // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
+//        call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory, $busy_assetids){
+//
+//          // 4.1] Составить итоговый массив всех связей с m8_items для $bet
+//          // - В формате:
+//          //
+//          //  [
+//          //    id_bet
+//          //    id_item
+//          //    item_price_at_bet_time
+//          //    assetid_users
+//          //    assetid_bots
+//          //  ]
+//          //
+//          $rels = call_user_func(function() USE (&$bet, &$bet_items, &$bet_bot_inventory, $busy_assetids) {
+//
+//            // 4.1.1] Подготовить массив для результатов
+//            $results = [];
+//
+//            // 4.1.2] Подготовить массив для assetid_users и assetid_bots
+//            // - Уже найденных в $bet_bot_inventory скинов.
+//            $assetids_found = [];
+//            $assetid_users_arr = [];
+//
+//            // 4.1.3] Наполнить $results
+//            foreach($bet_items as &$item) {
+//
+//              // 1) Если assetid_users item'а уже в $assetid_users_arr
+//              // - Перейти к следующей итерации.
+//              if(in_array($item->pivot->assetid_users, $assetid_users_arr))
+//                continue;
+//
+//              // 2) Добавить assetid_users item'а в $assetid_users_arr
+//              array_push($assetid_users_arr, $item->pivot->assetid_users);
+//
+//              // 3) Найти в $bet_bot_inventory соотв.вещь, и добавить значение в $results
+//              call_user_func(function() USE (&$results, &$bet_items, &$bet, &$item, &$assetids_found, &$assetid_users_arr, &$bet_bot_inventory, $busy_assetids) {
+//                foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
+//                  if($item_in_inventory['market_hash_name'] == $item['name']) {
+//
+//                    if(!in_array($item_in_inventory["assetid"], $assetids_found) && !in_array($item_in_inventory["assetid"], $busy_assetids)) {
+//
+//                      // 3.1) Добавить assetid в $assetids_found
+//                      array_push($assetids_found, $item_in_inventory["assetid"]);
+//
+//                      // 3.2) Добавить значение в $results
+//                      array_push($results, [
+//                        "id_bet"                  => $bet->id,
+//                        "id_item"                 => $item['id'],
+//                        "item_price_at_bet_time"  => $item['pivot']['item_price_at_bet_time'],
+//                        "assetid_users"           => $item['pivot']['assetid_users'],
+//                        "assetid_bots"            => $item_in_inventory["assetid"]
+//                      ]);
+//
+//                      // 3.3) Завершить цикл
+//                      break;
+//
+//                    }
+//
+//                  }
+//                }
+//              });
+//
+//            }
+//
+//            // 4.1.n] Вернуть результаты
+//            return $results;
+//
+//          });
+//
+//          // 4.2] Если $rels пуст, завершить с ошибкой
+//          if(empty($rels) || count($rels) == 0)
+//            throw new \Exception('Не удалось получить связи между ставкой и её вещами, которые нужно пересоздавать для добавления assetid_bots. По всей видимости, инвентарь, получаемый через Steam API ещё не обновился, и принятые вещи ещё там не появились.');
+//
+//          // 4.3] Сделать detach для всех связей между $bet и m8_items
+//          $bet->m8_items()->detach();
+//
+//          // 4.4] Сделать attach всех связей $rels между $bet и m8_items
+//          call_user_func(function() USE (&$rels, &$bet, &$bet_items) {
+//            foreach($rels as $rel) {
+//              $bet->m8_items()->attach($rel['id_item'], [
+//                "item_price_at_bet_time" => $rel['item_price_at_bet_time'],
+//                "assetid_users"          => $rel['assetid_users'],
+//                "assetid_bots"           => $rel['assetid_bots']
+//              ]);
+//            }
+//          });
+//
+//        });
+//
+//      });
 
       // 7. Вычислить, можно ли пользователю id_user разместить ещё одну ставку в посл.раунд комнаты id_room
       // - Можно, если выполняются следующие условия:

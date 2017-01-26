@@ -704,24 +704,24 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       });
 
       // 15. Определить вещи на отдачу
-      $items2give = call_user_func(function() USE ($items, $items2take) {
-
-        // 1] Подготовить массив для результатов
-        $results = [];
-
-        // 2] Получить массив assetid всех вещей из $items2take
-        $items2take_ids = collect($items2take['items2take'])->pluck('pivot.assetid_bots')->toArray();
-
-        // 3] Добавить в $results все вещий из $items, кроме $items2take
-        foreach($items as $item) {
-          if(!in_array($item['pivot']['assetid_bots'], $items2take_ids))
-            array_push($results, $item);
-        }
-
-        // n] Вернуть результаты
-        return $results;
-
-      });
+//      $items2give = call_user_func(function() USE ($items, $items2take) {
+//
+//        // 1] Подготовить массив для результатов
+//        $results = [];
+//
+//        // 2] Получить массив assetid всех вещей из $items2take
+//        $items2take_ids = collect($items2take['items2take'])->pluck('pivot.assetid_bots')->toArray();
+//
+//        // 3] Добавить в $results все вещий из $items, кроме $items2take
+//        foreach($items as $item) {
+//          if(!in_array($item['pivot']['assetid_bots'], $items2take_ids))
+//            array_push($results, $item);
+//        }
+//
+//        // n] Вернуть результаты
+//        return $results;
+//
+//      });
 
       // 16. Посчитать: новый долг, вычет из старого долга
       // - Пример ситуации:
@@ -889,11 +889,11 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         }
 
       // 23. Связать новый выигрыш с вещами $items2give
-      foreach($items2give as $item) {
-        if(!$newwin->m8_items->contains($item['id'])) {
-          $newwin->m8_items()->attach($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
-        }
-      }
+//      foreach($items2give as $item) {
+//        if(!$newwin->m8_items->contains($item['id'])) {
+//          $newwin->m8_items()->attach($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
+//        }
+//      }
 
       // 24. Связать новый выигрыш со статусом Ready
 
