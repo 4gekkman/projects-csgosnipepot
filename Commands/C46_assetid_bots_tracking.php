@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Tracking of offerid_bots of bets and wins
+ *    - Tracking of asset_bots of bets and wins
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C46_offerid_bots_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C46_assetid_bots_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -142,20 +142,37 @@ class C46_offerid_bots_tracking extends Job { // TODO: добавить "impleme
      *
      */
 
-    //-------------------------------------------//
-    // Tracking of offerid_bots of bets and wins //
-    //-------------------------------------------//
+    //-----------------------------------------//
+    // Tracking of asset_bots of bets and wins //
+    //-----------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      // Log::info('C46_offerid_bots_tracking');
+      // Запись assetid_bots для ставок
+
+        // Подготовка
+        // - Получить все комнаты
+        // - Для каждой комнаты получить время на забор выигрыша
+        // - Получить все раунды, created_at которые не старше соотв.времени
+        // - Получить все ставки этих раундов
+        // - По очереди обработать каждый раунд
+
+        // Обработка раунда
+        // - Получить $busy_assetids для данного раунда.
+        // - Записать assetid_bots в md2001 для вещей, которые удалось найти
+
+
+      // Запись assetid_bots для выигрышей
+
+        //
+
 
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C46_offerid_bots_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C46_assetid_bots_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C46_offerid_bots_tracking']);
+        write2log($errortext, ['M9', 'C46_assetid_bots_tracking']);
         return [
           "status"  => -2,
           "data"    => [

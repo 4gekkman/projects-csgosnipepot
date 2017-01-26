@@ -233,27 +233,34 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
                 // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
                 $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>1]);
 
-                // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+                // 2.2.2] Если tradeoffers отсутствуют в ответе
+                if(!array_key_exists('tradeoffers', $offers['data']))
+                  return [
+                    "code"   => -2,
+                    "offers"  => ""
+                  ];
+
+                // 2.2.3] Отфильтровать из $offers офферы со статусом 2 (Active)
                 $offers['data']['tradeoffers']['trade_offers_received'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_received'], function($item){
                   if($item['trade_offer_state'] != 2) return true;
                   else return false;
                 }));
 
-                // 2.2.3] Если получить ответ от Steam не удалось
+                // 2.2.4] Если получить ответ от Steam не удалось
                 if($offers['status'] != 0)
                   return [
                     "code"   => -3,
                     "offers"  => ""
                   ];
 
-                // 2.2.4] Если trade_offers_sent отсутствуют в ответе
+                // 2.2.5] Если trade_offers_received отсутствуют в ответе
                 if(!array_key_exists('trade_offers_received', $offers['data']['tradeoffers']))
                   return [
                     "code"   => -2,
                     "offers"  => ""
                   ];
 
-                // 2.2.5] Вернуть offers
+                // 2.2.6] Вернуть offers
                 return [
                   "code"    => 0,
                   "offers"  => $offers
@@ -297,7 +304,8 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         $is_offer_not_active = call_user_func(function() USE ($bots_not_active_offers_by_id) {
 
           // 1] Получить все недавно ставшие не активными входящие офферы
-          $trade_offers_received = $bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received'];
+          $trade_offers_received = array_key_exists($this->data['botid'], $bots_not_active_offers_by_id) ?
+              $bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received'] : "";
 
           // 2] Получить массив tradeofferid недавно ставших неактивными офферов
           if(!empty($trade_offers_received) && count($trade_offers_received) > 0)

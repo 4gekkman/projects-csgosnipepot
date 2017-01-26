@@ -194,9 +194,9 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
             0, ['on'=>true, 'name'=>$queue]);
 
 
-        // 5. Отслеживание и наполнение offerid_bots ставок и выигрышей
-        runcommand('\M9\Commands\C46_offerid_bots_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
+        // 5. Отслеживание и наполнение assetid_bots ставок и выигрышей
+        // runcommand('\M9\Commands\C46_assetid_bots_tracking', [],
+        //     0, ['on'=>true, 'name'=>$queue]);
 
 
       }

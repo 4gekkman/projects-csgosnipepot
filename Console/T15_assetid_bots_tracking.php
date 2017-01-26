@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Tracking of offerid_bots of bets and wins
+ *    - Tracking of asset_bots of bets and wins
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T15_offerid_bots_tracking extends Command
+class T15_assetid_bots_tracking extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T15_offerid_bots_tracking extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm9:offerid_bots_tracking';
+    protected $signature = 'm9:assetid_bots_tracking';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Tracking of offerid_bots of bets and wins';
+    protected $description = 'Tracking of asset_bots of bets and wins';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -161,20 +161,20 @@ class T15_offerid_bots_tracking extends Command
      *
      */
 
-//    // 1. Выполнить команду
-//    $result = runcommand('\M9\Commands\C1_command', $this->argument());
-//
-//
-//    // 2. В случае неудачи, вывести текст ошибки
-//    if($result['status'] != 0) {
-//      $this->error('Error: '.$result['data']['errormsg']);
-//      return;
-//    }
-//
-//
-//    // 3. В случае успеха, вывести соотв.сообщение
-//    $this->info("Success");
-//
+    // 1. Выполнить команду
+    $result = runcommand('\M9\Commands\C46_assetid_bots_tracking', $this->argument());
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']['errormsg']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
+
   }
 
 }

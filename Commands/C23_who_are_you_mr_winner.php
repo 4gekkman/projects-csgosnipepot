@@ -712,7 +712,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 //        // 2] Получить массив assetid всех вещей из $items2take
 //        $items2take_ids = collect($items2take['items2take'])->pluck('pivot.assetid_bots')->toArray();
 //
-//        // 3] Добавить в $results все вещий из $items, кроме $items2take
+//        // 3] Добавить в $results все вещи из $items, кроме $items2take
 //        foreach($items as $item) {
 //          if(!in_array($item['pivot']['assetid_bots'], $items2take_ids))
 //            array_push($results, $item);

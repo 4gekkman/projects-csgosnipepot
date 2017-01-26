@@ -107,7 +107,6 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-
         ];
 
       //----------------------------------------------------//
@@ -131,7 +130,7 @@
           '\M9\Console\T12_decline_offer_type2',
           '\M9\Console\T13_accept_offer_type2',
           '\M9\Console\T14_offers_toothcomb_type2',
-          '\M9\Console\T15_offerid_bots_tracking'
+          '\M9\Console\T15_assetid_bots_tracking'
         ];
 
         // Регистрация команд в методе register
