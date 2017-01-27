@@ -180,18 +180,21 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
         // 3.3. Отфильтровать из $bets_accepted неподходящие ставки
         // - Которые уже связаны с любым другим раундом
         // - Которые не связаны с комнатой $room
-        $bets_accepted_filtered = array_values(array_filter($bets_accepted, function($value, $key) USE ($room) {
+        if(!empty($bets_accepted) && is_array($bets_accepted))
+          $bets_accepted_filtered = array_values(array_filter($bets_accepted, function($value, $key) USE ($room) {
 
-          // 1) Если ставка связана с любым другим раундом, вернуть false
-          if(count($value['rounds']) > 0) return false;
+            // 1) Если ставка связана с любым другим раундом, вернуть false
+            if(count($value['rounds']) > 0) return false;
 
-          // 2) Если ставка не связана с комнатой $room, вернуть false
-          if(count($value['rooms']) == 0 || $value['rooms'][0]['id'] != $room['id']) return false;
+            // 2) Если ставка не связана с комнатой $room, вернуть false
+            if(count($value['rooms']) == 0 || $value['rooms'][0]['id'] != $room['id']) return false;
 
-          // n) Иначе, вернуть true
-          return true;
+            // n) Иначе, вернуть true
+            return true;
 
-        }, ARRAY_FILTER_USE_BOTH));
+          }, ARRAY_FILTER_USE_BOTH));
+        else
+          $bets_accepted_filtered = [];
 
         // 3.4. Вычислить диапазоны билетов для каждой ставки в $bets_accepted_filtered
         for($i=0; $i<count($bets_accepted_filtered); $i++) {

@@ -135,8 +135,17 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Получить все ставки, assetid_bots для которых ещё есть смысл определять
+     *  2. Обработать выигрыши для каждой комнаты отдельно
+     *    2.1. Получить время выплаты выигрыша в этой комнате, в минутах
+     *    2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+     *    2.3. Получить все ставки комнаты $room, не старше $payout_limit_min
+     *    2.4. По очереди обработать каждую ставку
+     *  3. Обработать ставки для каждой комнаты отдельно
+     *    3.1. Получить время выплаты выигрыша в этой комнате, в минутах
+     *    3.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+     *    3.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
+     *    3.4. По очереди обработать каждый выигрыш
      *
      *  N. Вернуть статус 0
      *
@@ -147,7 +156,65 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
     //-----------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить из кэша текущее состояние игры
+      $rooms = json_decode(Cache::get('processing:rooms'), true);
 
+      // 2. Обработать выигрыши для каждой комнаты отдельно
+      foreach($rooms as $room) {
+
+        // 2.1. Получить время выплаты выигрыша в этой комнате, в минутах
+        $payout_limit_min = !empty($room['payout_limit_min']) ?: 60;
+
+        // 2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
+
+        // 2.3. Получить все ставки комнаты $room, не старше $payout_limit_min
+        // - И статус раундов которых pending или выше.
+        $bets = \M9\Models\MD3_bets::whereHas('rounds', function($query) USE ($room) {
+          $query->whereHas('rooms', function($query) USE ($room) {
+            $query->where('id', $room['id']);
+          })->whereHas('rounds_statuses', function($query){
+            $query->where('id', '>=', 4);
+          });
+        })->where('created_at', '>', $max_age->toDateTimeString())
+          ->get();
+
+        // 2.4. По очереди обработать каждую ставку
+        foreach($bets as $bet) {
+
+        }
+
+      }
+
+      // 3. Обработать ставки для каждой комнаты отдельно
+      foreach($rooms as $room) {
+
+        // 3.1. Получить время выплаты выигрыша в этой комнате, в минутах
+        $payout_limit_min = !empty($room['payout_limit_min']) ?: 60;
+
+        // 3.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
+
+        // 3.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
+        // - И статус раундов которых pending или выше.
+        $wins = \M9\Models\MD4_wins::whereHas('rounds', function($query) USE ($room) {
+          $query->whereHas('rooms', function($query) USE ($room) {
+            $query->where('id', $room['id']);
+          })->whereHas('rounds_statuses', function($query){
+            $query->where('id', '>=', 4);
+          });
+        })->where('created_at', '>', $max_age->toDateTimeString())
+          ->get();
+
+        // 3.4. По очереди обработать каждый выигрыш
+        foreach($wins as $win) {
+
+        }
+
+      }
+
+
+      
 
 
 
