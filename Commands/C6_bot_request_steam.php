@@ -315,8 +315,21 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
             'form_params'     => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "POST") ? $this->data['data'] : [],
           ]);
         } catch (RequestException $e) {
+
+          // 1] Получить текст ошибки
           $response = $e->getResponse();
           $errortext = 'Invoking of command C6_bot_request_steam from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+          // 2] Если там есть фраза "403 Forbidden", перелогинить бота
+          if(preg_match("/403 Forbidden/ui", $errortext) != 0) {
+
+            Artisan::queue('m8:bot_login', [
+              'id_bot' => $this->data['id_bot']
+            ]);
+
+          }
+
+          // 3] Сообщить и завершить
           Log::info($errortext);
           write2log($errortext, ['M8', 'C6_bot_request_steam']);
           return [
