@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The wins pay processor, fires at every game tick, every second
+ *    - Make wins autopayouts
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C24_processor_wins extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C48_wins_autopayouts extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -133,84 +133,29 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
   {
 
     /**
-     * Примечания
-     *
-     *  ▪ Сама команда C24_processor_wins на каждом тике добавляется в очередь "processor_main_wins".
-     *  ▪ Все команды выполняются по очереди либо в "processor_wins_hard" (продакшн), либо в smallbroadcast (отладка)
-     *  ▪ Очереди "main" и "hard" обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
-     *
      * Оглавление
      *
-     *  А. Подготовить имя очереди, которая будет обрабатывать команды
-     *  Б. Если $queue не пуста, завершить
+     *  1.
      *
-     *  C25_update_wins_cache                       | 1. Обновить весь кэш, но для каждого, только если он отсутствует
-     *  C26_active_offers_wins_tracking             | 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
-     *  C27_active_offers_expiration_wins_tracking  | 3. Отслеживать срок годности активных офферов по выплате выигрышей
-     *  C28_wins_expiration_tracking                | 4. Отслеживать срок годности выигрышей
-     *  C29_wins_and_offers_expiration_notify       | 5. Информирование игроков о секундах до истечения их активных офферов и выигрышей
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------//
-    // The wins pay processor, fires at every game tick, every second //
-    //----------------------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // А. Подготовить имя очереди, которая будет обрабатывать команды
-      $queues = [
-        "prod"  => "processor_wins_hard", // Продакшн
-        "dev"   => "smallbroadcast"       // Отладка
-      ];
-      $queue = $queues['prod'];
+    //-----------------------//
+    // Make wins autopayouts //
+    //-----------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
 
-      // Б. Если $queue не пуста, завершить
-      // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
-      $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      if($queue_count == 0) {
-
-        // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-        runcommand('\M9\Commands\C25_update_wins_cache', [
-          "all"   => true,
-          "force" => false
-        ], 0, ['on'=>true, 'name'=>$queue]);
+      Log::info(123);
 
 
-        // 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
-        runcommand('\M9\Commands\C26_active_offers_wins_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 3. Отслеживать срок годности активных офферов по выплате выигрышей
-        runcommand('\M9\Commands\C27_active_offers_expiration_wins_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 4. Отслеживать срок годности выигрышей
-        runcommand('\M9\Commands\C28_wins_expiration_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 5. Отслеживание и наполнение assetid_bots ставок
-        runcommand('\M9\Commands\C46_assetid_bots_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 6. Отслеживание и наполнение assetid выигрышей
-        runcommand('\M9\Commands\C47_assetid_wins_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-      }
-
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C24_processor_wins from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C48_wins_autopayouts from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C24_processor_wins']);
+        write2log($errortext, ['M9', 'C48_wins_autopayouts']);
         return [
           "status"  => -2,
           "data"    => [

@@ -131,7 +131,8 @@
           '\M9\Console\T13_accept_offer_type2',
           '\M9\Console\T14_offers_toothcomb_type2',
           '\M9\Console\T15_assetid_bots_tracking',
-          '\M9\Console\T16_assetid_wins_tracking'
+          '\M9\Console\T16_assetid_wins_tracking',
+          '\M9\Console\T17_wins_autopayouts'
         ];
 
         // Регистрация команд в методе register

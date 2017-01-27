@@ -146,10 +146,12 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
     //-----------------------------//
     // Tracking of assetid of wins //
     //-----------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить из кэша текущее состояние игры
       $rooms = json_decode(Cache::get('processing:rooms'), true);
+      if(empty($rooms))
+        throw new \Exception('Не найдены комнаты в кэше.');
 
       // 2. Обработать выигрыши для каждой комнаты отдельно
       foreach($rooms as $room) {
@@ -171,162 +173,136 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
         })->where('created_at', '>', $max_age->toDateTimeString())
           ->get();
 
-        Log::info($wins);
+        // 2.4. По очереди обработать каждый выигрыш
+        foreach($wins as $win) {
 
+          // 1] Выяснить, есть ли связанные с $win вещи с пустым assetid
+          $is_empty_assetid_in_win = call_user_func(function() USE ($win) {
 
+            $result = false;
+            foreach($win['m8_items'] as $item) {
+              if(empty($item['pivot']['assetid'])) {
+                $result = true;
+                break;
+              }
+            }
+            return $result;
+
+          });
+
+          // 2] Если $is_empty_assetid_in_win == false, и $win['m8_items'] не пуст, то перейти к след.итерации
+          if($is_empty_assetid_in_win === false && count($win['m8_items']) != 0) continue;
+
+          // 3] Получить связанный с $win раунд
+          $round = \M9\Models\MD2_rounds::whereHas('wins', function($query) USE ($win) {
+            $query->where('id', $win['id']);
+          })->first();
+
+          // 4] Составить список всех поставленных вещей, отсортированный по цене
+          // - Отсортированный по цене по убыванию.
+          // - Плюс, каждой вещи добавить св-во percentage (цена вещи, делёная на банк).
+          $items = call_user_func(function() USE ($round, $win) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Наполнить $results
+            // - И добавить каждой вещи св-во percentage
+            foreach($round['bets'] as $bet) {
+              foreach($bet['m8_items'] as $item) {
+                $item['percentage'] = (($item['price']*100)/$win['jackpot_total_sum_cents'])*100;
+                array_push($results, $item->toArray());
+              }
+            }
+
+            // 3] Отсортировать все вещи по цене, по возрастанию
+            usort($results, function($a, $b){
+              if((int)($a['price']*100) > (int)($b['price']*100)) return 1;
+              if((int)($a['price']*100) < (int)($b['price']*100)) return -1;
+              return 0;
+            });
+
+            // n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 5] Выяснить, есть ли среди $items вещи с пустыми assetid_bots
+          $is_empty_assetid_bots_in_bet = call_user_func(function() USE ($items) {
+
+            $result = false;
+            foreach($items as $item) {
+              if(empty($item['pivot']['assetid_bots'])) {
+                $result = true;
+                break;
+              }
+            }
+            return $result;
+
+          });
+
+          // 6] Если $is_empty_assetid_bots_in_bet == true, перейти к следующей итерации
+          if($is_empty_assetid_bots_in_bet === true) continue;
+
+          // 7] Определить вещи на комиссию
+          $items2take = call_user_func(function() USE ($win, $items) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Наполнить $results
+            $cents_already = 0;
+            for($i=0; $i<count($items); $i++) {
+              $cents_already = +$cents_already + +$items[$i]['price']*100;
+              if($cents_already <= $win['howmuch_finally_cents'])
+                array_push($results, $items[$i]);
+              else
+                $cents_already = +$cents_already - +$items[$i]['price']*100;
+            }
+
+            // n] Вернуть результаты
+            return [
+              "fee_cents_taken_fact" => $cents_already,
+              "items2take" =>           $results
+            ];
+
+          });
+
+          // 8] Определить вещи на отдачу
+          $items2give = call_user_func(function() USE ($items, $items2take) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Получить массив assetid всех вещей из $items2take
+            $items2take_ids = collect($items2take['items2take'])->pluck('pivot.assetid_bots')->toArray();
+
+            // 3] Добавить в $results все вещи из $items, кроме $items2take
+            foreach($items as $item) {
+              if(!in_array($item['pivot']['assetid_bots'], $items2take_ids))
+                array_push($results, $item);
+            }
+
+            // n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 9] Связать новый выигрыш с вещами $items2give
+          DB::beginTransaction();
+          foreach($items2give as $item) {
+            if(!$win->m8_items->contains($item['id'])) {
+              $win->m8_items()->attach($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
+            }
+          }
+          DB::commit();
+
+        }
 
       }
 
 
-
-
-      // Что надо сделать
-      // - Если не все assetid_bots связанных со ставками раунда
-      //   вещей указаны, то завершить.
-      // - Вычислить items2take.
-      // - Вычислить items2give.
-      // - Связать win с $items2give, в т.ч. вписав assetid
-
-
-
-
-
-//      // 3. Обработать ставки для каждой комнаты отдельно
-//      foreach($rooms as $room) {
-//
-//        // 3.1. Получить время выплаты выигрыша в этой комнате, в минутах
-//        $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
-//
-//        // 3.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
-//        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
-//
-//        // 3.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
-//        // - И статус раундов которых pending или выше.
-//        $wins = \M9\Models\MD4_wins::whereHas('rounds', function($query) USE ($room) {
-//          $query->whereHas('rooms', function($query) USE ($room) {
-//            $query->where('id', $room['id']);
-//          })->whereHas('rounds_statuses', function($query){
-//            $query->where('id', '>=', 4);
-//          });
-//        })->where('created_at', '>', $max_age->toDateTimeString())
-//          ->get();
-//
-//        // 3.4. По очереди обработать каждый выигрыш
-//        foreach($wins as $win) {
-//
-//          // 1] Выяснить, есть ли связанные с $win вещи с пустым assetid_bots
-//          $is_empty_assetid_bots_in_win = call_user_func(function() USE ($win) {
-//
-//            $result = false;
-//            foreach($win['m8_items'] as $item) {
-//              if(empty($item['pivot']['assetid'])) {
-//                $result = true;
-//                break;
-//              }
-//            }
-//            return $result;
-//
-//          });
-//
-//          Log::info($is_empty_assetid_bots_in_win);
-//
-//          // 2] Если $is_empty_assetid_bots_in_win == false, перейти к следующей итерации
-//          if($is_empty_assetid_bots_in_win === false) continue;
-//
-//          // 3] Начать транзакцию
-//          DB::beginTransaction();
-//
-//          // 4] Получить связанный с $bet раунд
-//          $round = \M9\Models\MD2_rounds::whereHas('bets', function($query) USE ($bet) {
-//            $query->where('id', $bet['id']);
-//          })->first();
-//
-//          // 5] Составить список всех поставленных вещей, отсортированный по цене
-//          // - Отсортированный по цене по убыванию.
-//          // - Плюс, каждой вещи добавить св-во percentage (цена вещи, делёная на банк).
-//          $items = call_user_func(function () USE ($round, $win) {
-//
-//            // 1] Подготовить массив для результатов
-//            $results = [];
-//
-//            // 2] Наполнить $results
-//            // - И добавить каждой вещи св-во percentage
-//            foreach($round['bets'] as $bet) {
-//              foreach($bet['m8_items'] as $item) {
-//                $item['percentage'] = (($item['price']*100)/$win['jackpot_total_sum_cents'])*100;
-//                array_push($results, $item);
-//              }
-//            }
-//
-//            // 3] Отсортировать все вещи по цене, по возрастанию
-//            usort($results, function($a, $b){
-//              if((int)($a['price']*100) > (int)($b['price']*100)) return 1;
-//              if((int)($a['price']*100) < (int)($b['price']*100)) return -1;
-//              return 0;
-//            });
-//
-//            // n] Вернуть результаты
-//            return $results;
-//
-//          });
-//
-//          //Log::info($items);
-//
-//
-//
-////          // 3] Определить вещи на комиссию
-////          $items2take = call_user_func(function() USE ($howmuch, $items) {
-////
-////            // 1] Подготовить массив для результатов
-////            $results = [];
-////
-////            // 2] Наполнить $results
-////            $cents_already = 0;
-////            for($i=0; $i<count($items); $i++) {
-////              $cents_already = +$cents_already + +$items[$i]['price']*100;
-////              if($cents_already <= $howmuch['finally']['cents'])
-////                array_push($results, $items[$i]);
-////              else
-////                $cents_already = +$cents_already - +$items[$i]['price']*100;
-////            }
-////
-////            // n] Вернуть результаты
-////            return [
-////              "fee_cents_taken_fact" => $cents_already,
-////              "items2take" =>           $results
-////            ];
-////
-////          });
-//
-//
-//
-//          // n] Подтвердить транзакцию
-//          DB::commit();
-//
-//        }
-//
-//      }
-
-
-      // Запись assetid_bots для выигрышей
-
-        // Подготовка
-        // - Получить все комнаты
-        // - Для каждой комнаты получить время на забор выигрыша
-        // - Получить все раунды, created_at которые не старше соотв.времени
-        // - Получить все выигрыши этих раундов
-        // - По очереди обработать каждый выигрыш
-
-        // Обработка выигрыша
-        // - Составить список всех поставленных вещей, отсортированный по цене
-        // - Определить вещи на комиссию
-        // - Определить вещи на отдачу
-        // - Связать новый выигрыш с вещами $items2give
-
-
-
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C47_assetid_wins_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);

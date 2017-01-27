@@ -158,6 +158,8 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
 
       // 1. Получить из кэша текущее состояние игры
       $rooms = json_decode(Cache::get('processing:rooms'), true);
+      if(empty($rooms))
+        throw new \Exception('Не найдены комнаты в кэше.');
 
       // 2. Обработать выигрыши для каждой комнаты отдельно
       foreach($rooms as $room) {
