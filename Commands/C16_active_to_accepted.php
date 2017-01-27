@@ -220,7 +220,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         // 4] Получить все связанные с $lastround ставки
         $bets = $lastround['bets'];
 
-        // 5] Собрать в массив (без повторений) все assetid всех вещей ставjr $bets
+        // 5] Собрать в массив (без повторений) все assetid всех вещей ставок $bets
         $busy_assetids = [];
         foreach($bets as $bet) {
           foreach($bet['m8_items'] as $item) {

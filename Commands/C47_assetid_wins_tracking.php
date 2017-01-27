@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The wins pay processor, fires at every game tick, every second
+ *    - Tracking of assetid of wins
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C24_processor_wins extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C47_assetid_wins_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -133,84 +133,204 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
   {
 
     /**
-     * Примечания
-     *
-     *  ▪ Сама команда C24_processor_wins на каждом тике добавляется в очередь "processor_main_wins".
-     *  ▪ Все команды выполняются по очереди либо в "processor_wins_hard" (продакшн), либо в smallbroadcast (отладка)
-     *  ▪ Очереди "main" и "hard" обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
-     *
      * Оглавление
      *
-     *  А. Подготовить имя очереди, которая будет обрабатывать команды
-     *  Б. Если $queue не пуста, завершить
+     *  1. Получить из кэша текущее состояние игры
+     *  2. Обработать выигрыши для каждой комнаты отдельно
      *
-     *  C25_update_wins_cache                       | 1. Обновить весь кэш, но для каждого, только если он отсутствует
-     *  C26_active_offers_wins_tracking             | 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
-     *  C27_active_offers_expiration_wins_tracking  | 3. Отслеживать срок годности активных офферов по выплате выигрышей
-     *  C28_wins_expiration_tracking                | 4. Отслеживать срок годности выигрышей
-     *  C29_wins_and_offers_expiration_notify       | 5. Информирование игроков о секундах до истечения их активных офферов и выигрышей
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------------------------------//
-    // The wins pay processor, fires at every game tick, every second //
-    //----------------------------------------------------------------//
-    $res = call_user_func(function() { try {
+    //-----------------------------//
+    // Tracking of assetid of wins //
+    //-----------------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // А. Подготовить имя очереди, которая будет обрабатывать команды
-      $queues = [
-        "prod"  => "processor_wins_hard", // Продакшн
-        "dev"   => "smallbroadcast"       // Отладка
-      ];
-      $queue = $queues['prod'];
+      // 1. Получить из кэша текущее состояние игры
+      $rooms = json_decode(Cache::get('processing:rooms'), true);
 
+      // 2. Обработать выигрыши для каждой комнаты отдельно
+      foreach($rooms as $room) {
 
-      // Б. Если $queue не пуста, завершить
-      // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
-      $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      if($queue_count == 0) {
+        // 2.1. Получить время выплаты выигрыша в этой комнате, в минутах
+        $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
 
-        // 1. Обновить весь кэш, но для каждого, только если он отсутствует
-        runcommand('\M9\Commands\C25_update_wins_cache', [
-          "all"   => true,
-          "force" => false
-        ], 0, ['on'=>true, 'name'=>$queue]);
+        // 2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
 
+        // 2.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
+        // - И статус раундов которых pending или выше.
+        $wins = \M9\Models\MD4_wins::whereHas('rounds', function($query) USE ($room) {
+          $query->whereHas('rooms', function($query) USE ($room) {
+            $query->where('id', $room['id']);
+          })->whereHas('rounds_statuses', function($query){
+            $query->where('id', '>=', 4);
+          });
+        })->where('created_at', '>', $max_age->toDateTimeString())
+          ->get();
 
-        // 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
-        runcommand('\M9\Commands\C26_active_offers_wins_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
+        Log::info($wins);
 
-
-        // 3. Отслеживать срок годности активных офферов по выплате выигрышей
-        runcommand('\M9\Commands\C27_active_offers_expiration_wins_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 4. Отслеживать срок годности выигрышей
-        runcommand('\M9\Commands\C28_wins_expiration_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 5. Отслеживание и наполнение assetid_bots ставок
-        runcommand('\M9\Commands\C46_assetid_bots_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
-
-
-        // 6. Отслеживание и наполнение assetid выигрышей
-        // runcommand('\M9\Commands\C47_assetid_wins_tracking', [],
-        //     0, ['on'=>true, 'name'=>$queue]);
 
 
       }
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C24_processor_wins from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+
+
+
+      // Что надо сделать
+      // - Если не все assetid_bots связанных со ставками раунда
+      //   вещей указаны, то завершить.
+      // - Вычислить items2take.
+      // - Вычислить items2give.
+      // - Связать win с $items2give, в т.ч. вписав assetid
+
+
+
+
+
+//      // 3. Обработать ставки для каждой комнаты отдельно
+//      foreach($rooms as $room) {
+//
+//        // 3.1. Получить время выплаты выигрыша в этой комнате, в минутах
+//        $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
+//
+//        // 3.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+//        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
+//
+//        // 3.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
+//        // - И статус раундов которых pending или выше.
+//        $wins = \M9\Models\MD4_wins::whereHas('rounds', function($query) USE ($room) {
+//          $query->whereHas('rooms', function($query) USE ($room) {
+//            $query->where('id', $room['id']);
+//          })->whereHas('rounds_statuses', function($query){
+//            $query->where('id', '>=', 4);
+//          });
+//        })->where('created_at', '>', $max_age->toDateTimeString())
+//          ->get();
+//
+//        // 3.4. По очереди обработать каждый выигрыш
+//        foreach($wins as $win) {
+//
+//          // 1] Выяснить, есть ли связанные с $win вещи с пустым assetid_bots
+//          $is_empty_assetid_bots_in_win = call_user_func(function() USE ($win) {
+//
+//            $result = false;
+//            foreach($win['m8_items'] as $item) {
+//              if(empty($item['pivot']['assetid'])) {
+//                $result = true;
+//                break;
+//              }
+//            }
+//            return $result;
+//
+//          });
+//
+//          Log::info($is_empty_assetid_bots_in_win);
+//
+//          // 2] Если $is_empty_assetid_bots_in_win == false, перейти к следующей итерации
+//          if($is_empty_assetid_bots_in_win === false) continue;
+//
+//          // 3] Начать транзакцию
+//          DB::beginTransaction();
+//
+//          // 4] Получить связанный с $bet раунд
+//          $round = \M9\Models\MD2_rounds::whereHas('bets', function($query) USE ($bet) {
+//            $query->where('id', $bet['id']);
+//          })->first();
+//
+//          // 5] Составить список всех поставленных вещей, отсортированный по цене
+//          // - Отсортированный по цене по убыванию.
+//          // - Плюс, каждой вещи добавить св-во percentage (цена вещи, делёная на банк).
+//          $items = call_user_func(function () USE ($round, $win) {
+//
+//            // 1] Подготовить массив для результатов
+//            $results = [];
+//
+//            // 2] Наполнить $results
+//            // - И добавить каждой вещи св-во percentage
+//            foreach($round['bets'] as $bet) {
+//              foreach($bet['m8_items'] as $item) {
+//                $item['percentage'] = (($item['price']*100)/$win['jackpot_total_sum_cents'])*100;
+//                array_push($results, $item);
+//              }
+//            }
+//
+//            // 3] Отсортировать все вещи по цене, по возрастанию
+//            usort($results, function($a, $b){
+//              if((int)($a['price']*100) > (int)($b['price']*100)) return 1;
+//              if((int)($a['price']*100) < (int)($b['price']*100)) return -1;
+//              return 0;
+//            });
+//
+//            // n] Вернуть результаты
+//            return $results;
+//
+//          });
+//
+//          //Log::info($items);
+//
+//
+//
+////          // 3] Определить вещи на комиссию
+////          $items2take = call_user_func(function() USE ($howmuch, $items) {
+////
+////            // 1] Подготовить массив для результатов
+////            $results = [];
+////
+////            // 2] Наполнить $results
+////            $cents_already = 0;
+////            for($i=0; $i<count($items); $i++) {
+////              $cents_already = +$cents_already + +$items[$i]['price']*100;
+////              if($cents_already <= $howmuch['finally']['cents'])
+////                array_push($results, $items[$i]);
+////              else
+////                $cents_already = +$cents_already - +$items[$i]['price']*100;
+////            }
+////
+////            // n] Вернуть результаты
+////            return [
+////              "fee_cents_taken_fact" => $cents_already,
+////              "items2take" =>           $results
+////            ];
+////
+////          });
+//
+//
+//
+//          // n] Подтвердить транзакцию
+//          DB::commit();
+//
+//        }
+//
+//      }
+
+
+      // Запись assetid_bots для выигрышей
+
+        // Подготовка
+        // - Получить все комнаты
+        // - Для каждой комнаты получить время на забор выигрыша
+        // - Получить все раунды, created_at которые не старше соотв.времени
+        // - Получить все выигрыши этих раундов
+        // - По очереди обработать каждый выигрыш
+
+        // Обработка выигрыша
+        // - Составить список всех поставленных вещей, отсортированный по цене
+        // - Определить вещи на комиссию
+        // - Определить вещи на отдачу
+        // - Связать новый выигрыш с вещами $items2give
+
+
+
+
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C47_assetid_wins_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C24_processor_wins']);
+        write2log($errortext, ['M9', 'C47_assetid_wins_tracking']);
         return [
           "status"  => -2,
           "data"    => [

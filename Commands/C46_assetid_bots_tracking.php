@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Tracking of asset_bots of bets and wins
+ *    - Tracking of asset_bots of bets
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -136,12 +136,12 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
      * Оглавление
      *
      *  1. Получить все ставки, assetid_bots для которых ещё есть смысл определять
-     *  2. Обработать выигрыши для каждой комнаты отдельно
+     *  2. Обработать ставки для каждой комнаты отдельно
      *    2.1. Получить время выплаты выигрыша в этой комнате, в минутах
      *    2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
      *    2.3. Получить все ставки комнаты $room, не старше $payout_limit_min
      *    2.4. По очереди обработать каждую ставку
-     *  3. Обработать ставки для каждой комнаты отдельно
+     *  3. Обработать выигрыши для каждой комнаты отдельно
      *    3.1. Получить время выплаты выигрыша в этой комнате, в минутах
      *    3.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
      *    3.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
@@ -151,10 +151,10 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
      *
      */
 
-    //-----------------------------------------//
-    // Tracking of asset_bots of bets and wins //
-    //-----------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    //--------------------------------//
+    // Tracking of asset_bots of bets //
+    //--------------------------------//
+    $res = call_user_func(function() { try {
 
       // 1. Получить из кэша текущее состояние игры
       $rooms = json_decode(Cache::get('processing:rooms'), true);
@@ -163,7 +163,7 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
       foreach($rooms as $room) {
 
         // 2.1. Получить время выплаты выигрыша в этой комнате, в минутах
-        $payout_limit_min = !empty($room['payout_limit_min']) ?: 60;
+        $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
 
         // 2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
         $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
@@ -182,78 +182,183 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
         // 2.4. По очереди обработать каждую ставку
         foreach($bets as $bet) {
 
-        }
+          // 1] Выяснить, есть ли связанные с $bet вещи с пустым assetid_bots
+          $is_empty_assetid_bots_in_bet = call_user_func(function() USE ($bet) {
 
-      }
+            $result = false;
+            foreach($bet['m8_items'] as $item) {
+              if(empty($item['pivot']['assetid_bots'])) {
+                $result = true;
+                break;
+              }
+            }
+            return $result;
 
-      // 3. Обработать ставки для каждой комнаты отдельно
-      foreach($rooms as $room) {
-
-        // 3.1. Получить время выплаты выигрыша в этой комнате, в минутах
-        $payout_limit_min = !empty($room['payout_limit_min']) ?: 60;
-
-        // 3.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
-        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
-
-        // 3.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
-        // - И статус раундов которых pending или выше.
-        $wins = \M9\Models\MD4_wins::whereHas('rounds', function($query) USE ($room) {
-          $query->whereHas('rooms', function($query) USE ($room) {
-            $query->where('id', $room['id']);
-          })->whereHas('rounds_statuses', function($query){
-            $query->where('id', '>=', 4);
           });
-        })->where('created_at', '>', $max_age->toDateTimeString())
-          ->get();
 
-        // 3.4. По очереди обработать каждый выигрыш
-        foreach($wins as $win) {
+          // 2] Если $is_empty_assetid_bots_in_bet == false, перейти к следующей итерации
+          if($is_empty_assetid_bots_in_bet === false) continue;
+
+          // 3] Начать транзакцию
+          DB::beginTransaction();
+
+          // 4] Получить связанный с $bet раунд
+          $round = \M9\Models\MD2_rounds::whereHas('bets', function($query) USE ($bet) {
+            $query->where('id', $bet['id']);
+          })->first();
+
+          // 5] Получить массив assetid уже занятых в других ставках раунда $round
+          // - Ставка $bet связана с конкретным раундом $round.
+          // - С этим раундом могут быть связаны от 0 и более других ставок.
+          // - Каждая из этих ставок связана с 1-й или более вещью.
+          // - В связи с каждой вещью определен и assetid этой вещи у бота.
+          // - Необходимо получить массив этих самых занятых assetid других ставок.
+          $busy_assetids = call_user_func(function() USE ($round) {
+
+            // 1] Получить все связанные с $lastround ставки
+            $bets = $round['bets'];
+
+            // 2] Собрать в массив (без повторений) все assetid всех вещей ставок $bets
+            $busy_assetids = [];
+            foreach($bets as $bet) {
+              foreach($bet['m8_items'] as $item) {
+                if(!in_array($item['pivot']['assetid_bots'], $busy_assetids) && !empty($item['pivot']['assetid_bots']))
+                  array_push($busy_assetids, $item['pivot']['assetid_bots']);
+              }
+            }
+
+            // n] Вернуть результат
+            return $busy_assetids;
+
+          });
+
+          // 6] Записать assetid_bots в md2001
+          // - Это assetid принятых ботом в виде ставки скинов.
+          // - Единственный технический способ это сделать таков:
+          //   1) Сначала составить массив с данными для всех связей.
+          //   2) Сделать detach всех связей между $bet и m8_items.
+          //   3) По массиву, сделать заново attach связей.
+          // - Действовать через pivot->assetid_bots, или через updateExistingPivot
+          //   не получается, т.к. система находит все связи с одинаковыми id_item
+          //   и id_bet, и записывает значение во все связи, а не в одну.
+          call_user_func(function() USE (&$bet, $busy_assetids) {
+
+            // 1] Получить список всех связанных с $bet скинов
+            $bet_items = $bet->m8_items;
+
+            // 2] Получить Steam ID бота, связанного с $bet
+            $bet_bot_steamid = $bet->m8_bots[0]['steamid'];
+
+            // 3] Получить инвентарь бота, связанного с $bet
+            $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
+              "steamid" => $bet_bot_steamid,
+              "force"   => true
+            ]);
+            if($bet_bot_inventory['status'] != 0)
+              throw new \Exception($bet_bot_inventory['data']['errormsg']);
+
+            // 4] Для каждого скина в $bet_items заполнить поле assetid_bots
+            call_user_func(function() USE (&$bet, &$bet_items, $bet_bot_inventory, $busy_assetids){
+
+              // 4.1] Составить итоговый массив всех связей с m8_items для $bet
+              // - В формате:
+              //
+              //  [
+              //    id_bet
+              //    id_item
+              //    item_price_at_bet_time
+              //    assetid_users
+              //    assetid_bots
+              //  ]
+              //
+              $rels = call_user_func(function() USE (&$bet, &$bet_items, &$bet_bot_inventory, $busy_assetids) {
+
+                // 4.1.1] Подготовить массив для результатов
+                $results = [];
+
+                // 4.1.2] Подготовить массив для assetid_users и assetid_bots
+                // - Уже найденных в $bet_bot_inventory скинов.
+                $assetids_found = [];
+                $assetid_users_arr = [];
+
+                // 4.1.3] Наполнить $results
+                foreach($bet_items as &$item) {
+
+                  // 1) Если assetid_users item'а уже в $assetid_users_arr
+                  // - Перейти к следующей итерации.
+                  if(in_array($item->pivot->assetid_users, $assetid_users_arr))
+                    continue;
+
+                  // 2) Добавить assetid_users item'а в $assetid_users_arr
+                  array_push($assetid_users_arr, $item->pivot->assetid_users);
+
+                  // 3) Найти в $bet_bot_inventory соотв.вещь, и добавить значение в $results
+                  call_user_func(function() USE (&$results, &$bet_items, &$bet, &$item, &$assetids_found, &$assetid_users_arr, &$bet_bot_inventory, $busy_assetids) {
+                    foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
+                      if($item_in_inventory['market_hash_name'] == $item['name']) {
+
+                        if(!in_array($item_in_inventory["assetid"], $assetids_found) && !in_array($item_in_inventory["assetid"], $busy_assetids)) {
+
+                          // 3.1) Добавить assetid в $assetids_found
+                          array_push($assetids_found, $item_in_inventory["assetid"]);
+
+                          // 3.2) Добавить значение в $results
+                          array_push($results, [
+                            "id_bet"                  => $bet->id,
+                            "id_item"                 => $item['id'],
+                            "item_price_at_bet_time"  => $item['pivot']['item_price_at_bet_time'],
+                            "assetid_users"           => $item['pivot']['assetid_users'],
+                            "assetid_bots"            => $item_in_inventory["assetid"]
+                          ]);
+
+                          // 3.3) Завершить цикл
+                          break;
+
+                        }
+
+                      }
+                    }
+                  });
+
+                }
+
+                // 4.1.n] Вернуть результаты
+                return $results;
+
+              });
+
+              // 4.2] Если $rels пуст, завершить с ошибкой
+              if(empty($rels) || count($rels) == 0)
+                return;
+                //throw new \Exception('Не удалось получить связи между ставкой и её вещами, которые нужно пересоздавать для добавления assetid_bots. По всей видимости, инвентарь, получаемый через Steam API ещё не обновился, и принятые вещи ещё там не появились.');
+
+              // 4.3] Сделать detach для всех связей между $bet и m8_items
+              $bet->m8_items()->detach();
+
+              // 4.4] Сделать attach всех связей $rels между $bet и m8_items
+              call_user_func(function() USE (&$rels, &$bet, &$bet_items) {
+                foreach($rels as $rel) {
+                  $bet->m8_items()->attach($rel['id_item'], [
+                    "item_price_at_bet_time" => $rel['item_price_at_bet_time'],
+                    "assetid_users"          => $rel['assetid_users'],
+                    "assetid_bots"           => $rel['assetid_bots']
+                  ]);
+                }
+              });
+
+            });
+
+          });
+
+          // n] Подтвердить транзакцию
+          DB::commit();
 
         }
 
       }
 
 
-      
-
-
-
-      // Запись assetid_bots для ставок
-
-        // Подготовка
-        // - Получить все комнаты
-        // - Для каждой комнаты получить время на забор выигрыша
-        // - Получить все раунды, created_at которые не старше соотв.времени,
-        //   и статус которых pending или выше.
-        // - Получить все ставки этих раундов
-        // - По очереди обработать каждую ставку
-
-        // Обработка раунда
-        // - Получить $busy_assetids для данного раунда.
-        // - Записать assetid_bots в md2001 для вещей, которые удалось найти
-
-
-      // Запись assetid_bots для выигрышей
-
-        // Подготовка
-        // - Получить все комнаты
-        // - Для каждой комнаты получить время на забор выигрыша
-        // - Получить все раунды, created_at которые не старше соотв.времени
-        // - Получить все выигрыши этих раундов
-        // - По очереди обработать каждый выигрыш
-
-        // Обработка выигрыша
-        // - Составить список всех поставленных вещей, отсортированный по цене
-        // - Определить вещи на комиссию
-        // - Определить вещи на отдачу
-        // - Связать новый выигрыш с вещами $items2give
-
-
-
-
-
-
-    DB::commit(); } catch(\Exception $e) {
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C46_assetid_bots_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
