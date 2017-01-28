@@ -209,7 +209,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
 
         // 4.2. Получить список не активных incoming offers через HTTP для бота botid
 
-          // Получить
+          // 4.2.1. Получить
           $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
 
             // 1] Подготовить массив для результата
@@ -221,7 +221,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
               // 2.1] Получить ID i-го бота
               $id_bot = $bots_ids[$i];
 
-              // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
+              // 2.2] Попробовать получить НЕ активные входящие офферы $id_bot через HTTP
               // - Что означают коды:
               //
               //    -3    // Не удалось получить ответ от Steam
@@ -282,12 +282,12 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
 
           });
 
-          // Добавить $bots_not_active_offers_by_id в кэш, если trade_offers_received не пуст
+          // 4.2.2. Добавить $bots_not_active_offers_by_id в кэш, если trade_offers_received не пуст
           // - С ключем: m9:bots_not_active_offers:<bot_id>
           if(!empty($bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received']))
             Cache::put('m9:bots_not_active_offers:'.$this->data['botid'], json_encode($bots_not_active_offers_by_id, JSON_UNESCAPED_UNICODE), 30);
 
-          // А если trade_offers_received пуст, попробовать достать $bots_not_active_offers_by_id из кэша
+          // 4.2.3. А если trade_offers_received пуст, попробовать достать $bots_not_active_offers_by_id из кэша
           else {
 
             // 1] Получить кэш
@@ -296,6 +296,43 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
             // 2] Если trade_offers_received не пуст, записать содержимое кэша в $bots_not_active_offers_by_id
             if(!empty($cache[$this->data['botid']]['data']['tradeoffers']['trade_offers_received']))
               $bots_not_active_offers_by_id = $cache;
+
+          }
+
+          // 4.2.4. Получить из кэша информацию о состоянии активных офферов из m9.C45
+          $c45_executing = json_decode(Cache::get('m9:processing:bets_ex_active_type2'), true);
+          if(empty($c45_executing)) $c45_executing = [];
+
+          // 4.2.5. Получить все доступные активные ставки типа 2
+          $bets_active = json_decode(Cache::get('processing:bets_type2:active'), true);
+
+          // 4.2.6. Пополнить $bots_not_active_offers_by_id информацией из $c45_executing
+          // - Добавлять только информацию об офферах со статусом НЕ Active (не 2).
+          // - Добавлять только в том случае, если $bots_not_active_offers_by_id ещё нет информации по этому офферу.
+          // - Добавлять только в том случае, если оффер есть в $bets_active.
+          foreach($c45_executing as $to) {
+
+            // 1] Если $to нет в $bets_active, перейти к следующей итерации
+            $is_in_bets_active = false;
+            foreach($bets_active as $bet) {
+              if($to['tradeofferid'] == $bet['tradeofferid'])
+                $is_in_bets_active = true;
+            }
+            if($is_in_bets_active == false) continue;
+
+            // 2] Если информация о $to уже есть в $bots_not_active_offers_by_id, перейти к следующей итерации
+            $is_already_in_bets_ex_acitive = false;
+            foreach($bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received'] as $bet) {
+              if($to['tradeofferid'] == $bet['tradeofferid'])
+                $is_already_in_bets_ex_acitive = true;
+            }
+            if($is_already_in_bets_ex_acitive == true) continue;
+
+            // 3] Если статус $to "Active", перейти к следующей итерации
+            if($to['id_status_new'] == 2) continue;
+
+            // 4] Добавить $to в $bots_not_active_offers_by_id
+            array_push($bots_not_active_offers_by_id[$this->data['botid']]['data']['tradeoffers']['trade_offers_received'], $to['tradeoffer_steam_format']);
 
           }
 

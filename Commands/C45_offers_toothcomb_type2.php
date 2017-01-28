@@ -135,8 +135,10 @@ class C45_offers_toothcomb_type2 extends Job { // TODO: добавить "implem
     /**
      * Оглавление
      *
-     *  1. Получить и проверить входящие данные
+     *  a. Сделать запись о том, что команда начала выполняться
+     *  1. Получить активные ставки типа 2 из кэша, возраст которых более 3 минут
      *
+     *  n. Сделать запись о том, что команда закончила выполняться
      *
      *  N. Вернуть статус 0
      *
@@ -147,12 +149,190 @@ class C45_offers_toothcomb_type2 extends Job { // TODO: добавить "implem
     //----------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // a. Сделать запись о том, что команда начала выполняться
 
+        // a.1. Засечь текущее время
+        $this->data['ts'] = \Carbon\Carbon::now()->timestamp;
 
-      // - Запрашивать историю для Incoming Offers
-      // - Проверять статусы офферов, которые значатся в БД, как активные
-      // - Если статус изменился, применять команду C43 или C44.
+        // a.2. Извлечь текущее содержимое c45_executing
+        $c45_executing = json_decode(Cache::get('m9:processing:c45_executing'), true);
+        if(empty($c45_executing) || !is_array($c45_executing))
+          $c45_executing = [];
 
+        // a.3. Добавить в $c45_executing $this->data['ts']
+        array_push($c45_executing, $this->data['ts']);
+
+        // a.4. Записать $c45_executing в кэш
+        Cache::put('m9:processing:c45_executing', json_encode($c45_executing, JSON_UNESCAPED_UNICODE), 300);
+
+      // 1. Получить активные ставки из кэша, возраст которых более 3 минут
+
+        // 1.1. Получить все доступные активные ставки типа 2
+        $bets_active = json_decode(Cache::get('processing:bets_type2:active'), true);
+
+        // 1.2. Отфильтровать из массива $bets_active те ставки, возраст которых более 3 минут
+        if(!empty($bets_active))
+          $bets_active = array_values(array_filter($bets_active, function($item){
+            return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($item['created_at'])->addSeconds(185));
+          }));
+
+      // 2. Получить из $bets_active неповторяющийся список ID всех ботов, имеющих активные офферы
+      $bots_ids = call_user_func(function() USE ($bets_active) {
+
+        $bots_ids = [];
+        for($i=0; $i<count($bets_active); $i++) {
+          $id = $bets_active[$i]['m8_bots'][0]['id'];
+          if(!in_array($id, $bots_ids))
+            array_push($bots_ids, $id);
+        }
+        return $bots_ids;
+
+      });
+
+      // 3. Для каждого из $bots_ids получить список НЕ активных incoming offers через HTTP
+      $bots_not_active_offers_by_id = call_user_func(function() USE ($bots_ids) {
+
+        // 1] Подготовить массив для результата
+        $result = [];
+
+        // 2] Наполнить $result
+        for($i=0; $i<count($bots_ids); $i++) {
+
+          // 2.1] Получить ID i-го бота
+          $id_bot = $bots_ids[$i];
+
+          // 2.2] Попробовать получить НЕ активные исходящие офферы $id_bot через HTTP
+          // - Что означают коды:
+          //
+          //    -3    // Не удалось получить ответ от Steam
+          //    -2    // Информация об отправленных офферах отсутствует в ответе в принципе
+          //    0     // Успех, найденный оффер доступен по ключу offer
+          //
+          $offers_http = call_user_func(function() USE ($id_bot) {
+
+            // 2.2.1] Получить все активные офферы бота $id_bot через HTTP
+            $offers = runcommand('\M8\Commands\C24_get_trade_offers_via_html', ["id_bot"=>$id_bot,"mode"=>2]);
+
+            // 2.2.2] Отфильтровать из $offers офферы со статусом 2 (Active)
+            $offers['data']['tradeoffers']['trade_offers_received'] = array_values(array_filter($offers['data']['tradeoffers']['trade_offers_received'], function($item){
+              if($item['trade_offer_state'] != 2) return true;
+              else return false;
+            }));
+
+            // 2.2.3] Если получить ответ от Steam не удалось
+            if($offers['status'] != 0)
+              return [
+                "code"   => -3,
+                "offers"  => ""
+              ];
+
+            // 2.2.4] Если trade_offers_received отсутствуют в ответе
+            if(!array_key_exists('trade_offers_received', $offers['data']['tradeoffers']))
+              return [
+                "code"   => -2,
+                "offers"  => ""
+              ];
+
+            // 2.2.5] Вернуть offers
+            return [
+              "code"    => 0,
+              "offers"  => $offers
+            ];
+
+          });
+
+          // 2.3] Если $offers_http['code'] == 0
+          // - Записать данные в $result и перейти к следующей итерации
+          if($offers_http['code'] == 0) {
+            $result[$id_bot] = $offers_http['offers'];
+            continue;
+          }
+
+        }
+
+        // 3] Вернуть результат
+        return $result;
+
+      });
+
+      // 4. Попробовать найти бывшие активные ($bets_active) офферы
+      // - Среди ныне не активных ($bots_not_active_offers_by_id) офферов.
+      $bets_ex_active = call_user_func(function() USE ($bets_active, $bots_not_active_offers_by_id) {
+
+        // 1] Подготовить массив для результатов
+        $result = [];
+
+        // 2] Наполнить $result
+        for($i=0; $i<count($bets_active); $i++) {
+
+          // 2.1] Получить ID $i-го оффера
+          $id_offer_i = $bets_active[$i]['tradeofferid'];
+
+          // 2.2] Получить ID бота, которому принадлежит $i-ая ставка
+          $id_bot = $bets_active[$i]['m8_bots'][0]['id'];
+
+          // 2.3] Получить все НЕ активные офферы, принадлежащие $id_bot
+          $id_bot_offers = array_key_exists($id_bot, $bots_not_active_offers_by_id) ? $bots_not_active_offers_by_id[$id_bot] : [];
+
+          // 2.4] Попробовать найти оффер с $id_offer_i в $id_bot_offers
+          $id_bot_offer = call_user_func(function() USE ($id_bot_offers, $id_offer_i) {
+
+            // 2.4.1] Если $id_bot_offers пуст, вернуть пустую строку
+            if(empty($id_bot_offers) || count($id_bot_offers) == 0) return '';
+
+            // 2.4.2] Иначе, искать
+            for($j=0; $j<count($id_bot_offers['data']['tradeoffers']['trade_offers_received']); $j++) {
+
+              if($id_bot_offers['data']['tradeoffers']['trade_offers_received'][$j]['tradeofferid'] == $id_offer_i)
+                return $id_bot_offers['data']['tradeoffers']['trade_offers_received'][$j];
+
+            }
+
+            // 2.4.3] Вернуть пустую строку
+            return '';
+
+          });
+
+          // 2.5] Получить статусы этих 2-х офферов
+          $id_offer_i_status = $bets_active[$i]['bets_statuses'][0]['pivot']['id_status'];
+          $id_bot_offer_status = !empty($id_bot_offer) ? $id_bot_offer['trade_offer_state'] : '';
+
+          // 2.6] Добавить новую запись в $results, если $id_bot_offer найден
+          if(!empty($id_bot_offer))
+            array_push($result, [
+              "id_bot"                  => $id_bot,
+              "tradeoffer"              => $bets_active[$i],
+              "tradeoffer_steam_format" => $id_bot_offer,
+              "tradeofferid"            => $id_offer_i,
+              "id_status_old"           => $id_offer_i_status,
+              "id_status_new"           => $id_bot_offer_status
+            ]);
+
+        }
+
+        // 3] Вернуть $result
+        return $result;
+
+      });
+
+      // 5. Записать $bets_ex_active в кэш
+      Cache::put('m9:processing:bets_ex_active_type2', json_encode($bets_ex_active, JSON_UNESCAPED_UNICODE), 60);
+
+      // n. Сделать запись о том, что команда закончила выполняться
+
+        // a.1. Извлечь текущее содержимое c45_executing
+        $c45_executing = json_decode(Cache::get('m9:processing:c45_executing'), true);
+        if(empty($c45_executing) || !is_array($c45_executing))
+          $c45_executing = [];
+
+        // a.2. Удалить из $c45_executing $this->data['ts']
+        $c45_executing = array_values(array_filter($c45_executing, function($item){
+          if($item == $this->data['ts']) return false;
+          return true;
+        }));
+
+        // a.3. Записать $c45_executing в кэш
+        Cache::put('m9:processing:c45_executing', json_encode($c45_executing, JSON_UNESCAPED_UNICODE), 300);
 
 
 

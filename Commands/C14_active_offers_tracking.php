@@ -336,7 +336,7 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
         if($to['id_status_new'] == 2) continue;
 
         // 4] Добавить $to в $bets_ex_active
-        array_push($bets_ex_active, $to);
+        array_push($bets_ex_active, $to['tradeoffer_steam_format']);
 
       }
 
