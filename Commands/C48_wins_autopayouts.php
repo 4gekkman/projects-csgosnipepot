@@ -135,7 +135,7 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1.
+     *  1. Получить из кэша текущее состояние игры
      *
      *
      *  N. Вернуть статус 0
@@ -147,8 +147,126 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
     //-----------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
+      // 1. Получить из кэша текущее состояние игры
+      $rooms = json_decode(Cache::get('processing:rooms'), true);
+      if(empty($rooms))
+        throw new \Exception('Не найдены комнаты в кэше.');
 
-      Log::info(123);
+      // 2. Обработать выигрыши для каждой комнаты отдельно
+      foreach($rooms as $room) {
+
+        // 2.1. Получить время выплаты выигрыша в этой комнате, в минутах
+        $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
+
+        // 2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
+        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
+
+        // 2.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
+        // - И статус раундов которых pending или выше.
+        $wins = \M9\Models\MD4_wins::with(['m5_users'])
+          -> whereHas('rounds', function($query) USE ($room) {
+            $query->whereHas('rooms', function($query) USE ($room) {
+              $query->where('id', $room['id']);
+            })->whereHas('rounds_statuses', function($query){
+              $query->where('id', '>=', 4);
+            });
+          })->where('created_at', '>', $max_age->toDateTimeString())
+            ->get();
+
+        // 2.4. По очереди обработать каждый выигрыш
+        foreach($wins as $win) {
+
+          // 1] Составить список всех вещей на выплату по выигрышу $win
+          $items = call_user_func(function() USE ($win) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Наполнить $results
+            // - И добавить каждой вещи св-во percentage
+            foreach($win['m8_items'] as $item)
+              array_push($results, $item->toArray());
+
+            // n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 2] Выяснить, есть ли среди $items вещи с пустыми assetid
+
+            // Выяснить
+            $is_empty_assetid_in_bet = call_user_func(function() USE ($items) {
+
+              $result = false;
+              foreach($items as $item) {
+                if(empty($item['pivot']['assetid'])) {
+                  $result = true;
+                  break;
+                }
+              }
+              return $result;
+
+            });
+
+            // Если $is_empty_assetid_in_bet == true, перейти к следующей итерации
+            if($is_empty_assetid_in_bet === true) continue;
+
+          // 3] Получить ID и STEAMID победителя из $win
+          $steamid_and_id = call_user_func(function() USE ($win) {
+
+            // 1] Получить массив из $win
+            $win_arr = $win->toArray();
+
+            // 2] Получить информацию о пользователе
+            if(array_key_exists('m5_users', $win_arr) && is_array($win_arr['m5_users']) && count($win_arr['m5_users']) > 0)
+              $user = $win_arr['m5_users'][0];
+            else
+              $user = '';
+
+            // 3] Вернуть результат
+            if(empty($user))
+              return [
+                "steamid" => "",
+                "id"      => "",
+                "user"    => ""
+              ];
+            else
+              return [
+                "steamid" => $user['ha_provider_uid'],
+                "id"      => $user['id'],
+                "user"    => $user
+              ];
+
+          });
+          if(empty($steamid_and_id) || count($steamid_and_id) == 0 || empty($steamid_and_id['steamid']) || empty($steamid_and_id['id']))
+            continue;
+
+          // 4]
+
+
+
+          //$not_paid_expired = json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$win['m5_users'][0]['id']), true);
+          //Log::info($not_paid_expired);
+
+
+        }
+
+      }
+
+
+
+      // - Берём все not paid/expired выигрыши, работаем с каждым индивидуально
+      // - Получаем id и steamid получателя выигрыша.
+      // - Смотрим связаных с этим выигрышем ботов, работаем с каждым индивидуально
+      // - Если is_free == true или tradeofferid не пуст, пропускаем такого бота
+      // - Получаем инвентарь бота, ищем в нём вещи из m8_items выигрыша.
+      // - Пытаемся отправить оффер с этими вещами победителю, если ошибка - к след.итерации.
+      // - Если оффер отправить удалось:
+      //   - Переключаем статус выигрыша на active.
+      //   - Записываем tradeofferid в pivot-таблицу между выигрышем и ботом.
+      //   - Записываем offer_expired_at в pivot-таблицу между выигрышем и ботом.
+
+
 
 
     DB::commit(); } catch(\Exception $e) {

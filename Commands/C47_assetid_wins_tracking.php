@@ -297,6 +297,13 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
           }
           DB::commit();
 
+          // m] Обновить весь кэш
+          $result = runcommand('\M9\Commands\C13_update_cache', [
+            "all" => true
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
         }
 
       }
