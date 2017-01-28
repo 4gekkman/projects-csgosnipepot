@@ -205,8 +205,8 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
 
 
         // 7. Автоматическая выплата выигрышей
-        //runcommand('\M9\Commands\C48_wins_autopayouts', [],
-        //    0, ['on'=>true, 'name'=>$queue]);
+        runcommand('\M9\Commands\C48_wins_autopayouts', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
       }

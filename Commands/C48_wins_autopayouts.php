@@ -135,8 +135,27 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
     /**
      * Оглавление
      *
-     *  1. Получить из кэша текущее состояние игры
-     *
+     *  1. Получить все выигрыши со статусами кроме paid/expired
+     *  2. Обработать каждый выигрыш индивидуально
+     *    2.1. Получить ID и STEAMID победителя из $win
+     *    2.2. Получить связанных с $win ботов
+     *    2.3. Составить список всех вещей на выплату по выигрышу $win
+     *    2.4. Если не у всех вещей из $items есть assetid, перейти к следующей итерации
+     *    2.5. Обработать каждого бота из $bots индивидуально
+     *      2.5.1. Если is_free == true или tradeofferid не пуст, перейти к следующей итерации
+     *      2.5.2. Получить инвентарь бота $bot
+     *      2.5.3. Получить массив вещей из $items, которые есть в $bet_bot_inventory
+     *      2.5.4. Получить steam_tradeurl пользователя $user
+     *      2.5.5. Получить partner и token пользователя из его trade url
+     *      2.5.6. Проверить валидность $steam_tradeurl
+     *      2.5.7. Отправить пользователю торговое предложение
+     *      2.5.8. Получить модель $win
+     *      2.5.9. Получить статус выигрышей Active
+     *      2.5.10. Начать транзакцию
+     *      2.5.11. Изменить статус $win на Active
+     *      2.5.12. Обновить pivot-таблицу между $win и $bot
+     *      2.5.n. Сделать commit
+     *      2.5.m. Обновить весь кэш
      *
      *  N. Вернуть статус 0
      *
@@ -147,83 +166,24 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
     //-----------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить из кэша текущее состояние игры
-      $rooms = json_decode(Cache::get('processing:rooms'), true);
-      if(empty($rooms))
-        throw new \Exception('Не найдены комнаты в кэше.');
+      // 1. Получить все выигрыши со статусами кроме paid/expired
+      $wins_not_paid_expired = json_decode(Cache::get('processing:wins:not_paid_expired'), true);
 
-      // 2. Обработать выигрыши для каждой комнаты отдельно
-      foreach($rooms as $room) {
+      // 2. Обработать каждый выигрыш индивидуально
+      foreach($wins_not_paid_expired as $win) {
 
-        // 2.1. Получить время выплаты выигрыша в этой комнате, в минутах
-        $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
+        // 2.1. Получить ID и STEAMID победителя из $win
 
-        // 2.2. Получить дату и время в прошлом, на $payout_limit_min минут раньше текущего
-        $max_age = \Carbon\Carbon::now()->subMinutes($payout_limit_min);
-
-        // 2.3. Получить все выигрыши комнаты $room, не старше $payout_limit_min
-        // - И статус раундов которых pending или выше.
-        $wins = \M9\Models\MD4_wins::with(['m5_users'])
-          -> whereHas('rounds', function($query) USE ($room) {
-            $query->whereHas('rooms', function($query) USE ($room) {
-              $query->where('id', $room['id']);
-            })->whereHas('rounds_statuses', function($query){
-              $query->where('id', '>=', 4);
-            });
-          })->where('created_at', '>', $max_age->toDateTimeString())
-            ->get();
-
-        // 2.4. По очереди обработать каждый выигрыш
-        foreach($wins as $win) {
-
-          // 1] Составить список всех вещей на выплату по выигрышу $win
-          $items = call_user_func(function() USE ($win) {
-
-            // 1] Подготовить массив для результатов
-            $results = [];
-
-            // 2] Наполнить $results
-            // - И добавить каждой вещи св-во percentage
-            foreach($win['m8_items'] as $item)
-              array_push($results, $item->toArray());
-
-            // n] Вернуть результаты
-            return $results;
-
-          });
-
-          // 2] Выяснить, есть ли среди $items вещи с пустыми assetid
-
-            // Выяснить
-            $is_empty_assetid_in_bet = call_user_func(function() USE ($items) {
-
-              $result = false;
-              foreach($items as $item) {
-                if(empty($item['pivot']['assetid'])) {
-                  $result = true;
-                  break;
-                }
-              }
-              return $result;
-
-            });
-
-            // Если $is_empty_assetid_in_bet == true, перейти к следующей итерации
-            if($is_empty_assetid_in_bet === true) continue;
-
-          // 3] Получить ID и STEAMID победителя из $win
+          // Получить
           $steamid_and_id = call_user_func(function() USE ($win) {
 
-            // 1] Получить массив из $win
-            $win_arr = $win->toArray();
-
-            // 2] Получить информацию о пользователе
-            if(array_key_exists('m5_users', $win_arr) && is_array($win_arr['m5_users']) && count($win_arr['m5_users']) > 0)
-              $user = $win_arr['m5_users'][0];
+            // 1] Получить информацию о пользователе
+            if(array_key_exists('m5_users', $win) && is_array($win['m5_users']) && count($win['m5_users']) > 0)
+              $user = $win['m5_users'][0];
             else
               $user = '';
 
-            // 3] Вернуть результат
+            // 2] Вернуть результат
             if(empty($user))
               return [
                 "steamid" => "",
@@ -238,35 +198,195 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
               ];
 
           });
+
+          // Если получить не удалось, перейти к следующей итерации
           if(empty($steamid_and_id) || count($steamid_and_id) == 0 || empty($steamid_and_id['steamid']) || empty($steamid_and_id['id']))
             continue;
 
-          // 4]
+        // 2.2. Получить связанных с $win ботов
 
+          // Получить
+          $bots = $win['m8_bots'];
 
+          // Если боты отсутствуют, перейти к следующей итерации
+          if(empty($bots) || count($bots) == 0)
+            continue;
 
-          //$not_paid_expired = json_decode(Cache::tags(['processing:wins:not_paid_expired:personal'])->get('processing:wins:not_paid_expired:'.$win['m5_users'][0]['id']), true);
-          //Log::info($not_paid_expired);
+        // 2.3. Составить список всех вещей на выплату по выигрышу $win
+        $items = call_user_func(function() USE ($win) {
 
+          // 1] Подготовить массив для результатов
+          $results = [];
+
+          // 2] Наполнить $results
+          // - И добавить каждой вещи св-во percentage
+          foreach($win['m8_items'] as $item)
+            array_push($results, $item);
+
+          // n] Вернуть результаты
+          return $results;
+
+        });
+
+        // 2.4. Если не у всех вещей из $items есть assetid, перейти к следующей итерации
+
+          // Есть ли вещи в $items, у которых пустой assetid?
+          $is_empty_assetid_in_items = call_user_func(function() USE ($items) {
+
+            $result = false;
+            foreach($items as $item) {
+              if(empty($item['pivot']['assetid'])) {
+                $result = true;
+                break;
+              }
+            }
+            return $result;
+
+          });
+
+          // Если есть, перейти к следующей итерации
+          if($is_empty_assetid_in_items)
+            continue;
+
+        // 2.5. Обработать каждого бота из $bots индивидуально
+        foreach($bots as $bot) {
+
+          // 2.5.1. Если is_free == true или tradeofferid не пуст, перейти к следующей итерации
+          // - Это значит, что либо бот уже расплатился по $win (is_free == true).
+          // - Либо это значит, что бот уже отправил оффер по $win (tradeofferid не пуст)
+          if($bot['pivot']['is_free'] != 0 || !empty($bot['pivot']['tradeofferid']))
+            continue;
+
+          // 2.5.2. Получить инвентарь бота $bot
+
+            // Получить
+            $bet_bot_inventory = runcommand('\M8\Commands\C4_getinventory', [
+              "steamid" => $bot['steamid'],
+              "force"   => true
+            ]);
+
+            // Если инвентарь не найден, перейти к следующей итерации
+            if($bet_bot_inventory['status'] != 0)
+              continue;
+
+          // 2.5.3. Получить массив вещей из $items, которые есть в $bet_bot_inventory
+
+            // Получить
+            $bot_items2payout = call_user_func(function() USE ($bet_bot_inventory, $items) {
+
+              // 1] Подготовить массив для результатов
+              $results = [
+                'assetids' => [],
+                'items'    => []
+              ];
+
+              // 2] Наполнить $results
+              foreach($items as $item) {
+                foreach($bet_bot_inventory['data']['rgDescriptions'] as $item_in_inventory) {
+                  if($item_in_inventory['assetid'] == $item['pivot']['assetid']) {
+                    array_push($results['items'], $item);
+                    array_push($results['assetids'], $item['pivot']['assetid']);
+                  }
+                }
+              }
+
+              // n] Вернуть результаты
+              return $results;
+
+            });
+
+            // Если $bot_items2payout пуст, перейти к следующей итерации
+            if(count($bot_items2payout['items']) == 0 || count($bot_items2payout['assetids']) == 0)
+              continue;
+
+          // 2.5.4. Получить steam_tradeurl пользователя $user
+          $steam_tradeurl = $win['m5_users'][0]['steam_tradeurl'];
+          if(empty($steam_tradeurl))
+            continue;
+
+          // 2.5.5. Получить partner и token пользователя из его trade url
+          $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
+            "trade_url" => $steam_tradeurl
+          ]);
+          if($partner_and_token['status'] != 0)
+            continue;
+
+          // 2.5.6. Проверить валидность $steam_tradeurl
+          $result = runcommand('\M8\Commands\C30_get_steamname_and_steamid_by_tradeurl', [
+            "id_bot"  => $bot['id'],
+            "partner" => $partner_and_token['data']['partner'],
+            "token"   => $partner_and_token['data']['token']
+          ]);
+          if($result['status'] != 0)
+            continue;
+
+          // 2.5.7. Отправить пользователю торговое предложение
+
+            // 1] Отправить
+            $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
+              "id_bot"                => $bot['id'],
+              "steamid_partner"  			=> $win['m5_users'][0]['ha_provider_uid'],
+              "id_partner"            => $partner_and_token['data']['partner'],
+              "token_partner"         => $partner_and_token['data']['token'],
+              "dont_trade_with_gays"  => "1",
+              "assets2send"           => $bot_items2payout['assetids'],
+              "assets2recieve"        => [],
+              "tradeoffermessage"     => ''
+            ]);
+
+            // 2] Если возникла ошибка
+            if($tradeoffer['status'] != 0 || !array_key_exists('tradeofferid', $tradeoffer['data']) || empty($tradeoffer['data']['tradeofferid']))
+              continue;
+
+            // 3] Если с этим пользователем нельзя торговать из-за escrow
+            if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
+              continue;
+
+            // 4] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
+            $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
+              "id_bot"                => $bot['id'],
+              "need_to_ids"           => "0",
+              "just_fetch_info"       => "0"
+            ]);
+            if($result['status'] != 0)
+              continue;
+
+          // 2.5.8. Получить модель $win
+          $win2pay_model = \M9\Models\MD4_wins::find($win['id']);
+          if(empty($win2pay_model))
+            continue;
+
+          // 2.5.9. Получить статус выигрышей Active
+          $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
+          if(empty($status_active))
+            continue;
+
+          // 2.5.10. Начать транзакцию
+          DB::beginTransaction();
+
+          // 2.5.11. Изменить статус $win на Active
+          // - Удалить старые связи с wins_statuses, и создать новую.
+          $win2pay_model->wins_statuses()->detach();
+          if(!$win2pay_model->wins_statuses->contains($status_active['id'])) $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
+
+          // 2.5.12. Обновить pivot-таблицу между $win и $bot
+          $win2pay_model->m8_bots()->updateExistingPivot($bot['id'], [
+            "is_free"           => 0,
+            "tradeofferid"      => $tradeoffer['data']['tradeofferid'],
+            "offer_expired_at"  => \Carbon\Carbon::now()->addSeconds((int)round($win2pay_model['rounds'][0]['rooms']['offers_timeout_sec']))->toDateTimeString()
+          ]);
+
+          // 2.5.n. Сделать commit
+          DB::commit();
+
+          // 2.5.m. Обновить весь кэш
+          $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+            "all"   => true
+          ]);
 
         }
 
       }
-
-
-
-      // - Берём все not paid/expired выигрыши, работаем с каждым индивидуально
-      // - Получаем id и steamid получателя выигрыша.
-      // - Смотрим связаных с этим выигрышем ботов, работаем с каждым индивидуально
-      // - Если is_free == true или tradeofferid не пуст, пропускаем такого бота
-      // - Получаем инвентарь бота, ищем в нём вещи из m8_items выигрыша.
-      // - Пытаемся отправить оффер с этими вещами победителю, если ошибка - к след.итерации.
-      // - Если оффер отправить удалось:
-      //   - Переключаем статус выигрыша на active.
-      //   - Записываем tradeofferid в pivot-таблицу между выигрышем и ботом.
-      //   - Записываем offer_expired_at в pivot-таблицу между выигрышем и ботом.
-
-
 
 
     DB::commit(); } catch(\Exception $e) {

@@ -275,12 +275,12 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
       // E. Искать "пропущенные" из-за обстоятельств или сбоев активные входящие офферы для всех ботов
       // - Но выполнять только в том случае, если предыдущая закончила выполняться.
-      $cache = json_decode(Cache::get('m9:processing:c45_executing'), true);
-      if(empty($cache) || !is_array($cache) || count($cache) == 0) {
-        if(config('M9.is_bets_system_type2_on') == true)
-          runcommand('\M9\Commands\C45_offers_toothcomb_type2', [],
-              0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
-      }
+      //$cache = json_decode(Cache::get('m9:processing:c45_executing'), true);
+      //if(empty($cache) || !is_array($cache) || count($cache) == 0) {
+      //  if(config('M9.is_bets_system_type2_on') == true)
+      //    runcommand('\M9\Commands\C45_offers_toothcomb_type2', [],
+      //        0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
+      //}
 
 
       //Log::info('Processor');

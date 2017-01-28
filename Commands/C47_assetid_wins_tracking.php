@@ -176,29 +176,12 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
         // 2.4. По очереди обработать каждый выигрыш
         foreach($wins as $win) {
 
-          // 1] Выяснить, есть ли связанные с $win вещи с пустым assetid
-          $is_empty_assetid_in_win = call_user_func(function() USE ($win) {
-
-            $result = false;
-            foreach($win['m8_items'] as $item) {
-              if(empty($item['pivot']['assetid'])) {
-                $result = true;
-                break;
-              }
-            }
-            return $result;
-
-          });
-
-          // 2] Если $is_empty_assetid_in_win == false, и $win['m8_items'] не пуст, то перейти к след.итерации
-          if($is_empty_assetid_in_win === false && count($win['m8_items']) != 0) continue;
-
-          // 3] Получить связанный с $win раунд
+          // 1] Получить связанный с $win раунд
           $round = \M9\Models\MD2_rounds::whereHas('wins', function($query) USE ($win) {
             $query->where('id', $win['id']);
           })->first();
 
-          // 4] Составить список всех поставленных вещей, отсортированный по цене
+          // 2] Составить список всех поставленных вещей, отсортированный по цене
           // - Отсортированный по цене по убыванию.
           // - Плюс, каждой вещи добавить св-во percentage (цена вещи, делёная на банк).
           $items = call_user_func(function() USE ($round, $win) {
@@ -226,6 +209,26 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
             return $results;
 
           });
+
+          // 3] Выяснить, есть ли связанные с $win вещи с пустым assetid
+          $is_empty_assetid_in_win = call_user_func(function() USE ($win) {
+
+            $result = false;
+            foreach($win['m8_items'] as $item) {
+              if(empty($item['pivot']['assetid'])) {
+                $result = true;
+                break;
+              }
+            }
+            return $result;
+
+          });
+
+          // 4] Перейти к след.итерации, если выполнены все условия:
+          // - Нет связанных с $win вещей с пустыми assetid.
+          // - Вообще в принципе есть вещи, связанные с $win
+          // - [отмена] Количество связанных с $win вещей совпадает с кол-вом $items
+          if($is_empty_assetid_in_win === false && count($win['m8_items']) != 0) // && count($items) == count($win['m8_items'])) continue;
 
           // 5] Выяснить, есть ли среди $items вещи с пустыми assetid_bots
           $is_empty_assetid_bots_in_bet = call_user_func(function() USE ($items) {
@@ -298,7 +301,7 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
           DB::commit();
 
           // m] Обновить весь кэш
-          $result = runcommand('\M9\Commands\C13_update_cache', [
+          $result = runcommand('\M9\Commands\C25_update_wins_cache', [
             "all" => true
           ]);
           if($result['status'] != 0)

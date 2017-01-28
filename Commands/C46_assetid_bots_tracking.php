@@ -356,7 +356,7 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
           DB::commit();
 
           // m] Обновить весь кэш
-          $result = runcommand('\M9\Commands\C13_update_cache', [
+          $result = runcommand('\M9\Commands\C25_update_wins_cache', [
             "all" => true
           ]);
           if($result['status'] != 0)
