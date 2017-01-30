@@ -815,8 +815,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// n] Вернуть результаты
 			return {
-				passed_s: 0, 								 	//passed_s, 		// 5
-				left_s: 	durations.lottery, 	//left_s, 			// 10
+				passed_s: 0, 	//passed_s, 		// 5
+				left_s: 	10, //left_s, 			// 10
 				duration: durations.lottery
 			};
 

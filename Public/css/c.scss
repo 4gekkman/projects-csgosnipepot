@@ -153,7 +153,6 @@
       position: absolute; right: 0; top: 0;
       height: 50px;
       //width: 33.333333333%;
-      border-left: 1px solid #212f35;
       line-height: 50px;
       font-size: 1.3em;
       padding: 0 16.66667px;
@@ -455,13 +454,13 @@
 
         // Общие стили
         .content .classic-game .cg-container .gameprocess .controls .status_and_button {
-          height: $cg_sizes_controls_height; //$cg_sizes_controls_height*.6;
+          height: $cg_sizes_controls_height*.6;  // $cg_sizes_controls_height
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button>div {
           display: inline-block;
           width: 33.33333%;
-          height: $cg_sizes_controls_height; //$cg_sizes_controls_height*.6;
-          line-height: $cg_sizes_controls_height; // $cg_sizes_controls_height*.6;
+          height: $cg_sizes_controls_height*.6; // $cg_sizes_controls_height
+          line-height: $cg_sizes_controls_height*.6; // $cg_sizes_controls_height
           vertical-align: middle;
         }
 
@@ -470,6 +469,7 @@
           text-align: center;
           color: #81D1F9;
           font-size: 1.3em;
+          margin-top: 5px;
         }
 
         // Шанс
@@ -477,10 +477,11 @@
           position: relative;
           text-align: center;
           font-size: 1.3em;
+          margin-top: 5px;
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-left {
           position: absolute;
-          top: $cg_sizes_controls_height*0.5 - 10px; //$cg_sizes_controls_height*.3 - 10px;
+          top: $cg_sizes_controls_height*.3 - 10px; // $cg_sizes_controls_height*0.5 - 10px;
           left: 0;
           display: inline-block;
           width: 24px;
@@ -491,7 +492,7 @@
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-right {
           position: absolute;
-          top: $cg_sizes_controls_height*.5 - 10px; //$cg_sizes_controls_height*.3 - 10px;
+          top: $cg_sizes_controls_height*.3 - 10px; // $cg_sizes_controls_height*.5 - 10px;
           right: 0;
           display: inline-block;
           width: 24px;
@@ -510,19 +511,19 @@
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button {
           display: inline-block;
-          height: $cg_sizes_controls_height*.3;
-          line-height: $cg_sizes_controls_height*.29;
+          height: 45px;
+          line-height: 45px;
           vertical-align: middle;
-          padding: 0 29px;
+          padding: 0 36px;
           font-size: 1.2em;
-          background: #795349;
+          background: #c9302c;
           color: #fff;
-          border: 1px solid #E3764D;
           cursor: pointer;
+          border-radius: 3px;
           transition: all .5s ease;
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button:hover {
-          background: rgba(252, 131, 86, 0.5)
+          background: #e33733;
         }
         .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button span {
           vertical-align: baseline;
@@ -533,14 +534,14 @@
         height: $cg_sizes_controls_height*.4;
       }
       .content .classic-game .cg-container .gameprocess .controls .info .limits {
-        height: $cg_sizes_controls_height*.2;
-        line-height: $cg_sizes_controls_height*.2;
-        margin: $cg_sizes_controls_height*.05 40px;
-        font-size: 1em;
+        height: 29px;
+        line-height: 26px;
+        margin: 6px 40px;
+        font-size: 0.95em;
         text-align: center;
-        background-color: #573c46;
-        border: 1px solid #734857;
-        color: #fad8f1;
+        border-top: 1px solid #2f5463;
+        padding-top: 5px;
+        text-transform: uppercase;
       }
 
     //------------------------------------//
@@ -642,8 +643,7 @@
         // Общие стили
         .content .classic-game .cg-container .gameprocess .lw-panel .counter-time {
           position: absolute;
-          right: 33px;
-          top: 52px;
+          right: 20px;
           text-align: center;
           height: 72px;
           line-height: 72px;
@@ -664,7 +664,7 @@
         // Стили самого счётчика
         .content .classic-game .cg-container .gameprocess .lw-panel .counter {
           display: inline-block;
-          width: 180px;
+          width: 80px;
           line-height: 50px;
           color: $cg_colog_highlight;
         }
@@ -696,8 +696,8 @@
       // Кнопка "Внести депозит первым"
       .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first {
         position: absolute;
-        right: 33px;
-        top: 52px;
+        right: 25px;
+        top: 64px;
         text-align: center;
         height: $cg_sizes_controls_height*.6;
         line-height: $cg_sizes_controls_height*.6;
@@ -705,16 +705,18 @@
       }
       .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button {
         display: inline-block;
-        height: $cg_sizes_controls_height*.3;
-        line-height: $cg_sizes_controls_height*.29;
+        height: 45px;
+        line-height: 45px;
         vertical-align: middle;
         padding: 0 29px;
         font-size: 1.2em;
-        background: #795349;
+        background: #c9302c;
         color: #fff;
-        border: 1px solid #E3764D;
         cursor: pointer;
+        -webkit-transition: all .5s ease;
         transition: all .5s ease;
+        border-radius: 3px;
+        margin-bottom: 10px;
       }
       .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button:hover {
         background: rgba(252, 131, 86, 0.5)
