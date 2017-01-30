@@ -182,11 +182,11 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
     //--------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      //function milliseconds() {
-      //  $mt = explode(' ', microtime());
-      //  return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
-      //}
-      //$start = milliseconds();
+      $milliseconds = function() {
+        $mt = explode(' ', microtime());
+        return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+      };
+      $start = call_user_func($milliseconds);
 
       // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
@@ -209,7 +209,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       $round = \M9\Models\MD2_rounds::find($this->data['id_round']);
       if(empty($round))
         throw new \Exception('Не удалось найти раунд с ID = '.$this->data['id_round']);
-
+Log::info('4: '.(call_user_func($milliseconds)-$start)/1000);
       // 4. Определить выигравший билет, и игрока-победителя
       $winner_and_ticket = call_user_func(function(){
 
@@ -266,7 +266,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         ];
 
       });
-
+Log::info('5: '.(call_user_func($milliseconds)-$start)/1000);
       // 5. Вычислить размер джекпота (100%, без учёта комиссий) в центах
       $jackpot_total_sum_cents = call_user_func(function() USE ($winner_and_ticket) {
 
@@ -290,7 +290,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         return round($result*100);
 
       });
-
+Log::info('6: '.(call_user_func($milliseconds)-$start)/1000);
       // 6. Вычислить угол вращения колеса
       // - Максимально точно.
       $wheel_rotation_angle = call_user_func(function() USE ($winner_and_ticket, $jackpot_total_sum_cents, $winner_and_ticket) {
@@ -453,7 +453,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         return $wheel_rotation_angle;
 
       });
-
+Log::info('7: '.(call_user_func($milliseconds)-$start)/1000);
       // 7. Записать выигравший билет и угол вращения в раунд
       $round->ticket_winner_number        = $winner_and_ticket['ticket_winner_number'];
       $round->wheel_rotation_angle        = $wheel_rotation_angle;
@@ -506,7 +506,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         ];
 
       });
-
+Log::info('9: '.(call_user_func($milliseconds)-$start)/1000);
       // 9. Вычислить итоговый размер комиссии
       $fee = call_user_func(function() USE ($bonuses, $room) {
 
@@ -560,7 +560,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         return $results;
 
       });
-
+Log::info('11: '.(call_user_func($milliseconds)-$start)/1000);
       // 11. Получить коллекцию всех долгов победителя
       $debts = \M9\Models\MD10_debts::whereHas('wins', function($query) USE ($winner_and_ticket) {
         $query->whereHas('m5_users', function($query) USE ($winner_and_ticket) {
@@ -678,7 +678,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         ];
 
       });
-
+Log::info('14: '.(call_user_func($milliseconds)-$start)/1000);
       // 14. Определить вещи на комиссию
       $items2take = call_user_func(function() USE ($howmuch, $items) {
 
@@ -806,7 +806,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         }
       });
-
+Log::info('18: '.(call_user_func($milliseconds)-$start)/1000);
       // 18. Сгенерировать случайный код безопасности
       // - Он представляет из себя число определённой длины.
       // - Длина указана в настройках соответствующей комнаты, в safecode_length.
@@ -907,7 +907,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         if(!$newwin->wins_statuses->contains($status_ready['id'])) {
           $newwin->wins_statuses()->attach($status_ready['id'], ["started_at" => \Carbon\Carbon::now()->toDateTimeString(), "comment" => "Определение победителя, создние нового выигрыша."]);
         }
-
+Log::info('25: '.(call_user_func($milliseconds)-$start)/1000);
       // 25. Добавить долг debt_balance_cents в таблицу, и связать с выигрышем
       // - Если это необходимо.
       if($debt_balance_cents_addition['newdebt'] != 0) {
@@ -1038,17 +1038,17 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         $round->save();
 
       });
-
+Log::info('x1: '.(call_user_func($milliseconds)-$start)/1000);
       // x1. Сделать commit
       DB::commit();
-
+Log::info('x2: '.(call_user_func($milliseconds)-$start)/1000);
       // x2. Обновить весь кэш процессинга выигрышей
       $result = runcommand('\M9\Commands\C25_update_wins_cache', [
         "all"   => true
       ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
-
+Log::info('x3: '.(call_user_func($milliseconds)-$start)/1000);
       // x3. Обновить данные о выигрышах у победителя
       // - Через websocket, по частному каналу
       //Event::fire(new \R2\Broadcast([
@@ -1067,7 +1067,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       //    ]
       //  ]
       //]));
-
+Log::info('x4: '.(call_user_func($milliseconds)-$start)/1000);
       // x4. Обновить статистику классической игры, и транслировать её
       call_user_func(function(){
 
@@ -1123,6 +1123,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
       //write2log('n] '.(milliseconds()-$start));
 
+      Log::info('N: '.(call_user_func($milliseconds)-$start)/1000);
 
       // n] Вернуть результат
       return [

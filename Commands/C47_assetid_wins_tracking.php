@@ -231,18 +231,14 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
           if($is_empty_assetid_in_win === false && count($win['m8_items']) != 0) // && count($items) == count($win['m8_items'])) continue;
 
           // 5] Выяснить, есть ли среди $items вещи с пустыми assetid_bots
-          $is_empty_assetid_bots_in_bet = call_user_func(function() USE ($items) {
-
-            $result = false;
-            foreach($items as $item) {
-              if(empty($item['pivot']['assetid_bots'])) {
-                $result = true;
-                break;
-              }
+          $is_empty_assetid_bots_in_bet = false;
+          $is_empty_assetid_bots_in_bet = false;
+          foreach($items as $item) {
+            if(empty($item['pivot']['assetid_bots'])) {
+              $is_empty_assetid_bots_in_bet = true;
+              break;
             }
-            return $result;
-
-          });
+          }
 
           // 6] Если $is_empty_assetid_bots_in_bet == true, перейти к следующей итерации
           if($is_empty_assetid_bots_in_bet === true) continue;

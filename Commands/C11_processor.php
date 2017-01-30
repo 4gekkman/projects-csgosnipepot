@@ -172,6 +172,12 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
     //------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
+      //$milliseconds = function() {
+      //  $mt = explode(' ', microtime());
+      //  return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+      //};
+      //$start = call_user_func($milliseconds);
+
       // А. Подготовить имя очереди, которая будет обрабатывать команды
       $queues = [
         "prod"  => "processor_hard",   // Продакшн
@@ -240,7 +246,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
         runcommand('\M9\Commands\C17_new_rounds_provider', [],
             0, ['on'=>true, 'name'=>$queue]);
 
-
       }
 
       // В. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
@@ -282,6 +287,8 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               0, ['on'=>true, 'name'=>'processor_hard_toothcomb']);
       }
 
+
+      //Log::info('Секуёнд: '.(call_user_func($milliseconds)-$start)/1000);
 
       //Log::info('Processor');
 
