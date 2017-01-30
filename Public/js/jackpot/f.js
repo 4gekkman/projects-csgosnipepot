@@ -317,10 +317,12 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 6.3] Если для room2update пришли данные с состоянием Finished
 				else if(newstatus == "Finished") {
 
+					
+
 				}
 
-				// 6.4] Если для room2update пришли данные с состоянием Winner
-				else if(newstatus == "Created" && room2update.rounds()[0].rounds_statuses()[0].status() != "Created") {
+				// 6.4] Если для room2update пришли данные с состоянием Created
+				else if(newstatus == "Created") {
 
 					// 6.4.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
@@ -338,6 +340,19 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.4.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.created.
 					else {
+
+						console.log('---> update:');
+						console.log(update);
+
+						console.log('---> room2update:');
+						console.log(room2update);
+
+						console.log('---> newstatus:');
+						console.log(newstatus);
+
+						console.log('---> data[i].id:');
+						console.log(data[i].id);
+
 						if(data[i].id == 2) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.created, update, room2update, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
 					}
