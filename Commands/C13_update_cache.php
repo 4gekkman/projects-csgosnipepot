@@ -337,61 +337,61 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
           }
 
-        // 3.2. processing:bets:accepted
-
-          // 3.2.1. Получить кэш
-          $cache = json_decode(Cache::get('processing:bets:accepted'), true);
-
-          // 3.2.2. Обновить кэш
-          // - Если он отсутствует, или если параметро force == true
-          if(
-            (!Cache::has('processing:bets:accepted') || empty($cache) || count($cache) == 0) ||
-            $this->data['force'] == true
-          ) {
-
-            // Обновить этот кэш, если в параметрах указано, что его надо обновить
-            if(in_array("processing:bets:accepted", $this->data['cache2update']) == true || $this->data['all'] == true) {
-              call_user_func(function(){
-
-                // 1] Получить все ставки со статусом Accepted
-                // - Включая все их связи.
-                $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
-                  ->whereHas('bets_statuses', function($query){
-                    $query->where('status', 'Accepted');
-                  })
-                  ->get();
-
-                // 2] Обновить полную (не safe) версию кэша
-                Cache::put('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
-
-                // 3] Обновить безопасную (safe) версию кэша
-                call_user_func(function() USE (&$accepted_bets) {
-
-                  // 3.1] Получить версию коллекции $accepted_bets с отфильтрованной секретной информацией
-                  // - Что должно быть вырезано цензурой:
-                  //
-                  //    • Полностью m8_bots.
-                  //
-                  $accepted_bets->transform(function($value, $key){
-
-                    // 1) Удалить m8_bots из $value
-                    $value_arr = $value->toArray();
-                    $value_arr['m8_bots'] = [];
-
-                    // 2) Вернуть $value_arr
-                    return $value_arr;
-
-                  });
-
-                  // 3.2] Записать JSON с $accepted_bets в кэш
-                  Cache::put('processing:bets:accepted:safe', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
-
-                });
-
-              });
-            }
-
-          }
+//        // 3.2. processing:bets:accepted
+//
+//          // 3.2.1. Получить кэш
+//          $cache = json_decode(Cache::get('processing:bets:accepted'), true);
+//
+//          // 3.2.2. Обновить кэш
+//          // - Если он отсутствует, или если параметро force == true
+//          if(
+//            (!Cache::has('processing:bets:accepted') || empty($cache) || count($cache) == 0) ||
+//            $this->data['force'] == true
+//          ) {
+//
+//            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+//            if(in_array("processing:bets:accepted", $this->data['cache2update']) == true || $this->data['all'] == true) {
+//              call_user_func(function(){
+//
+//                // 1] Получить все ставки со статусом Accepted
+//                // - Включая все их связи.
+//                $accepted_bets = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+//                  ->whereHas('bets_statuses', function($query){
+//                    $query->where('status', 'Accepted');
+//                  })
+//                  ->get();
+//
+//                // 2] Обновить полную (не safe) версию кэша
+//                Cache::put('processing:bets:accepted', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+//
+//                // 3] Обновить безопасную (safe) версию кэша
+//                call_user_func(function() USE (&$accepted_bets) {
+//
+//                  // 3.1] Получить версию коллекции $accepted_bets с отфильтрованной секретной информацией
+//                  // - Что должно быть вырезано цензурой:
+//                  //
+//                  //    • Полностью m8_bots.
+//                  //
+//                  $accepted_bets->transform(function($value, $key){
+//
+//                    // 1) Удалить m8_bots из $value
+//                    $value_arr = $value->toArray();
+//                    $value_arr['m8_bots'] = [];
+//
+//                    // 2) Вернуть $value_arr
+//                    return $value_arr;
+//
+//                  });
+//
+//                  // 3.2] Записать JSON с $accepted_bets в кэш
+//                  Cache::put('processing:bets:accepted:safe', json_encode($accepted_bets->toArray(), JSON_UNESCAPED_UNICODE), 30);
+//
+//                });
+//
+//              });
+//            }
+//
+//          }
 
         // 3.3. processing:rooms
 
@@ -712,7 +712,6 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
           }      
       
-
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C13_update_cache from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

@@ -175,7 +175,11 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
           if($lastround_status_id > 3) continue;
 
         // 3.2. Получить все accepted-ставки
-        $bets_accepted = json_decode(Cache::get('processing:bets:accepted'), true);
+        $bets_accepted = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+          ->whereHas('bets_statuses', function($query){
+            $query->where('status', 'Accepted');
+          })
+          ->get()->toArray();
 
         // 3.3. Отфильтровать из $bets_accepted неподходящие ставки
         // - Которые уже связаны с любым другим раундом

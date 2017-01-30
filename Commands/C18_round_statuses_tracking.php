@@ -498,8 +498,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
                   'wins'        => [
                     "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$winner_id), true) ?: "",
                     "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$winner_id), true) ?: [],
-                    "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$winner_id), true) ?: [],
-                    "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$winner_id), true) ?: []
+                    //"paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$winner_id), true) ?: [],
+                    //"expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$winner_id), true) ?: []
                   ]
                 ]
               ]

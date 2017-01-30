@@ -274,8 +274,8 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
               'wins'        => [
                 "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$expired_win['m5_users'][0]['id']), true) ?: "",
                 "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
-                "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
-                "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: []
+                //"paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
+                //"expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: []
               ]
             ]
           ]

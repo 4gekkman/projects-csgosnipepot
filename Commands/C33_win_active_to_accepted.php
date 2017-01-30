@@ -312,8 +312,8 @@ class C33_win_active_to_accepted extends Job { // TODO: добавить "implem
             'wins'        => [
               "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$this->data['id_user']), true) ?: "",
               "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$this->data['id_user']), true) ?: [],
-              "paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$this->data['id_user']), true) ?: [],
-              "expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$this->data['id_user']), true) ?: []
+              //"paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$this->data['id_user']), true) ?: [],
+              //"expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$this->data['id_user']), true) ?: []
             ],
             'update_inventory'    => true
           ]
