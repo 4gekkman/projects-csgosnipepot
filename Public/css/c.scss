@@ -155,7 +155,7 @@
       //width: 33.333333333%;
       border-left: 1px solid #212f35;
       line-height: 50px;
-      font-size: 1.2em;
+      font-size: 1.3em;
       padding: 0 16.66667px;
       text-align: right;
       cursor: pointer;
@@ -266,8 +266,8 @@
 
     // Общие стили
     .content .classic-game .cg-container .gamenum_and_bank {
-      height: 80px;
-      line-height: 80px;
+      height: 65px;
+      line-height: 65px;
       //list-style: 80px;
       text-align: center;
       font-size: 2.1em;
@@ -299,7 +299,9 @@
       color: $cg_colog_highlight;
     }
     .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(3) {
-      font-size: 0.7em;
+      font-size: 14px;
+      color: #ccc;
+      margin-left: -3px;
     }
 
 
@@ -547,7 +549,7 @@
 
       // Общие стили
       .content .classic-game .cg-container .gameprocess .strip-avatars {
-        position: absolute; top: 20px; left: 0;
+        position: absolute; top: 10px; left: 0;
         height: 80px; width: 100%;
         overflow: hidden;
         transition: top .2s ease;
@@ -586,7 +588,7 @@
       // Общие стили
       .content .classic-game .cg-container .gameprocess .lw-panel {
         position: absolute; bottom: 0; left: 0;
-        height: 120px; width: 100%;
+        height: 140px; width: 100%;
         border-top: 1px solid $cg_colog_highlight;
       }
 
@@ -608,13 +610,20 @@
         color: $cg_color_winblock_base;
       }
       .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .ticket span:nth-child(2) {
-        color: $cg_color_winblock_ticket;
+        color: #34b07d;
+        font-weight: 700;
+        margin-left: 5px;
       }
       .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .winner span:nth-child(2) {
-        color: $cg_color_winblock_winner;
+        color: #e4d33a;
+        font-weight: 700;
+        margin-left: 5px;
       }
       .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .number span:nth-child(2) {
-        color: $cg_color_winblock_number;
+        color: #81d1f9;
+        font-weight: 700;
+        font-size: 12px;
+        margin-left: 5px;
       }
 
       // Текущий банк игры
@@ -624,14 +633,21 @@
         font-size: 2em;
         color: #fff;
         border-radius: 3px;
-        padding: 0 10px;
+        padding: 0 17px;
+        margin-top: 5px;
       }
 
       // Счётчик времени до начала следующего раунда
 
         // Общие стили
         .content .classic-game .cg-container .gameprocess .lw-panel .counter-time {
-          position: absolute; top: 10px; right: 20px;
+          position: absolute;
+          right: 33px;
+          top: 52px;
+          text-align: center;
+          height: 72px;
+          line-height: 72px;
+          user-select: none;
         }
 
         // Стили описания счётчика
@@ -677,6 +693,35 @@
           border-radius: 4px;
         }
 
+      // Кнопка "Внести депозит первым"
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first {
+        position: absolute;
+        right: 33px;
+        top: 52px;
+        text-align: center;
+        height: $cg_sizes_controls_height*.6;
+        line-height: $cg_sizes_controls_height*.6;
+        user-select: none;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button {
+        display: inline-block;
+        height: $cg_sizes_controls_height*.3;
+        line-height: $cg_sizes_controls_height*.29;
+        vertical-align: middle;
+        padding: 0 29px;
+        font-size: 1.2em;
+        background: #795349;
+        color: #fff;
+        border: 1px solid #E3764D;
+        cursor: pointer;
+        transition: all .5s ease;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button:hover {
+        background: rgba(252, 131, 86, 0.5)
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button span {
+        vertical-align: baseline;
+      }
 
 
 

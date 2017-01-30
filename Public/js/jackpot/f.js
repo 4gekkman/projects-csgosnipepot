@@ -169,29 +169,33 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		(function(){ for(var i=0; i<data.length; i++) {
 
 			// 1] Получить ссылку на комнату, которую надо обновить
-			var room2update = self.m.s1.indexes.rooms[data[i].id];
+			var room2update_id = data[i].id;
+			var room2update = self.m.s1.indexes.rooms[room2update_id];
 
 			// 2] Если room2update отсутствует, перейти к следующей итерации
 			if(!room2update) continue;
 
 			// 3] Подготовить функцию, обновляющую данные комнаты room2update
-			var update = function(data, self, room2update){
+			var update = function(data, self, room2update_id){
 
-				// 3.1] Обновить свежими данными комнату room2update
+				// 3.1] Получить комнату, которую надо обновить
+				var room2update = self.m.s1.indexes.rooms[room2update_id];
+
+				// 3.2] Обновить свежими данными комнату room2update
 				for(var key in room2update) {
 
-					// 3.1.1] Если свойство не своё, пропускаем
+					// 3.2.1] Если свойство не своё, пропускаем
 					if(!room2update.hasOwnProperty(key)) continue;
 
-					// 3.1.2] Если св-ва key нет в data, пропускаем
+					// 3.2.2] Если св-ва key нет в data, пропускаем
 					if(!data[key]) continue;
 
-					// 3.1.3] Обновить св-во key в room2update данными из data
+					// 3.2.3] Обновить св-во key в room2update данными из data
 					room2update[key](ko.mapping.fromJS(data[key])());
 
 				}
 
-				// 1.2] Обновить ссылку на choosen_room
+				// 3.3] Обновить ссылку на choosen_room
 				self.m.s1.game.choosen_room((function(){
 
 					// Получить имя текущей выбранной комнаты
@@ -208,7 +212,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 1.3] Обновить значение m.s1.game.choosen_status
 				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
-			}.bind(null, data[i], self, room2update);
+			}.bind(null, data[i], self, room2update_id);
 
 			// 4] Рассчитать моменты, когда надо включать то или иное состояние
 			// - Конкретно для комнаты room2update.
@@ -284,7 +288,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// - На момент времени switchtimes.lottery.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.lottery, update, room2update, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
+						self.f.s1.queue_add(switchtimes.lottery, update, room2update_id, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
 					}
 
 				}
@@ -309,7 +313,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// - На момент времени switchtimes.winner.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.winner, update, room2update, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
+						self.f.s1.queue_add(switchtimes.winner, update, room2update_id, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
 					}
 
 				}
@@ -317,7 +321,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 6.3] Если для room2update пришли данные с состоянием Finished
 				else if(newstatus == "Finished") {
 
-					
+
 
 				}
 
@@ -340,21 +344,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.4.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.created.
 					else {
-
-						console.log('---> update:');
-						console.log(update);
-
-						console.log('---> room2update:');
-						console.log(room2update);
-
-						console.log('---> newstatus:');
-						console.log(newstatus);
-
-						console.log('---> data[i].id:');
-						console.log(data[i].id);
-
 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update, room2update, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
+						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
 					}
 
 				}
@@ -445,7 +436,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	// s1.10. Добавить задачу в очередь //
 	//----------------------------------//
 	// - Не добавлять дубли обновлений Winner, Lottery, Created в очередь.
-	f.s1.queue_add = function(unixtimestamp, func, room2update, newstatus, description){
+	f.s1.queue_add = function(unixtimestamp, func, room2update_id, newstatus, description){
+
+		// 0] Получить комнату, которую надо обновить
+		var room2update = self.m.s1.indexes.rooms[room2update_id];
 
 		// 1] Получить UID обновления: <номер комнаты>_<номер раунда>_<имя статуса>
 		var uid = room2update.id() + '_' +
@@ -821,8 +815,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// n] Вернуть результаты
 			return {
-				passed_s: passed_s, 		// 5
-				left_s: 	left_s, 			// 10
+				passed_s: 0, 								 	//passed_s, 		// 5
+				left_s: 	durations.lottery, 	//left_s, 			// 10
 				duration: durations.lottery
 			};
 
@@ -855,54 +849,54 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		})();
 
-		// 6. Подготовить обработчик для проведения анимации розыгрыша
-		var handler = function handler(futuretime, times) {
-
-			// 1] Получить длительность состояния lottery в мс
-			var lottery_duration_ms = +self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms();
-
-			// 2] Получить прогресс по Безье
-			var progress = self.m.s1.animation.bezier.get((lottery_duration_ms - (futuretime - Date.now()))/lottery_duration_ms);
-
-			// 3] Получить разницу между final_px и start_px
-			var path_px = self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px();
-
-			// 4] Получить позицию в px, которую надо установить
-			var position2set_px = self.m.s1.game.strip.start_px() + path_px * progress;
-
-			// 5] Установить позицию position2set_px
-			self.m.s1.game.strip.currentpos(position2set_px);
-
-			// n] Если дошли до конца
-			if(((Date.now() > futuretime) && interval)) {
-
-				// n.1) Удалить интервал
-				clearInterval(interval);
-
-				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
-					return item == self.m.s1.game.choosen_room().id();
-				});
-
-			}
-
-		};
-
-		// 7. Остановить все предыдущие анимации
-		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
-			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
-		}
-		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
-
-		// n. Запустить розыгрыш
-
-			// n.1. Запустить
-			var interval = setInterval(handler, 25, futuretime, times);
-
-			// n.2. Добавить в реестр
-			self.m.s1.game.strip.rooms_with_working_animation.push({
-				id_room: self.m.s1.game.choosen_room().id(),
-				interval: interval
-			});
+//		// 6. Подготовить обработчик для проведения анимации розыгрыша
+//		var handler = function handler(futuretime, times) {
+//
+//			// 1] Получить длительность состояния lottery в мс
+//			var lottery_duration_ms = +self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms();
+//
+//			// 2] Получить прогресс по Безье
+//			var progress = self.m.s1.animation.bezier.get((lottery_duration_ms - (futuretime - Date.now()))/lottery_duration_ms);
+//
+//			// 3] Получить разницу между final_px и start_px
+//			var path_px = self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px();
+//
+//			// 4] Получить позицию в px, которую надо установить
+//			var position2set_px = self.m.s1.game.strip.start_px() + path_px * progress;
+//
+//			// 5] Установить позицию position2set_px
+//			self.m.s1.game.strip.currentpos(position2set_px);
+//
+//			// n] Если дошли до конца
+//			if(((Date.now() > futuretime) && interval)) {
+//
+//				// n.1) Удалить интервал
+//				clearInterval(interval);
+//
+//				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
+//					return item == self.m.s1.game.choosen_room().id();
+//				});
+//
+//			}
+//
+//		};
+//
+//		// 7. Остановить все предыдущие анимации
+//		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
+//			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
+//		}
+//		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
+//
+//		// n. Запустить розыгрыш
+//
+//			// n.1. Запустить
+//			var interval = setInterval(handler, 25, futuretime, times);
+//
+//			// n.2. Добавить в реестр
+//			self.m.s1.game.strip.rooms_with_working_animation.push({
+//				id_room: self.m.s1.game.choosen_room().id(),
+//				interval: interval
+//			});
 
 	}, 500); };
 
