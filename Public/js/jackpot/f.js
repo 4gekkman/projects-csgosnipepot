@@ -172,6 +172,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			var room2update_id = data[i].id;
 			var room2update = self.m.s1.indexes.rooms[room2update_id];
 
+			console.log('room2update: ');
+			console.log(room2update);
+
 			// 2] Если room2update отсутствует, перейти к следующей итерации
 			if(!room2update) continue;
 
@@ -180,6 +183,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				// 3.1] Получить комнату, которую надо обновить
 				var room2update = self.m.s1.indexes.rooms[room2update_id];
+
+				console.log('room2update_id = '+room2update_id);
+				console.log('status = '+data.rounds[0].rounds_statuses[data.rounds[0].rounds_statuses.length-1].status);
+				console.log(room2update);
+				console.log('---');
 
 				// 3.2] Обновить свежими данными комнату room2update
 				for(var key in room2update) {
@@ -250,7 +258,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
 					// Когда надо переключить в Winner
-					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 2);
+					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 1);
 
 					// Когда надо переключить в Created
 					st.created = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
@@ -444,7 +452,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Получить UID обновления: <номер комнаты>_<номер раунда>_<имя статуса>
 		var uid = room2update.id() + '_' +
 							room2update.rounds()[0].id() + '_' +
-							room2update.rounds()[0].rounds_statuses()[0].status();
+							newstatus;
 
 		// 2] Если статус не Winner, Lottery, Created
 		if(['Winner', 'Lottery', 'Created'].indexOf(newstatus) == -1) {
@@ -482,6 +490,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			});
 
 		}
+
+		console.log('uid = '+uid);
+		console.log('queue:');
+		console.log(self.m.s1.game.queue());
 
 	};
 

@@ -558,13 +558,13 @@
 
       // Скрытое состояние
       .content .classic-game .cg-container .gameprocess .strip-avatars.hiddenpanel {
-        top: -80px;
+        top: 10px; //-80px;
         opacity: 0;
       }
 
       // Опущенное состояние
       .content .classic-game .cg-container .gameprocess .strip-avatars.downpanel {
-        top: 20px;
+        top: 10px;
       }
 
       // Непосредственно контейнер (кот.движется) для полоски аватарок
