@@ -553,12 +553,12 @@
         position: absolute; top: 10px; left: 0;
         height: 80px; width: 100%;
         overflow: hidden;
-        transition: top .2s ease;
+        transition: all .2s ease;
       }
 
       // Скрытое состояние
       .content .classic-game .cg-container .gameprocess .strip-avatars.hiddenpanel {
-        top: 10px; //-80px;
+        top: -80px;
         opacity: 0;
       }
 

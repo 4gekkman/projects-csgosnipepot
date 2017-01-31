@@ -172,9 +172,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			var room2update_id = data[i].id;
 			var room2update = self.m.s1.indexes.rooms[room2update_id];
 
-			console.log('room2update: ');
-			console.log(room2update);
-
 			// 2] Если room2update отсутствует, перейти к следующей итерации
 			if(!room2update) continue;
 
@@ -184,10 +181,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 3.1] Получить комнату, которую надо обновить
 				var room2update = self.m.s1.indexes.rooms[room2update_id];
 
-				console.log('room2update_id = '+room2update_id);
-				console.log('status = '+data.rounds[0].rounds_statuses[data.rounds[0].rounds_statuses.length-1].status);
-				console.log(room2update);
-				console.log('---');
+				//console.log('room2update_id = '+room2update_id);
+				//console.log('status = '+data.rounds[0].rounds_statuses[data.rounds[0].rounds_statuses.length-1].status);
+				//console.log(room2update);
+				//console.log('---');
 
 				// 3.2] Обновить свежими данными комнату room2update
 				for(var key in room2update) {
@@ -288,7 +285,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
 					if(timestamp_s >= switchtimes.lottery) {
-						if(data[i].id == 2)console.log('Update now');
+						if(data[i].id == 2) console.log('Update now');
 						update();
 					}
 
@@ -491,9 +488,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		}
 
-		console.log('uid = '+uid);
-		console.log('queue:');
-		console.log(self.m.s1.game.queue());
+		//console.log('uid = '+uid);
+		//console.log('queue:');
+		//for(var i=0; i<self.m.s1.game.queue().length; i++) {
+		//	console.log(self.m.s1.game.queue()[i].uid);
+		//}
 
 	};
 
@@ -510,8 +509,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		for(var i=0; i<self.m.s1.game.queue().length; i++) {
 			if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
 				self.m.s1.game.queue()[i].func();
+				var uid = self.m.s1.game.queue()[i].uid;
 				self.m.s1.game.queue.remove(function(item){
-					if(item.func == self.m.s1.game.queue()[i].func) return true;
+					if(item.uid == uid) return true;
+					return false;
 				});
 			}
 		}
@@ -882,9 +883,15 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// n] Если дошли до конца
 			if(((Date.now() > futuretime) && interval)) {
 
-				// n.1) Удалить интервал
+				console.log('Дошли до конца, ставлю final_px = '+self.m.s1.game.strip.final_px());
+
+				// n.1) Установить currentpos на финальную позицию
+				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+
+				// n.2) Удалить интервал
 				clearInterval(interval);
 
+				// n.3) Удалить комнату из реестра комнат с работающими анимациями
 				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
 					return item == self.m.s1.game.choosen_room().id();
 				});
