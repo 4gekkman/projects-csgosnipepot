@@ -326,7 +326,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.strip.width = ko.observableArray(0);
 
 		// 3] Исходная позиция полосы аватаров
-		self.m.s1.game.strip.start_px = ko.observable(880);
+		self.m.s1.game.strip.start_px = ko.observable(1600); // 880
 
 		// 4] Финальная позиция полосы аватаров
 		self.m.s1.game.strip.final_px = ko.computed(function(){
@@ -353,7 +353,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			var avatar_winner_stop_percents = self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
 
 			// 4.7] Вычислить позицию с учётом avatar_winner_stop_percents
-			var winnerpos_final = winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100);
+			var winnerpos_final = -(winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100));
 
 			// 4.n] Вернуть результаты
 			return winnerpos_final;
@@ -361,7 +361,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		});
 
 		// 5] Текущая позиция полосы с учётом avatar_winner_stop_percents
-		self.m.s1.game.strip.currentpos = ko.observable("0");
+		self.m.s1.game.strip.currentpos = ko.observable(self.m.s1.game.strip.start_px());
 
 		// 6] Значение свойства transform полосы
 		self.m.s1.game.strip.transform = ko.observable('none');

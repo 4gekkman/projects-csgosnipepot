@@ -250,7 +250,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
 					// Когда надо переключить в Winner
-					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
+					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 2);
 
 					// Когда надо переключить в Created
 					st.created = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
@@ -815,8 +815,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// n] Вернуть результаты
 			return {
-				passed_s: 0, 	//passed_s, 		// 5
-				left_s: 	10, //left_s, 			// 10
+				passed_s: passed_s, 		// 5
+				left_s: 	left_s, 			// 10
 				duration: durations.lottery
 			};
 
@@ -849,54 +849,54 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		})();
 
-//		// 6. Подготовить обработчик для проведения анимации розыгрыша
-//		var handler = function handler(futuretime, times) {
-//
-//			// 1] Получить длительность состояния lottery в мс
-//			var lottery_duration_ms = +self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms();
-//
-//			// 2] Получить прогресс по Безье
-//			var progress = self.m.s1.animation.bezier.get((lottery_duration_ms - (futuretime - Date.now()))/lottery_duration_ms);
-//
-//			// 3] Получить разницу между final_px и start_px
-//			var path_px = self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px();
-//
-//			// 4] Получить позицию в px, которую надо установить
-//			var position2set_px = self.m.s1.game.strip.start_px() + path_px * progress;
-//
-//			// 5] Установить позицию position2set_px
-//			self.m.s1.game.strip.currentpos(position2set_px);
-//
-//			// n] Если дошли до конца
-//			if(((Date.now() > futuretime) && interval)) {
-//
-//				// n.1) Удалить интервал
-//				clearInterval(interval);
-//
-//				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
-//					return item == self.m.s1.game.choosen_room().id();
-//				});
-//
-//			}
-//
-//		};
-//
-//		// 7. Остановить все предыдущие анимации
-//		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
-//			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
-//		}
-//		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
-//
-//		// n. Запустить розыгрыш
-//
-//			// n.1. Запустить
-//			var interval = setInterval(handler, 25, futuretime, times);
-//
-//			// n.2. Добавить в реестр
-//			self.m.s1.game.strip.rooms_with_working_animation.push({
-//				id_room: self.m.s1.game.choosen_room().id(),
-//				interval: interval
-//			});
+		// 6. Получить длительность состояния lottery в мс
+		var lottery_duration_ms = +self.m.s1.game.choosen_room().lottery_duration_ms() + +self.m.s1.game.choosen_room().lottery_client_delta_ms();
+
+		// 7. Подготовить обработчик для проведения анимации розыгрыша
+		var handler = function handler(futuretime, times, lottery_duration_ms) {
+
+			// 2] Получить прогресс по Безье
+			var progress = self.m.s1.animation.bezier.get((lottery_duration_ms - (futuretime - Date.now()))/lottery_duration_ms);
+
+			// 3] Получить разницу между final_px и start_px
+			var path_px = Math.abs(self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px());
+
+			// 4] Получить позицию в px, которую надо установить
+			var position2set_px = self.m.s1.game.strip.start_px() - path_px * progress;
+
+			// 5] Установить позицию position2set_px
+			self.m.s1.game.strip.currentpos(position2set_px);
+
+			// n] Если дошли до конца
+			if(((Date.now() > futuretime) && interval)) {
+
+				// n.1) Удалить интервал
+				clearInterval(interval);
+
+				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
+					return item == self.m.s1.game.choosen_room().id();
+				});
+
+			}
+
+		};
+
+		// 8. Остановить все предыдущие анимации
+		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
+			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
+		}
+		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
+
+		// n. Запустить розыгрыш
+
+			// n.1. Запустить
+			var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms);
+
+			// n.2. Добавить в реестр
+			self.m.s1.game.strip.rooms_with_working_animation.push({
+				id_room: self.m.s1.game.choosen_room().id(),
+				interval: interval
+			});
 
 	}, 500); };
 
