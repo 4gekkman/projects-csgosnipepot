@@ -883,8 +883,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// n] Если дошли до конца
 			if(((Date.now() > futuretime) && interval)) {
 
-				console.log('Дошли до конца, ставлю final_px = '+self.m.s1.game.strip.final_px());
-
 				// n.1) Установить currentpos на финальную позицию
 				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 

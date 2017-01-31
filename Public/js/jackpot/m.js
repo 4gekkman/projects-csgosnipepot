@@ -326,7 +326,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.strip.width = ko.observableArray(0);
 
 		// 3] Исходная позиция полосы аватаров
-		self.m.s1.game.strip.start_px = ko.observable(1200); // 880
+		self.m.s1.game.strip.start_px = ko.observable(1400); // 880
 
 		// 4] Финальная позиция полосы аватаров
 		self.m.s1.game.strip.final_px = ko.computed(function(){
@@ -352,8 +352,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 4.6] Получить значение
 			var avatar_winner_stop_percents = (function(){
 
-				// 4.6.1] Если предыдущий раунд есть, и статус Created или First bet, берём смещение из предыдущего раунда
-				if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Created', 'First bet'].indexOf(self.m.s1.game.choosen_status()) != -1)
+				// 4.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
+				if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Finished', 'Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length - 1].status()) != -1)
  					return self.m.s1.game.choosen_room().rounds()[1].avatar_winner_stop_percents();
 
 				// 4.6.2] Иначе, берём смещение из текущего раунда
