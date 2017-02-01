@@ -1204,7 +1204,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 						if(
 							bets[i].m5_users()[0].id() == bets[j].m5_users()[0].id() &&
 							i != j &&
-							bets[i].id() > bets[j].id()
+							(bets[j].bet_color_hex && bets[j].bet_color_hex()) &&
+						  self.m.s1.game.wheel.data().length
+							//bets[i].id() > bets[j].id()
 						)
 							return bets[j];
 					}

@@ -282,43 +282,23 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// 6] В зависимости от условия, выполнить или запланировать выполнение функции update
 
-				// 6.1] Если для room2update пришли данные с состоянием First bet
-				if(newstatus == "First bet") {
+				// 6.1] Если для room2update пришли данные с состоянием Lottery
+				if(newstatus == "Lottery") {
 
-					// Если текущий статус Created
-					// - То сразу обновить данные.
-
-					// Если текущий статус Winner или Finished
-					// - То добавить в отложенные.
-					// - Время исполнения указать st.created + 1.
-
-				}
-
-				// 6.2] Если для room2update пришли данные с состоянием First bet
-				if(newstatus == "Started") {
-
-					// Если текущий статус Started
-					// - 
-
-				}
-
-				// 6.3] Если для room2update пришли данные с состоянием Lottery
-				else if(newstatus == "Lottery") {
-
-					// 6.3.1] Текущее серверное время, unix timestamp в секундах
+					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
 					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
 					if(data[i].id == 2) console.log('switchtimes.lottery = '+switchtimes.lottery);
 
-					// 6.3.2] Если timestamp_s >= switchtimes.lottery
+					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
 					if(timestamp_s >= switchtimes.lottery) {
 						if(data[i].id == 2) console.log('Update now');
 						update();
 					}
 
-					// 6.3.3] В ином случае, запланировать выполнение update
+					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
@@ -327,23 +307,23 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				}
 
-				// 6.4] Если для room2update пришли данные с состоянием Winner
+				// 6.2] Если для room2update пришли данные с состоянием Winner
 				else if(newstatus == "Winner") {
 
-					// 6.4.1] Текущее серверное время, unix timestamp в секундах
+					// 6.2.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
 					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
 					if(data[i].id == 2) console.log('switchtimes.winner = '+switchtimes.winner);
 
-					// 6.4.2] Если timestamp_s >= switchtimes.lottery
+					// 6.2.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
 					if(timestamp_s >= switchtimes.winner) {
 						if(data[i].id == 2) console.log('Update now');
 						update();
 					}
 
-					// 6.4.3] В ином случае, запланировать выполнение update
+					// 6.2.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.winner.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
@@ -352,30 +332,30 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				}
 
-				// 6.5] Если для room2update пришли данные с состоянием Finished
+				// 6.3] Если для room2update пришли данные с состоянием Finished
 				else if(newstatus == "Finished") {
 
 
 
 				}
 
-				// 6.6] Если для room2update пришли данные с состоянием Created
+				// 6.4] Если для room2update пришли данные с состоянием Created
 				else if(newstatus == "Created") {
 
-					// 6.6.1] Текущее серверное время, unix timestamp в секундах
+					// 6.4.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
 					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
 					if(data[i].id == 2) console.log('switchtimes.created = '+switchtimes.created);
 
-					// 6.6.2] Если timestamp_s >= switchtimes.created
+					// 6.4.2] Если timestamp_s >= switchtimes.created
 					// - Выполнить update прямо сейчас.
 					if(timestamp_s >= switchtimes.created) {
 						if(data[i].id == 2) console.log('Update now');
 						update();
 					}
 
-					// 6.6.3] В ином случае, запланировать выполнение update
+					// 6.4.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.created.
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
