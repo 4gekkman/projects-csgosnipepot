@@ -214,6 +214,15 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				})());
 
+				// 3.4] Запустить lottery (если новый статус lottery), или обновить значение currentpos
+				var newstatus = self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status();
+				if(newstatus == 'Lottery')
+					setTimeout(self.f.s1.lottery, 100);
+				else if(['Winner', 'Finished', 'Created'].indexOf(newstatus) != -1 && newstatus != 'Lottery')
+					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+				else
+					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
+
 				// 1.3] Обновить значение m.s1.game.choosen_status
 				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
@@ -252,7 +261,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					st.pending = moment.utc(+started_at_s + +durations.started);
 
 					// Когда надо переключить в Lottery
-					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
+					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending - 1.5);
 
 					// Когда надо переключить в Winner
 					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 1);

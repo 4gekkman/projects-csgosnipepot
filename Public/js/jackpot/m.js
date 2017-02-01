@@ -1325,13 +1325,13 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//--------------------------------------------------------//
 		ko.computed(function(){
 
-			self.m.s1.game.choosen_room();
-			if(self.m.s1.game.choosen_status() == 'Lottery')
-				setTimeout(self.f.s1.lottery, 100);
-			else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')
-				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
-			else
-				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
+			//self.m.s1.game.choosen_room();
+			//if(self.m.s1.game.choosen_status() == 'Lottery')
+			//	setTimeout(self.f.s1.lottery, 100);
+			//else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')
+			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+			//else
+			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
 
 		});
 
