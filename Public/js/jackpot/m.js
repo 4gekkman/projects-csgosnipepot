@@ -326,7 +326,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.strip.width = ko.observableArray(0);
 
 		// 3] Исходная позиция полосы аватаров
-		self.m.s1.game.strip.start_px = ko.observable(1400); // 880
+		self.m.s1.game.strip.start_px = ko.observable(880); // 880
 
 		// 4] Финальная позиция полосы аватаров
 		self.m.s1.game.strip.final_px = ko.computed(function(){

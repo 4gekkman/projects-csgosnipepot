@@ -341,7 +341,7 @@
       // Состояние lottery
       .content .classic-game .cg-container .gameprocess .counters.lottery {
         opacity: 0;
-        transform: translate3d(-260px,-40px,0) rotate(-5deg);
+        transform: translate3d(0,-20px,0); //translate3d(-260px,-40px,0) rotate(-5deg);
       }
 
       // Состояние winner
