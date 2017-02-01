@@ -275,13 +275,13 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
         });
 
         // 3.2. Вычислить подходящий статус для $room в текущем состоянии
-        $suitable_room_status = call_user_func(function() USE ($params) {
+        $suitable_room_status = call_user_func(function() USE ($params, $room) {
 
           // 1] Created
           $is_created = call_user_func(function() USE ($params) {
 
-            // 1.1] Если нет ни 1-й accepted-ставки, вернуть true
-            if($params['bets_accepted_count'] == 0) return true;
+            // 1.1] Если нет ни 1-й accepted-ставки, и статус не Created, вернуть true
+            if($params['status'] != 1 && $params['bets_accepted_count'] == 0) return true;
 
             // 1.2] Иначе, вернуть false
             return false;
@@ -293,10 +293,20 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           ];
 
           // 2] First bet
-          $is_first_bet = call_user_func(function() USE ($params) {
+          $is_first_bet = call_user_func(function() USE ($params, $room) {
 
-            // 2.1] Если есть ровно 1-на accepted-ставка, вернуть true
-            if($params['bets_accepted_count'] == 1) return true;
+            // 2.1] Вернуть true, если:
+            // - Если текущий статус Created, и
+            // - если с момента переключения в текущий статус прошло более winner_client_delta_s секунд, и
+            // - если есть ровно 1-на accepted-ставка
+            if(
+              $params['status'] == 1 &&
+              \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($room['rounds']['0']['rounds_statuses'][0]['pivot']['started_at'])->addSeconds($room['winner_client_delta_s'])) &&
+              $params['bets_accepted_count'] == 1
+            ) return true;
+
+            // Если есть ровно 1-на accepted-ставка, вернуть true
+            //if($params['bets_accepted_count'] == 1) return true;
 
             // 2.2] Иначе, вернуть false
             return false;
@@ -319,8 +329,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             // 3.2] Вернуть результат
             if(
 
-              // Если есть более 2-х accepted-ставок, и текущий статус Created или First bet
-              ($is2more_accepted_bets == true && ($params['status'] == 1 || $params['status'] == 2)) ||
+              // Если есть более 2-х accepted-ставок, и текущий статус First bet
+              ($is2more_accepted_bets == true && ($params['status'] == 2)) ||
 
               // Если есть более 2-х accepted-ставок, и текущий статус Started, и лимиты по времени/вещам не достигнуты
               ($is2more_accepted_bets == true && $params['status'] == 3 && $params['is_round_time_is_not_expired'] == true && $params['is_skins_amount_limit_is_not_reached'] == true)

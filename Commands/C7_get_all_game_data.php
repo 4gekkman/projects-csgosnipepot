@@ -399,7 +399,8 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
                      if(
                        $rooms[$i]['rounds'][$j]['bets'][$k]['m5_users'][0]['id'] == $rooms[$i]['rounds'][$j]['bets'][$m]['m5_users'][0]['id'] &&
                        $m != $k &&
-                       $rooms[$i]['rounds'][$j]['bets'][$k]['id'] > $rooms[$i]['rounds'][$j]['bets'][$m]['id']
+                       array_key_exists('bet_color_hex', $rooms[$i]['rounds'][$j]['bets'][$m])
+                       //$rooms[$i]['rounds'][$j]['bets'][$k]['id'] > $rooms[$i]['rounds'][$j]['bets'][$m]['id']
                      )
                        return $rooms[$i]['rounds'][$j]['bets'][$m];
                    }
