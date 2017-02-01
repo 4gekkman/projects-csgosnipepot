@@ -297,6 +297,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 5] Шансы игрока в текущем раунде в выбранной комнате
 		self.m.s1.bank.bets = ko.observable(0);
 
+		// 6] Надпись о кол-ве внесённых предметов с падежами
+		self.m.s1.bank.itemsnum_human = ko.observable('');
+
 	//---------------------------------------------------------------------//
 	// s1.4. Модель интерфейса по распределению шансов в выбранной комнате //
 	//---------------------------------------------------------------------//
@@ -960,8 +963,18 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 2] Шансы игрока в текущем раунде в выбранной комнате
 				self.m.s1.bank.bets((function(){
-					return +(m.s1.game.wheel.currentuser() ? Math.round(m.s1.game.wheel.currentuser().odds()*100*100)/100 : '0')
+					return +(m.s1.game.wheel.currentuser() ? Math.round(m.s1.game.wheel.currentuser().odds()*100*10)/10 : '0')
 				})());
+
+				// 3] Человеко-понятная надпись о кол-ве внесённых предметов
+				if(self.m.s1.bank.itemsnum() == 0)
+					self.m.s1.bank.itemsnum_human('Вы внесли 0 предметов');
+				if(self.m.s1.bank.itemsnum() == 1)
+					self.m.s1.bank.itemsnum_human('Вы внесли 1 предмет');
+				if(self.m.s1.bank.itemsnum() >= 2 && self.m.s1.bank.itemsnum() <= 4)
+					self.m.s1.bank.itemsnum_human('Вы внесли '+self.m.s1.bank.itemsnum()+' предмета');
+				if(self.m.s1.bank.itemsnum() >= 5)
+					self.m.s1.bank.itemsnum_human('Вы внесли '+self.m.s1.bank.itemsnum()+' предметов');
 
 			})();
 

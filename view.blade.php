@@ -325,7 +325,7 @@
             <!-- 1.1] Кол-во внесённых предметов -->
             <!---------------------------------*/ ?>
             <div class="items_info">
-              <span data-bind="text: 'Вы внесли предметов: '+m.s1.bank.itemsnum()"></span>
+              <span data-bind="text: m.s1.bank.itemsnum_human"></span>
             </div>
 
             <?php /*--------------------------------->
@@ -512,7 +512,7 @@
           <!-- 3] Шансы -->
           <!----------*/ ?>
           <div class="odds">
-            <span data-bind="text: Math.round(odds()*100*100)/100 + '%'"></span>
+            <span data-bind="text: Math.round(odds()*100*10)/10 + '%'"></span>
           </div>
 
         </div>
@@ -571,7 +571,7 @@
               <div class="sum-odds-tickets">
 
                 <!-- Сумма ставки и шансы выигрыша -->
-                <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 10000) / 100) + '%'" title="Шансы на победу ставки"></span>
+                <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 100 * 10) / 10) + '%'" title="Шансы на победу ставки"></span>
                 <span>/</span>
                 <span class="sum" data-bind="text: (Math.round(total_bet_amount())/100) + ' руб.'" title="Сумма ставки"></span>
 
