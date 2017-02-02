@@ -1071,22 +1071,8 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       // x4. Обновить статистику классической игры, и транслировать её
       call_user_func(function(){
 
-        // 1] Обновить статистику и получить новые данные
-        $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
-          "force" => true
-        ]);
-        if($classicgame_statistics['status'] != 0)
-          throw new \Exception($classicgame_statistics['data']['errormsg']);
-
-        // 2] Транслировать свежую статистику через публичны канал всем пользователям
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:public'],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'classicgame_statistics_update',
-            'data' => $classicgame_statistics
-          ]
-        ]));
+        runcommand('\M1\Commands\C49_update_and_translate_stats', [],
+            0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
 
       });
 

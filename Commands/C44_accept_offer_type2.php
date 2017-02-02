@@ -188,6 +188,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         !empty($accept_result['data']['tradeid'])
       ) {
 
+        // Внести изменения
         $result = runcommand('\M9\Commands\C16_active_to_accepted', [
           "betid"             => $this->data['betid'],
           "tradeofferid"      => $this->data['tradeofferid'],
@@ -196,6 +197,14 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
+
+        // Обновить статистику классической игры, и транслировать её через публичный канал
+        call_user_func(function(){
+
+          runcommand('\M1\Commands\C49_update_and_translate_stats', [],
+              0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
+
+        });
 
       }
 
@@ -379,6 +388,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         // 4.4. Если оффер не активен, и принят, применяем C16
         if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] == 3) {
 
+          // Внести изменения
           $result = runcommand('\M9\Commands\C16_active_to_accepted', [
             "betid"             => $this->data['betid'],
             "tradeofferid"      => $this->data['tradeofferid'],
@@ -387,6 +397,14 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
+
+          // Обновить статистику классической игры, и транслировать её через публичный канал
+          call_user_func(function(){
+
+            runcommand('\M1\Commands\C49_update_and_translate_stats', [],
+                0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
+
+          });
 
         }
 
