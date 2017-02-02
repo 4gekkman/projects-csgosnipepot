@@ -441,8 +441,14 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//------------------------------------------------------------//
 	f.s1.update_statistics = function(data){
 
+		console.log(self.m.s1.game.statistics);
+
+
 		// Обновить модель статистики
 		ko.mapping.fromJS(data, self.m.s1.game.statistics);
+
+
+		// runcommand('\M9\Commands\C49_update_and_translate_stats', [], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
 
 	};
 
