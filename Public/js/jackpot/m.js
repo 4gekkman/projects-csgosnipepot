@@ -958,12 +958,12 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 1] Количество внесённых игроком вещей в текущем раунде в выбранной комнате
 				self.m.s1.bank.itemsnum((function(){
-					return +(m.s1.game.wheel.currentuser() ? m.s1.game.wheel.currentuser().itemscount() : '0');
+					return +(self.m.s1.game.wheel.currentuser() ? self.m.s1.game.wheel.currentuser().itemscount() : '0');
 				})());
 
 				// 2] Шансы игрока в текущем раунде в выбранной комнате
 				self.m.s1.bank.bets((function(){
-					return +(m.s1.game.wheel.currentuser() ? Math.round(m.s1.game.wheel.currentuser().odds()*100*10)/10 : '0')
+					return +(self.m.s1.game.wheel.currentuser() ? Math.round(self.m.s1.game.wheel.currentuser().odds()*100*10)/10 : '0')
 				})());
 
 				// 3] Человеко-понятная надпись о кол-ве внесённых предметов
@@ -1198,13 +1198,13 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){		
 	
 			// 1] Завершить, если отсутствуют необходимые ресурсы
-			if(!self.m.s1.game.choosen_room() || !self.m.s1.bank.sum()) return;
+			//if(!self.m.s1.game.choosen_room() || !self.m.s1.bank.sum()) return;
 
 			// 2] Очистить m.s1.game.wheel.data
 			self.m.s1.game.wheel.data.removeAll();
 
 			// 3] Получить короткую ссылку на bets текущего раунда выбранной комнаты
-			var bets = self.m.s1.game.choosen_room().rounds()[0].bets();
+			var bets = self.m.s1.game.choosen_room() ? self.m.s1.game.choosen_room().rounds()[0].bets() : [];
 
 			// 4] Наполнить m.s1.game.wheel.data
 			for(var i=0; i<bets.length; i++) {

@@ -180,6 +180,7 @@ class Controller extends BaseController {
       if($classicgame_statistics['status'] != 0)
         throw new \Exception($classicgame_statistics['data']['errormsg']);
 
+      Log::info($classicgame_statistics);
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
