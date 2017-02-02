@@ -168,7 +168,6 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
      *  x1. Сделать commit
      *  x2. Обновить весь кэш процессинга выигрышей
      *  x3. Обновить данные о выигрышах у победителя
-     *  x4. Обновить статистику классической игры, и транслировать её
      *
      *  m] Отладочный массив логов
      *  n] Вернуть результат
@@ -1068,13 +1067,6 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       //  ]
       //]));
 
-      // x4. Обновить статистику классической игры, и транслировать её
-      call_user_func(function(){
-
-        runcommand('\M1\Commands\C49_update_and_translate_stats', [],
-            0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
-
-      });
 
 
       // m] Отладочный массив логов

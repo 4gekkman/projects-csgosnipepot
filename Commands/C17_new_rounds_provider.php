@@ -246,6 +246,12 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
           ]
         ]));
 
+        // 4.4. Обновить статистику классической игры, и транслировать её
+        runcommand('\M9\Commands\C49_update_and_translate_stats', [
+          'id_room' => $newround->id_room
+        ],
+        0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
+
       }
 
 

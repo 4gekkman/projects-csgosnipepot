@@ -349,8 +349,8 @@ class C40_get_statistics extends Job { // TODO: добавить "implements Sho
               // 1.2] Среди всех ставок найти наибольшую по сумме
               // - За текущий день.
               $bet = \M9\Models\MD3_bets::with(['m5_users'])
-                  ->whereRaw('sum_cents_at_bet_moment = (SELECT MAX(`sum_cents_at_bet_moment`) FROM m9.md3_bets WHERE Date(`created_at`) = CURDATE())')
-                  ->orderBy('id', 'desc')->first();
+                  ->whereRaw('sum_cents_at_bet_moment = (SELECT MAX(CAST(`sum_cents_at_bet_moment` as SIGNED)) FROM m9.md3_bets WHERE Date(`created_at`) = CURDATE())')
+                  ->first();
 
               // 1.3] Если $bet не пуста
               // - Добавить инфу из $win в $result

@@ -201,7 +201,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         // Обновить статистику классической игры, и транслировать её через публичный канал
         call_user_func(function(){
 
-          runcommand('\M1\Commands\C49_update_and_translate_stats', [],
+          runcommand('\M9\Commands\C49_update_and_translate_stats', [],
               0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
 
         });
@@ -401,7 +401,7 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
           // Обновить статистику классической игры, и транслировать её через публичный канал
           call_user_func(function(){
 
-            runcommand('\M1\Commands\C49_update_and_translate_stats', [],
+            runcommand('\M9\Commands\C49_update_and_translate_stats', [],
                 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
 
           });
