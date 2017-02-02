@@ -180,6 +180,15 @@ class Controller extends BaseController {
       if($classicgame_statistics['status'] != 0)
         throw new \Exception($classicgame_statistics['data']['errormsg']);
 
+      // 7. Получить значение USD/RUB
+      $rate = runcommand('\M9\Commands\C50_get_rate', [
+        'pair' => 'USD/RUB'
+      ]);
+      if($result['status'] != 0)
+        $rate = 60;
+      else
+        $rate = $rate['data']['rate'];
+
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
 
@@ -196,6 +205,7 @@ class Controller extends BaseController {
         'palette'                 => $palette,
         "servertime_s"            => \Carbon\Carbon::now()->timestamp,
         "classicgame_statistics"  => $classicgame_statistics,
+        "usdrub_rate"             => $rate
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

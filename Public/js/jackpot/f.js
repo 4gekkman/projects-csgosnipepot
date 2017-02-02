@@ -441,14 +441,52 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//------------------------------------------------------------//
 	f.s1.update_statistics = function(data){
 
-		console.log(self.m.s1.game.statistics);
 
+		// 1] Получить свежие данные
+		var id_room = data.id_room;
+		var classicgame_statistics = data.classicgame_statistics.data;
 
-		// Обновить модель статистики
-		ko.mapping.fromJS(data, self.m.s1.game.statistics);
+		// 2] Если id_room пуста, обновить всю статистику
+		if(!id_room) ko.mapping.fromJS(classicgame_statistics, self.m.s1.game.statistics);
 
+		// 3] Если id_room не пуста:
+		// - Обновить универсальную статистику.
+		// - Обновить имеющую отношение к комнате id_room статистику.
+		else {
+			for(var key in self.m.s1.game.statistics) {
 
-		// runcommand('\M9\Commands\C49_update_and_translate_stats', [], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
+				// 3.1] Если свойство не своё, пропускаем
+				if(!self.m.s1.game.statistics.hasOwnProperty(key)) continue;
+
+				// 3.2] Если св-ва key нет в classicgame_statistics, пропускаем
+				if(!classicgame_statistics[key]) continue;
+
+				// 3.3] Если key == "m9:statistics:lastwinners"
+				// - Обновить только данные по комнате id_room
+				if(key == "m9:statistics:lastwinners") {
+
+					// 3.3.1] Если данных по комнате id_room нет, перейти к следующей итерации
+					if(!self.m.s1.game.statistics[key][id_room] || !classicgame_statistics[key][id_room]) continue;
+
+					// 3.3.2] А если есть
+					else {
+
+						for(var k in self.m.s1.game.statistics[key][id_room]) {
+							if(!self.m.s1.game.statistics[key][id_room].hasOwnProperty(k)) continue;
+							if(!classicgame_statistics[key][id_room][k]) continue;
+							self.m.s1.game.statistics[key][id_room][k](ko.mapping.fromJS(classicgame_statistics[key][id_room][k])());
+						}
+						continue;
+
+					}
+
+				}
+
+				// 3.n] Обновить св-во key в self.m.s1.game.statistics данными из classicgame_statistics
+				ko.mapping.fromJS(data, self.m.s1.game.statistics);
+
+			}
+		}
 
 	};
 
