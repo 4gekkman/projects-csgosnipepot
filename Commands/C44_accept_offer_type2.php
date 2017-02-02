@@ -198,14 +198,6 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // Обновить статистику классической игры, и транслировать её через публичный канал
-        call_user_func(function(){
-
-          runcommand('\M9\Commands\C49_update_and_translate_stats', [],
-              0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
-
-        });
-
       }
 
       // 4. В случае неудачного принятия, принять меры
@@ -397,14 +389,6 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
-
-          // Обновить статистику классической игры, и транслировать её через публичный канал
-          call_user_func(function(){
-
-            runcommand('\M9\Commands\C49_update_and_translate_stats', [],
-                0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
-
-          });
 
         }
 

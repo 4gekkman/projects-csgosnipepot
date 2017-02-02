@@ -133,7 +133,8 @@
           '\M9\Console\T15_assetid_bots_tracking',
           '\M9\Console\T16_assetid_wins_tracking',
           '\M9\Console\T17_wins_autopayouts',
-          '\M9\Console\T18_update_and_translate_stats'
+          '\M9\Console\T18_update_and_translate_stats',
+          '\M9\Console\T19_get_rate'
         ];
 
         // Регистрация команд в методе register

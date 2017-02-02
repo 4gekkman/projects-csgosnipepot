@@ -14,7 +14,10 @@
     ],
     "require": {
 			"4gekkman/M5": "~1.0",
-			"dunglas/php-torcontrol": "~1.0"
+			"dunglas/php-torcontrol": "~1.0",
+			"florianv/laravel-swap": "~1.1",
+			"php-http/message": "~1.4",
+			"php-http/guzzle6-adapter": "~1.1"
 		},
     "autoload": {
         "psr-4": {"M9\\": ""}

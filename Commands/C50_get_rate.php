@@ -7,14 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Update and translate game statistics through public websocket channel
+ *    - Get exchange rate
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        pair        // Валютная пара
  *      ]
  *    ]
  *
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C49_update_and_translate_stats extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C50_get_rate extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,52 +135,69 @@ class C49_update_and_translate_stats extends Job { // TODO: добавить "im
     /**
      * Оглавление
      *
-     *  1. Принять и проверить входящие данные
-     *  2. Обновить статистику и получить новые данные
-     *  3. Транслировать свежую статистику через публичны канал всем пользователям
+     *  1. Получить и проверить входящие данные
+     *  2. Получить свежии данные по паре pair
+     *  3. Если $rate пуст, записать 60
+     *  n. Вернуть результат
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------------------------------------------------------------//
-    // Update and translate game statistics through public websocket channel //
-    //-----------------------------------------------------------------------//
+    //-------------------//
+    // Get exchange rate //
+    //-------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Принять и проверить входящие данные
+      // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
-        "id_room"             => ["regex:/^[1-9]+[0-9]*$/ui"],
+        "pair"           => ["required", "string"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
-      if(!array_key_exists('id_room', $this->data))
-        $this->data['id_room'] = "";
 
-      // 2. Обновить статистику и получить новые данные
-      $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
-        "force" => true
-      ]);
-      if($classicgame_statistics['status'] != 0)
-        throw new \Exception($classicgame_statistics['data']['errormsg']);
+      // 2. Получить свежии данные по паре pair
+      $rate = call_user_func(function(){
 
-      // 3. Транслировать свежую статистику через публичны канал всем пользователям
-      Event::fire(new \R2\Broadcast([
-        'channels' => ['m9:public'],
-        'queue'    => 'm9_lottery_broadcasting',
-        'data'     => [
-          'task' => 'classicgame_statistics_update',
-          'data' => [
-            'classicgame_statistics' => $classicgame_statistics,
-            'id_room'                => $this->data['id_room']
-          ]
+        // 1] Попробовать найти данные в кэше
+        $rate = json_decode(Cache::get('m9:'.$this->data['pair'].':rate'), true);
+
+        // 2] Если кэш не пуст, вернуть его
+        if(!empty($rate)) return $rate;
+
+        // 3] Если кэш пуст
+        else {
+
+          // 3.1] Запросить свежие данные
+          $rate = \Swap::latest($this->data['pair']);
+          $rate_value = $rate->getValue();
+
+          // 3.2] Записать их в кэш на 30 минут
+          Cache::put('m9:'.$this->data['pair'].':rate', json_encode($rate_value, JSON_UNESCAPED_UNICODE), 30);
+
+          // 3.3] Вернуть их
+          return $rate_value;
+
+        }
+
+      });
+
+      // 3. Если $rate пуст, записать 60
+      if(empty($rate)) $rate = 60;
+
+      // n. Вернуть результат
+      return [
+        "status"  => 0,
+        "data"    => [
+          "rate" => $rate
         ]
-      ]));
+      ];
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C49_update_and_translate_stats from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C50_get_rate from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C49_update_and_translate_stats']);
+        write2log($errortext, ['M9', 'C50_get_rate']);
         return [
           "status"  => -2,
           "data"    => [

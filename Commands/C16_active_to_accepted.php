@@ -147,6 +147,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
      *  7. Вычислить, можно ли пользователю id_user разместить ещё одну ставку в посл.раунд комнаты id_room
      *  8. Принять ставку в текущий раунд, если $canwe_makeabet['verdict'] == true
      *  9. Если принять ставку в текущий раунд нельзя, отложить до следующего
+     *  10. Обновить статистику классической игры, и транслировать её через публичный канал
      *
      *  N. Вернуть статус 0
      *
@@ -528,6 +529,18 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         ]));
 
       }
+
+      // 10. Обновить статистику классической игры, и транслировать её через публичный канал
+      call_user_func(function(){
+
+        runcommand('\M9\Commands\C49_update_and_translate_stats', [
+          'id_room' => $this->data['id_room']
+        ],
+        0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
+
+      });
+
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C16_active_to_accepted from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
