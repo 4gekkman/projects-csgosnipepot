@@ -247,7 +247,7 @@
         <!---------*/ ?>
         <div class="bank">
           <span>БАНК:</span>
-          <span data-bind="text: m.s1.game.curjackpot()/100"></span>
+          <span data-bind="text: Math.ceil((m.s1.game.curjackpot()/100)*server.data.usdrub_rate)"></span>
           <span>руб</span>
         </div>
 
@@ -357,7 +357,7 @@
             <!-- 2.1] Информация о лимитах -->
             <!---------------------------*/ ?>
             <div class="limits">
-              <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.round(m.s1.game.choosen_room().min_bet())/100 + ' руб.') : ' не ограничена.')"></span>
+              <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.ceil((Math.round(m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)  + ' руб.') : ' не ограничена.')"></span>
               <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>
             </div>
 
@@ -429,7 +429,7 @@
           <!-- 3] Текущий банк игры -->
           <!----------------------*/ ?>
           <div class="bank">
-            <span data-bind="text: m.s1.game.curjackpot()/100 + ' руб.'"></span>
+            <span data-bind="text: Math.ceil((m.s1.game.curjackpot()/100)*server.data.usdrub_rate) + ' руб.'"></span>
           </div>
 
           <?php /*---------------------------------------------->
@@ -573,7 +573,7 @@
                 <!-- Сумма ставки и шансы выигрыша -->
                 <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 100 * 10) / 10) + '%'" title="Шансы на победу ставки"></span>
                 <span>/</span>
-                <span class="sum" data-bind="text: (Math.round(total_bet_amount())/100) + ' руб.'" title="Сумма ставки"></span>
+                <span class="sum" data-bind="text: Math.ceil((Math.round(total_bet_amount())/100)*server.data.usdrub_rate) + ' руб.'" title="Сумма ставки"></span>
 
                 <!-- Номера билетов -->
                 <!--<div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">-->
@@ -612,7 +612,7 @@
               <!-- Цена -->
               <!------*/ ?>
               <div class="price">
-                <span data-bind="text: price"></span>
+                <span data-bind="text: Math.ceil(price()*server.data.usdrub_rate)"></span>
                 <span class="rub" data-bind="text: 'руб'"></span>
               </div>
 
@@ -739,7 +739,7 @@
         <!--------------*/ ?>
         <div class="row">
           <div class="span50">Выигрыш:</div>
-          <div class="span50" data-bind="text: m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].jackpot_total_sum_cents() + ' руб.'"></div>
+          <div class="span50" data-bind="text: Math.ceil((m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
         </div>
 
         <?php /*--------->
@@ -795,7 +795,7 @@
         <!--------------*/ ?>
         <div class="row">
           <div class="span50">Выигрыш:</div>
-          <div class="span50" data-bind="text: m.s1.game.statistics['m9:statistics:luckyoftheday'].jackpot_total_sum_cents() + ' руб.'"></div>
+          <div class="span50" data-bind="text: Math.ceil((m.s1.game.statistics['m9:statistics:luckyoftheday'].jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
         </div>
 
         <?php /*--------->
@@ -851,7 +851,7 @@
         <!------------------------*/ ?>
         <div class="row">
           <div class="span50">Ставка:</div>
-          <div class="span50" data-bind="text: m.s1.game.statistics['m9:statistics:thebiggetsbet'].sum_cents_at_bet_moment() + ' руб.'"></div>
+          <div class="span50" data-bind="text: Math.ceil((m.s1.game.statistics['m9:statistics:thebiggetsbet'].sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
         </div>
 
       </div>
