@@ -298,11 +298,11 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             // 2.1] Вернуть true, если:
             // - Если текущий статус Created, и
             // - если с момента переключения в текущий статус прошло более winner_client_delta_s секунд, и
-            // - если есть ровно 1-на accepted-ставка
+            // - если есть ровно 1-на или более accepted-ставок
             if(
               $params['status'] == 1 &&
               \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($room['rounds']['0']['rounds_statuses'][0]['pivot']['started_at'])->addSeconds($room['winner_client_delta_s'])) &&
-              $params['bets_accepted_count'] == 1
+              $params['bets_accepted_count'] >= 1
             ) return true;
 
             // Если есть ровно 1-на accepted-ставка, вернуть true
@@ -530,7 +530,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           if($suitable_room_status['name'] == "Created") {
 
             // 10.1] Обновить статистику классической игры, и транслировать её
-            call_user_func(function(){
+            call_user_func(function() USE ($room) {
 
               runcommand('\M9\Commands\C49_update_and_translate_stats', [
                 "id_room" => $room['id']
