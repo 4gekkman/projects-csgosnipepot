@@ -668,7 +668,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				}
 
 				// 2.2.4] Если это Started и статус room2update = "First bet" или "Started"
-				if(self.m.s1.game.queue()[i].is_started && (status == "First bet") || status == "Started")) {
+				else if(self.m.s1.game.queue()[i].is_started && (status == "First bet" || status == "Started")) {
 
 					self.m.s1.game.queue()[i].func();
 					var uid = self.m.s1.game.queue()[i].uid;

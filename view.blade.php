@@ -747,7 +747,7 @@
         <!-----------*/ ?>
         <div class="row">
           <div class="span50">Шанс:</div>
-          <div class="span50 odds" data-bind="text: m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].odds() + '%'"></div>
+          <div class="span50 odds" data-bind="text: Math.round(m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].odds()*10)/10 + '%'"></div>
         </div>
 
       </div>
