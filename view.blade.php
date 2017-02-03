@@ -319,7 +319,7 @@
           <?php /*------------------------------------------------------------>
           <!-- 1] Кол-во внесённых предметов, шанс, кнопка "Внести депозит" -->
           <!--------------------------------------------------------------*/ ?>
-          <div class="status_and_button">
+          <div class="status_and_button" data-bind="visible: m.s0.is_logged_in">
 
             <?php /*------------------------------->
             <!-- 1.1] Кол-во внесённых предметов -->
@@ -351,7 +351,7 @@
           <?php /*--------------------------------------------------->
           <!-- 2] Панель с информацией о лимитах выбранной комнаты -->
           <!-----------------------------------------------------*/ ?>
-          <div class="info" data-bind="if: m.s1.game.choosen_room">
+          <div class="info" data-bind="if: m.s1.game.choosen_room, visible: m.s0.is_logged_in">
 
             <?php /*------------------------->
             <!-- 2.1] Информация о лимитах -->
@@ -359,6 +359,44 @@
             <div class="limits">
               <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.ceil((Math.round(m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)  + ' руб.') : ' не ограничена.')"></span>
               <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>
+            </div>
+
+          </div>
+
+          <?php /*------------------------------------------------------------------------------>
+          <!-- 3] Панель с кнопкой "Принять участие" для не аутентифицированных пользователей -->
+          <!--------------------------------------------------------------------------------*/ ?>
+          <div class="not_auth_user_panel" data-bind="visible: !m.s0.is_logged_in()">
+
+            <?php /*----------------------------------->
+            <!-- 1.1] Замечание про дорогие предметы -->
+            <!-------------------------------------*/ ?>
+            <div class="expensive_items">
+              <div>
+                <span>ЧЕМ ДОРОЖЕ ПРЕДМЕТЫ ВЫ СТАВИТЕ, ТЕМ ВЫШЕ ШАНС НА ПОБЕДУ</span>
+              </div>
+            </div>
+
+            <?php /*--------------------------------------->
+            <!-- 1.2] Информация об ограничениях комнаты -->
+            <!-----------------------------------------*/ ?>
+            <div class="roominfo">
+              <span class="arrows-left"></span>
+              <div>
+                <span data-bind="text: 'МИНИМАЛЬНАЯ СУММА ДЕПОЗИТА '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.ceil((Math.round(m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)  + ' РУБ.') : ' не ограничена.')"></span>
+                <span data-bind="text: 'МАКСИМАЛЬНЫЙ ДЕПОЗИТ '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' ПРЕДМЕТОВ.') : ' НЕ ОГРАНИЧЕН.')"></span>
+              </div>
+              <span class="arrows-right"></span>
+            </div>
+
+            <?php /*---------------------------->
+            <!-- 1.3] Кнопка "Внести депозит" -->
+            <!------------------------------*/ ?>
+            <div class="make-a-bet">
+              <div class="button" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>
+                <i class="fa fa-fw fa-steam"></i>
+                <span>Войти через Steam</span>
+              </div>
             </div>
 
           </div>

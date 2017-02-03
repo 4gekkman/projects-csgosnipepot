@@ -529,6 +529,104 @@
           vertical-align: baseline;
         }
 
+      // Панель с кнопкой "Принять участие" для не аутентифицированных пользователей
+
+        // Общие стили
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel {
+          height: $cg_sizes_controls_height;  // $cg_sizes_controls_height
+          position: absolute;
+          z-index: 1;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel>div {
+          display: inline-block;
+          height: $cg_sizes_controls_height; // $cg_sizes_controls_height
+          line-height: $cg_sizes_controls_height; // $cg_sizes_controls_height
+          vertical-align: middle;
+        }
+
+        // Замечание про дорогие предметы
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .expensive_items {
+          width: 35%;
+          text-align: justify;
+          color: #81d1f9;
+          font-size: 1.0em;
+          white-space: normal;
+          padding: 0 30px 0 20px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .expensive_items>div {
+          display: inline-block;
+          line-height: normal;
+          vertical-align: middle;
+        }
+
+        // Информация об ограничениях комнаты
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo {
+          width: 35%;
+          position: relative;
+          text-align: left;
+          color: #81d1f9;
+          font-size: 1.0em;
+          white-space: normal;
+          padding: 0 20px 0 20px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo>div {
+          display: inline-block;
+          line-height: normal;
+          vertical-align: middle;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo .arrows-left {
+          position: absolute;
+          top: 50%;
+          margin-top: -12px;
+          left: -20px;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo .arrows-right {
+          position: absolute;
+          top: 50%;
+          margin-top: -12px;
+          right: -16px;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+
+        // Кнопка "Войти через Steam"
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet {
+          width: 30%;
+          text-align: center;
+          height: $cg_sizes_controls_height;
+          line-height: $cg_sizes_controls_height;
+          user-select: none;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button {
+          display: inline-block;
+          height: 45px;
+          line-height: 45px;
+          vertical-align: middle;
+          padding: 0 21px;
+          font-size: 1.2em;
+          background: #c9302c;
+          color: #fff;
+          cursor: pointer;
+          border-radius: 3px;
+          transition: all .5s ease;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button:hover {
+          background: #e33733;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button span {
+          vertical-align: baseline;
+        }
+
       // Панель с информацией о лимитах выбранной комнаты
       .content .classic-game .cg-container .gameprocess .controls .info {
         height: $cg_sizes_controls_height*.4;
