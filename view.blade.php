@@ -465,7 +465,7 @@
           <!-- 5] Кнопка "Внести депозит первым" -->
           <!-----------------------------------*/ ?>
           <div class="make-a-bet-first">
-            <div class="button" data-bind="click: function(){}">
+            <div class="button" data-bind="click: f.s1.onclick_handler">
               <span>Внести депозит первым</span>
             </div>
           </div>

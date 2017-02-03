@@ -337,6 +337,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 
 
+
 				}
 
 				// 6.4] Если для room2update пришли данные с состоянием Created
@@ -360,6 +361,54 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					else {
 						if(data[i].id == 2) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
+					}
+
+				}
+
+				// 6.5] Если для room2update пришли данные с состоянием First bet
+				else if(newstatus == "First bet") {
+
+					// 6.5.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
+
+					// 6.5.2] Получить статус комнаты room2update
+					var status = room2update.rounds()[0].rounds_statuses()[0].status();
+
+					// 6.5.3] Если текущий статус последнего раунда в room2update = Created
+					// - Выполнить update прямо сейчас.
+					if(status == "Created") {
+						if(data[i].id == 2) console.log('Update now');
+						update();
+					}
+
+					// 6.5.4] В ином случае, запланировать выполнение update
+					else {
+ 						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
+					}
+
+				}
+
+				// 6.6] Если для room2update пришли данные с состоянием First bet
+				else if(newstatus == "Started") {
+
+					// 6.6.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
+
+					// 6.6.2] Получить статус комнаты room2update
+					var status = room2update.rounds()[0].rounds_statuses()[0].status();
+
+					// 6.6.3] Если текущий статус последнего раунда в room2update = First bet или Started
+					// - Выполнить update прямо сейчас.
+					if(status == "First bet" || status == "Started") {
+						if(data[i].id == 2) console.log('Update now');
+						update();
+					}
+
+					// 6.6.4] В ином случае, запланировать выполнение update
+					else {
+ 						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Started fresh data delayed update in room #'+data[i].id, false, true);
 					}
 
 				}
@@ -494,7 +543,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	// s1.10. Добавить задачу в очередь //
 	//----------------------------------//
 	// - Не добавлять дубли обновлений Winner, Lottery, Created в очередь.
-	f.s1.queue_add = function(unixtimestamp, func, room2update_id, newstatus, description){
+	f.s1.queue_add = function(unixtimestamp, func, room2update_id, newstatus, description, is_firstbet, is_started){
 
 		// 0] Получить комнату, которую надо обновить
 		var room2update = self.m.s1.indexes.rooms[room2update_id];
@@ -502,44 +551,68 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Получить UID обновления: <номер комнаты>_<номер раунда>_<имя статуса>
 		var uid = room2update.id() + '_' +
 							room2update.rounds()[0].id() + '_' +
-							newstatus;
+							newstatus + '_' +
+							Date.now();
 
-		// 2] Если статус не Winner, Lottery, Created
-		if(['Winner', 'Lottery', 'Created'].indexOf(newstatus) == -1) {
+		// 1.2] Попробовать найти задачу с UID в m.s1.game.queue
+		var is_uid_in_queue = (function(){
 
-			// 2.1] Попробовать найти задачу с UID в m.s1.game.queue
-			var is_uid_in_queue = (function(){
-
-				for(var i=0; i<self.m.s1.game.queue().length; i++) {
-					if(self.m.s1.game.queue()[i].uid == uid) return true;
-				}
-				return false;
-
-			})();
-
-			// 2.2] Если uid нет в очереди, добавить задачу
-			if(!is_uid_in_queue) {
-				self.m.s1.game.queue.push({
-					uid: uid,
-					unixtimestamp: unixtimestamp,
-					func: func,
-					description: description
-				});
+			for(var i=0; i<self.m.s1.game.queue().length; i++) {
+				if(self.m.s1.game.queue()[i].uid == uid) return true;
 			}
+			return false;
 
-		}
+		})();
 
-		// 3] Иначе
-		else {
-
+		// 1.3] Если uid нет в очереди, добавить задачу
+		if(!is_uid_in_queue) {
 			self.m.s1.game.queue.push({
 				uid: uid,
 				unixtimestamp: unixtimestamp,
 				func: func,
-				description: description
+				description: description,
+				room2update_id: room2update_id,
+				is_firstbet: is_firstbet,
+				is_started: is_started
 			});
-
 		}
+
+		//		// 2] Если статус не Winner, Lottery, Created
+		//		if(['Winner', 'Lottery', 'Created'].indexOf(newstatus) == -1) {
+		//
+		//			// 2.1] Попробовать найти задачу с UID в m.s1.game.queue
+		//			var is_uid_in_queue = (function(){
+		//
+		//				for(var i=0; i<self.m.s1.game.queue().length; i++) {
+		//					if(self.m.s1.game.queue()[i].uid == uid) return true;
+		//				}
+		//				return false;
+		//
+		//			})();
+		//
+		//			// 2.2] Если uid нет в очереди, добавить задачу
+		//			if(!is_uid_in_queue) {
+		//				self.m.s1.game.queue.push({
+		//					uid: uid,
+		//					unixtimestamp: unixtimestamp,
+		//					func: func,
+		//					description: description
+		//				});
+		//			}
+		//
+		//		}
+		//
+		//		// 3] Иначе
+		//		else {
+		//
+		//			self.m.s1.game.queue.push({
+		//				uid: uid,
+		//				unixtimestamp: unixtimestamp,
+		//				func: func,
+		//				description: description
+		//			});
+		//
+		//		}
 
 		//console.log('uid = '+uid);
 		//console.log('queue:');
@@ -554,20 +627,60 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//-----------------------------------------------------------------------------------//
 	f.s1.queue_processor = function(){
 
-		// Получить текущий серверный unix timestamp в мс
+		// 1] Получить текущий серверный unix timestamp в мс
 		var ts = self.m.s1.game.time.ts(); //layoutmodel.m.s0.servertime.timestamp_s();
 
-		// Пробежаться по очереди, выполнить функции, чье время пришло
+		// 2] Пробежаться по очереди, выполнить функции, чье время пришло
 		// - Выполнять эти функции, удалять из очереди
 		for(var i=0; i<self.m.s1.game.queue().length; i++) {
-			if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
-				self.m.s1.game.queue()[i].func();
-				var uid = self.m.s1.game.queue()[i].uid;
-				self.m.s1.game.queue.remove(function(item){
-					if(item.uid == uid) return true;
-					return false;
-				});
+
+			// 2.1] Если это не First bet или Started
+			if(!self.m.s1.game.queue()[i].is_firstbet && !self.m.s1.game.queue()[i].is_started) {
+				if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
+					self.m.s1.game.queue()[i].func();
+					var uid = self.m.s1.game.queue()[i].uid;
+					self.m.s1.game.queue.remove(function(item){
+						if(item.uid == uid) return true;
+						return false;
+					});
+				}
 			}
+
+			// 2.2] В противном случае
+			else {
+
+				// 2.2.1] Получить комнату, которую надо обновить
+				var room2update = self.m.s1.indexes.rooms[self.m.s1.game.queue()[i].room2update_id];
+
+				// 2.2.2] Получить статус комнаты room2update
+				var status = room2update.rounds()[0].rounds_statuses()[0].status();
+
+				// 2.2.3] Если это First bet и статус room2update = "Created"
+				if(self.m.s1.game.queue()[i].is_firstbet && status == "Created") {
+
+					self.m.s1.game.queue()[i].func();
+					var uid = self.m.s1.game.queue()[i].uid;
+					self.m.s1.game.queue.remove(function(item){
+						if(item.uid == uid) return true;
+						return false;
+					});
+
+				}
+
+				// 2.2.4] Если это Started и статус room2update = "First bet" или "Started"
+				if(self.m.s1.game.queue()[i].is_started && (status == "First bet") || status == "Started")) {
+
+					self.m.s1.game.queue()[i].func();
+					var uid = self.m.s1.game.queue()[i].uid;
+					self.m.s1.game.queue.remove(function(item){
+						if(item.uid == uid) return true;
+						return false;
+					});
+
+				}
+
+			}
+
 		}
 
 	};
@@ -984,8 +1097,34 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------------------------//
 	f.s1.tradeoffer_cancel = function(data) {
 
-		// Уведомить игрока о том, что его оффер был отклонён
-		toastr.error("Ваше торговое предложение отклонено.");
+		console.log(data);
+
+		// 1] Получить информацию об ошибках и их кодах
+		var codes_and_errors = JSON.parse(data['codes_and_errors']);
+
+		// 2] Если codes_and_errors пуст, вернуть простое сообщение об ошибке
+		if(!codes_and_errors) {
+			toastr.error("Возникла неизвестная ошибка.", "Торговое предложение отклонено");
+		}
+
+		// 3] В ином случае, вернуть развернутое сообщение об ошибке
+		else {
+
+			// 3.1] Подготовить сообщение об ошибке
+			var msg = (function(){
+				var result  = "";
+				for(var i=0; i<codes_and_errors.length; i++) {
+					result = result + '<b>Код ошибки №' + codes_and_errors[i]['code'] + '</b>: ';
+					result = result + codes_and_errors[i]['desc'];
+					result = result + '<br><br>';
+				}
+				return result;
+			})();
+
+			// 3.2] Показать сообщение об ошибке
+			toastr.error(msg, "Торговое предложение отклонено");
+
+		}
 
 	};
 
@@ -994,8 +1133,21 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------------------//
 	f.s1.tradeoffer_accepted = function(data) {
 
-		// Уведомить игрока о том, что его оффер был отклонён
-		toastr.success("Ваше торговое предложение принято.");
+		// 1] Попало ли торговое предложение в текущий раунд
+		var in_current_round = data['in_current_round'];
+
+		// 2] Подготовить сообщение для toastr
+		var msg = (function(){
+			var result = "";
+			if(in_current_round)
+				result = "И попало в текущий раунд.";
+			else
+				result = "Но в текущий раунд не попало, а будет добавлено в один из последующих раундов, в порядке живой очереди.";
+			return result;
+		})();
+
+		// 3] Уведомить игрока о том, что его оффер был принят
+		toastr.success(msg, "Торговое предложение принято");
 
 	};
 
