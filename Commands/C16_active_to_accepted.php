@@ -518,12 +518,13 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
           'channels' => ['m9:private:'.$this->data['id_user']],
           'queue'    => 'm9_lottery_broadcasting',
           'data'     => [
-            'task' => 'tradeoffer_cancel',
+            'task' => 'tradeoffer_accepted',
             'data' => [
               'id_room'           => $this->data['id_room'],
               'in_current_round'  => false,
-              'bets_active'       => json_decode(Cache::tags(['processing:bets:active:personal:safe'])->get('processing:bets:active:safe:'.$this->data['id_user']), true) ?: [],
-              'bets_type2_active' => json_decode(Cache::tags(['processing:bets_type2:active:personal:safe'])->get('processing:bets_type2:active:safe:'.$this->data['id_user']), true) ?: [],
+              'bets_active'       => []
+              //'bets_active'       => json_decode(Cache::tags(['processing:bets:active:personal:safe'])->get('processing:bets:active:safe:'.$this->data['id_user']), true) ?: [],
+              //'bets_type2_active' => json_decode(Cache::tags(['processing:bets_type2:active:personal:safe'])->get('processing:bets_type2:active:safe:'.$this->data['id_user']), true) ?: [],
             ]
           ]
         ]));
