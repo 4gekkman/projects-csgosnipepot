@@ -318,6 +318,9 @@
         height: 240px;
         background: #284351;
       }
+      .content .classic-game .cg-container .gameprocess.notauth {
+        height: 200px;
+      }
 
     //-----------------------------------------------------//
     // 1.6.2. Счётчики предметов и времени текущего раунда //
@@ -443,6 +446,9 @@
         white-space: nowrap;
         transition: all .2s ease;
       }
+      .content .classic-game .cg-container .gameprocess .controls.notauth {
+        height: 80px;
+      }
 
       // Скрытое состояние
       .content .classic-game .cg-container .gameprocess .controls.hiddenpanel {
@@ -533,14 +539,14 @@
 
         // Общие стили
         .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel {
-          height: $cg_sizes_controls_height;  // $cg_sizes_controls_height
+          height: 80px;  // $cg_sizes_controls_height
           position: absolute;
           z-index: 1;
         }
         .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel>div {
           display: inline-block;
-          height: $cg_sizes_controls_height; // $cg_sizes_controls_height
-          line-height: $cg_sizes_controls_height; // $cg_sizes_controls_height
+          height: 80px; // $cg_sizes_controls_height
+          line-height: 80px; // $cg_sizes_controls_height
           vertical-align: middle;
         }
 
@@ -603,8 +609,8 @@
         .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet {
           width: 30%;
           text-align: center;
-          height: $cg_sizes_controls_height;
-          line-height: $cg_sizes_controls_height;
+          height: 80px;
+          line-height: 78px;
           user-select: none;
         }
         .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button {
@@ -612,7 +618,7 @@
           height: 45px;
           line-height: 45px;
           vertical-align: middle;
-          padding: 0 21px;
+          padding: 0 18px;
           font-size: 1.2em;
           background: #c9302c;
           color: #fff;

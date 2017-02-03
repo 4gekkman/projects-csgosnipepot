@@ -256,7 +256,7 @@
       <?php /*-------------------------------------------->
       <!-- 1.1.2.2. Панель интерфейса игрового процесса -->
       <!----------------------------------------------*/ ?>
-      <div class="gameprocess">
+      <div class="gameprocess" data-bind="css: {notauth: m.s0.auth.is_anon}">
 
         <?php /*------------------------------------------------------->
         <!-- 1.1.2.2.1. Счётчики предметов и времени текущего раунда -->
@@ -314,7 +314,7 @@
         <?php /*--------------------------------------------->
         <!-- 1.1.2.2.2. Органы управления игрой для игрока -->
         <!-----------------------------------------------*/ ?>
-        <div class="controls" data-bind="css: {hiddenpanel: (['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) != -1)}">
+        <div class="controls" data-bind="css: {hiddenpanel: (['Lottery', 'Winner'].indexOf(m.s1.game.choosen_status()) != -1), notauth: !m.s0.is_logged_in()}">
 
           <?php /*------------------------------------------------------------>
           <!-- 1] Кол-во внесённых предметов, шанс, кнопка "Внести депозит" -->
@@ -395,7 +395,7 @@
             <div class="make-a-bet">
               <div class="button" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>
                 <i class="fa fa-fw fa-steam"></i>
-                <span>Войти через Steam</span>
+                <span>Войти, чтобы ставить</span>
               </div>
             </div>
 
