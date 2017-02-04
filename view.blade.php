@@ -565,7 +565,7 @@
         <?php /*------>
         <!-- Ставка -->
         <!--------*/ ?>
-        <div class="bet-container"> 
+        <div class="bet-container" data-bind="css: {expanded: (is_expanded() == true)}, style: {zIndex: $index}">
 
           <?php /*------------------->
           <!-- Информация о ставке -->

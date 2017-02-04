@@ -1398,7 +1398,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 
 
-		}).extend({rateLimit: 1000, method: "notifyWhenChangesStop"});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 
 

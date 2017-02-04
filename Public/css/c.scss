@@ -931,10 +931,11 @@
       //border-radius: 0 3px 3px 0;
       border-radius: 3px;
       max-height: 0;
-      transition: all 0.5s ease;
+      transition: all .7s ease;
+      overflow: hidden;
     }
     .content .classic-game .bets .bet-container.expanded {
-      max-height: 9999px;
+      max-height: 1000px;
     }
 
     // Стили информации о ставке

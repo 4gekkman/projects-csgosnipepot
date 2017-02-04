@@ -229,7 +229,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				else
 					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
 
-				// 1.3] Обновить значение m.s1.game.choosen_status
+				// 3.5] Если новый статус Created, очистить smoothbets
+				if(newstatus == 'Created')
+					self.f.s1.smootbets_update();
+
+				// 3.n] Обновить значение m.s1.game.choosen_status
 				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
 			}.bind(null, data[i], self, room2update_id);
@@ -1193,20 +1197,15 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	f.s1.smootbets_add = function(bet, room_id, round_id) {
 
 		// 1] Добавить в bet свойство is_expanded == false
-		bet.is_expanded = ko.observable(false);
+		bet.is_expanded(0);
 
 		// 2] Добавить bet в smoothbets
-		self.m.s1.smoothbets.bets.push(bet);
+		self.m.s1.smoothbets.bets.unshift(bet);
 
 		// 3] Изменить значение свойства is_expanded ставки bet на true через 500мс
 		setTimeout(function(is_expanded) {
-			is_expanded(true);
+			is_expanded(1);
 		}, 500, bet.is_expanded);
-
-
-		//console.log(bet);
-		//console.log(room_id);
-		//console.log(round_id);
 
 	};
 
