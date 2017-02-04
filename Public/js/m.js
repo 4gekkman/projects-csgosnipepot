@@ -535,27 +535,12 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 		})();
 
-		//---------------------------------//
-		// X1.10. Запустить работу очереди //
-		//---------------------------------//
+		//----------------------------------//
+		// X1.10. Наполнить smoothbets.bets //
+		//----------------------------------//
 		(function(){
 
-			// 1] Очистить smoothbets.bets
-			self.m.s1.smoothbets.bets.removeAll();
-
-			// 2] Наполнить smoothbets.bets
-			for(var i=0; i<self.m.s1.game.curprev().current().bets.slice(0).reverse().length; i++) {
-
-
-
-			}
-
-
-			// self.m.s1.smoothbets.bets
-			// m.s1.game.curprev().current().bets.slice(0).reverse()
-			// console.log(ko.mapping.toJS(self.m.s1.game.rooms()));
-			// console.log(self.m.s1.game.choosen_room());
-			console.log(self.m.s1.game.curprev().current().bets.slice(0).reverse());
+			self.f.s1.smootbets_update();
 
 		})();
 

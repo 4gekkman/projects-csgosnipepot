@@ -560,12 +560,12 @@
       <?php /*---------------------->
       <!-- 1.1.2.5. Ставки раунда -->
       <!------------------------*/ ?>
-      <div class="bets" data-bind="foreach: m.s1.game.curprev().current().bets.slice(0).reverse()">
+      <div class="bets" data-bind="foreach: m.s1.smoothbets.bets"> <!-- m.s1.game.curprev().current().bets.slice(0).reverse()"> -->
 
         <?php /*------>
         <!-- Ставка -->
         <!--------*/ ?>
-        <div class="bet-container"">
+        <div class="bet-container"> 
 
           <?php /*------------------->
           <!-- Информация о ставке -->

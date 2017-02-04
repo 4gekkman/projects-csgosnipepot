@@ -28,7 +28,8 @@
  *    f.s1.tradeoffer_cancel              | s1.15. Сообщение от сервера о том, что ставка игрока была отменена
  *    f.s1.tradeoffer_accepted            | s1.16. Сообщение от сервера о том, что ставка игрока принята
  *    f.s1.tradeoffer_processing          | s1.17. Сообщение от сервера о том, что ставка игрока обрабатывается
- *
+ *    f.s1.smootbets_update               | s1.18. Обновить smoothbets
+ *    f.s1.smootbets_add                  | s1.19. Плавно добавить ставку в smoothbets
  *
  */
 
@@ -135,6 +136,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			self.m.s1.animation.circumstances.round_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status());
 
 		}
+
+		// 5] Наполнить smoothbets.bets
+		setTimeout(function(){
+			self.f.s1.smootbets_update();
+		}, 100);
 
 	};
 	
@@ -1159,6 +1165,51 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		toastr.info("Ваше торговое предложение обрабатывается...");
 
 	};
+
+	//----------------------------//
+	// s1.18. Обновить smoothbets //
+	//----------------------------//
+	f.s1.smootbets_update = function() {
+
+		// 1] Очистить smoothbets.bets
+		self.m.s1.smoothbets.bets.removeAll();
+
+		// 2] Наполнить smoothbets.bets
+		for(var i=0; i<self.m.s1.game.curprev().current().bets.slice(0).reverse().length; i++) {
+
+			self.m.s1.smoothbets.bets.push(
+				ko.mapping.fromJS(
+					ko.mapping.toJS(self.m.s1.game.curprev().current().bets.slice(0).reverse()[i])
+				)
+			);
+
+		}
+
+	};
+
+	//--------------------------------------------//
+	// s1.19. Плавно добавить ставку в smoothbets //
+	//--------------------------------------------//
+	f.s1.smootbets_add = function(bet, room_id, round_id) {
+
+		// 1] Добавить в bet свойство is_expanded == false
+		bet.is_expanded = ko.observable(false);
+
+		// 2] Добавить bet в smoothbets
+		self.m.s1.smoothbets.bets.push(bet);
+
+		// 3] Изменить значение свойства is_expanded ставки bet на true через 500мс
+		setTimeout(function(is_expanded) {
+			is_expanded(true);
+		}, 500, bet.is_expanded);
+
+
+		//console.log(bet);
+		//console.log(room_id);
+		//console.log(round_id);
+
+	};
+
 
 //	//---------------------------------------------------//
 //	// s1.16. Обработка клика по кнопке "Внести депозит" //
