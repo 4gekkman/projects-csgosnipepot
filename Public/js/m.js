@@ -464,7 +464,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			if(!self.m.s1.game.curprev().current().rounds_statuses) return;
 
 			// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
-			self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
+			//self.m.s1.game.choosen_status(self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status());
 
 		})();
 
@@ -535,7 +535,29 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 		})();
 
+		//---------------------------------//
+		// X1.10. Запустить работу очереди //
+		//---------------------------------//
+		(function(){
 
+			// 1] Очистить smoothbets.bets
+			self.m.s1.smoothbets.bets.removeAll();
+
+			// 2] Наполнить smoothbets.bets
+			for(var i=0; i<self.m.s1.game.curprev().current().bets.slice(0).reverse().length; i++) {
+
+
+
+			}
+
+
+			// self.m.s1.smoothbets.bets
+			// m.s1.game.curprev().current().bets.slice(0).reverse()
+			// console.log(ko.mapping.toJS(self.m.s1.game.rooms()));
+			// console.log(self.m.s1.game.choosen_room());
+			console.log(self.m.s1.game.curprev().current().bets.slice(0).reverse());
+
+		})();
 
 	});
 

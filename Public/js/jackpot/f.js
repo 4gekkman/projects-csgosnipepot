@@ -490,7 +490,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//------------------------------------------------------------//
 	f.s1.update_statistics = function(data){
 
-
 		// 1] Получить свежие данные
 		var id_room = data.id_room;
 		var classicgame_statistics = data.classicgame_statistics.data;
@@ -655,8 +654,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 2.2.2] Получить статус комнаты room2update
 				var status = room2update.rounds()[0].rounds_statuses()[0].status();
 
-				// 2.2.3] Если это First bet и статус room2update = "Created"
-				if(self.m.s1.game.queue()[i].is_firstbet && status == "Created") {
+				// 2.2.3] Если это First bet и статус room2update = "Created" или "First bet"
+				if(self.m.s1.game.queue()[i].is_firstbet && (status == "Created" || status == "First bet")) {
 
 					self.m.s1.game.queue()[i].func();
 					var uid = self.m.s1.game.queue()[i].uid;
