@@ -202,7 +202,7 @@
               <!-- Всплывающая панелька -->
               <!----------------------*/ ?>
               <div class="bubblepanel" data-bind="css: {lifted: $root.m.s6.notify.is_hidden}, style: {transitionDuration: $root.m.s6.notify.traisitionDuration}">
-                <span>+354 руб.</span>
+                <span data-bind="text: $root.m.s6.notify.text"></span>
               </div>
 
             </div>

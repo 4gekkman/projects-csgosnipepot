@@ -814,6 +814,8 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		// 2] Длительность transition всплывающих уведомлений в пункте меню "Classic game"
 		self.m.s6.notify.traisitionDuration = ko.observable('.5s');
 
+		// 3] Текст уведомления
+		self.m.s6.notify.text = ko.observable("");
 
 	//--------------------------------------//
 	// s6.n. Индексы и вычисляемые значения //

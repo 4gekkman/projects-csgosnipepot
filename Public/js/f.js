@@ -577,7 +577,22 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 		//--------------------------------------------------------------------------//
 		f.s6.notify_animate = function() {
 
+			// 1] Снизить длительность анимации до 0
+			self.m.s6.notify.traisitionDuration('0s');
 
+			// 2] Показать уведомление
+			self.m.s6.notify.is_hidden(0);
+
+			// 3] Через .5s
+			setTimeout(function(){
+
+				// Вернуть длительность анимации 01s
+				self.m.s6.notify.traisitionDuration('1s');
+
+				// Скрыть уведомление
+				self.m.s6.notify.is_hidden(1);
+
+			}, 1000);
 
 		};
 
