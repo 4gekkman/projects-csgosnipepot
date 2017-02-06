@@ -192,7 +192,19 @@
             <!-- 2.1.1] Заголовок и всплывающие панельки -->
             <!-----------------------------------------*/ ?>
             <div class="uppart">
+
+              <?php /*--------->
+              <!-- Заголовок -->
+              <!-----------*/ ?>
               <span data-bind="text: title"></span>
+
+              <?php /*-------------------->
+              <!-- Всплывающая панелька -->
+              <!----------------------*/ ?>
+              <div class="bubblepanel" data-bind="css: {lifted: $root.m.s6.notify.is_hidden}, style: {transitionDuration: $root.m.s6.notify.traisitionDuration}">
+                <span>+354 руб.</span>
+              </div>
+
             </div>
 
             <?php /*-------------------------->

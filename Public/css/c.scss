@@ -655,16 +655,31 @@
 
     // Контент пунктов меню игр
     .menu .items .item .item-content .uppart {
+      position: relative;
       height: $sizes_mainmenu_itemh*0.4;
       line-height: $sizes_mainmenu_itemh*0.4;
       margin-top: $sizes_mainmenu_itemh*.15;
       font-weight: bold;
     }
+    .menu .items .item .item-content .uppart .bubblepanel {
+      position: absolute; top: 3px; right: 10px;
+      font-size: 13px;
+      line-height: 17px;
+      border-radius: 5px;
+      padding: 2px;
+      background-color: #f6e444;
+      color: #212f35;
+      transition: all .5s ease;
+    }
+    .menu .items .item .item-content .uppart .bubblepanel.lifted {
+      top: -9px;
+      opacity: 0;
+    }
     .menu .items .item .item-content .downpart {
       height: $sizes_mainmenu_itemh*0.3;
       line-height: $sizes_mainmenu_itemh*0.3;
       font-size: 13px;
-      padding-right: 15px;
+      padding-right: 10px;
     }
     .menu .items .item .item-content .downpart .game-state {
       color: #9ea7b3;
