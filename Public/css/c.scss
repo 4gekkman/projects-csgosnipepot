@@ -643,7 +643,7 @@
       background: #172125 !important;
     }
 
-    // Контент пункта меню
+    // Стандартный контент пункта меню
     .menu .items .item .item-content {
       margin-left: $sizes_mainmenu_whidden + 5px;
       font-size: 16px;
@@ -652,6 +652,29 @@
       overflow: hidden;
       white-space: nowrap;
     }
+
+    // Контент пунктов меню игр
+    .menu .items .item .item-content .uppart {
+      height: $sizes_mainmenu_itemh*0.4;
+      line-height: $sizes_mainmenu_itemh*0.4;
+      margin-top: $sizes_mainmenu_itemh*.15;
+      font-weight: bold;
+    }
+    .menu .items .item .item-content .downpart {
+      height: $sizes_mainmenu_itemh*0.3;
+      line-height: $sizes_mainmenu_itemh*0.3;
+      font-size: 13px;
+      padding-right: 15px;
+    }
+    .menu .items .item .item-content .downpart .game-state {
+      color: #9ea7b3;
+    }
+    .menu .items .item .item-content .downpart .game-prize {
+      color: #68adbc;
+      float: right;
+    }
+
+
 
   //------------------------------------------//
   // 4.5. Стили счётчика пользователей онлайн //
