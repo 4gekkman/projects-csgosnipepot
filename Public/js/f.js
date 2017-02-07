@@ -15,6 +15,7 @@
  *		f.s0.txt_delay_save           | s0.2. Функционал "механизма отложенного сохранения для текстовых полей"
  *    f.s0.logout                   | s0.3. Выйти из своей учётной записи
  *    f.s0.update_messages          | s0.4. Обновить модель чата данными с сервера
+ *    f.s0.sound                    | s0.5. Проиграть указанный аудио-файл
  *
  *  s1. Функционал модели управления поддокументами приложения
  *
@@ -231,6 +232,63 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			}, 100);
 
 		};
+
+		//--------------------------------------//
+		// s0.5. Проиграть указанный аудио-файл //
+		//--------------------------------------//
+		/*
+		/* Описание:
+		 * 	Sound takes three arguments. The url of the sound, the volume (from 0 to 100), and the loop (true to loop, false not to loop).
+		 * 	stop allow to start after (contrary to remove).
+		 * 	init re-set the argument volume and loop.
+		 *
+		 * Пример:
+		 * 	var foo=new Sound("url",100,true);
+		 * 	foo.start();
+		 * 	foo.stop();
+		 * 	foo.start();
+		 * 	foo.init(100,false);
+		 * 	foo.remove();
+		 * 	//Here you you cannot start foo any more
+		 *
+		 */
+		f.s0.sound = function(source, volume, loop) {
+
+			this.source=source;
+			this.volume=volume;
+			this.loop=loop;
+			var son;
+			this.son=son;
+			this.finish=false;
+			this.stop=function()
+			{
+					document.body.removeChild(this.son);
+			}
+			this.start=function()
+			{
+					if(this.finish)return false;
+					this.son=document.createElement("embed");
+					this.son.setAttribute("src",this.source);
+					this.son.setAttribute("hidden","true");
+					this.son.setAttribute("volume",this.volume);
+					this.son.setAttribute("autostart","true");
+					this.son.setAttribute("loop",this.loop);
+					document.body.appendChild(this.son);
+			}
+			this.remove=function()
+			{
+					document.body.removeChild(this.son);
+					this.finish=true;
+			}
+			this.init=function(volume,loop)
+			{
+					this.finish=false;
+					this.volume=volume;
+					this.loop=loop;
+			}
+
+		};
+
 
 
 	//------------------------------------------------------------------------//
