@@ -35,6 +35,7 @@
  *      s1.n.5. Добавление в текущий набор плавных ставок новых ставок
  *      s1.n.6. Передавать в модель шаблона кое-какие данные
  *
+ *
  * 	X. Подготовка к завершению
  *
  *    X1. Вернуть ссылку self на объект-модель
@@ -382,6 +383,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 6] Значение свойства transform полосы
 		self.m.s1.game.strip.transform = ko.observable('none');
 
+		// 7] Номер предыдущего аватара, проскочившего через стрелку в текущей комнате
+		self.m.s1.game.strip.avatar_arrow_num_prev = ko.observable('0');
+
 
 	//-------------------------------------------------------------------------------//
 	// s1.7. Победный билет, победитель, число для текущего раунда выбранной комнаты //
@@ -409,7 +413,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
 			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 				if(self.m.s1.game.choosen_room_curround_winner())
-					return self.m.s1.game.choosen_room_curround_winner().nickname()
+					return self.m.s1.game.choosen_room_curround_winner().nickname();
 				else
 					return '???';
 			}
@@ -636,11 +640,20 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/chat-message-add-3.mp3'
 		];
 
+		// 3] Старт рулетки (барабан начинает крутиться)
+		self.m.s1.sounds['lottery'] = [
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/roulette-start-1.mp3',
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/roulette-start-2.mp3',
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/roulette-start-3.mp3'
+		];
+
 		// n] Прочие звуки
 		self.m.s1.sounds['chat-new'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/chat-message-send.mp3';
 		self.m.s1.sounds['click'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/click.mp3';
 		self.m.s1.sounds['game-start'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/game-start.mp3';
 		self.m.s1.sounds['win'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/win.mp3';
+		self.m.s1.sounds['timer-tick-quiet'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/timer-tick-quiet.mp3';
+		self.m.s1.sounds['timer-tick-last-5-seconds'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/timer-tick-last-5-seconds.mp3';
 
 
 	//--------------------------------------//
@@ -1380,9 +1393,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//--------------------------------------------------------//
 		ko.computed(function(){
 
-			//self.m.s1.game.choosen_room();
-			//if(self.m.s1.game.choosen_status() == 'Lottery')
-			//	setTimeout(self.f.s1.lottery, 100);
+			if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1)
+				setTimeout(self.f.s1.lottery, 100);
 			//else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')
 			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 			//else
@@ -1445,7 +1457,23 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 2] Имя текущего статуса текущего раунда выбранной комнаты
 			layoutmodel.m.s6.status.name(self.m.s1.game.choosen_status());
 
+		});
 
+		// s1.n.7. Проигрывать звук тиков игры //
+		//-------------------------------------//
+		ko.computed(function(){
+
+			// 1] Если текущий статус текущего раунда выбранной комнаты не "Started", завершить
+			if(!self.m.s1.game.choosen_status() || ['Started', 'Pending'].indexOf(self.m.s1.game.choosen_status()) == -1)
+				return;
+
+			// 2] Если до начала розыгрыша более 5 секунд
+			if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() >= 5)
+				self.f.s1.playsound('timer-tick-quiet');
+
+			// 3] Если до начала розыгрыша менее 5 секунд
+			if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() < 5)
+				self.f.s1.playsound('timer-tick-last-5-seconds');
 
 		});
 

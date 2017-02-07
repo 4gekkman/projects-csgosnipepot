@@ -239,6 +239,39 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				}
 
+				// 3.6] Проиграть соответствующий звук, если требуется
+				(function(){
+
+					// Started
+					if(newstatus == 'Started')
+						self.f.s1.playsound('game-start');
+
+					// Lottery
+					if(newstatus == 'Lottery')
+						self.f.s1.playsound('lottery');
+
+					// Winner
+					if(newstatus == 'Winner') {
+
+						setTimeout(function(){
+
+							// 1] Если пользователь анонимный, завершить
+							if(self.m.s0.auth.is_anon()) return;
+
+							// 2] Если победил не этот пользователь, завершить
+							if(!model.m.s1.game.choosen_room_curround_winner() || model.m.s0.auth.user().id() != model.m.s1.game.choosen_room_curround_winner().id()) return;
+
+							// 3] Проиграть звук победы
+							self.f.s1.playsound('win');
+
+						}, 1000);
+
+					}
+
+				})();
+
+
+
 				// 3.n] Обновить значение m.s1.game.choosen_status
 				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
@@ -1061,6 +1094,35 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// 5] Установить позицию position2set_px
 			self.m.s1.game.strip.currentpos(position2set_px);
 
+			// 6] Получить номер аватара, на который указывает стрелочка
+			var avatar_arrow_num = (function(){
+
+				// 6.1] Ширина аватара в px с учётом отступа справа
+				var avatarwidth_origin = 80;
+				var avatarrightmargin = 2;
+				var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
+
+				// 6.2] Получить поправку для установки позиции в конец ленты
+				var endfix = (6*avatarwidth)-62;
+
+				// 6.3] Вычислить позицию стрелки
+				var arrowpos = position2set_px;
+
+				// 6.4] Получить разницу между arrowpos и start_ps
+				var diff = Math.abs(arrowpos - self.m.s1.game.strip.start_px());
+
+				// 6.5] Получить и вернуть номер аватара в ленте
+				return Math.round(diff/avatarwidth);
+
+			})();
+
+			// 7] Если avatar_arrow_num отличается от avatar_arrow_num_prev
+			// - Проиграть звук click и записать номер предыдущего проскочившего аватара.
+			if(avatar_arrow_num != self.m.s1.game.strip.avatar_arrow_num_prev()) {
+				self.f.s1.playsound('click');
+				self.m.s1.game.strip.avatar_arrow_num_prev(avatar_arrow_num);
+			}
+
 			// n] Если дошли до конца
 			if(((Date.now() > futuretime) && interval)) {
 
@@ -1226,11 +1288,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 2] Завершить работу функции, если:
 		// - Выключатель звука выключен.
 		// - Открыт поддокумент не с Classic Game
-		// - id_sound равен click, game-start или win
+		// - id_sound равен click, game-start, win, timer-tick-quiet, timer-tick-last-5-seconds
 		if(
-			!layoutmodel.m.s4.is_global_volume_on() ||
-			layoutmodel.m.s1.selected_subdoc().uri() != '/' ||
-			['click', 'game-start', 'win'].indexOf(id_sound) != -1
+			(!layoutmodel.m.s4.is_global_volume_on() ||
+			layoutmodel.m.s1.selected_subdoc().uri() != '/') &&
+			['click', 'game-start', 'win', 'timer-tick-quiet', 'timer-tick-last-5-seconds'].indexOf(id_sound) != -1
 		)
 			return;
 
@@ -1259,6 +1321,23 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		// 4] Если id_sound == 'add'
 		else if(id_sound == 'add') {
+
+			// 4.1] Если random между 0 и 0.33
+			if(random >= 0 && random < 0.33)
+ 				new Audio(self.m.s1.sounds[id_sound][0]).play();
+
+			// 4.2] Если random между 0.33 и 0.66
+			if(random >= 0.33 && random < 0.66)
+ 				new Audio(self.m.s1.sounds[id_sound][1]).play();
+
+			// 4.3] Если random между 0.66 и 1
+			if(random >= 0.66 && random <= 1)
+ 				new Audio(self.m.s1.sounds[id_sound][2]).play();
+
+		}
+
+		// 5] Если id_sound == 'lottery'
+		else if(id_sound == 'lottery') {
 
 			// 4.1] Если random между 0 и 0.33
 			if(random >= 0 && random < 0.33)

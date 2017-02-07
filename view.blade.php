@@ -256,7 +256,7 @@
       <?php /*-------------------------------------------->
       <!-- 1.1.2.2. Панель интерфейса игрового процесса -->
       <!----------------------------------------------*/ ?>
-      <div class="gameprocess" data-bind="css: {notauth: m.s0.auth.is_anon}">
+      <div class="gameprocess" data-bind="css: {notauth: (m.s0.auth.is_anon() && ['Lottery', 'Winner', 'Finished'].indexOf(m.s1.game.choosen_status()) == -1)}">
 
         <?php /*------------------------------------------------------->
         <!-- 1.1.2.2.1. Счётчики предметов и времени текущего раунда -->
