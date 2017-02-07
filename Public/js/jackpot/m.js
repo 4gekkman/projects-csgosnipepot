@@ -24,6 +24,7 @@
  *    s1.10. Счётчики раундов для каждой комнаты
  *    s1.11. Модель анимации ленты аватаров текущей комнаты
  *    s1.12. Модель плавного появления ставок
+ *    s1.13. URL звуков игры
  *    s1.n. Индексы и вычисляемые значения
  *
  *      s1.n.0. Индексы и вычисляемые без extend
@@ -616,8 +617,30 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//-------------------------------------------//
 		self.m.s1.smoothbets.bets = ko.observableArray([]);
 
+	//------------------------//
+	// s1.13. URL звуков игры	//
+	//------------------------//
+	self.m.s1.sounds = {};
 
+		// 1] Новая ставка
+		self.m.s1.sounds['bet'] = [
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/bet-1.mp3',
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/bet-2.mp3',
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/bet-3.mp3'
+		];
 
+		// 2] Новое сообщение в чате
+		self.m.s1.sounds['add'] = [
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/chat-message-add-1.mp3',
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/chat-message-add-2.mp3',
+			layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/chat-message-add-3.mp3'
+		];
+
+		// n] Прочие звуки
+		self.m.s1.sounds['chat-new'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/chat-message-send.mp3';
+		self.m.s1.sounds['click'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/click.mp3';
+		self.m.s1.sounds['game-start'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/game-start.mp3';
+		self.m.s1.sounds['win'] = layout_data.data.request.secure + layout_data.data.request.host + '/' + 'public/L10003/assets/sound/classicgame/win.mp3';
 
 
 	//--------------------------------------//
@@ -1404,6 +1427,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 3.3] Показать уведомление в пункте "Classic game" главного меню
 				layoutmodel.f.s6.notify_animate();
+
+				// 3.4] Воспроизвести рандумно 1 из 3 звуков добавления ставки
+ 				self.f.s1.playsound('bet');
 
 			}
 

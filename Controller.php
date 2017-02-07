@@ -205,7 +205,7 @@ class Controller extends BaseController {
         'palette'                 => $palette,
         "servertime_s"            => \Carbon\Carbon::now()->timestamp,
         "classicgame_statistics"  => $classicgame_statistics,
-        "usdrub_rate"             => $rate
+        "usdrub_rate"             => $rate,
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -332,6 +332,46 @@ class Controller extends BaseController {
             ]
           ];
         }}
+
+        //---------------------------------//
+        // Нестандартная операция D10009:2 //
+        //---------------------------------//
+        // - Сохранение в куки нового значения для выключателя звука.
+        if($key == 'D10009:2') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Сформировать $response
+          $response = [
+            "status"      => 0,
+            "data"        => "",
+            "timestamp"   => $data['timestamp']
+          ];
+
+          // 3. Провести валидацию входящих параметров
+          $validator = r4_validate($data, [
+            "is_global_volume_on"          => ["required", "boolean"]
+          ]); if($validator['status'] == -1) {
+            return [
+              "status"  => -2,
+              "data"    => [
+                "errortext" => $validator['data'],
+                "errormsg" => $validator['data']
+              ],
+              "timestamp"   => $data['timestamp']
+            ];
+          }
+
+          // 4. Установить новые значения кук
+          $cookie_m9_sound_global_ison = cookie()->forever('m9:sound:global:ison', $data['is_global_volume_on'] === false ? "0" : "1");
+
+          // 5. Сформировать ответ и вернуть клиенту
+          return Response::make(json_encode($response, JSON_UNESCAPED_UNICODE))
+              ->withCookie($cookie_m9_sound_global_ison);
+
+        }
+
 
       }
 

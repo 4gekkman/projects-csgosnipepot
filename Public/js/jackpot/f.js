@@ -30,6 +30,8 @@
  *    f.s1.tradeoffer_processing          | s1.17. Сообщение от сервера о том, что ставка игрока обрабатывается
  *    f.s1.smootbets_update               | s1.18. Обновить smoothbets
  *    f.s1.smootbets_add                  | s1.19. Плавно добавить ставку в smoothbets
+ *    f.s1.playsound                      | s1.20. Проиграть один из звуков, указанный в параметрах
+ *
  *
  */
 
@@ -229,9 +231,13 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				else
 					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
 
-				// 3.5] Если новый статус Created, очистить smoothbets
-				if(newstatus == 'Created')
+				// 3.5] Если новый статус Created
+				if(newstatus == 'Created') {
+
+					// Очистить smoothbets
 					self.f.s1.smootbets_update();
+
+				}
 
 				// 3.n] Обновить значение m.s1.game.choosen_status
 				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
@@ -1208,6 +1214,74 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		}, 500, bet.is_expanded);
 
 	};
+
+	//---------------------------------------------------------//
+	// s1.20. Проиграть один из звуков, указанный в параметрах //
+	//---------------------------------------------------------//
+	f.s1.playsound = function(id_sound) {
+
+		// 1] Получить случайное число от 0 до 1
+		var random = Math.random();
+
+		// 2] Завершить работу функции, если:
+		// - Выключатель звука выключен.
+		// - Открыт поддокумент не с Classic Game
+		// - id_sound равен click, game-start или win
+		if(
+			!layoutmodel.m.s4.is_global_volume_on() ||
+			layoutmodel.m.s1.selected_subdoc().uri() != '/' ||
+			['click', 'game-start', 'win'].indexOf(id_sound) != -1
+		)
+			return;
+
+		// 3] Если id_sound == 'bet'
+		if(id_sound == 'bet') {
+
+			// 3.1] Завершить работу функции, если:
+			// - Выключатель звука выключен.
+			// - Открыт поддокумент не с Classic Game
+			if(!layoutmodel.m.s4.is_global_volume_on() || layoutmodel.m.s1.selected_subdoc().uri() != '/')
+				return;
+
+			// 3.2] Если random между 0 и 0.33
+			if(random >= 0 && random < 0.33)
+ 				new Audio(self.m.s1.sounds[id_sound][0]).play();
+
+			// 3.3] Если random между 0.33 и 0.66
+			if(random >= 0.33 && random < 0.66)
+ 				new Audio(self.m.s1.sounds[id_sound][1]).play();
+
+			// 3.4] Если random между 0.66 и 1
+			if(random >= 0.66 && random <= 1)
+ 				new Audio(self.m.s1.sounds[id_sound][2]).play();
+
+		}
+
+		// 4] Если id_sound == 'add'
+		else if(id_sound == 'add') {
+
+			// 4.1] Если random между 0 и 0.33
+			if(random >= 0 && random < 0.33)
+ 				new Audio(self.m.s1.sounds[id_sound][0]).play();
+
+			// 4.2] Если random между 0.33 и 0.66
+			if(random >= 0.33 && random < 0.66)
+ 				new Audio(self.m.s1.sounds[id_sound][1]).play();
+
+			// 4.3] Если random между 0.66 и 1
+			if(random >= 0.66 && random <= 1)
+ 				new Audio(self.m.s1.sounds[id_sound][2]).play();
+
+		}
+
+		// n] В ином случае
+		else
+ 			new Audio(self.m.s1.sounds[id_sound]).play();
+
+	};
+
+
+
 
 
 //	//---------------------------------------------------//
