@@ -243,7 +243,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				(function(){
 
 					// Started
-					if(newstatus == 'Started')
+					if(newstatus == 'Created')
 						self.f.s1.playsound('game-start');
 
 					// Lottery

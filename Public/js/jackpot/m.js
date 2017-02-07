@@ -253,7 +253,11 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		// 17] Trade URL бота, который должен принимать ставки в текущем раунде выбранной комнаты до статуса Lottery не включительно //
 	  //---------------------------------------------------------------------------------------------------------------------------//
-		self.m.s1.game.current_bot = ko.observable();
+		self.m.s1.game.current_bot = ko.observable("");
+
+		// 18] Trade URL бота, который должен принимать ставки в текущем раунде выбранной комнаты от статуса Lottery включительно и выше //
+	  //-------------------------------------------------------------------------------------------------------------------------------//
+		self.m.s1.game.next_bot = ko.observable("");
 
 
 	//--------------------------------------------//
@@ -1076,7 +1080,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				// 6] Получить бота, обслуживающего текущий раунд
 				var current_bot = (function(){
 
- 					// 4.1] Найти позицию вхождения penultimate_bot_id в room_bot
+ 					// 6.1] Найти позицию вхождения penultimate_bot_id в room_bot
 					var pos = (function(){
 						var result = '';
 						for(var i=0; i<room_bots.length; i++) {
@@ -1085,22 +1089,29 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 						return result;
 					})();
 
-					// 4.2] Если pos пуста, взять первого из room_bots
+					// 6.2] Если pos пуста, взять первого из room_bots
 					if(!pos)
 						return room_bots[0];
 
-					// 4.3] В противном случае
+					// 6.3] В противном случае
 					else {
 
-						// 4.3.1] Если pos последняя, выбрать первого из room_bots
+						// 6.3.1] Если pos последняя, выбрать первого из room_bots
 						if((room_bots.length-1) == pos)
 							return room_bots[0];
 
-						// 4.3.2] Если не последняя
+						// 6.3.2] Если не последняя
 						else
 							return room_bots[+pos+1];
 
 					}
+
+				})();
+
+				// 7] Получить бота, который будет обслуживать следующий раунд
+				var next_bot = (function(){
+
+
 
 				})();
 
