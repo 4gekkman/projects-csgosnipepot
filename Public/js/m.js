@@ -697,7 +697,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//------------------------------------//
 	// s4.2. Глобальный выключатель звука //
 	//------------------------------------//
-	self.m.s4.is_global_volume_on = ko.observable(true);
+	self.m.s4.is_global_volume_on = ko.observable(layout_data.data.m9_sound_global_ison);
 
 	//--------------------------------------//
 	// s4.n. Индексы и вычисляемые значения //

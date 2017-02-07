@@ -94,6 +94,16 @@ View::composer('L10003::layout', function($view) {
     if($messages['status'] != 0)
       throw new \Exception($messages['data']['errormsg']);
 
+  // 4. Получить значения кук, связанных со звуком
+
+    // 4.1. Expanded
+    $m9_sound_global_ison = Cookie::get('m9:sound:global:ison');
+    if(''.$m9_sound_global_ison !== "0" && ''.$m9_sound_global_ison !== "1") $m9_sound_global_ison = true;
+    else {
+      if($m9_sound_global_ison == 0) $m9_sound_global_ison = false;
+      if($m9_sound_global_ison == 1) $m9_sound_global_ison = true;
+    }
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -110,6 +120,7 @@ View::composer('L10003::layout', function($view) {
     'messages'              => $messages,
     'chat_main'             => $chat_main,
     'servertime_s'          => \Carbon\Carbon::now()->timestamp,
+    'm9_sound_global_ison'  => $m9_sound_global_ison
   ], JSON_UNESCAPED_UNICODE));
 
 
