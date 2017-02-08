@@ -239,6 +239,7 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
                 "steamid"                   => $round['wins'][0]['m5_users']['0']['ha_provider_uid'],
                 "jackpot_total_sum_cents"   => $round['wins'][0]['jackpot_total_sum_cents'],
                 "winner_bets_items_cents"   => $round['wins'][0]['winner_bets_items_cents'],
+                "win_fact_cents"            => $round['wins'][0]['win_fact_cents'],
 
                 "items"                     => call_user_func(function() USE ($round) {
 
