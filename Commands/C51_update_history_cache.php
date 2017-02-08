@@ -15,7 +15,7 @@
  *    [
  *      "data" => [
  *        all           | True/False, если true, то обновить весь кэш
- *        cache2update  | Массив ключей кэша, который надо обновить (нужен, только если all не указано)
+ *        cache2update  | Массив ID комнат, кэш для которых надо обновить (нужен, только если all не указано)
  *        force         | (по умолчанию, == true) Обновлять кэш, даже если он присутствует
  *      ]
  *    ]
@@ -139,7 +139,8 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
      *
      *  1. Принять и проверить входящие данные
      *  2. Назначить значения по умолчанию
-     *  3. Обновить кэш, который указан в cache2update
+     *  3. Получить массив ID комнат, кэш которых надо обновить
+     *  4. Обновить кэш комнат, ID которых указаны в $room_ids
      *
      *  N. Вернуть статус 0
      *
@@ -173,10 +174,101 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
         if(!array_key_exists('force', $this->data))
           $this->data['force'] = true;
 
-      // 3. Обновить кэш, который указан в cache2update
+      // 3. Получить массив ID комнат, кэш которых надо обновить
+      $room_ids = call_user_func(function(){
 
+        // 3.1. Получить массив ID всех активных комнат
+        $room_ids_all = json_decode(Cache::get('processing:rooms:ids'), true);
+        if(empty($room_ids_all)) $room_ids_all = [];
 
+        // 3.2. Если all == true, вернуть $room_ids_all
+        if($this->data['all'] == true)
+          return $room_ids_all;
 
+        // 3.3. В противном случа, вернуть cache2update
+        else
+          return $this->data['cache2update'];
+
+      });
+
+      // 4. Обновить кэш комнат, ID которых указаны в $room_ids
+      foreach($room_ids as $id_room) {
+
+        // 4.1. Получить кэш
+        $cache = json_decode(Cache::get('m9:history:'.$id_room), true);
+
+        // 4.2. Обновить кэш
+        // - Если он отсутствует, или если параметр force == true
+        if(
+          ((!Cache::has('m9:history:'.$id_room) || empty($cache) || count($cache) == 0) ||
+          $this->data['force'] == true)
+        ) {
+
+          // 1] Получить последние 50 раундов комнаты $id_room
+          $rounds = \M9\Models\MD2_rounds::with([
+            "bets",
+            "bets.m5_users",
+            "bets.m8_bots",
+            "bets.m8_items",
+
+            "wins",
+            "wins.m5_users",
+            "wins.m8_bots",
+            "wins.m8_items",
+          ])
+            ->whereHas('wins')
+            ->where('id_room', $id_room)
+            ->orderBy('id', 'desc')->take(50)->get();
+
+          // 2] Подготовить из $rounds массив данных для помещения в кэш
+          $data4cache = call_user_func(function() USE ($rounds) {
+
+            // 2.1] Подготовить массив для результатов
+            $results = [];
+
+            // 2.2] Наполнить $results
+            foreach($rounds->toArray() as $round) {
+
+              array_push($results, [
+                "id"                        => $round['id'],
+                "key"                       => $round['key'],
+                "key_hash"                  => $round['key_hash'],
+
+                "nickname"                  => $round['wins'][0]['m5_users']['0']['nickname'],
+                "avatar_steam"              => $round['wins'][0]['m5_users']['0']['avatar_steam'],
+                "steamid"                   => $round['wins'][0]['m5_users']['0']['ha_provider_uid'],
+                "jackpot_total_sum_cents"   => $round['wins'][0]['jackpot_total_sum_cents'],
+                "winner_bets_items_cents"   => $round['wins'][0]['winner_bets_items_cents'],
+
+                "items"                     => call_user_func(function() USE ($round) {
+
+                  $result = [];
+                  foreach($round['wins'][0]['m8_items'] as $item) {
+                    array_push($result, [
+                      'id'                => $item['id'],
+                      'name'              => $item['name'],
+                      'price'             => (int)($item['price']*100),
+                      'steammarket_image' => $item['steammarket_image']
+                    ]);
+                  }
+                  return $result;
+
+                })
+              ]);
+
+            }
+
+            // 2.n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 3] Поместить $data4cache в кэш на 30 минут
+          Cache::put('m9:history:'.$id_room, json_encode($data4cache, JSON_UNESCAPED_UNICODE), 30);
+
+        }
+
+      }
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C51_update_history_cache from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

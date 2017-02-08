@@ -144,7 +144,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
      *         processing:bets:active:<id пользователя> +
      *         processing:bets:active:<id пользователя>:<id комнаты>
      *    3.2. processing:bets:accepted
-     *    3.3. processing:rooms
+     *    3.3. processing:rooms + processing:rooms:ids
      *    3.4. processing:bets_type2:active +
      *         processing:bets_type2:active:<id пользователя> +
      *         processing:bets_type2:active:<id пользователя>:<id комнаты>
@@ -392,7 +392,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 //
 //          }
 
-        // 3.3. processing:rooms
+        // 3.3. processing:rooms + processing:rooms:ids
 
           // 3.3.1. Получить кэш
           $cache = json_decode(Cache::get('processing:rooms'), true);
@@ -551,6 +551,19 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
                 // 4.2] Записать JSON с $rooms в кэш
                 Cache::put('processing:rooms:safe', json_encode($rooms->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+              });
+
+              // 5] Обновить кэш processing:rooms:ids
+              call_user_func(function() USE ($rooms) {
+
+                // 5.1] Получить массив ID всех включенных комнат
+                $room_ids = $rooms->pluck('id');
+                if(empty($room_ids))
+                  $room_ids = [];
+
+                // 5.2] Записать $room_ids в кэш
+                Cache::put('processing:rooms:ids', json_encode($room_ids, JSON_UNESCAPED_UNICODE), 30);
 
               });
 
