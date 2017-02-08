@@ -716,7 +716,66 @@
         <!------------------------------*/ ?>
         <div data-bind="foreach: m.s1.history.all()[m.s1.game.choosen_room().id()]">
 
-          <span data-bind="text: id"></span>
+          <?php /*--------------------->
+          <!-- Позиция в истории игр -->
+          <!-----------------------*/ ?>
+          <div class="history-item">
+
+            <?php /*----------------------->
+            <!-- 1.1] Заголовочная часть -->
+            <!-------------------------*/ ?>
+            <div class="header-part">
+
+              <?php /*--------->
+              <!-- 1) Аватар -->
+              <!-----------*/ ?>
+              <img class="avatar" data-bind="attr: {src: avatar_steam}">
+
+              <?php /*--------------------->
+              <!-- 2) Ник, шанс, выигрыш -->
+              <!-----------------------*/ ?>
+              <div class="nick_odds_jackpot">
+
+                <?php /*--->
+                <!-- Ник -->
+                <!-----*/ ?>
+                <div class="nick">
+                  <span data-bind="text: nickname"></span>
+                </div>
+
+                <?php /*---->
+                <!-- Шанс -->
+                <!------*/ ?>
+                <div class="odds">
+                  <span data-bind="text: 'Шанс: ' + (Math.round(((+winner_bets_items_cents() / +jackpot_total_sum_cents())) * 100 * 10) / 10) + '%'"></span>
+                </div>
+
+                <?php /*------->
+                <!-- Выигрыш -->
+                <!---------*/ ?>
+                <div class="jackpot">
+                  <span data-bind="text: 'Выигрыш: ' + Math.ceil((win_fact_cents()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+                </div>
+
+              </div>
+
+              <?php /*-------------------------->
+              <!-- 3) Игра, хэш, число раунда -->
+              <!----------------------------*/ ?>
+              <div class="game_hash">
+
+              </div>
+
+            </div>
+
+            <?php /*---------------------------->
+            <!-- 1.2] Список выигранных вещей -->
+            <!------------------------------*/ ?>
+            <div class="items">
+
+            </div>
+
+          </div>
 
         </div>
 
@@ -725,7 +784,7 @@
       <?php /*--------------------------------------------------------------------------------------------------->
       <!-- 2] Надпись об отсутствии истории (показывать, только если история не загружена в выбранной комнате) -->
       <!-----------------------------------------------------------------------------------------------------*/ ?>
-      <div class="history_absent" data-bind="if: !m.s1.history.is_in_choosen_room()">
+      <div style="display: none" class="history_absent" data-bind="if: !m.s1.history.is_in_choosen_room(), visible: !m.s1.history.is_in_choosen_room()">
 
         <span>История отсутствует</span>
 

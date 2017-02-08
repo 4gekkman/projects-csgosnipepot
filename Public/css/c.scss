@@ -1503,8 +1503,64 @@
     //------------------------------------//
     // 1.14.2. Стили контента истории игр //
     //------------------------------------//
-    .content .classic-game .cg-container .cg_history .history {}
 
+      // Общие стили
+      .content .classic-game .cg-container .cg_history .history {}
+      .content .classic-game .cg-container .cg_history .history .history-item {
+        padding: 10px;
+        background: #203440;
+        margin-top: 10px;
+        min-height: 130px;
+      }
+
+      // Стили заголовочной части
+
+        // Общие
+        .content .classic-game .cg-container .cg_history .history .header-part {
+          position: relative;
+          height: 65px;
+          background: #444;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .avatar {
+          max-width: 65px;
+          max-height: 65px;
+        }
+
+        // Ник, шанс, выигрыш
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot {
+          position: absolute;
+          left: 70px;
+          top: 0;
+          width: calc(50% - 70px);
+          height: 65px;
+          background: #555;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick {
+          height: 40%;
+          font-size: 1.2em;
+          overflow: hidden;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .odds {
+          height: 30%;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .jackpot {
+          height: 30%;
+        }
+
+        // Игра, хэш, число раунда
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash {
+          position: absolute;
+          right: 0;
+          top: 0;
+          width: 50%;
+          height: 65px;
+          background: #667;
+        }
+
+      // Стили списка выигранных вещей
+      .content .classic-game .cg-container .cg_history .history .items {
+
+      }
 
     //----------------------------------------//
     // 1.14.3. Стили кнопки "Показать ещё 10" //
