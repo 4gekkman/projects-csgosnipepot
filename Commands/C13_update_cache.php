@@ -181,7 +181,6 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
         if(!array_key_exists('force', $this->data))
           $this->data['force'] = true;
 
-
       // 3. Обновить кэш, который указан в cache2update
 
         // 3.1. processing:bets:active + processing:bets:active:<id пользователя> + processing:bets:active:<id пользователя>
