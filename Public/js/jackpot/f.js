@@ -106,7 +106,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//-----------------------------//
 	f.s1.choose_tab = function(name, data, event) {
 
+		// 1] Сменить таб
 		self.m.s1.maintabs.choosen(self.m.s1.indexes.maintabs[name]);
+
+		// 2] Если name == 'history'
+		if(name == 'history') {
+
+			// 2.1] Подтянуть первые 10 пунктов истории (если ещё не) для выбранной комнаты
+			self.f.s1.get_initial_history();
+
+		}
 
 	};
 
@@ -144,6 +153,14 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		setTimeout(function(){
 			self.f.s1.smootbets_update();
 		}, 100);
+
+		// 6] Если функция вызывна пользователем
+		if(event && event.which) {
+
+			// 6.1] Подтянуть первые 10 пунктов истории (если ещё не) для выбранной комнаты
+			self.f.s1.get_initial_history();
+
+		}
 
 	};
 	
@@ -1365,7 +1382,73 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//---------------------------------------------------------------------------//
 	f.s1.get_initial_history = function(data, event) {
 
+		// 1] Если нет необходимых ресурсов, ничего не делать
+		if(!self.m.s1.game.choosen_room()) return;
 
+		// 2] Получить ID выбранной комнаты
+		var choosen_room_id = self.m.s1.game.choosen_room().id();
+
+		// 3] Если история этой комнаты не пуста, завершить
+		if(self.m.s1.history.all()[choosen_room_id]) return;
+
+		// 4] Определить номер страницы, которую потребуется загрузить
+		var page_num = 1;
+
+		// 5] Отправить AJAX-запрос и подгрузить историю
+		ajaxko(self, {
+			key: 	    		"D10009:3",
+			from: 		    "ajaxko",
+			data: 		    {
+				id_room: choosen_room_id,
+				page_num: page_num
+			},
+			prejob:       function(config, data, event){
+
+				// 1] Включить модальный щит загрузки истории
+				self.m.s0.is_load_shield_on(true);
+
+			},
+			postjob:      function(data, params){},
+			ok_0:         function(data, params){
+
+				// 1] Получить входящие данные
+				var id_room 	= data.data.id_room;
+				var page_num 	= data.data.page_num;
+				var history 	= data.data.history;
+
+				// 2] Загрузить данные истории комнаты в m.s1.history.all
+				self.m.s1.history.all()[id_room] = ko.mapping.fromJS(history);
+
+				// 3] Обновить значение индикатора наличия истории в текущей комнате
+				(function(){
+
+					// Если история для текущей выбранной комнаты есть
+					if(self.m.s1.history.all()[self.m.s1.game.choosen_room().id()] && self.m.s1.history.all()[self.m.s1.game.choosen_room().id()]().length)
+						self.m.s1.history.is_in_choosen_room(true);
+
+					// Если же нет
+					else
+						self.m.s1.history.is_in_choosen_room(false);
+
+				})();
+
+				// n] Выключить модальный щит загрузки истории
+				self.m.s0.is_load_shield_on(false);
+
+			},
+			ok_1:         function(data, params){
+
+				// n] Выключить модальный щит загрузки истории
+				self.m.s0.is_load_shield_on(false);
+
+			},
+			ok_2:         function(data, params){
+
+				// n] Выключить модальный щит загрузки истории
+				self.m.s0.is_load_shield_on(false);
+
+			}
+		});
 
 	};
 

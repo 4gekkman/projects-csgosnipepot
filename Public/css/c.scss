@@ -1496,8 +1496,9 @@
     //---------------------------------//
     // 1.14.1. Общие стили истории игр //
     //---------------------------------//
-    .content .classic-game .cg-container .cg_history {}
-
+    .content .classic-game .cg-container .cg_history {
+      min-height: 250px;
+    }
 
     //------------------------------------//
     // 1.14.2. Стили контента истории игр //
@@ -1508,9 +1509,36 @@
     //----------------------------------------//
     // 1.14.3. Стили кнопки "Показать ещё 10" //
     //----------------------------------------//
-    .content .classic-game .cg-container .cg_history .button_more {}
+    .content .classic-game .cg-container .cg_history .button_more {
+      height: 100px;
+      line-height: 100px;
+      text-align: center;
+    }
+    .content .classic-game .cg-container .cg_history .button_more .button_more_itself {
+      display: inline-block;
+      width: 300px;
+    }
+    .content .classic-game .cg-container .cg_history .button_more .button_more_itself button {
+      border-radius: 4px;
+      font-size: 1.2em;
+      font-weight: bold;
+      background: #2a3d4b;
+      color: #9ea7b3;
+      border: 1px solid #5a5e64;
+      outline: 0 !important;
+      transition: background .5s ease;
+    }
+    .content .classic-game .cg-container .cg_history .button_more .button_more_itself button:hover {
+      background: lighten(#2a3d4b, 3%);
+    }
 
-
-
-
+    //------------------------------------------------------//
+    // 1.14.4. Стили надписи о том, что история отсутствует //
+    //------------------------------------------------------//
+    .content .classic-game .cg-container .cg_history .history_absent {
+      height: 250px;
+      line-height: 250px;
+      text-align: center;
+      font-size: 2em;
+    }
 

@@ -20,7 +20,8 @@
  * Нестандартные POST-операции
  *
  *                  POST-API1   D10009:1                   Безопасная обёртка для команды изменения trade url
- *                  POST-API2   D10009:2
+ *                  POST-API2   D10009:2                   Сохранение в куки нового значения для выключателя звука
+ *                  POST-API2   D10009:3                   Подгрузить указанную страницу истории для classic game, для указанной комнаты
  *
  *
  *
@@ -377,6 +378,28 @@ class Controller extends BaseController {
           // 5. Сформировать ответ и вернуть клиенту
           return Response::make(json_encode($response, JSON_UNESCAPED_UNICODE))
               ->withCookie($cookie_m9_sound_global_ison);
+
+        }
+
+        //---------------------------------//
+        // Нестандартная операция D10009:3 //
+        //---------------------------------//
+        // - Подгрузить указанную страницу истории для classic game, для указанной комнаты
+        if($key == 'D10009:3') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Выполнить команду
+          $result = runcommand('\M9\Commands\C52_get_history_by_room_and_page', [
+            "id_room"   => Input::get('data')['id_room'],
+            "page_num"  => Input::get('data')['page_num'],
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // n. Вернуть результаты
+          return $result;
 
         }
 

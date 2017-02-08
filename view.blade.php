@@ -218,7 +218,7 @@
       <?php /*------------------->
       <!-- 3] Кнопка "История" -->
       <!---------------------*/ ?>
-      <div class="history-button"  data-bind="css: {choosen: m.s1.maintabs.choosen().name() == 'history'}, click: f.s1.choose_tab.bind($data, 'history')">
+      <div class="history-button" data-bind="css: {choosen: m.s1.maintabs.choosen().name() == 'history'}, click: f.s1.choose_tab.bind($data, 'history')">
         <span>История</span>
       </div>
 
@@ -706,18 +706,43 @@
     <!----------------------------*/ ?>
     <div class="cg_history" style="display: none" data-bind="visible: m.s1.maintabs.choosen().name() == 'history'">
 
-      <?php /*------------------------->
-      <!-- 1] Содержимое истории игр -->
-      <!---------------------------*/ ?>
-      <div class="history">
-        Содержимое истории игр
+      <?php /*----------------------------------------------------------------------------------------->
+      <!-- 1] Содержимое истории игр (показывать, только если история загружена в выбранной комнате) -->
+      <!-------------------------------------------------------------------------------------------*/ ?>
+      <div style="display: none" class="history" data-bind="if: m.s1.history.is_in_choosen_room, visible: m.s1.history.is_in_choosen_room">
+
+        <?php /*---------------------------->
+        <!-- Список позиций в истории игр -->
+        <!------------------------------*/ ?>
+        <div data-bind="foreach: m.s1.history.all()[m.s1.game.choosen_room().id()]">
+
+          <span data-bind="text: id"></span>
+
+        </div>
+
+      </div>
+
+      <?php /*--------------------------------------------------------------------------------------------------->
+      <!-- 2] Надпись об отсутствии истории (показывать, только если история не загружена в выбранной комнате) -->
+      <!-----------------------------------------------------------------------------------------------------*/ ?>
+      <div class="history_absent" data-bind="if: !m.s1.history.is_in_choosen_room()">
+
+        <span>История отсутствует</span>
+
       </div>
 
       <?php /*--------------------------->
-      <!-- 2] Кнопка "Показать ещё 10" -->
+      <!-- 3] Кнопка "Показать ещё 10" -->
       <!-----------------------------*/ ?>
-      <div class="button_more">
-        Кнопка "Показать ещё 10"
+      <div style="display: none" class="button_more" data-bind="if: m.s1.history.is_in_choosen_room, visible: m.s1.history.is_in_choosen_room">
+
+        <?php /*------>
+        <!-- Кнопка -->
+        <!--------*/ ?>
+        <div class="button_more_itself" data-bind="visible: m.s1.history.all()[m.s1.game.choosen_room().id()]().length <= 50">
+          <button type="button" class="btn btn-block btn-default btn-flat">Показать ещё...</button>
+        </div>
+
       </div>
 
     </div>

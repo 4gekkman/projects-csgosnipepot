@@ -666,13 +666,10 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 	self.m.s1.history = {};
 
 		// 1] История классической игры для всех комнат
-		self.m.s1.history.all = ko.observableArray([]);
+		self.m.s1.history.all = ko.observable({});
 
-		// 2] Включен ли модальный щит загрузки истории
-		self.m.s1.history.is_load_shield_on = ko.observable(false);
-
-
-
+		// 2] Индикатор наличия истории для текущей комнаты
+		self.m.s1.history.is_in_choosen_room = ko.observable(false);
 
 
 	//--------------------------------------//
