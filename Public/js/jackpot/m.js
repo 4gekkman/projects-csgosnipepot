@@ -25,6 +25,7 @@
  *    s1.11. Модель анимации ленты аватаров текущей комнаты
  *    s1.12. Модель плавного появления ставок
  *    s1.13. URL звуков игры
+ *    s1.14. Модель истории классической игры
  *    s1.n. Индексы и вычисляемые значения
  *
  *      s1.n.0. Индексы и вычисляемые без extend
@@ -658,6 +659,20 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.sounds['win'] = layout_data.data.request.secure + layout_data.data.request.host + ((/:\d+.*$/i).test(layout_data.data.request.host) ? "" : ':'+layout_data.data.request.port) + '/' + 'public/L10003/assets/sound/classicgame/win.mp3';
 		self.m.s1.sounds['timer-tick-quiet'] = layout_data.data.request.secure + layout_data.data.request.host + ((/:\d+.*$/i).test(layout_data.data.request.host) ? "" : ':'+layout_data.data.request.port) + '/' + 'public/L10003/assets/sound/classicgame/timer-tick-quiet.mp3';
 		self.m.s1.sounds['timer-tick-last-5-seconds'] = layout_data.data.request.secure + layout_data.data.request.host + ((/:\d+.*$/i).test(layout_data.data.request.host) ? "" : ':'+layout_data.data.request.port) + '/' + 'public/L10003/assets/sound/classicgame/timer-tick-last-5-seconds.mp3';
+
+	//-----------------------------------------//
+	// s1.14. Модель истории классической игры //
+	//-----------------------------------------//
+	self.m.s1.history = {};
+
+		// 1] История классической игры для всех комнат
+		self.m.s1.history.all = ko.observableArray([]);
+
+		// 2] Включен ли модальный щит загрузки истории
+		self.m.s1.history.is_load_shield_on = ko.observable(false);
+
+
+
 
 
 	//--------------------------------------//

@@ -128,7 +128,13 @@ class Controller extends BaseController {
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-
+      // Обновить весь кэш истории, но для каждого, только если он отсутствует
+      $result = runcommand('\M9\Commands\C51_update_history_cache', [
+        "all"   => true,
+        "force" => false
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
     //-----------------------//
     // Обработать GET-запрос //
