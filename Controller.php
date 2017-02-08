@@ -128,6 +128,8 @@ class Controller extends BaseController {
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
+
+
     //-----------------------//
     // Обработать GET-запрос //
     //-----------------------//
