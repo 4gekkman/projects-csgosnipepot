@@ -1497,6 +1497,7 @@
     // 1.14.1. Общие стили истории игр //
     //---------------------------------//
     .content .classic-game .cg-container .cg_history {
+      position: relative;
       min-height: 250px;
     }
 
@@ -1560,10 +1561,10 @@
           height: 40%;
           font-size: 1.2em;
           overflow: hidden;
-          color: #f7b454;
         }
-        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game span {
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game .num {
           float: right;
+          color: #f7b454;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .game_hash .key {
           height: 30%;
@@ -1575,6 +1576,33 @@
       // Стили списка выигранных вещей
       .content .classic-game .cg-container .cg_history .history .items {
 
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item {
+        display: inline-block;
+        width: 65px;
+        height: 65px;
+        margin-top: 5px;
+        margin-right: 18px;
+        cursor: help;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .img_cont {
+        width: 50px; height: 50px;
+        line-height: 50px;
+        text-align: center;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .img_cont img {
+        display: inline-block;
+        max-width: 65px;
+        max-height: 50px;
+        vertical-align: middle;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .price {
+        border-top: 1px solid #73d1f9;
+        font-size: .85em;
+        text-align: center;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .price span {
+        text-align: bottom;
       }
 
     //----------------------------------------//

@@ -59,6 +59,7 @@
   8. F.A.Q.
   9. Тех. поддержка
   10. Free coins
+  n. Модальный щит загрузки со спинером
 
 -------------------------*/ ?>
 @section('content')
@@ -768,7 +769,8 @@
                 <!-- Игра -->
                 <!------*/ ?>
                 <div class="game">
-                  <span data-bind="text: 'ИГРА #' + id()"></span>
+                  <span data-bind="text: 'Комната: ' + room_name()"></span>
+                  <span class="num" data-bind="text: 'ИГРА #' + id()"></span>
                 </div>
 
                 <?php /*--->
@@ -792,7 +794,28 @@
             <?php /*---------------------------->
             <!-- 1.2] Список выигранных вещей -->
             <!------------------------------*/ ?>
-            <div class="items">
+            <div class="items" data-bind="foreach: items">
+
+              <?php /*---->
+              <!-- Вещь -->
+              <!------*/ ?>
+              <div class="item" data-bind="attr: {title: name}">
+
+                <?php /*----------->
+                <!-- Изображение -->
+                <!-------------*/ ?>
+                <div class="img_cont">
+                  <img data-bind="attr: {src: steammarket_image}">
+                </div>
+
+                <?php /*---->
+                <!-- Цена -->
+                <!------*/ ?>
+                <div class="price">
+                  <span data-bind="text: Math.ceil((price()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+                </div>
+
+              </div>
 
             </div>
 
@@ -823,6 +846,15 @@
           <button type="button" class="btn btn-block btn-default btn-flat">Показать ещё...</button>
         </div>
 
+      </div>
+
+      <?php /*------------------------------------->
+      <!-- 4] Модальный щит загрузки со спинером -->
+      <!---------------------------------------*/ ?>
+      <div class="loader">
+        <div style="display: none" class="modal_shield loader-inner ball-clip-rotate" data-bind="visible: m.s0.is_load_shield_on">
+          <div></div>
+        </div>
       </div>
 
     </div>
@@ -1081,7 +1113,6 @@
 <div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/freecoins'">
   <span>Free coins</span>
 </div>
-
 
 
 </div> @stop

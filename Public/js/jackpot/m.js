@@ -279,7 +279,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		// 2] Выбранный таб //
 		//------------------//
-		self.m.s1.maintabs.choosen = ko.observable(self.m.s1.maintabs.list()[1]);
+		self.m.s1.maintabs.choosen = ko.observable(self.m.s1.maintabs.list()[0]);
 
 	//--------------------------------------------------//
 	// s1.3. Модель поставленных на данный момент вещей //
