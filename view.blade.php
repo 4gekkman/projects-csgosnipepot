@@ -740,7 +740,7 @@
                 <!-- Ник -->
                 <!-----*/ ?>
                 <div class="nick">
-                  <span data-bind="text: nickname"></span>
+                  <a target="_blank" data-bind="text: nickname, attr: {href: 'http://steamcommunity.com/profiles/'+steamid()}"></a>
                 </div>
 
                 <?php /*---->
@@ -763,6 +763,27 @@
               <!-- 3) Игра, хэш, число раунда -->
               <!----------------------------*/ ?>
               <div class="game_hash">
+
+                <?php /*---->
+                <!-- Игра -->
+                <!------*/ ?>
+                <div class="game">
+                  <span data-bind="text: 'ИГРА #' + id()"></span>
+                </div>
+
+                <?php /*--->
+                <!-- Хэш -->
+                <!-----*/ ?>
+                <div class="key">
+                  <span data-bind="text: 'Хэш раунда: ' + key_hash()"></span>
+                </div>
+
+                <?php /*------------>
+                <!-- Число раунда -->
+                <!--------------*/ ?>
+                <div class="key_hash">
+                  <span data-bind="text: 'Число раунда: ' + key()"></span>
+                </div>
 
               </div>
 

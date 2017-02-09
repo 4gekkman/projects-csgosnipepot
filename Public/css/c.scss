@@ -1519,7 +1519,6 @@
         .content .classic-game .cg-container .cg_history .history .header-part {
           position: relative;
           height: 65px;
-          background: #444;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .avatar {
           max-width: 65px;
@@ -1533,12 +1532,14 @@
           top: 0;
           width: calc(50% - 70px);
           height: 65px;
-          background: #555;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick {
           height: 40%;
           font-size: 1.2em;
           overflow: hidden;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick a {
+          color: #fff;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .odds {
           height: 30%;
@@ -1554,7 +1555,21 @@
           top: 0;
           width: 50%;
           height: 65px;
-          background: #667;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game {
+          height: 40%;
+          font-size: 1.2em;
+          overflow: hidden;
+          color: #f7b454;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game span {
+          float: right;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .key {
+          height: 30%;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .key_hash {
+          height: 30%;
         }
 
       // Стили списка выигранных вещей
