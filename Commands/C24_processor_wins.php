@@ -148,7 +148,9 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
      *  C26_active_offers_wins_tracking             | 2. Отслеживать изменения статусов активных офферов по выплате выигрышей
      *  C27_active_offers_expiration_wins_tracking  | 3. Отслеживать срок годности активных офферов по выплате выигрышей
      *  C28_wins_expiration_tracking                | 4. Отслеживать срок годности выигрышей
-     *  C29_wins_and_offers_expiration_notify       | 5. Информирование игроков о секундах до истечения их активных офферов и выигрышей
+     *  C46_assetid_bots_tracking                   | 5. Отслеживание и наполнение assetid_bots ставок
+     *  C47_assetid_wins_tracking                   | 6. Отслеживание и наполнение assetid выигрышей
+     *  C48_wins_autopayouts                        | 7. Автоматическая выплата выигрышей
      *
      *  N. Вернуть статус 0
      *

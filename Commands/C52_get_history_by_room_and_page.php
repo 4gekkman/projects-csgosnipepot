@@ -167,15 +167,17 @@ class C52_get_history_by_room_and_page extends Job { // TODO: добавить "
       $history_page = collect($history_all)
           ->slice(10*($this->data['page_num']-1))
           ->take(10)
+          ->values()
           ->toArray();
 
       // n. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
-          "id_room"   => $this->data['id_room'],
-          "page_num"  => $this->data['page_num'],
-          "history"   => $history_page
+          "id_room"           => $this->data['id_room'],
+          "page_num"          => $this->data['page_num'],
+          "history"           => $history_page,
+          "history_all_count" => count($history_all)
         ]
       ];
 

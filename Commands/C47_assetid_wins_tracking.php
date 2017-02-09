@@ -296,12 +296,24 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
           }
           DB::commit();
 
-          // m] Обновить весь кэш
+          // 10] Обновить весь кэш выигрышей
           $result = runcommand('\M9\Commands\C25_update_wins_cache', [
             "all" => true
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
+
+          // 11] Обновить весь кэш истории
+          $result = runcommand('\M9\Commands\C51_update_history_cache', [
+            "all"   => true,
+            "force" => true
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 12]
+          // - Получить свежую единицу истории выигрыша $win через C52
+          // - Транслировать её через публичный канал
 
         }
 
