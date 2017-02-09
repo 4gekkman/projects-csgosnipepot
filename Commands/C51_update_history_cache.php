@@ -233,6 +233,7 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
 
               array_push($results, [
                 "id"                        => $round['id'],
+                "room_name"                 => $round['rooms']['name'],
                 "key"                       => $round['key'],
                 "key_hash"                  => $round['key_hash'],
 
@@ -250,7 +251,7 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
                     array_push($result, [
                       'id'                => $item['id'],
                       'name'              => $item['name'],
-                      'price'             => (int)($item['price']*100),
+                      'price'             => (int)($item['pivot']['price']*100),
                       'steammarket_image' => $item['steammarket_image']
                     ]);
                   }
