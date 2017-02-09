@@ -86,14 +86,6 @@
       <!------------------------------------*/ ?>
       <div class="log-in-out">
 
-        <?php /*--------->
-        <!-- Заголовок -->
-        <!-----------*/ ?>
-        <div>
-          <span style="display: none" data-bind="visible: !m.s0.is_logged_in()">Войти, используя свой аккаунт в Steam</span>
-          <span style="display: none" data-bind="visible: m.s0.is_logged_in">Выйти из своего аккаунта</span>
-        </div>
-
         <?php /*------>
         <!-- Кнопки -->
         <!--------*/ ?>
@@ -102,7 +94,7 @@
           <?php /*----->
           <!-- Login -->
           <!-------*/ ?>
-          <button style="display: none" data-bind="visible: !m.s0.is_logged_in()" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>
+          <button class="login" style="display: none" data-bind="visible: !m.s0.is_logged_in()" onclick="window.location = '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam&authmode=redirect&url_redirect='+window.location.href">
             <i class="fa fa-fw fa-steam"></i>
             <span>Войти через Steam</span>
           </button>
@@ -110,10 +102,10 @@
           <?php /*------>
           <!-- Logout -->
           <!--------*/ ?>
-          <button style="display: none" data-bind="visible: m.s0.is_logged_in, click: f.s5.logout">
-            <i class="fa fa-fw fa-sign-out"></i>
-            <span>Выйти</span>
-          </button>
+          <!--<button class="logout" style="display: none" data-bind="visible: m.s0.is_logged_in, click: f.s0.logout">-->
+          <!--  <i class="fa fa-fw fa-sign-out"></i>-->
+          <!--  <span>Выйти</span>-->
+          <!--</button>-->
 
         </div>
       </div>
@@ -127,21 +119,21 @@
         <!-- Заголовок -->
         <!-----------*/ ?>
         <div>
-          <span>Указать свой торговый URL в Steam (</span><a style="border-bottom: 1px solid #555;" target="_blank" href="http://steamcommunity.com/my/tradeoffers/privacy#trade_offer_access_url">посмотреть его можно здесь, в самом низу</a><span>)</span>
+          <span>Ссылка на обмен в Steam </span><a target="_blank" href="http://steamcommunity.com/my/tradeoffers/privacy#trade_offer_access_url">(узнать)</a>
         </div>
 
         <?php /*------------------------>
         <!-- Поле для ввода Trade URL -->
         <!--------------------------*/ ?>
         <div>
-          <input type="text" placeholder="Твой торговый URL в Steam" data-bind="textInput: m.s5.steam_tradeurl">
+          <input type="text" placeholder="Введте ссылку здесь..." data-bind="textInput: m.s2.notif_tradeurl.tradeurl">
         </div>
 
         <?php /*------>
         <!-- Кнопка -->
         <!--------*/ ?>
         <div class="button-styles">
-          <button data-bind="click: f.s5.save_steam_tradeurl">
+          <button data-bind="click: f.s2.save_steam_tradeurl">
             <span>Изменить</span>
           </button>
         </div>

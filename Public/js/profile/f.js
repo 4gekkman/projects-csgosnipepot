@@ -11,7 +11,7 @@
  *
  * 	s3. Функционал профиля пользователя
  *
- *    f.s3.func														| s3.1. ...
+ *    f.s3.save_steam_tradeurl      | s3.1. Сохранить Steam Trade URL
  *
  *
  */
@@ -32,15 +32,14 @@ var ModelFunctionsProfile = { constructor: function(self, f) { f.s3 = this;
 	// 			         			                   //
 	//---------------------------------------//
 
-	//-------------------------------------------------------------//
-	// s3.1. ... //
-	//-------------------------------------------------------------//
-	f.s3.func = function() {
+	//---------------------------------//
+	// s3.1. Сохранить Steam Trade URL //
+	//---------------------------------//
+	f.s3.save_steam_tradeurl = function() {
 
-		console.log(self.m.s3.prop());
+		// см. f.s2.save_steam_tradeurl
 
 	};
-
 
 
 

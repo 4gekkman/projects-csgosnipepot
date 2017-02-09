@@ -722,7 +722,7 @@
         <!--------*/ ?>
         <div class="button_more_itself">
           <button type="button" class="btn btn-block btn-default btn-flat" data-bind="click: f.s1.get_more_history" style="position: relative">
-            <span>Показать ещё...</span>
+            <span>Показать ещё</span>
             <div class="loader">
               <div style="display: none; position: absolute; top: 3px; right: 3px;" class="loader-inner ball-clip-rotate" data-bind="visible: m.s1.history.is_more_history_spinner_vis">
                 <div></div>

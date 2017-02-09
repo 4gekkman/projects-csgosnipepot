@@ -134,7 +134,7 @@
       transition: all .5s ease;
     }
     .content .classic-game .cg-container .header .logo_and_name:hover {
-      color: lighten($cg_color_choosencolor, 30%);
+      color: #59b0db;
     }
     .content .classic-game .cg-container .header .logo_and_name.choosen {
       color: #59b0db;
@@ -168,7 +168,7 @@
       color: #59b0db;
     }
     .content .classic-game .cg-container .header .history-button.choosen {
-      color: $cg_color_choosencolor;
+      color: #59b0db;
     }
 
   //---------------------------------------------------//
@@ -1511,7 +1511,7 @@
       .content .classic-game .cg-container .cg_history .history .history-item {
         padding: 10px;
         background: #203440;
-        margin-top: 10px;
+        margin: 0 0 10px 0px;
         min-height: 130px;
       }
 
@@ -1525,6 +1525,7 @@
         .content .classic-game .cg-container .cg_history .history .header-part .avatar {
           max-width: 65px;
           max-height: 65px;
+          margin: 5px 0 0 5px;
         }
 
         // Ник, шанс, выигрыш
@@ -1534,6 +1535,7 @@
           top: 0;
           width: calc(50% - 70px);
           height: 65px;
+          margin: 5px 0 0 10px;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick {
           height: 40%;
@@ -1544,10 +1546,10 @@
           color: #fff;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .odds {
-          height: 30%;
+          height: 25%;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .jackpot {
-          height: 30%;
+          height: 25%;
         }
 
         // Игра, хэш, число раунда
@@ -1555,8 +1557,7 @@
           position: absolute;
           right: 0;
           top: 0;
-          width: 50%;
-          height: 65px;
+          margin: 5px 5px 0 0;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game {
           height: 40%;
@@ -1582,14 +1583,14 @@
         display: inline-block;
         width: 65px;
         height: 65px;
-        margin-top: 5px;
-        margin-right: 18px;
         cursor: help;
+        margin: 15px 13px 0 5px;
       }
       .content .classic-game .cg-container .cg_history .history .items .item .img_cont {
         width: 50px; height: 50px;
         line-height: 50px;
         text-align: center;
+        margin-bottom: 5px;
       }
       .content .classic-game .cg-container .cg_history .history .items .item .img_cont img {
         display: inline-block;
@@ -1601,6 +1602,7 @@
         border-top: 1px solid #73d1f9;
         font-size: .85em;
         text-align: center;
+        padding-top: 2px;
       }
       .content .classic-game .cg-container .cg_history .history .items .item .price span {
         text-align: bottom;
@@ -1610,26 +1612,25 @@
     // 1.14.3. Стили кнопки "Показать ещё 10" //
     //----------------------------------------//
     .content .classic-game .cg-container .cg_history .button_more {
-      height: 100px;
-      line-height: 100px;
+      height: 70px;
+      line-height: 62px;
       text-align: center;
     }
     .content .classic-game .cg-container .cg_history .button_more .button_more_itself {
       display: inline-block;
-      width: 300px;
+      width: 270px;
     }
     .content .classic-game .cg-container .cg_history .button_more .button_more_itself button {
-      border-radius: 4px;
+      border-radius: 3px;
       font-size: 1.2em;
-      font-weight: bold;
-      background: #2a3d4b;
-      color: #9ea7b3;
-      border: 1px solid #5a5e64;
+      background: #008fff;
+      color: white;
+      border: 1px solid #008fff;
       outline: 0 !important;
       transition: background .5s ease;
     }
     .content .classic-game .cg-container .cg_history .button_more .button_more_itself button:hover {
-      background: lighten(#2a3d4b, 3%);
+      background: #2c9ef8;
     }
 
     //------------------------------------------------------//
@@ -1652,6 +1653,8 @@
   2.2. Общие стили профиля
   2.3. Стили шапки профиля
   2.4. Информация об аккаунте
+  2.5. Кнопки "Login" и "Logout"
+  2.6. Торговый URL
 
 //------------------------------------*/    
     
@@ -1734,7 +1737,6 @@
     .content .profile .pf-container .profile-content .user-acc-info {
       color: #9ea7b3;
       font-size: 17px;
-      margin-bottom: 15px;
       height: 150px;
       padding: 10px;
     }
@@ -1772,11 +1774,99 @@
       border-radius: 4px;
     }
 
-    
-    
-    
-    
-    
+  //--------------------------------//
+  // 2.5. Кнопки "Login" и "Logout" //
+  //--------------------------------//
+
+    // Заголовок
+    .content .profile .pf-container .profile-content .log-in-out {
+      color: #aaa;
+      font-size: 17px;
+      padding: 0 10px 10px 10px;
+    }
+    .content .profile .pf-container .profile-content .log-in-out a {
+      color: #64C119;
+    }
+    .content .profile .pf-container .profile-content .log-in-out div:nth-child(1) {
+
+    }
+
+    // Кнопки
+    .content .profile .pf-container .profile-content .log-in-out .button-styles {
+      text-align: left;
+    }
+    .content .profile .pf-container .profile-content button {
+      display: inline-block;
+      height: 34px;
+      line-height: 16px;
+      text-align: center;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: 300ms ease;
+      border: 2px solid #59b0db;
+      color: #59b0db;
+      background: transparent;
+      background-size: 100% 200%;
+      background-position: left top;
+      outline: 0;
+    }
+    .content .profile .pf-container .profile-content button.logout {
+      width: 125px;
+    }
+    .content .profile .pf-container .profile-content button.login {
+      margin-top: 10px;
+    }
+    .content .profile .pf-container .profile-content button:hover {
+      background-color: #59b0db;
+      color: #000;
+    }
+
+  //-------------------//
+  // 2.6. Торговый URL //
+  //-------------------//
+
+    // Заголовок
+    .content .profile .pf-container .profile-content .trade-url {
+      color: #fff;
+      font-size: 17px;
+      padding: 0 10px 10px 10px;
+    }
+    .content .profile .pf-container .profile-content .trade-url a {
+      color: #59b0db;
+    }
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(1) {
+
+    }
+
+    // Input
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) {
+      display: inline-block;
+      width: 748px;
+      vertical-align: middle;
+    }
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input {
+      width: 100%;
+      background-color: #1b2934;
+      outline: 0; border: 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      color: #9ea7b3;
+    }
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-webkit-input-placeholder {color: #9ea7b3;}
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-moz-placeholder {color: #9ea7b3;}
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-moz-placeholder {color: #9ea7b3;}
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-ms-input-placeholder {color: #9ea7b3;}
+
+    // Кнопка
+    .content .profile .pf-container .profile-content .trade-url .button-styles {
+      text-align: left;
+      display: inline-block;
+      float: right;
+      vertical-align: middle;
+    }   
     
 
 
