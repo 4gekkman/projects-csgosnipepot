@@ -206,6 +206,8 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
 
           // 1] Получить последние 50 раундов комнаты $id_room
           $rounds = \M9\Models\MD2_rounds::with([
+            "rooms",
+
             "bets",
             "bets.m5_users",
             "bets.m8_bots",
