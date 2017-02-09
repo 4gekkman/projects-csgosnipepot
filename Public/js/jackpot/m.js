@@ -671,6 +671,15 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 2] Индикатор наличия истории для текущей комнаты
 		self.m.s1.history.is_in_choosen_room = ko.observable(false);
 
+		// 3] Видим ли спинер загрузки доп.истории на кнопке "Показать ещё..."
+	 	self.m.s1.history.is_more_history_spinner_vis = ko.observable(false);
+
+		// 4] Общее кол-во единиц истории для всех комнат, чья история загружена
+		self.m.s1.history.totalcount = ko.observable({});
+
+		// 5] Сколько страниц истории загружено для всех комнат, чья история загружена
+		self.m.s1.history.pagenums = ko.observable({});
+
 
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //

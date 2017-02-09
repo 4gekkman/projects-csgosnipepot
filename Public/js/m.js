@@ -327,7 +327,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//------------------------------------------------------------------//
 	// s0.8. Включён ли модальный щит для контента центрального столбца //
 	//------------------------------------------------------------------//
-	self.m.s0.is_load_shield_on = ko.observable(true);
+	self.m.s0.is_load_shield_on = ko.observable(false);
 
 
 

@@ -32,7 +32,7 @@
  *    f.s1.smootbets_add                  | s1.19. Плавно добавить ставку в smoothbets
  *    f.s1.playsound                      | s1.20. Проиграть один из звуков, указанный в параметрах
  *    f.s1.get_initial_history 						| s1.21. Получить стартовый набор с историей (10 шт.) для выбранной комнаты
- *
+ *    f.s1.get_more_history               | s1.22. Получить ещё 10 позиций истории для выбранной комнаты
  *
  */
 
@@ -1388,8 +1388,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 2] Получить ID выбранной комнаты
 		var choosen_room_id = self.m.s1.game.choosen_room().id();
 
-		// 3] Если история этой комнаты не пуста, завершить
+		// 3] Если история этой комнаты не пуста, или загрузка истори уже идёт, завершить
 		if(self.m.s1.history.all()[choosen_room_id]) return;
+		if(self.m.s0.is_load_shield_on()) return;
 
 		// 4] Определить номер страницы, которую потребуется загрузить
 		var page_num = 1;
@@ -1412,14 +1413,21 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			ok_0:         function(data, params){
 
 				// 1] Получить входящие данные
-				var id_room 	= data.data.id_room;
-				var page_num 	= data.data.page_num;
-				var history 	= data.data.history;
+				var id_room 						= data.data.id_room;
+				var page_num 						= data.data.page_num;
+				var history 						= data.data.history;
+				var history_all_count 	= data.data.history_all_count;
 
 				// 2] Загрузить данные истории комнаты в m.s1.history.all
 				self.m.s1.history.all()[id_room] = ko.mapping.fromJS(history);
 
-				// 3] Обновить значение индикатора наличия истории в текущей комнате
+				// 3] Записать общее кол-во единиц истории для текущей комнаты в кэше
+				self.m.s1.history.totalcount()[id_room] = ko.observable(history_all_count);
+
+				// 4] Записать кол-во загруженных для текущей комнаты страниц истории
+				self.m.s1.history.pagenums()[id_room] = ko.observable(page_num);
+
+				// 5] Обновить значение индикатора наличия истории в текущей комнате
 				(function(){
 
 					// Если история для текущей выбранной комнаты есть
@@ -1446,6 +1454,78 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				// n] Выключить модальный щит загрузки истории
 				self.m.s0.is_load_shield_on(false);
+
+			}
+		});
+
+	};
+
+	//--------------------------------------------------------------//
+	// s1.22. Получить ещё 10 позиций истории для выбранной комнаты //
+	//--------------------------------------------------------------//
+	f.s1.get_more_history = function(data, event) {
+
+		// 1] Если нет необходимых ресурсов, ничего не делать
+		if(!self.m.s1.game.choosen_room()) return;
+
+		// 2] Получить ID выбранной комнаты
+		var choosen_room_id = self.m.s1.game.choosen_room().id();
+
+		// 3] Определить номер страницы, которую потребуется загрузить
+		var page_num = +self.m.s1.history.pagenums()[2]() + 1;
+
+		// 4] Если page_num > 5, или загрузка истории уже идёт, завершить
+		if(page_num > 5) return;
+		if(self.m.s1.history.is_more_history_spinner_vis()) return;
+
+		// 5] Отправить AJAX-запрос и подгрузить историю
+		ajaxko(self, {
+			key: 	    		"D10009:3",
+			from: 		    "ajaxko",
+			data: 		    {
+				id_room: choosen_room_id,
+				page_num: page_num
+			},
+			prejob:       function(config, data, event){
+
+				// 1] Включить спиннер загрузки доп.истории на кнопке "Показать ещё..."
+				self.m.s1.history.is_more_history_spinner_vis(true);
+
+			},
+			postjob:      function(data, params){},
+			ok_0:         function(data, params){
+
+				// 1] Получить входящие данные
+				var id_room 						= data.data.id_room;
+				var page_num 						= data.data.page_num;
+				var history 						= data.data.history;
+				var history_all_count 	= data.data.history_all_count;
+
+				// 2] Добавить новые данные истории в m.s1.history.all
+				for(var i=0; i<history.length; i++) {
+					self.m.s1.history.all()[id_room].push(ko.mapping.fromJS(history[i]));
+				}
+
+				// 3] Записать общее кол-во единиц истории для текущей комнаты в кэше
+				self.m.s1.history.totalcount()[id_room](history_all_count);
+
+				// 4] Записать кол-во загруженных для текущей комнаты страниц истории
+				self.m.s1.history.pagenums()[id_room](page_num);
+
+				// n] Выключить спиннер загрузки доп.истории на кнопке "Показать ещё..."
+				self.m.s1.history.is_more_history_spinner_vis(false);
+
+			},
+			ok_1:         function(data, params){
+
+				// n] Выключить спиннер загрузки доп.истории на кнопке "Показать ещё..."
+				self.m.s1.history.is_more_history_spinner_vis(false);
+
+			},
+			ok_2:         function(data, params){
+
+				// n] Выключить спиннер загрузки доп.истории на кнопке "Показать ещё..."
+				self.m.s1.history.is_more_history_spinner_vis(false);
 
 			}
 		});
