@@ -219,6 +219,7 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
             "wins.m8_items",
           ])
             ->whereHas('wins')
+            ->whereHas('wins.m8_items')
             ->where('id_room', $id_room)
             ->orderBy('id', 'desc')->take(50)->get();
 

@@ -228,10 +228,9 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
           // - Нет связанных с $win вещей с пустыми assetid.
           // - Вообще в принципе есть вещи, связанные с $win
           // - [отмена] Количество связанных с $win вещей совпадает с кол-вом $items
-          if($is_empty_assetid_in_win === false && count($win['m8_items']) != 0) // && count($items) == count($win['m8_items'])) continue;
+          if($is_empty_assetid_in_win === false && count($win['m8_items']) != 0) continue; // && count($items) == count($win['m8_items'])) continue;
 
           // 5] Выяснить, есть ли среди $items вещи с пустыми assetid_bots
-          $is_empty_assetid_bots_in_bet = false;
           $is_empty_assetid_bots_in_bet = false;
           foreach($items as $item) {
             if(empty($item['pivot']['assetid_bots'])) {
@@ -289,7 +288,7 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
 
           // 9] Связать новый выигрыш с вещами $items2give
           DB::beginTransaction();
-          foreach($items2give as $item) {
+          foreach($items2give as &$item) {
             if(!$win->m8_items->contains($item['id'])) {
               $win->m8_items()->attach($item['id'], ["assetid" => $item['pivot']['assetid_bots'], "price" => $item['price']]);
             }
@@ -311,7 +310,59 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 12]
+          // 12] Есть ли среди items2give вещи с пустым assetid_bots
+          $is_empty_assetid_bots_in_bet = false;
+          foreach($items2give as $item) {
+            if(empty($item['pivot']['assetid_bots'])) {
+              $is_empty_assetid_bots_in_bet = true;
+              break;
+            }
+          }
+
+          Log::info('$is_empty_assetid_bots_in_bet = '.$is_empty_assetid_bots_in_bet);
+
+          // 13] Если $is_empty_assetid_bots_in_bet == false
+          if($is_empty_assetid_bots_in_bet == false) {
+
+            // 13.1] Получить кэш с историей комнаты $room['id']
+            $history_all = json_decode(Cache::get('m9:history:'.$room['id']), true);
+
+            // 13.2] Попробовать найти в $history_all историю для $round
+            $round_history = call_user_func(function() USE ($history_all, $round) {
+
+              foreach($history_all as $history) {
+                if($history['id'] == $round->id)
+                  return $history;
+              }
+              return "";
+
+            });
+
+            Log::info('$round_history = ');
+            Log::info($round_history);
+
+            // 13.3] Если $round_history найдена, транслировать через публичный канал
+            if(!empty($round_history)) {
+
+              Event::fire(new \R2\Broadcast([
+                'channels' => ['m9:public'],
+                'queue'    => 'm9_lottery_broadcasting',
+                'data'     => [
+                  'task' => 'classicgame_history_new',
+                  'data' => [
+                    'id_room'           => $room['id'],
+                    'history'           => $round_history,
+                    'history_all_count' => count($history_all)
+                  ]
+                ]
+              ]));
+
+            }
+
+
+          }
+
+          // - Если $is_empty_assetid_bots_in_bet == false
           // - Получить свежую единицу истории выигрыша $win через C52
           // - Транслировать её через публичный канал
 
