@@ -169,7 +169,7 @@
       <?php /*---------->
       <!-- Пункт меню -->
       <!------------*/ ?>
-      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}, visible: visible, click: $root.f.s1.choose_subdoc.bind($data, {uri: uri()})">
+      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}, visible: visible">
 
         <?php /*--------------------->
         <!-- 1] Иконка пункта меню -->
@@ -186,7 +186,7 @@
           <?php /*------------------------------------------->
           <!-- 2.1] Контент пункта меню для "Classic game" -->
           <!---------------------------------------------*/ ?>
-          <div style="display: none" data-bind="visible: uri() == '/'">
+          <div style="display: none" data-bind="visible: uri() == '/', click: $root.f.s1.choose_subdoc.bind($data, {uri: uri()})">
 
             <?php /*--------------------------------------->
             <!-- 2.1.1] Заголовок и всплывающие панельки -->
@@ -226,10 +226,17 @@
 
           </div>
 
+          <?php /*----------------------------------------->
+          <!-- 2.2] Контент пункта меню "Тех.поддержка"" -->
+          <!-------------------------------------------*/ ?>
+          <div style="display: none" data-bind="visible: uri() == '/support'" onclick="window.open('https://vk.com/id271729956', '_blank');">
+            <span data-bind="text: title"></span>
+          </div>
+
           <?php /*---------------------------------------->
           <!-- 2.n] Стандартный контент пункта меню для -->
           <!------------------------------------------*/ ?>
-          <div style="display: none" data-bind="visible: ['/'].indexOf(uri()) == -1">
+          <div style="display: none" data-bind="visible: ['/', '/support'].indexOf(uri()) == -1, click: $root.f.s1.choose_subdoc.bind($data, {uri: uri()})">
             <span data-bind="text: title"></span>
           </div>
 
