@@ -647,7 +647,7 @@
                 <!-- Игра -->
                 <!------*/ ?>
                 <div class="game">
-                  <span data-bind="text: 'Комната: ' + room_name()"></span>
+                  <!--<span data-bind="text: 'Комната: ' + room_name()"></span>-->
                   <span class="num" data-bind="text: 'ИГРА #' + id()"></span>
                 </div>
 

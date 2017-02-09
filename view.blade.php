@@ -123,7 +123,7 @@
 <?php /*--------------->
 <!-- 1. Classic game -->
 <!-----------------*/ ?>
-@include('D10009::classicgame');
+@include('D10009::classicgame')
 
 <?php /*-------------->
 <!-- 2. Double game -->
@@ -149,9 +149,7 @@
 <?php /*----------------------->
 <!-- 5. Профиль пользователя -->
 <!-------------------------*/ ?>
-<div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/profile'">
-  <span>Профиль пользователя</span>
-</div>
+@include('D10009::profile')
 
 <?php /*------------>
 <!-- 6. Партнёрка -->

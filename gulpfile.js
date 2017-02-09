@@ -148,6 +148,10 @@ for(var javascriptnum=0; javascriptnum<sources["javascript"].length; javascriptn
 					sources["javascript"][javascriptnum]+'jackpot/m.js',
 					sources["javascript"][javascriptnum]+'jackpot/f.js',
 
+					// Profile
+					sources["javascript"][javascriptnum]+'profile/m.js',
+					sources["javascript"][javascriptnum]+'profile/f.js',
+
 					// Основная модель и функционал
 					sources["javascript"][javascriptnum]+'m.js',
 					sources["javascript"][javascriptnum]+'f.js',

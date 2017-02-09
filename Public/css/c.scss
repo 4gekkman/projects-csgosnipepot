@@ -9,6 +9,7 @@
 ////------------------////
 
   1. Стили классической игры
+  2. Стили профиля
 
 
 ////------------------------------////
@@ -19,7 +20,7 @@
 
 //----------------------------//
 // 1. Стили классической игры //
-/*------------------------------------//
+/*----------------------------//
 Оглавление
 
   1.1. Переменные стилей классической игры
@@ -1640,4 +1641,144 @@
       text-align: center;
       font-size: 2em;
     }
+
+    
+//------------------//
+// 2. Стили профиля //
+/*------------------//
+Оглавление
+
+  2.1. Переменные стилей профиля
+  2.2. Общие стили профиля
+  2.3. Стили шапки профиля
+  2.4. Информация об аккаунте
+
+//------------------------------------*/    
+    
+  //--------------------------------//
+  // 2.1. Переменные стилей профиля //
+  //--------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $pf_main_color: #212f35;            // Главный цвет профиля
+      $pf_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $pf_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $pf_color_header_height: 50px;      // Высота шапки
+
+  //--------------------------//
+  // 2.2. Общие стили профиля //
+  //--------------------------//
+
+    // Внешний контейнер классической игры
+    .content .profile {
+
+    }
+
+    // Внутренний контейнер классической игры
+    .content .profile .pf-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //--------------------------//
+  // 2.3. Стили шапки профиля //
+  //--------------------------//
+
+    // Общие стили шапки классической игры
+    .content .profile .pf-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $pf_color_header_height;
+    }
+
+    // Заголовок
+    .content .profile .pf-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $pf_color_header_height;
+      line-height: $pf_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .profile .pf-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .profile .pf-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+ 
+  //-----------------------------//
+  // 2.4. Информация об аккаунте //
+  //-----------------------------//
+
+    // Заголовок
+    .content .profile .pf-container .profile-content .user-acc-info {
+      color: #9ea7b3;
+      font-size: 17px;
+      margin-bottom: 15px;
+      height: 150px;
+      padding: 10px;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info a {
+      color: #64C119;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info div:nth-child(1) {
+      margin-bottom: 10px;
+    }
+
+    // Аватарка
+    .content .profile .pf-container .profile-content .user-acc-info .ava {
+      position: absolute;
+      width: 125px;
+      height: 125px;
+      border: 1px solid #444;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info .ava img {
+      max-width: 125px;
+      max-height: 125px;
+    }
+
+    // Дополнительная информация
+    .content .profile .pf-container .profile-content .user-acc-info .userinfo {
+      margin-left: 140px;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info .userinfo .mini-header {
+      color: #fff;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info input {
+      width: 100%;
+      background: #1b2934;
+      outline: 0; border: 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+
+    
+    
+    
+    
+    
+    
+
+
+
 

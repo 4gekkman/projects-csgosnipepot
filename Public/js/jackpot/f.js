@@ -33,6 +33,7 @@
  *    f.s1.playsound                      | s1.20. Проиграть один из звуков, указанный в параметрах
  *    f.s1.get_initial_history 						| s1.21. Получить стартовый набор с историей (10 шт.) для выбранной комнаты
  *    f.s1.get_more_history               | s1.22. Получить ещё 10 позиций истории для выбранной комнаты
+ *    f.s1.add_new_history                | s1.23. Добавить в историю комнаты новую единицу истории
  *
  */
 
@@ -1529,6 +1530,36 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			}
 		});
+
+	};
+
+	//---------------------------------------------------------//
+	// s1.23. Добавить в историю комнаты новую единицу истории //
+	//---------------------------------------------------------//
+	f.s1.add_new_history = function(data, event) {
+
+		// 1] Если нет необходимых ресурсов, ничего не делать
+		if(!self.m.s1.game.choosen_room()) return;
+
+		// 2] Получить ID выбранной комнаты
+		var choosen_room_id = self.m.s1.game.choosen_room().id();
+
+		// 3] Получить входящие данные
+		var id_room 						= data.id_room;
+		var history 						= data.history;
+		var history_all_count 	= data.history_all_count;
+
+		// 4] Записать общее кол-во единиц истории для текущей комнаты в кэше
+		self.m.s1.history.totalcount()[id_room](history_all_count);
+
+ 		// 5] Если у текущей комнаты ещё нет истории, завершить
+		if(!self.m.s1.history.is_in_choosen_room()) return;
+
+		// 6] Добавить history в начало m.s1.history.all
+		self.m.s1.history.all()[id_room].unshift(ko.mapping.fromJS(history));
+
+		// 7] Удалить последний элемент из m.s1.history.all
+		self.m.s1.history.all()[id_room].pop();
 
 	};
 

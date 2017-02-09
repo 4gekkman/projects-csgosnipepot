@@ -35,6 +35,7 @@
  * 		s2.2. Модель панели уведомления о не введённом Steam Trade URL
  * 		s2.n. Индексы и вычисляемые значения
  *
+ *  s3. Модель профиля пользователя
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -124,6 +125,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 					case "fresh_game_data": 							self.f.s1.fresh_game_data(data.data.data.data); break;
 					case "reload_page": 		  						self.f.s1.reload_page(data.data.data.data); break;
 					case "classicgame_statistics_update": self.f.s1.update_statistics(data.data.data.data); break;
+
+					case "classicgame_history_new": 			self.f.s1.add_new_history(data.data.data.data); break;
 				}
 
 			});
@@ -330,7 +333,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	self.m.s0.is_load_shield_on = ko.observable(false);
 
 
-
 	//-----------------------------------//
 	// 			        		 	               //
 	// 			 s1. Модель игры Jackpot 		 //
@@ -375,6 +377,15 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 
 	});
+
+
+	//-------------------------------------------//
+	// 			        		 	                       //
+	// 			 s3. Модель профиля пользователя 		 //
+	// 			         			                       //
+	//-------------------------------------------//
+	// - См. D10009/Public/js/profile/m.js
+	self.m.s3 = Object.create(ModelProfile).constructor(self, self.m);
 
 
 	//------------------------------------------------------------//

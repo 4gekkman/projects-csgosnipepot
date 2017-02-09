@@ -19,6 +19,8 @@
  *
  * 		f.s2.save_steam_tradeurl 			| s2.1. Сохранить Steam Trade URL
  *
+ *  s3. Функционал профиля пользователя
+ *
  *
  */
 
@@ -195,6 +197,13 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+
+	//------------------------------------------------//
+	// 			        		 			                        //
+	// 			 s3. Функционал профиля пользователя			//
+	// 			         					                        //
+	//------------------------------------------------//
+	f.s3 = Object.create(ModelFunctionsProfile).constructor(self, f);
 
 
 
