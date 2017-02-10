@@ -20,6 +20,7 @@
  * 		f.s2.save_steam_tradeurl 			| s2.1. Сохранить Steam Trade URL
  *
  *  s3. Функционал профиля пользователя
+ *  s4. Функционал ТОПа игроков
  *
  *
  */
@@ -203,7 +204,17 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 	// 			 s3. Функционал профиля пользователя			//
 	// 			         					                        //
 	//------------------------------------------------//
+	// - См. D10009/Public/js/profile/f.js
 	f.s3 = Object.create(ModelFunctionsProfile).constructor(self, f);
+
+
+	//----------------------------------------//
+	// 			        		 			                //
+	// 			 s4. Функционал ТОПа игроков			//
+	// 			         					                //
+	//----------------------------------------//
+	// - См. D10009/Public/js/top/f.js
+	f.s4 = Object.create(ModelFunctionsTop).constructor(self, f);
 
 
 
