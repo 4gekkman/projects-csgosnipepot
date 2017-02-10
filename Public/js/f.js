@@ -351,7 +351,19 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
-			// 4] Выбрать поддокумент subdoc
+			// 4] В зависимости от URI предпринять доп.действия
+			(function(){
+
+				// 4.1] Если URI == '\top'
+				if(uri == '/top') {
+
+					//console.log(model);
+
+				}
+
+			})();
+
+			// 5] Выбрать поддокумент subdoc
 			self.m.s1.selected_subdoc(subdoc);
 
 			// 5] Прокрутить документ в самый верх
