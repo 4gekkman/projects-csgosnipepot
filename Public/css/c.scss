@@ -1877,6 +1877,7 @@
   3.1. Переменные стилей ТОПа
   3.2. Общие стили ТОПа
   3.3. Стили шапки ТОПа
+  3.4. Стили контента ТОПа
 
 //------------------------------------*/    
     
@@ -1950,10 +1951,90 @@
       vertical-align: middle;
       font-weight: 600;
     }
-    
-    
-    
-    
-    
-    
+
+  //--------------------------//
+  // 3.4. Стили контента ТОПа //
+  //--------------------------//
+
+     // Общие стили контента ТОПа
+    .content .profile .top-container .top-content {
+      position: relative;
+      min-height: 250px;
+    }
+
+    // Стили заголовков ТОПа игроков
+    .content .profile .top-container .top-content .top-headers {
+      height: 60px;
+      font-size: 0;
+    }
+    .content .profile .top-container .top-content .top-headers .top-header {
+      position: relative;
+      height: 60px; width: 100%;
+      line-height: 60px;
+      display: inline-block;
+      vertical-align: middle;
+      background: darken(#284351, 4%);
+    }
+    .content .profile .top-container .top-content .top-headers .top-header span {
+      font-size: 16px;
+    }
+
+    // Стили позиции в ТОПе игроков
+    .content .profile .top-container .top-content .top-items {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .content .profile .top-container .top-content .top-items .top-item {
+      position: relative;
+      height: 60px; width: 100%;
+      line-height: 60px;
+      font-size: 0;
+    }
+    .content .profile .top-container .top-content .top-items .top-item.odd {
+      background: darken(#284351, 2%);
+    }
+    .content .profile .top-container .top-content .top-items .top-item>div {
+      display: inline-block;
+      font-size: 16px;
+      vertical-align: middle;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .num {
+      width: 6%;
+      text-align: center;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .ava {
+      width: 6%;
+      text-align: center;
+      line-height: 0;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .ava img {
+      display: inline-block;
+      max-width: 50px;
+      max-height: 50px;
+      vertical-align: middle;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .nick {
+      width: 52%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .nick a {
+      cursor: pointer;
+      color: #fff;
+      padding-left: 20px;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .games {
+      width: 12%;
+      text-align: left;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .wins {
+      width: 12%;
+      text-align: left;
+    }
+    .content .profile .top-container .top-content .top-items .top-item .totalsum {
+      width: 12%;
+      text-align: left;
+    }
 

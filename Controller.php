@@ -21,7 +21,8 @@
  *
  *                  POST-API1   D10009:1                   Безопасная обёртка для команды изменения trade url
  *                  POST-API2   D10009:2                   Сохранение в куки нового значения для выключателя звука
- *                  POST-API2   D10009:3                   Подгрузить указанную страницу истории для classic game, для указанной комнаты
+ *                  POST-API3   D10009:3                   Подгрузить указанную страницу истории для classic game, для указанной комнаты
+ *                  POST-API4   D10009:4                   Получить ТОП игроков
  *
  *
  *
@@ -395,6 +396,22 @@ class Controller extends BaseController {
             "id_room"   => Input::get('data')['id_room'],
             "page_num"  => Input::get('data')['page_num'],
           ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+        //---------------------------------//
+        // Нестандартная операция D10009:4 //
+        //---------------------------------//
+        // - Получить ТОП игроков
+        if($key == 'D10009:4') {
+
+          // 1. Выполнить команду
+          $result = runcommand('\M9\Commands\C54_get_top', []);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 

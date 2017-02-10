@@ -11,7 +11,7 @@
  *
  * 	s4. Функционал ТОПа игроков
  *
- *    f.s4.func      | s4.1. ...
+ *    f.s4.get_top      	| s4.1. Запросить TOP игроков с сервера, если он ещё не получен
  *
  *
  */
@@ -32,14 +32,64 @@ var ModelFunctionsTop = { constructor: function(self, f) { f.s4 = this;
 	// 			         			           //
 	//-------------------------------//
 
-	//---------------------------------//
-	// s4.1. ... //
-	//---------------------------------//
-	f.s4.func = function(data, event) {
+	//---------------------------------------------------------------//
+	// s4.1. Запросить TOP игроков с сервера, если он ещё не получен //
+	//---------------------------------------------------------------//
+	f.s4.get_top = function() {
 
-		console.log(self.m.s4.prop());
+		// 1] Если ТОП игроков не пуст, завершить
+		if(self.m.s4.top().length) return;
+
+		// 2] Отправить AJAX-запрос и получить данные ТОПа игроков
+		ajaxko(self, {
+			key: 	    		"D10009:4",
+			from: 		    "ajaxko",
+			data: 		    {
+
+			},
+			prejob:       function(config, data, event){
+
+				// 1] Показать модальный щит со спиннером загрузки
+				self.m.s4.is_shield_visible(true);
+
+			},
+			postjob:      function(data, params){},
+			ok_0:         function(data, params){
+
+				// 1] Получить входящие данные
+				var users = data.data.top.users;
+
+				// 2] Записать данные в модель, но только если там ещё нет данных
+				if(self.m.s4.top().length == 0) {
+					for(var i=0; i<users.length; i++) {
+						self.m.s4.top.push(ko.mapping.fromJS(users[i]));
+					}
+				}
+
+				// n] Скрыть модальный щит со спиннером загрузки
+				self.m.s4.is_shield_visible(false);
+
+			},
+			ok_1:         function(data, params){
+
+				// n] Скрыть модальный щит со спиннером загрузки
+				self.m.s4.is_shield_visible(false);
+
+			},
+			ok_2:         function(data, params){
+
+				// n] Скрыть модальный щит со спиннером загрузки
+				self.m.s4.is_shield_visible(false);
+
+			}
+		});
+
+
 
 	};
+
+
+
 
 
 
