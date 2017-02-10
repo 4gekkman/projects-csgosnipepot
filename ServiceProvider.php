@@ -137,7 +137,8 @@
           '\M9\Console\T19_get_rate',
           '\M9\Console\T20_update_history_cache',
           '\M9\Console\T21_get_history_by_room_and_page',
-          '\M9\Console\T22_update_top_cache'
+          '\M9\Console\T22_update_top_cache',
+          '\M9\Console\T23_get_top'
         ];
 
         // Регистрация команд в методе register
