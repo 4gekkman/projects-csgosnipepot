@@ -256,6 +256,11 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
 
       }));
 
+      // 5. Обновить кэш ТОПа игроков
+      runcommand('\M9\Commands\C53_update_top_cache', [
+        "force" => false
+      ], 0, ['on'=>true, 'name' => 'default']);
+
 
     } catch(\Exception $e) {
         DB::rollback();

@@ -176,23 +176,90 @@ class C53_update_top_cache extends Job { // TODO: добавить "implements S
         (!empty($updated_at) && $updated_at->diffInHours(\Carbon\Carbon::now()) >= 24)
       ) {
 
-        // 1] Получить ТОП20 пользователей сумме win_fact_cents за всю историю побед
-        $users = \M5\Models\MD1_users::with(['m9_wins'])
-          ->whereHas('m9_wins')
+        Log::info('update_tops');
 
-        // - Получить ТОП20 пользователей (\M5\Models\MD1_users),
-        //   у которых есть победы (->whereHas('wins')),
-        //   по сумме win_fact_cents за всю историю побед.
+        // 1] Получить массив ТОП20 пользователей по сумме win_fact_cents за всю историю побед
+        // - В формате:
+        //
+        //    [
+        //      <id_пользователя>: <кол-во выигранных центов>
+        //    ]
+        //
+        $users_ids_cents = \M5\Models\MD1_users::select('md1_users.id', 'md2004.id_win', DB::raw('SUM(md4_wins.win_fact_cents) as totalsum'))
+            ->leftJoin('m9.md2004', 'id', '=', 'm9.md2004.id_user')
+            ->where('id_win', '!=', null)
+            ->leftJoin('m9.md4_wins', 'id_win', '=', 'm9.md4_wins.id')
+            ->groupBy('id')->orderByRaw("CAST(win_fact_cents as SIGNED) DESC")
+            ->take(20)
+            ->pluck('totalsum', 'id')
+            ->toArray();
 
-        // - Подсчитать кол-во побед для каждого из ТОП20 за всю историю.
-        // - Подсчитать кол-во игр для каждого из ТОП20 за всю историю.
+        // 2] Получить массив ID ТОП20 пользователей
+        $users_ids = collect($users_ids_cents)->keys();
 
+        // 3] Получить всех пользователей из $users_ids
+        // - Сохранить порядок сортировки, как в $users_ids.
+        // - Для каждого пользователя получить следующие столбцы:
+        //
+        //   • id             | id пользователя
+        //   • nickname       | ник пользователя
+        //   • avatar_steam   | аватар пользователя из steam
+        //   • totalsum       | общее кол-во выигранных центов
+        //   • wins_num       | общее кол-во побед
+        //   • rounds_num     | общее кол-во раундов, в которых участвовал
+        //
+        $users = call_user_func(function() USE ($users_ids_cents) {
+
+          // 3.1] Подготовить массив для результатов
+          $results = [];
+
+          // 3.2] Наполнить $results
+          foreach($users_ids_cents as $id_user => $totalsum) {
+
+            // 3.2.1] По $id_user получить пользователя
+            $user = \M5\Models\MD1_users::where('id', $id_user)->first();
+            if(empty($user))
+              continue;
+
+            // 3.2.2] Узнать кол-во побед этого пользователя
+            $wins_num = \M9\Models\MD4_wins::whereHas('m5_users', function($query) USE ($id_user) {
+              $query->where('id', $id_user);
+            })->count();
+
+            // 3.2.3] Узнать кол-во раундов, в которых участвовал пользователь
+            $rounds_num = \M9\Models\MD2_rounds::whereHas('bets', function($query) USE ($id_user) {
+              $query->whereHas('m5_users', function($query) USE ($id_user) {
+                $query->where('id', $id_user);
+              });
+            })->count();
+
+            // 3.2.n] Добавить данные в $results
+            array_push($results, [
+              'id'            => $id_user,
+              'nickname'      => $user->nickname,
+              'avatar_steam'  => $user->avatar_steam,
+              'totalsum'      => (int)$totalsum,
+              'wins_num'      => $wins_num,
+              'rounds_num'    => $rounds_num,
+            ]);
+
+          }
+
+          // 3.n] Вернуть результаты
+          return $results;
+
+        });
+
+        // 4] Подготовить массив для записи в кэш
+        $data2record = [
+          'users'       => $users,
+          'updated_at'  => \Carbon\Carbon::now()->toDateTimeString()
+        ];
+
+        // 5] Поместить $users в кэш на 24 часа
+        Cache::put('m9:top_players', json_encode($data2record, JSON_UNESCAPED_UNICODE), 1440);
 
       }
-
-
-
-
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C53_update_top_cache from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
