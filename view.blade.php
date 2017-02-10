@@ -161,9 +161,7 @@
 <?php /*-------------->
 <!-- 7. ТОП игроков -->
 <!----------------*/ ?>
-<div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/top'">
-  <span>ТОП игроков</span>
-</div>
+@include('D10009::top')
 
 <?php /*--------->
 <!-- 8. F.A.Q. -->

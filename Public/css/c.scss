@@ -10,7 +10,7 @@
 
   1. Стили классической игры
   2. Стили профиля
-
+  3. Стили ТОПа игроков
 
 ////------------------------------////
 ////             ////
@@ -1869,6 +1869,91 @@
     }   
     
 
+//-----------------------//
+// 3. Стили ТОПа игроков //
+/*-----------------------//
+Оглавление
+
+  3.1. Переменные стилей ТОПа
+  3.2. Общие стили ТОПа
+  3.3. Стили шапки ТОПа
+
+//------------------------------------*/    
+    
+  //-----------------------------//
+  // 3.1. Переменные стилей ТОПа //
+  //-----------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $top_main_color: #212f35;            // Главный цвет
+      $top_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $top_color_header_bg: #1B2934;       // Цвет фона шапки
 
 
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $top_color_header_height: 50px;      // Высота шапки
+
+  //-----------------------//
+  // 3.2. Общие стили ТОПа //
+  //-----------------------//
+
+    // Внешний контейнер классической игры
+    .content .profile {
+
+    }
+
+    // Внутренний контейнер классической игры
+    .content .profile .top-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //-----------------------//
+  // 3.3. Стили шапки ТОПа //
+  //-----------------------//
+
+    // Общие стили шапки классической игры
+    .content .profile .top-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $pf_color_header_height;
+    }
+
+    // Заголовок
+    .content .profile .top-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $pf_color_header_height;
+      line-height: $pf_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .profile .top-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .profile .top-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+    
+    
+    
+    
+    
+    
 
