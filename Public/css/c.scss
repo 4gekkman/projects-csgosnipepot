@@ -630,14 +630,15 @@
     }
 
     // Иконка пункта меню
-    .menu .items .item .icon {
+    .menu .items .item .item-content .icon {
       position: absolute;
+      left: 0;
       width: $sizes_mainmenu_whidden;
-      height: 100%;
       text-align: center;
       line-height: $sizes_mainmenu_itemh;
+      font-size: 34px;
     }
-    .menu .items .item .icon i {}
+    .menu .items .item .item-content .icon i {}
 
     // Стиль выбранного пункта меню
     .menu .items .item.choosen {
@@ -650,6 +651,7 @@
       margin-left: $sizes_mainmenu_whidden + 5px;
       font-size: 16px;
       text-align: left;
+      height: $sizes_mainmenu_itemh;
       line-height: $sizes_mainmenu_itemh;
       overflow: hidden;
       white-space: nowrap;
@@ -658,13 +660,12 @@
     // Контент пунктов меню игр
     .menu .items .item .item-content .uppart {
       position: relative;
-      height: $sizes_mainmenu_itemh*0.4;
-      line-height: $sizes_mainmenu_itemh*0.4;
-      margin-top: $sizes_mainmenu_itemh*.15;
+      height: $sizes_mainmenu_itemh*0.5;
+      line-height: $sizes_mainmenu_itemh*0.7;
       font-weight: bold;
     }
     .menu .items .item .item-content .uppart .bubblepanel {
-      position: absolute; top: 3px; right: 10px;
+      position: absolute; top: 12px; right: 10px;
       font-size: 13px;
       line-height: 17px;
       border-radius: 5px;
@@ -674,12 +675,12 @@
       transition: all 1s ease;
     }
     .menu .items .item .item-content .uppart .bubblepanel.lifted {
-      top: -9px;
+      top: 0px;
       opacity: 0;
     }
     .menu .items .item .item-content .downpart {
-      height: $sizes_mainmenu_itemh*0.3;
-      line-height: $sizes_mainmenu_itemh*0.3;
+      height: $sizes_mainmenu_itemh*0.5;
+      line-height: $sizes_mainmenu_itemh*0.4;
       font-size: 13px;
       padding-right: 10px;
     }
