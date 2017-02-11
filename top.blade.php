@@ -42,8 +42,8 @@
       <!-----------------------------------*/ ?>
       <div class="top-headers">
 
+        <div class="top-header" style="width: 6%; padding-left: 20px; overflow: visible; z-index: 1;"><span>Место</span></div>
         <div class="top-header" style="width: 6%;"><span></span></div>
-        <div class="top-header" style="width: 6%; padding-left: 2px;"><span>Место</span></div>
         <div class="top-header" style="width: 52%; padding-left: 20px;"><span>Ник в Steam</span></div>
         <div class="top-header" style="width: 12%; text-align: left;"><span>Всего игр</span></div>
         <div class="top-header" style="width: 12%; text-align: left;"><span>Победы</span></div>
