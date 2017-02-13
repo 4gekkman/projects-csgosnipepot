@@ -1,0 +1,19 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/m12",
+		"description": "M12 - Frequently Asked Questions",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/m12"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {"M12\\": ""}
+    }
+}
