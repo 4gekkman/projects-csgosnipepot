@@ -37,6 +37,7 @@
  *
  *  s3. Модель профиля пользователя
  *  s4. Модель ТОПа игроков
+ *  s5. Модель FAQ
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -396,6 +397,15 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//-----------------------------------//
 	// - См. D10009/Public/js/top/m.js
 	self.m.s4 = Object.create(ModelTop).constructor(self, self.m);
+
+
+	//---------------------------//
+	// 			        		 	       //
+	// 			 s5. Модель FAQ 		 //
+	// 			         			       //
+	//---------------------------//
+	// - См. D10009/Public/js/faq/m.js
+	self.m.s5 = Object.create(ModelFaq).constructor(self, self.m);
 
 
 

@@ -156,6 +156,10 @@ for(var javascriptnum=0; javascriptnum<sources["javascript"].length; javascriptn
 					sources["javascript"][javascriptnum]+'top/m.js',
 					sources["javascript"][javascriptnum]+'top/f.js',
 
+					// FAQ
+					sources["javascript"][javascriptnum]+'faq/m.js',
+					sources["javascript"][javascriptnum]+'faq/f.js',
+
 					// Основная модель и функционал
 					sources["javascript"][javascriptnum]+'m.js',
 					sources["javascript"][javascriptnum]+'f.js',

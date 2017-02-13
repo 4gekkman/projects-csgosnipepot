@@ -21,6 +21,7 @@
  *
  *  s3. Функционал профиля пользователя
  *  s4. Функционал ТОПа игроков
+ *  s5. Функционал FAQ
  *
  *
  */
@@ -216,6 +217,14 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 	// - См. D10009/Public/js/top/f.js
 	f.s4 = Object.create(ModelFunctionsTop).constructor(self, f);
 
+
+	//------------------------------//
+	// 			        		 			      //
+	// 			 s5. Функционал FAQ			//
+	// 			         					      //
+	//------------------------------//
+	// - См. D10009/Public/js/faq/f.js
+	f.s5 = Object.create(ModelFunctionsFaq).constructor(self, f);
 
 
 

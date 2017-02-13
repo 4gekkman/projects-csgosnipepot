@@ -165,9 +165,7 @@
 <?php /*--------->
 <!-- 8. F.A.Q. -->
 <!-----------*/ ?>
-<div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/faq'">
-  <span>F.A.Q.</span>
-</div>
+@include('D10009::faq')
 
 <?php /*----------------->
 <!-- 9. Тех. поддержка -->

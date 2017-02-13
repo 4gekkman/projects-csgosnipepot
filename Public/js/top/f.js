@@ -60,7 +60,8 @@ var ModelFunctionsTop = { constructor: function(self, f) { f.s4 = this;
 				var users = data.data.top.users;
 
 				// 2] Записать данные в модель, но только если там ещё нет данных
-				if(self.m.s4.top().length == 0) {
+				// - И если с сервера пришли данные о ТОПе.
+				if(self.m.s4.top().length == 0 && users) {
 					for(var i=0; i<users.length; i++) {
 						self.m.s4.top.push(ko.mapping.fromJS(users[i]));
 					}

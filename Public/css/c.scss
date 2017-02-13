@@ -11,6 +11,7 @@
   1. Стили классической игры
   2. Стили профиля
   3. Стили ТОПа игроков
+  4. Стили FAQ
 
 ////------------------------------////
 ////             ////
@@ -1879,7 +1880,7 @@
   3.3. Стили шапки ТОПа
   3.4. Стили контента ТОПа
 
-//------------------------------------*/    
+//-----------------------*/    
     
   //-----------------------------//
   // 3.1. Переменные стилей ТОПа //
@@ -1906,13 +1907,13 @@
   // 3.2. Общие стили ТОПа //
   //-----------------------//
 
-    // Внешний контейнер классической игры
-    .content .profile {
+    // Внешний контейнер
+    .content .top {
 
     }
 
-    // Внутренний контейнер классической игры
-    .content .profile .top-container {
+    // Внутренний контейнер
+    .content .top .top-container {
       margin-top: 15px;
       border-radius: 6px;
       background: #284351;
@@ -1923,17 +1924,17 @@
   //-----------------------//
 
     // Общие стили шапки классической игры
-    .content .profile .top-container .header {
+    .content .top .top-container .header {
       position: relative;
       background: #1B2934;
-      height: $pf_color_header_height;
+      height: $top_color_header_height;
     }
 
     // Заголовок
-    .content .profile .top-container .header .logo_and_name {
+    .content .top .top-container .header .logo_and_name {
       position: absolute; left: 0; top: 0;
-      height: $pf_color_header_height;
-      line-height: $pf_color_header_height;
+      height: $top_color_header_height;
+      line-height: $top_color_header_height;
       width: 100%;
       text-align: left;
       color: #fff;
@@ -1941,12 +1942,12 @@
       background: #1B2934;
       transition: all .5s ease;
     }
-    .content .profile .top-container .header .logo_and_name i {
+    .content .top .top-container .header .logo_and_name i {
       font-size: 2.5em;
       vertical-align: middle;
       padding: 0 10px;
     }
-    .content .profile .top-container .header .logo_and_name span {
+    .content .top .top-container .header .logo_and_name span {
       font-size: 1.5em;
       vertical-align: middle;
       font-weight: 600;
@@ -1957,17 +1958,17 @@
   //--------------------------//
 
      // Общие стили контента ТОПа
-    .content .profile .top-container .top-content {
+    .content .top .top-container .top-content {
       position: relative;
       min-height: 250px;
     }
 
     // Стили заголовков ТОПа игроков
-    .content .profile .top-container .top-content .top-headers {
+    .content .top .top-container .top-content .top-headers {
       height: 60px;
       font-size: 0;
     }
-    .content .profile .top-container .top-content .top-headers .top-header {
+    .content .top .top-container .top-content .top-headers .top-header {
       position: relative;
       height: 60px; width: 100%;
       line-height: 60px;
@@ -1975,66 +1976,170 @@
       vertical-align: middle;
       background: darken(#284351, 4%);
     }
-    .content .profile .top-container .top-content .top-headers .top-header span {
+    .content .top .top-container .top-content .top-headers .top-header span {
       font-size: 16px;
     }
 
     // Стили позиции в ТОПе игроков
-    .content .profile .top-container .top-content .top-items {
+    .content .top .top-container .top-content .top-items {
       padding-top: 10px;
       padding-bottom: 10px;
     }
-    .content .profile .top-container .top-content .top-items .top-item {
+    .content .top .top-container .top-content .top-items .top-item {
       position: relative;
       height: 60px; width: 100%;
       line-height: 60px;
       font-size: 0;
     }
-    .content .profile .top-container .top-content .top-items .top-item.odd {
+    .content .top .top-container .top-content .top-items .top-item.odd {
       background: darken(#284351, 2%);
     }
-    .content .profile .top-container .top-content .top-items .top-item>div {
+    .content .top .top-container .top-content .top-items .top-item>div {
       display: inline-block;
       font-size: 16px;
       vertical-align: middle;
     }
-    .content .profile .top-container .top-content .top-items .top-item .num {
+    .content .top .top-container .top-content .top-items .top-item .num {
       width: 6%;
       text-align: center;
     }
-    .content .profile .top-container .top-content .top-items .top-item .ava {
+    .content .top .top-container .top-content .top-items .top-item .ava {
       width: 6%;
       text-align: center;
       line-height: 0;
     }
-    .content .profile .top-container .top-content .top-items .top-item .ava img {
+    .content .top .top-container .top-content .top-items .top-item .ava img {
       display: inline-block;
       max-width: 50px;
       max-height: 50px;
       vertical-align: middle;
     }
-    .content .profile .top-container .top-content .top-items .top-item .nick {
+    .content .top .top-container .top-content .top-items .top-item .nick {
       width: 52%;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
       text-align: left;
     }
-    .content .profile .top-container .top-content .top-items .top-item .nick a {
+    .content .top .top-container .top-content .top-items .top-item .nick a {
       cursor: pointer;
       color: #fff;
       padding-left: 20px;
     }
-    .content .profile .top-container .top-content .top-items .top-item .games {
+    .content .top .top-container .top-content .top-items .top-item .games {
       width: 12%;
       text-align: left;
     }
-    .content .profile .top-container .top-content .top-items .top-item .wins {
+    .content .top .top-container .top-content .top-items .top-item .wins {
       width: 12%;
       text-align: left;
     }
-    .content .profile .top-container .top-content .top-items .top-item .totalsum {
+    .content .top .top-container .top-content .top-items .top-item .totalsum {
       width: 12%;
       text-align: left;
     }
 
+    
+//--------------//
+// 4. Стили FAQ //
+/*--------------//
+Оглавление
+
+  4.1. Переменные стилей FAQ
+  4.2. Общие стили FAQ
+  4.3. Стили шапки FAQ
+  4.4. Стили контента FAQ
+
+//---------------*/     
+    
+  //----------------------------//
+  // 4.1. Переменные стилей FAQ //
+  //----------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $faq_main_color: #212f35;            // Главный цвет
+      $faq_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $faq_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $faq_color_header_height: 50px;      // Высота шапки
+
+  //----------------------//
+  // 4.2. Общие стили FAQ //
+  //----------------------//
+
+    // Внешний контейнер классической игры
+    .content .faq {
+
+    }
+
+    // Внутренний контейнер классической игры
+    .content .faq .faq-container {
+      margin-faq: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //----------------------//
+  // 4.3. Стили шапки FAQ //
+  //----------------------//
+
+    // Общие стили шапки классической игры
+    .content .faq .faq-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $faq_color_header_height;
+    }
+
+    // Заголовок
+    .content .faq .faq-container .header .logo_and_name {
+      position: absolute; left: 0; faq: 0;
+      height: $faq_color_header_height;
+      line-height: $faq_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .faq .faq-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .faq .faq-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //-------------------------//
+  // 4.4. Стили контента FAQ //
+  //-------------------------//
+
+     // Общие стили контента ТОПа
+    .content .faq .faq-container .faq-content {
+      position: relative;
+      min-height: 250px;
+    }    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
