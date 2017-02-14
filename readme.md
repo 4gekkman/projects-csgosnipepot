@@ -81,10 +81,10 @@
 
       cshogap             |
         classicgame       | <базовый URL>/classicgame
-          howtoplay       | <базовый URL>/classicgame/howtoplay/ru
-          howtoplay       | <базовый URL>/classicgame/howtoplay/en
-          withdrawal      | <базовый URL>/classicgame/withdrawal/ru
-          fairplay        | <базовый URL>/classicgame/fairplay/ru
+          howtoplay       | <базовый URL>/classicgame/howtoplay
+          howtoplay       | <базовый URL>/classicgame/howtoplay
+          withdrawal      | <базовый URL>/classicgame/withdrawal
+          fairplay        | <базовый URL>/classicgame/fairplay
 
   # Парсинг в БД данных из базовой папки, и кэширование
 

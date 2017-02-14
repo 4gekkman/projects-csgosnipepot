@@ -44,15 +44,6 @@
  *  Стратегия парсинга
  *  ------------------
  *
- *    1. Парсинг FAQов
- *      - Парсим список доступных в корневой папке FAQов.
- *      - Получаем из БД доступный там список FAQов.
- *      - Синхронизируем данные в БД с данными из корневой папки:
- *        ▪ Удаляем из БД все FAQи, которых нет в корневой папке, вместе со связями из md1000.
- *        ▪ Если в БД уже есть такой FAQ, не трогаем его.
- *        ▪ Если в БД ещё нет такого FAQа, добавляем.
- *      - В конце делаем save().
- *
  *    2. Парсинг групп
  *      - Делаем цикл по всем доступным ныне FAQам.
  *        ▪ Получаем все доступные в FAQе папки.
@@ -233,47 +224,219 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
         // 3.2. Получить из БД доступный список FAQов
         $faqs_in_db = \M12\Models\MD1_faqs::get();
-        $faqs_in_db_names = $faqs_in_db->pluck('name');
 
         // 3.3. Удалить из БД все FAQи, которых нет в $faqs_in_root
-        if(!empty($faqs_in_db_names)) {
-          foreach($faqs_in_root as $name => $path) {
-            $faq = \M12\Models\MD1_faqs::where('name', $name)->first();
-            if(!empty($faq)) {
+        call_user_func(function() USE ($faqs_in_db, $faqs_in_root) {
 
-              // 1] Отвязать $faq от всех групп
-              if($faq->groups->contains($item))
-                $user2detach->groups()->detach($item);
+          foreach($faqs_in_db as $faq) {
+
+            // 1] Если $db_faq_name есть в $faqs_in_root, перейти к след.итерации
+            if(in_array($faq['name'], array_keys($faqs_in_root))) continue;
+
+            // 2] В противном случае:
+            else {
+
+              // 2.1] Отвязать $faq от всех групп
+              $faq->groups()->detach();
+
+              // 2.2] Удалить $faq из БД
+              $faq->delete();
 
             }
+
           }
-        }
 
+        });
 
-        Log::info($faqs_in_root);
+        // 3.4. Установить минимально возможный ID автоинкремента
+        call_user_func(function(){
 
+          // 1] Получить значениед для автоинкремента
+          $autoincrement_value = call_user_func(function(){
 
+            // 1.1] Если MD1_faqs пуст, то вернуть 1
+            if(\M12\Models\MD1_faqs::count() == 0) return 1;
 
-        /*
-         *    1. Парсинг FAQов
-         *      - Парсим список доступных в корневой папке FAQов.
-         *      - Получаем из БД доступный там список FAQов.
-         *      - Синхронизируем данные в БД с данными из корневой папки:
-         *        ▪ Удаляем из БД все FAQи, которых нет в корневой папке, вместе со связями из md1000.
-         *        ▪ Если в БД уже есть такой FAQ, не трогаем его.
-         *        ▪ Если в БД ещё нет такого FAQа, добавляем.
-         *      - В конце делаем save().
-         *
-         */
+            // 1.2] В противном случае, вернуть ID последней записи + 1
+            else
+              return +(\M12\Models\MD1_faqs::orderBy('id', 'desc')->first()->id) + 1;
+
+          });
+
+          // 2] Установить счётчик автоинкремента
+          DB::statement('ALTER TABLE m12.md1_faqs AUTO_INCREMENT = '.$autoincrement_value.';');
+
+        });
+
+        // 3.5. Добавить из $faqs_in_root в БД те FAQи, которых ещё нет там
+        call_user_func(function() USE ($faqs_in_root) {
+
+          // 1] Получить массив имён оставшихся в БД FAQов на данный момент
+          $faqs_in_db_names = \M12\Models\MD1_faqs::get()->pluck('name')->toArray();
+
+          // 2] Пробежаться по $faqs_in_root
+          foreach($faqs_in_root as $name => $path) {
+
+            // 2.1] Если $name есть в $faqs_in_db_names, перейти к след.итерации
+            if(in_array($name, $faqs_in_db_names)) continue;
+
+            // 2.2] В противном случае, добавить в БД новый FAQ
+            else {
+
+              $newfaq = new \M12\Models\MD1_faqs();
+              $newfaq->name = $name;
+              $newfaq->save();
+
+            }
+
+          }
+
+        });
+
       });
 
       // 4. Парсинг групп
       call_user_func(function() USE ($root) {
 
+        // 4.1. Получить из БД доступный список FAQов
+        $faqs_in_db = \M12\Models\MD1_faqs::get();
 
+        // 4.2. Пробежаться по всем $faqs_in_db
+        foreach($faqs_in_db as $faq) {
+
+          // 4.2.1. Получить все доступные в $faq группы
+          // - Формат: <имя группы> => <путь к группе относ.корня>
+          $groups_in_root = call_user_func(function() USE ($root, $faq) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Получить пути ко всем FAQам относ.корня
+            $group_paths = $this->storage->directories($root.'/'.$faq['name']);
+
+            // 3] Наполнить $results
+            foreach($group_paths as $path) {
+              $results[preg_replace('#^.*\/#ui', '', $path)] = $path;
+            }
+
+            // n] Вернуть результат
+            return $results;
+
+          });
+
+          // 4.2.2. Получить массив данных по всем группам
+          // - Формат:
+          //
+          //   [
+          //     'name'               => ['ru' => 'Группа', 'en' => 'Group'],
+          //     'description'        => ['ru' => 'Описание', 'en' => 'Description'],
+          //     'avatar'             => 'avatar.png',
+          //     'uri_group_relative' => 'classicgame/howtoplay/ru',
+          //   ]
+          //
+          $groups_in_root_data = call_user_func(function() USE ($groups_in_root, $faq) {
+
+            // 1] Подготовить массив для результата
+            $results = [];
+
+            // 2] Наполнить $results
+            foreach($groups_in_root as $name => $path) {
+
+              // 2.1] Попробовать извлечь файл group.info для группы $name
+              $metainfo = json_decode($this->storage->get($path.'/_files/group.info'), true);
+              if(empty($metainfo))
+                throw new \Exception('В group.json FAQа '.$faq['name'].' группы '.$name.' допущена ошибка.');
+
+              // 2.2] Провести валидацию $metainfo
+              $validator = r4_validate($metainfo, [
+                "name"                => ["required", "array"],
+                "description"         => ["required", "array"],
+                "avatar"              => ["required", "string"]
+              ]); if($validator['status'] == -1) {
+                throw new \Exception($validator['data']);
+              }
+
+              // 2.3] Добавить данные в $results
+              array_push($results, [
+                "name"                => $metainfo['name'],
+                "description"         => $metainfo['description'],
+                "avatar"              => $metainfo['avatar'],
+                "uri_group_relative"  => $faq['name']."/".$name,
+              ]);
+
+            }
+
+            // n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 4.2.3. Получить из БД доступный список групп
+          $groups_in_db = \M12\Models\MD2_groups::get();
+
+          // 4.2.4. Удалить из БД все группы, их их связи md1000/md1001
+          call_user_func(function() USE ($groups_in_db, $groups_in_root_data) {
+
+            // 1] Удалить все связи $groups_in_db
+            foreach($groups_in_db as $group) {
+
+              $group->faqs()->detach();
+              $group->faqs()->articles();
+
+            }
+
+            // 2] Удалить все группы
+            \M12\Models\MD2_groups::query()->delete();
+
+          });
+
+          // 4.2.5. Установить автоинкремент, равный 1
+          DB::statement('ALTER TABLE m12.md2_groups AUTO_INCREMENT = 1;');
+
+          // 4.2.6. Добавить в БД все группы из $groups_in_root_data
+          call_user_func(function() USE ($groups_in_root_data, $faq) {
+            foreach($groups_in_root_data as $group) {
+
+              // 1] Добавить данные о $group в БД
+              $newgroup = new \M12\Models\MD1_faqs();
+              $newgroup->name                 = $group['name'];
+              $newgroup->description          = $group['description'];
+              $newgroup->avatar               = $group['avatar'];
+              $newgroup->uri_group_relative   = $group['uri_group_relative'];
+              $newgroup->save();
+
+              // 2] Связать $newgroup с $faq
+              if(!$newgroup->faqs->contains($faq['id']))
+                $newgroup->faqs()->attach($faq['id']);
+
+            }
+          });
+
+          // 4.2.7. Скопировать аватар группы в public
+
+
+
+        }
+
+
+
+        /*
+         *    2. Парсинг групп
+         *      - Делаем цикл по всем доступным ныне FAQам.
+         *        ▪ Получаем все доступные в FAQе папки.
+         *        ▪ Ищем в каждой папке файл "_files/meta.info".
+         *        ▪ Таким образом, наполняем массив доступных групп для данного FAQа.
+         *        ▪ Синхронизируем данные в БД с полученными данными:
+         *          ▪ Удаляем из БД все не найденные в данных группы, вместе со связями из md1000/md1001.
+         *          ▪ Если в БД уже есть такая группа, обновляем её.
+         *          ▪ Если в БД ещё нет такой группы, добавляем.
+         *          ▪ Делаем save().
+         *          ▪ Добавляем связи в md1000.
+         *          ▪ Копируем аватар группы в public с заменой.
+         *
+         */
 
       });
-
 
       // 5. Парсинг статей и кодов стран
       call_user_func(function() USE ($root) {
