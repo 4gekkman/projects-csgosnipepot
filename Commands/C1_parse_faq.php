@@ -441,7 +441,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
       });
 
       // 5. Парсинг статей и кодов стран
-      call_user_func(function() USE ($root) {
+      call_user_func(function() USE ($root, $public) {
 
         // 5.1. Получить из БД доступный список групп
         $groups_in_db = \M12\Models\MD2_groups::get();
@@ -565,13 +565,18 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
           });
 
-          // 5.2.3. Получить из БД доступный список групп
-          $articles_in_db = \M12\Models\MD3_articles::get();
+          // 5.2.3. Получить из БД доступный список статей, связанных с $group
+          $articles_in_db = \M12\Models\MD3_articles::whereHas('groups', function($query) USE ($group) {
+            $query->where('id', $group['id']);
+          })->doesntHave('groups', 'or')->get();
 
           // 5.2.4. Удалить из БД все статьи, их их связи md1001/md1002
-          call_user_func(function() USE ($articles_in_db, $articles_in_root_data) {
+          call_user_func(function() USE ($articles_in_db, $articles_in_root_data, $group) {
 
-            // 1] Удалить все связи $articles_in_db
+            // 1] Получить массив ID связанных с $group статей
+            $articles_ids = $articles_in_db->pluck('id')->toArray();
+
+            // 2] Удалить все связи $articles_in_db
             foreach($articles_in_db as $article) {
 
               $article->groups()->detach();
@@ -579,16 +584,33 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
             }
 
-            // 2] Удалить все статьи
-            \M12\Models\MD3_articles::query()->delete();
+            // 3] Удалить все статьи с id из $articles_ids
+            \M12\Models\MD3_articles::whereIn('id', $articles_ids)->delete();
 
           });
 
           // 5.2.5. Установить автоинкремент, равный 1
-          DB::statement('ALTER TABLE m12.md3_articles AUTO_INCREMENT = 1;');
+          call_user_func(function(){
+
+            // 1] Получить значениед для автоинкремента
+            $autoincrement_value = call_user_func(function(){
+
+              // 1.1] Если MD3_articles пуст, то вернуть 1
+              if(\M12\Models\MD3_articles::count() == 0) return 1;
+
+              // 1.2] В противном случае, вернуть ID последней записи + 1
+              else
+                return +(\M12\Models\MD3_articles::orderBy('id', 'desc')->first()->id) + 1;
+
+            });
+
+            // 2] Установить счётчик автоинкремента
+            DB::statement('ALTER TABLE m12.md3_articles AUTO_INCREMENT = '.$autoincrement_value.';');
+
+          });
 
           // 5.2.6. Добавить в БД все статьи из $groups_in_root_data
-          call_user_func(function() USE ($articles_in_root_data, $root, $group) {
+          call_user_func(function() USE ($articles_in_root_data, $root, $group, $public) {
             foreach($articles_in_root_data as $article) {
 
               // 1] Добавить данные о $group в БД
@@ -604,32 +626,30 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
               if(!$newarticle->groups->contains($group['id']))
                 $newarticle->groups()->attach($group['id']);
 
-              // 3] Скопировать файлы статьи в public
+              // 3] Скопировать папку с файлами статьи в public
 
-//                // 3.1] Получить относительные пути источника/назначения
-//                $path_source  = $root.'/'.$faq['name'].'/'.$group['name_folder'].'/_files/'.$group['avatar'];
-//                $path_dest    = $public.'/'.$faq['name'].'/'.$group['name_folder'].'/'.$group['avatar'];
-//
-//                // 3.2] Удалить аватар, если он уже есть в public
-//                if($this->storage->exists($path_dest))
-//                  $this->storage->delete($path_dest);
-//
-//                // 3.3] Скопировать
-//                $this->storage->copy(
-//                  $path_source,
-//                  $path_dest
-//                );
+                // 3.1] Получить относительные пути источника/назначения
+                $path_source  = $root.'/'.$article['uri_article_relative'].'/_files/';
+                $path_dest    = $public.'/'.$article['uri_article_relative'];
+
+                // 3.2] Удалить папку с ресурсами, если она уже есть в public
+                if($this->storage->exists($path_dest))
+                  $this->storage->deleteDirectory($path_dest);
+
+                // 3.3] Скопировать
+                config(['filesystems.default' => 'local']);
+                config(['filesystems.disks.local.root' => base_path('')]);
+                $this->storage = new \Illuminate\Filesystem\Filesystem();
+                $this->storage->copyDirectory(
+                  $path_source,
+                  $path_dest
+                );
+
+                // 3.4] Удалить файл article.info из $dest
+                $this->storage->delete($path_dest.'/article.info');
 
             }
           });
-
-
-
-
-
-
-
-
 
         }
 
