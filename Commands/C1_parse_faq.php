@@ -127,7 +127,7 @@
       Illuminate\Support\Facades\View;
 
   // Доп.классы, которые использует эта команда
-
+  use GrahamCampbell\Markdown\Facades\Markdown;
 
 //---------//
 // Команда //
@@ -173,7 +173,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
     /**
      * Оглавление
      *
-     *  1. Получить относ.путь к корн.каталогу
+     *  1. Получить из конфига необходимые относительные пути
      *  2. Проверить, существует ли в ФС каталог по указанному пути     *
      *  3. Парсинг FAQов
      *  4. Парсинг групп
@@ -189,10 +189,17 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
     //-----------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить относ.путь к корн.каталогу, проверить его существование
-      $root = config('M12.faq_root_folder');
-      if(empty($root))
-        throw new \Exception('В конфиге M12 не найден путь faq_root_folder к корневому каталогу относительно корня проекта.');
+      // 1. Получить из конфига необходимые относительные пути
+
+        // 1] Получить относ.путь к корн.каталогу, проверить его существование
+        $root = config('M12.faq_root_folder');
+        if(empty($root))
+          throw new \Exception('В конфиге M12 не найден путь faq_root_folder к корневому каталогу относительно корня проекта.');
+
+        // 2] Получить относ.путь к папке, куда сохранять публичные ресурсы FAQ
+        $public = config('M12.public_faq_folder');
+        if(empty($root))
+          throw new \Exception('В конфиге M12 не найден путь public_faq_folder к папке, куда сохранять публичные ресурсы FAQ.');
 
       // 2. Проверить, существует ли в ФС каталог по указанному пути
       $is_root_cat = file_exists(base_path($root));
@@ -296,7 +303,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
       });
 
       // 4. Парсинг групп
-      call_user_func(function() USE ($root) {
+      call_user_func(function() USE ($root, $public) {
 
         // 4.1. Получить из БД доступный список FAQов
         $faqs_in_db = \M12\Models\MD1_faqs::get();
@@ -311,7 +318,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
             // 1] Подготовить массив для результатов
             $results = [];
 
-            // 2] Получить пути ко всем FAQам относ.корня
+            // 2] Получить пути ко всем группам в FAQе $faq относ.корня
             $group_paths = $this->storage->directories($root.'/'.$faq['name']);
 
             // 3] Наполнить $results
@@ -331,7 +338,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
           //     'name'               => ['ru' => 'Группа', 'en' => 'Group'],
           //     'description'        => ['ru' => 'Описание', 'en' => 'Description'],
           //     'avatar'             => 'avatar.png',
-          //     'uri_group_relative' => 'classicgame/howtoplay/ru',
+          //     'uri_group_relative' => 'classicgame/howtoplay',
           //   ]
           //
           $groups_in_root_data = call_user_func(function() USE ($groups_in_root, $faq) {
@@ -358,6 +365,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
               // 2.3] Добавить данные в $results
               array_push($results, [
+                "name_folder"         => $name,
                 "name"                => $metainfo['name'],
                 "description"         => $metainfo['description'],
                 "avatar"              => $metainfo['avatar'],
@@ -381,7 +389,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
             foreach($groups_in_db as $group) {
 
               $group->faqs()->detach();
-              $group->faqs()->articles();
+              $group->articles()->detach();
 
             }
 
@@ -394,13 +402,13 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
           DB::statement('ALTER TABLE m12.md2_groups AUTO_INCREMENT = 1;');
 
           // 4.2.6. Добавить в БД все группы из $groups_in_root_data
-          call_user_func(function() USE ($groups_in_root_data, $faq) {
+          call_user_func(function() USE ($groups_in_root_data, $faq, $root, $public) {
             foreach($groups_in_root_data as $group) {
 
               // 1] Добавить данные о $group в БД
-              $newgroup = new \M12\Models\MD1_faqs();
-              $newgroup->name                 = $group['name'];
-              $newgroup->description          = $group['description'];
+              $newgroup = new \M12\Models\MD2_groups();
+              $newgroup->name                 = json_encode($group['name'], JSON_UNESCAPED_UNICODE);
+              $newgroup->description          = json_encode($group['description'], JSON_UNESCAPED_UNICODE);
               $newgroup->avatar               = $group['avatar'];
               $newgroup->uri_group_relative   = $group['uri_group_relative'];
               $newgroup->save();
@@ -409,46 +417,223 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
               if(!$newgroup->faqs->contains($faq['id']))
                 $newgroup->faqs()->attach($faq['id']);
 
+              // 3] Скопировать аватар группы в public
+
+                // 3.1] Получить относительные пути источника/назначения
+                $path_source  = $root.'/'.$faq['name'].'/'.$group['name_folder'].'/_files/'.$group['avatar'];
+                $path_dest    = $public.'/'.$faq['name'].'/'.$group['name_folder'].'/'.$group['avatar'];
+
+                // 3.2] Удалить аватар, если он уже есть в public
+                if($this->storage->exists($path_dest))
+                  $this->storage->delete($path_dest);
+
+                // 3.3] Скопировать
+                $this->storage->copy(
+                  $path_source,
+                  $path_dest
+                );
+
             }
           });
 
-          // 4.2.7. Скопировать аватар группы в public
-
-
-
         }
-
-
-
-        /*
-         *    2. Парсинг групп
-         *      - Делаем цикл по всем доступным ныне FAQам.
-         *        ▪ Получаем все доступные в FAQе папки.
-         *        ▪ Ищем в каждой папке файл "_files/meta.info".
-         *        ▪ Таким образом, наполняем массив доступных групп для данного FAQа.
-         *        ▪ Синхронизируем данные в БД с полученными данными:
-         *          ▪ Удаляем из БД все не найденные в данных группы, вместе со связями из md1000/md1001.
-         *          ▪ Если в БД уже есть такая группа, обновляем её.
-         *          ▪ Если в БД ещё нет такой группы, добавляем.
-         *          ▪ Делаем save().
-         *          ▪ Добавляем связи в md1000.
-         *          ▪ Копируем аватар группы в public с заменой.
-         *
-         */
 
       });
 
       // 5. Парсинг статей и кодов стран
       call_user_func(function() USE ($root) {
 
+        // 5.1. Получить из БД доступный список групп
+        $groups_in_db = \M12\Models\MD2_groups::get();
 
+        // 5.2. Пробежаться по всем $faqs_in_db
+        foreach($groups_in_db as $group) {
+
+          // 5.2.1. Получить все доступные в $group статьи
+          // - Формат: <имя статьи> => <путь к статье относ.корня>
+          $articles_in_root = call_user_func(function() USE ($root, $group) {
+
+            // 1] Подготовить массив для результатов
+            $results = [];
+
+            // 2] Получить пути ко всем статьям в группе $group относ.корня
+            $article_paths = $this->storage->directories($root.'/'.$group['uri_group_relative']);
+
+            // 3] Наполнить $results
+            foreach($article_paths as $path) {
+
+              // 3.1] Получить имя папки со статьёй
+              $article_folder_name = preg_replace('#^.*\/#ui', '', $path);
+
+              // 3.2] Если это не _files, добавить в $results
+              if($article_folder_name != '_files')
+                $results[$article_folder_name] = $path;
+
+            }
+
+            // n] Вернуть результат
+            return $results;
+
+          });
+
+          // 5.2.2. Получить массив данных по всем статьям
+          // - Формат:
+          //
+          //   [
+          //     'name'                 => ['ru' => 'Группа', 'en' => 'Group'],
+          //     'description'          => ['ru' => 'Описание', 'en' => 'Description'],
+          //     'html'                 => <html код статьи>,
+          //     'uri_article_relative' => 'classicgame/howtoplay',
+          //     'author'               => ['ru' => ['name' => "Иван Иванов", 'url' => 'https://vk.com/mudakoff']]
+          //   ]
+          //
+          $articles_in_root_data = call_user_func(function() USE ($articles_in_root, $group, $root) {
+
+            // 1] Подготовить массив для результата
+            $results = [];
+
+            // 2] Наполнить $results
+            foreach($articles_in_root as $name => $path) {
+
+              // 2.1] Попробовать извлечь файл article.info для статьи $name
+              $metainfo = json_decode($this->storage->get($path.'/_files/article.info'), true);
+              if(empty($metainfo))
+                throw new \Exception('В article.info статьи '.$group['uri_group_relative'].'/'.$name.' допущена ошибка.');
+
+              // 2.2] Провести валидацию $metainfo
+              $validator = r4_validate($metainfo, [
+                "name"                => ["required", "array"],
+                "description"         => ["required", "array"],
+                "author"              => ["required", "array"]
+              ]); if($validator['status'] == -1) {
+                throw new \Exception($validator['data']);
+              }
+
+              // 2.3] Подготовить HTML со статьями
+              // - В формате:
+              //
+              //    [
+              //      'ru' => <html>,
+              //      'en' => <html>
+              //    ]
+              //
+              $html = call_user_func(function() USE ($group, $name, $root, $path) {
+
+                // 2.3.1] Подготовить массив для результатов
+                $results = [];
+
+                // 2.3.2] Получить пути ко всем статьям в группе $group относ.корня
+                $article_multilang_paths = $this->storage->files($path.'/_articles');
+
+                // 2.3.3] Наполнить $results
+                foreach($article_multilang_paths as $article) {
+
+                  // 1] Получить локаль статьи (ru, en, pl, и т.д.)
+                  $locale = preg_replace('#.md$#ui', '', preg_replace('#^.*\/#ui', '', $article));
+                  if(empty($locale)) continue;
+
+                  // 2] Получить содержимое статьи в формате .md
+                  $article_md = $this->storage->get($article);
+
+                  // 3] Преобразовать $article_md в html
+                  $article_html = Markdown::convertToHtml($article_md);
+
+                  // 4] Добавить данные в $results
+                  $results[$locale] = $article_html;
+
+                }
+
+                // 2.3.n] Вернуть результаты
+                return $results;
+
+              });
+
+              // 2.4] Добавить данные в $results
+              array_push($results, [
+                "name_folder"           => $name,
+                "name"                  => $metainfo['name'],
+                "description"           => $metainfo['description'],
+                "author"                => $metainfo['author'],
+                "html"                  => $html,
+                "uri_article_relative"  => $group['uri_group_relative'].'/'.$name,
+              ]);
+
+            }
+
+            // n] Вернуть результаты
+            return $results;
+
+          });
+
+          // 5.2.3. Получить из БД доступный список групп
+          $articles_in_db = \M12\Models\MD3_articles::get();
+
+          // 5.2.4. Удалить из БД все статьи, их их связи md1001/md1002
+          call_user_func(function() USE ($articles_in_db, $articles_in_root_data) {
+
+            // 1] Удалить все связи $articles_in_db
+            foreach($articles_in_db as $article) {
+
+              $article->groups()->detach();
+              $article->countrycode()->detach();
+
+            }
+
+            // 2] Удалить все статьи
+            \M12\Models\MD3_articles::query()->delete();
+
+          });
+
+          // 5.2.5. Установить автоинкремент, равный 1
+          DB::statement('ALTER TABLE m12.md3_articles AUTO_INCREMENT = 1;');
+
+          // 5.2.6. Добавить в БД все статьи из $groups_in_root_data
+          call_user_func(function() USE ($articles_in_root_data, $root, $group) {
+            foreach($articles_in_root_data as $article) {
+
+              // 1] Добавить данные о $group в БД
+              $newarticle = new \M12\Models\MD3_articles();
+              $newarticle->name                 = json_encode($article['name'], JSON_UNESCAPED_UNICODE);
+              $newarticle->description          = json_encode($article['description'], JSON_UNESCAPED_UNICODE);
+              $newarticle->html                 = json_encode($article['html'], JSON_UNESCAPED_UNICODE);
+              $newarticle->author               = json_encode($article['author'], JSON_UNESCAPED_UNICODE);
+              $newarticle->uri_article_relative = $article['uri_article_relative'];
+              $newarticle->save();
+
+              // 2] Связать $newarticle с $group
+              if(!$newarticle->groups->contains($group['id']))
+                $newarticle->groups()->attach($group['id']);
+
+              // 3] Скопировать файлы статьи в public
+
+//                // 3.1] Получить относительные пути источника/назначения
+//                $path_source  = $root.'/'.$faq['name'].'/'.$group['name_folder'].'/_files/'.$group['avatar'];
+//                $path_dest    = $public.'/'.$faq['name'].'/'.$group['name_folder'].'/'.$group['avatar'];
+//
+//                // 3.2] Удалить аватар, если он уже есть в public
+//                if($this->storage->exists($path_dest))
+//                  $this->storage->delete($path_dest);
+//
+//                // 3.3] Скопировать
+//                $this->storage->copy(
+//                  $path_source,
+//                  $path_dest
+//                );
+
+            }
+          });
+
+
+
+
+
+
+
+
+
+        }
 
       });
-
-
-
-      // Log::info($root);
-      // Log::info($is_root_cat);
 
 
     DB::commit(); } catch(\Exception $e) {

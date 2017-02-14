@@ -13,7 +13,8 @@
         }
     ],
     "require": {
-			"4gekkman/R6": "~1.0"
+			"4gekkman/R6": "~1.0",
+			"graham-campbell/markdown": "^7.0"
 		},
     "autoload": {
         "psr-4": {"M12\\": ""}
