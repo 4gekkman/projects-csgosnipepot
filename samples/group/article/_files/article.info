@@ -1,0 +1,20 @@
+{
+  "name": {
+    "ru": "Группа статей",
+    "en": "Демонстрационная группа статей."
+  },
+  "description": {
+    "ru": "Демонстрационная группа статей.",
+    "en": "Demo group of articles."
+  },
+  "author": {
+    "ru": {
+      "name": "Иван Иванов",
+      "url": "https://vk.com/mudakoff"
+    },
+    "en": {
+      "name": "Ivan Ivanov",
+      "url": "https://vk.com/mudakoff"
+    },
+  }
+}
