@@ -117,7 +117,10 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-
+          '\M12\Console\T1_parse_faq',
+          '\M12\Console\T2_update_cache',
+          '\M12\Console\T3_update_faq',
+          '\M12\Console\T4_get_faq'
         ];
 
         // Регистрация команд в методе register
