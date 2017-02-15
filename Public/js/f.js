@@ -357,7 +357,20 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 				// 4.1] Если URI == '\top'
 				if(uri == '/top') {
 
-					//console.log(model);
+					// Запросить TOP игроков с сервера, если он ещё не получен
+					setTimeout(function(){
+						model.f.s4.get_top();
+					}, 10);
+
+				}
+
+				// 4.2] Если URI == '\faq'
+				if(uri == '/faq') {
+
+					// Запросить TOP игроков с сервера, если он ещё не получен
+					setTimeout(function(){
+						model.f.s5.get_faq(true);
+					}, 10);
 
 				}
 
