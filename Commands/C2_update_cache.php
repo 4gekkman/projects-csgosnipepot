@@ -192,9 +192,20 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
             $faqs_list = \M12\Models\MD1_faqs::with(['groups'])->get();
 
             // 2] Пробежаться по всем $faqs_list
-            foreach($faqs_list as $faq) {
+            foreach($faqs_list as &$faq) {
 
-              // 2.1] Добавить в кэш все группы, связанные с $faq
+              // 2.1] Обработать группы $faq'а
+              $faq->groups->map(function($group, $key){
+
+                // 1) Раскодировать name из json в массив
+                $group->name = json_decode($group->name, true);
+
+                // 2) Раскодировать description из json в массив
+                $group->description = json_decode($group->description, true);
+
+              });
+
+              // 2.n] Добавить в кэш все группы, связанные с $faq
               Cache::tags(['m12:faq'])->put('m12:'.$faq['name'], json_encode($faq['groups'], JSON_UNESCAPED_UNICODE), 120);
 
             }
@@ -213,6 +224,26 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
 
               // 2.1] Пробежаться по всем $faq['groups']
               foreach($faq['groups'] as $group) {
+
+                // Обработать статьи $group'ы
+                $group->articles->map(function($article, $key){
+
+                  // 1) Раскодировать name из json в массив
+                  $article->name = json_decode($article->name, true);
+
+                  // 2) Раскодировать description из json в массив
+                  $article->description = json_decode($article->description, true);
+
+                  // 3) Раскодировать html из json в массив
+                  $article->html = json_decode($article->html, true);
+
+                  // 4) Раскодировать author из json в массив
+                  $article->author = json_decode($article->author, true);
+
+                  // n) Добавить доп.свойство is_expanded
+                  $article->is_expanded = false;
+
+                });
 
                 // Добавить в кэш все статьи, связанные с $group
                 Cache::tags(['m12:faq'])->put('m12:'.$group['uri_group_relative'], json_encode($group['articles'], JSON_UNESCAPED_UNICODE), 120);
