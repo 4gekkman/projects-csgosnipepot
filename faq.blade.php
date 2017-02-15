@@ -35,18 +35,18 @@
     <?php /*--------------------------->
     <!-- 8.1.2. Контент ТОПа игроков -->
     <!-----------------------------*/ ?>
-    <div class="top-content">
+    <div class="faq-content">
 
       FAQ
 
       <?php /*------------------------------------->
       <!-- n] Модальный щит загрузки со спинером -->
       <!---------------------------------------*/ ?>
-<!--      <div class="loader">-->
-<!--        <div style="display: none" class="modal_shield loader-inner ball-clip-rotate" data-bind="visible: m.s4.is_shield_visible">-->
-<!--          <div></div>-->
-<!--        </div>-->
-<!--      </div>-->
+      <div class="loader">
+        <div style="display: none" class="modal_shield loader-inner ball-clip-rotate" data-bind="visible: m.s5.is_initial_shield_visible">
+          <div></div>
+        </div>
+      </div>
 
     </div>
 
