@@ -2084,7 +2084,7 @@
 
     // Внутренний контейнер классической игры
     .content .faq .faq-container {
-      margin-faq: 15px;
+      //margin-faq: 15px;
       border-radius: 6px;
       background: #284351;
     }
@@ -2131,9 +2131,83 @@
     .content .faq .faq-container .faq-content {
       position: relative;
       min-height: 250px;
+      color: #ddd;
+      font-size: 1.3em;
+      //background: #fff;
     }    
-    
-    
+    .content .faq .faq-container .faq-content .faq-table {
+      border-collapse: collapse;
+      width: 100%;
+      min-height: 250px;
+    }
+    .content .faq .faq-container .faq-content .faq-table>tbody {
+      display: table-row-group;
+      vertical-align: middle;
+      border-color: inherit;
+    }
+    .content .faq .faq-container .faq-content .faq-table>tbody>tr {
+      display: table-row;
+      vertical-align: inherit;
+      border-color: inherit;
+    }
+    .content .faq .faq-container .faq-content .faq-table>tbody>tr>td {
+      display: table-cell;
+    }
+
+    // Стили групп
+    .content .faq .faq-container .faq-content .faq-table .faq-groups {
+      padding: 10px 0 10px 0;
+      width: 250px;
+      overflow: hidden;
+      vertical-align: top;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      height: 32px;
+      line-height: 31px;
+      padding: 0 5px 0 20px;
+      user-select: none;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group:hover {
+      background: darken(#284351, 2%);
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group.choosen {
+      background: darken(#284351, 2%);
+    }
+
+    // Стили статей
+    .content .faq .faq-container .faq-content .faq-table .faq-articles {
+      border-right: 2px solid darken(#284351, 2%);
+      padding: 15px 20px 20px;
+      vertical-align: top;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header {
+      height: 40px;
+      margin-bottom: 10px;
+      -webkit-font-smoothing: subpixel-antialiased;
+      -moz-osx-font-smoothing: auto;
+      position: relative;
+      font-size: 1.4em;
+      line-height: 40px;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header img {
+      position: absolute;
+      max-height: 40px;
+      max-width: 40px;
+      border-radius: 6px;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header .article-header {
+      padding-left: 55px;
+      color: #fff;
+    }
+
+
+
+
     
     
     
