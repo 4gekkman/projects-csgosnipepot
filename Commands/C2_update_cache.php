@@ -180,7 +180,7 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
             $faqs_list = \M12\Models\MD1_faqs::get()->pluck('name')->toArray();
 
             // 2] Записать $faqs_list в кэш
-            Cache::put('m12:faqs', json_encode($faqs_list, JSON_UNESCAPED_UNICODE), 60);
+            Cache::put('m12:faqs', json_encode($faqs_list, JSON_UNESCAPED_UNICODE), 120);
 
           });
 
@@ -195,7 +195,7 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
             foreach($faqs_list as $faq) {
 
               // 2.1] Добавить в кэш все группы, связанные с $faq
-              Cache::tags(['m12:faq'])->put('m12:'.$faq['name'], json_encode($faq['groups'], JSON_UNESCAPED_UNICODE), 60);
+              Cache::tags(['m12:faq'])->put('m12:'.$faq['name'], json_encode($faq['groups'], JSON_UNESCAPED_UNICODE), 120);
 
             }
 
@@ -215,7 +215,7 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
               foreach($faq['groups'] as $group) {
 
                 // Добавить в кэш все статьи, связанные с $group
-                Cache::tags(['m12:faq'])->put('m12:'.$group['uri_group_relative'], json_encode($group['articles'], JSON_UNESCAPED_UNICODE), 60);
+                Cache::tags(['m12:faq'])->put('m12:'.$group['uri_group_relative'], json_encode($group['articles'], JSON_UNESCAPED_UNICODE), 120);
 
               }
 

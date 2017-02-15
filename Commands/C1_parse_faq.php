@@ -432,6 +432,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
               // 1] Добавить данные о $group в БД
               $newgroup = new \M12\Models\MD2_groups();
               $newgroup->name                 = json_encode($group['name'], JSON_UNESCAPED_UNICODE);
+              $newgroup->name_folder          = $group['name_folder'];
               $newgroup->description          = json_encode($group['description'], JSON_UNESCAPED_UNICODE);
               $newgroup->avatar               = $group['avatar'];
               $newgroup->uri_group_relative   = $group['uri_group_relative'];
@@ -606,8 +607,8 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
               // 2.4] Добавить данные в $results
               array_push($results, [
-                "name_folder"           => $name,
                 "name"                  => $metainfo['name'],
+                "name_folder"           => $name,
                 "description"           => $metainfo['description'],
                 "author"                => $metainfo['author'],
                 "html"                  => $html,
@@ -653,6 +654,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
               // 1] Добавить данные о $group в БД
               $newarticle = new \M12\Models\MD3_articles();
               $newarticle->name                 = json_encode($article['name'], JSON_UNESCAPED_UNICODE);
+              $newarticle->name_folder          = $article['name_folder'];
               $newarticle->description          = json_encode($article['description'], JSON_UNESCAPED_UNICODE);
               $newarticle->html                 = json_encode($article['html'], JSON_UNESCAPED_UNICODE);
               $newarticle->author               = json_encode($article['author'], JSON_UNESCAPED_UNICODE);

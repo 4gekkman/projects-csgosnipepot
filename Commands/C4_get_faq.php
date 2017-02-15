@@ -14,7 +14,15 @@
  *
  *    [
  *      "data" => [
- *
+ *        faq         | [Обязательно] Получить данные по всем группам указанного FAQа
+ *        group       | [Не обязательно] Получить данные по всем статьям указанной группы фака faq
+ *        group_mode  | [Не обязательно] Срабатывает, только если group не передан
+ *                                       - 1: в качестве group берётся первая группа FAQа faq из кэша, если он пуст, то ""
+ *                                       - 2: в качестве group берётся указанная в конфиге группа, её нет в кэше, то ""
+ *        what2return | [Не обязательно] Какие данные возвращать клиенту
+ *                                       - 1: [по умолчанию] возвращать всё
+ *                                       - 2: возвращать только данные по группам
+ *                                       - 3: возвращать только данные по статьям
  *      ]
  *    ]
  *
@@ -136,9 +144,12 @@ class C4_get_faq extends Job { // TODO: добавить "implements ShouldQueue
     /**
      * Оглавление
      *
-     *  1. Получить относ.путь к корн.каталогу
-     *  2. Проверить, существует ли в ФС каталог по указанному пути
-     *
+     *  1. Принять и проверить входящие данные
+     *  2. Если это необходимо, обновить данные FAQа
+     *  3. Назначить значения по умолчанию
+     *  4. Получить кэш с данными по всем группам фака faq
+     *  5. Получить кэш с данными по всем статьям группы group фака faq
+     *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
@@ -147,27 +158,95 @@ class C4_get_faq extends Job { // TODO: добавить "implements ShouldQueue
     //--------------//
     // Get FAQ data //
     //--------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
-      // 1. Получить относ.путь к корн.каталогу, проверить его существование
-      $root = config('M12.faq_root_folder');
-      if(empty($root))
-        throw new \Exception('В конфиге M12 не найден путь faq_root_folder к корневому каталогу относительно корня проекта.');
+      // 1. Принять и проверить входящие данные
+      $validator = r4_validate($this->data, [
+        "faq"           => ["required", "string"],
+        "group"         => ["string"],
+        "group_mode"    => ["regex:/^[12]{1}$/ui"],
+        "what2return"   => ["regex:/^[123]{1}$/ui"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-      // 2. Проверить, существует ли в ФС каталог по указанному пути
-      $is_root_cat = file_exists(base_path($root));
+      // 2. Если это необходимо, обновить данные FAQа
+      $result = runcommand('\M12\Commands\C3_update_faq', [
+        'force' => false
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
 
+      // 3. Назначить значения по умолчанию
 
-      Log::info($root);
-      Log::info($is_root_cat);
+        // 3.1. Если group отсутствует, назначить ""
+        if(!array_key_exists('group', $this->data))
+          $this->data['group'] = "";
 
+        // 3.2. Если group_mode не пуст
+        if(array_key_exists('group_mode', $this->data)) {
 
+          // 1] Если group_mode == 1
+          if($this->data['group_mode'] == 1) {
 
+            // 1.1] Получить кэш с данными по всем группам фака faq
+            $groups_data = json_decode(Cache::tags(['m12:faq'])->get("m12:".$this->data['faq']), true);
 
+            // 1.2] Если $groups_data не пуст, записать первую группу
+            if(!empty($groups_data) && count($groups_data) > 0)
+              $this->data['group'] = $groups_data[0]['name_folder'];
 
-    DB::commit(); } catch(\Exception $e) {
+          }
+
+          // 2] Если group_mode == 2
+          if($this->data['group_mode'] == 2) {
+
+            // 2.1] Получить из конфига имя стартовой группы
+            $start_group_name4faq = config('M12.start_group_names.'.$this->data['faq']);
+
+            // 2.2] Получить кэш с данными по всем группам фака faq
+            $groups_data = json_decode(Cache::tags(['m12:faq'])->get("m12:".$this->data['faq']), true);
+
+            // 2.3] Получить массив name_folder из $groups_data
+            $groups_data_name_folders = collect($groups_data)->pluck('name_folder')->toArray();
+
+            // 2.4] Если $start_group_name4faq не пуст, и есть в $groups_data_name_folders, записать его в group
+            if(!empty($start_group_name4faq) && in_array($start_group_name4faq, $groups_data_name_folders))
+              $this->data['group'] = $start_group_name4faq;
+
+          }
+
+        }
+
+        // 3.3. Если what2return пуста
+        if(!array_key_exists('what2return', $this->data))
+          $this->data['what2return'] = 1;
+
+      // 4. Получить кэш с данными по всем группам фака faq
+      if($this->data['what2return'] != 3)
+        $groups_data = json_decode(Cache::tags(['m12:faq'])->get("m12:".$this->data['faq']), true);
+      else
+        $groups_data = [];
+
+      // 5. Получить кэш с данными по всем статьям группы group фака faq
+      if($this->data['what2return'] != 2)
+        $articles_data = json_decode(Cache::tags(['m12:faq'])->get("m12:".$this->data['faq'].'/'.$this->data['group']), true);
+      else
+        $articles_data = [];
+
+      // n. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          'faq'       => $this->data['faq'],
+          'group'     => $this->data['group'],
+          'groups'    => $groups_data,
+          'articles'  => $articles_data
+        ]
+      ];
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C4_get_faq from M-package M12 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M12', 'C4_get_faq']);
         return [
