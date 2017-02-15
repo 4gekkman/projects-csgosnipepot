@@ -47,6 +47,11 @@ var ModelTop = { constructor: function(self, m) { m.s4 = this;
 	//----------------------------------------------------//
 	self.m.s4.is_shield_visible = ko.observable(false);
 
+	//----------------------------------------------------//
+	// s4.3. Исполнялась ли хоть раз функция f.s4.get_top //
+	//----------------------------------------------------//
+	self.m.s4.is_get_top_invoked = ko.observable(false);
+
 
 	//--------------------------------------//
 	// s4.n. Индексы и вычисляемые значения //
@@ -58,8 +63,8 @@ var ModelTop = { constructor: function(self, m) { m.s4 = this;
 		ko.computed(function(){
 
 			// 1] Запустить команду запроса данных для ТОПа, если URI == '/top'
-			if(layoutmodel.m.s1.selected_subdoc() && layoutmodel.m.s1.selected_subdoc().uri() == '/top')
- 				self.f.s4.get_top();
+			//if(layoutmodel.m.s1.selected_subdoc() && layoutmodel.m.s1.selected_subdoc().uri() == '/top')
+ 			//	self.f.s4.get_top();
 
 		}); //.extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 

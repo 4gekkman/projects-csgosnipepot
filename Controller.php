@@ -23,6 +23,7 @@
  *                  POST-API2   D10009:2                   Сохранение в куки нового значения для выключателя звука
  *                  POST-API3   D10009:3                   Подгрузить указанную страницу истории для classic game, для указанной комнаты
  *                  POST-API4   D10009:4                   Получить ТОП игроков
+ *                  POST-API4   D10009:5                   Получить FAQ
  *
  *
  *
@@ -196,8 +197,10 @@ class Controller extends BaseController {
       ]);
       if($result['status'] != 0)
         $rate = 60;
-      else
+      else if(array_key_exists('data', $rate) && array_key_exists('rate', $rate['data']))
         $rate = $rate['data']['rate'];
+      else
+        $rate = 60;
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -420,6 +423,29 @@ class Controller extends BaseController {
 
         }
 
+        //---------------------------------//
+        // Нестандартная операция D10009:5 //
+        //---------------------------------//
+        // - Получить FAQ
+        if($key == 'D10009:5') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Выполнить команду
+          $result = runcommand('\M12\Commands\C4_get_faq', [
+            'faq'         => 'csgohap',
+            'group_mode'  => 2,                    // Брать в качестве стартовой группу указанную в конфиге
+            'group'       => $data['group'],
+            'what2return' => $data['what2return']
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
 
       }
 

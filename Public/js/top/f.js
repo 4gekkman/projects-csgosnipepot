@@ -85,8 +85,6 @@ var ModelFunctionsTop = { constructor: function(self, f) { f.s4 = this;
 			}
 		});
 
-
-
 	};
 
 
