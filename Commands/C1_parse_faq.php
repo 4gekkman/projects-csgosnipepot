@@ -207,7 +207,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
         throw new \Exception('Не найден корневой каталог FAQ, путь к которому указан в конфиге M12, в faq_root_folder.');
 
       // 3. Парсинг FAQов
-      call_user_func(function() USE ($root) {
+      call_user_func(function() USE ($root, $public) {
 
         // 3.1. Получить все доступные в $root FAQи
         // - Формат: <имя FAQа> => <путь к FAQу относ.корня>
@@ -233,7 +233,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
         $faqs_in_db = \M12\Models\MD1_faqs::get();
 
         // 3.3. Удалить из БД все FAQи, которых нет в $faqs_in_root
-        call_user_func(function() USE ($faqs_in_db, $faqs_in_root) {
+        call_user_func(function() USE ($faqs_in_db, $faqs_in_root, $public) {
 
           foreach($faqs_in_db as $faq) {
 
@@ -245,6 +245,15 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
               // 2.1] Отвязать $faq от всех групп
               $faq->groups()->detach();
+
+              // 2.2] Удалить папку с ресурсами FAQ из public
+
+                // Получить относительный путь аватара
+                $path_dest = $public.'/'.$faq['name'];
+
+                // Удалить аватар, если он есть в public
+                if($this->storage->exists($path_dest))
+                  $this->storage->deleteDirectory($path_dest);
 
               // 2.2] Удалить $faq из БД
               $faq->delete();
@@ -323,11 +332,11 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
             // 2.2] Удалить аватар $group из public
 
               // Получить относительный путь аватара
-              $path_dest = $public.'/'.$group['uri_group_relative'].'/'.$group['avatar'];
+              $path_dest = $public.'/'.$group['uri_group_relative'];
 
               // Удалить аватар, если он есть в public
               if($this->storage->exists($path_dest))
-                $this->storage->delete($path_dest);
+                $this->storage->deleteDirectory($path_dest);
 
           }
 

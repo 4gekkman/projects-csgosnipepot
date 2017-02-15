@@ -162,7 +162,7 @@ class T2_update_cache extends Command
      */
 
     // 1. Выполнить команду
-    $result = runcommand('\M12\Commands\C2_update_cache.php', $this->argument());
+    $result = runcommand('\M12\Commands\C2_update_cache', $this->argument());
 
 
     // 2. В случае неудачи, вывести текст ошибки

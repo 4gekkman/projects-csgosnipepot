@@ -14,7 +14,7 @@
  *
  *    [
  *      "data" => [
- *
+ *        force         | (по умолчанию, == true) Обновлять кэш, даже если он присутствует
  *      ]
  *    ]
  *
@@ -135,8 +135,9 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Принять и проверить входящие данные
+     *  2. Назначить значения по умолчанию
+     *  3. Обновить кэш для FAQ, если он отсутствует, или если force == true
      *
      *  N. Вернуть статус 0
      *
@@ -145,15 +146,91 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
     //-------------------//
     // Update FAQs cache //
     //-------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
+      // 1. Принять и проверить входящие данные
+      $validator = r4_validate($this->data, [
+        "force"           => ["boolean"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-      Log::info('C2_update_cache');
+      // 2. Назначить значения по умолчанию
 
+        // 2.1. Если force отсутствует, назначить true
+        if(!array_key_exists('force', $this->data))
+          $this->data['force'] = true;
 
-    DB::commit(); } catch(\Exception $e) {
+      // 3. Обновить кэш для FAQ, если он отсутствует, или если force == true
+
+        // 3.1. Получить кэш со списком всех FAQов
+        $faqs_list = json_decode(Cache::get('m12:faqs'), true);
+
+        // 3.2. Обновить кэш
+        // - Если он отсутствует, или если параметр force == true
+        if(
+          ((!Cache::has('m12:faqs') || empty($faqs_list) || count($faqs_list) == 0) ||
+          $this->data['force'] == true)
+        ) {
+
+          // 3.2.1. Кэш со списком всех FAQов (ключ: "m12:faqs")
+          call_user_func(function(){
+
+            // 1] Получить список всех FAQов
+            $faqs_list = \M12\Models\MD1_faqs::get()->pluck('name')->toArray();
+
+            // 2] Записать $faqs_list в кэш
+            Cache::put('m12:faqs', json_encode($faqs_list, JSON_UNESCAPED_UNICODE), 60);
+
+          });
+
+          // 3.2.2. Кэш всех групп FAQа (ключ: "m12:<faq>")
+          // - Должен помечаться тегом m12:faq.
+          call_user_func(function(){
+
+            // 1] Получить коллекцию всех FAQов вместе с группами
+            $faqs_list = \M12\Models\MD1_faqs::with(['groups'])->get();
+
+            // 2] Пробежаться по всем $faqs_list
+            foreach($faqs_list as $faq) {
+
+              // 2.1] Добавить в кэш все группы, связанные с $faq
+              Cache::tags(['m12:faq'])->put('m12:'.$faq['name'], json_encode($faq['groups'], JSON_UNESCAPED_UNICODE), 60);
+
+            }
+
+          });
+
+          // 3.2.3. Кэш всех статей группы (ключ: "m12:<faq>/<group>")
+          // - Должен помечаться тегом m12:faq.
+          call_user_func(function(){
+
+            // 1] Получить коллекцию всех FAQов вместе с группами и статьями
+            $faqs_list = \M12\Models\MD1_faqs::with(['groups', 'groups.articles'])->get();
+
+            // 2] Пробежаться по всем $faqs_list
+            foreach($faqs_list as $faq) {
+
+              // 2.1] Пробежаться по всем $faq['groups']
+              foreach($faq['groups'] as $group) {
+
+                // Добавить в кэш все статьи, связанные с $group
+                Cache::tags(['m12:faq'])->put('m12:'.$group['uri_group_relative'], json_encode($group['articles'], JSON_UNESCAPED_UNICODE), 60);
+
+              }
+
+            }
+
+          });
+
+        }
+
+      //Log::info(json_decode(Cache::get('m12:faqs'), true));
+      //Log::info(json_decode(Cache::tags(['m12:faq'])->get('m12:csgohap'), true));
+      //Log::info(json_decode(Cache::tags(['m12:faq'])->get('m12:csgohap/cats'), true));
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C2_update_cache from M-package M12 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M12', 'C2_update_cache']);
         return [

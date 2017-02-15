@@ -14,7 +14,7 @@
  *
  *    [
  *      "data" => [
- *
+ *        force
  *      ]
  *    ]
  *
@@ -135,8 +135,12 @@ class C3_update_faq extends Job { // TODO: добавить "implements ShouldQu
     /**
      * Оглавление
      *
-     *  1.
-     *
+     *  1. Принять и проверить входящие данные
+     *  2. Назначить значения по умолчанию
+     *  3. Получить кэш со списком всех FAQов
+     *  4. Если force == true или $faqs_list пуст, обновить FAQ
+     *    4.1. Произвести парсинг FAQа
+     *    4.2. Обновить кэш FAQа
      *
      *  N. Вернуть статус 0
      *
@@ -145,15 +149,43 @@ class C3_update_faq extends Job { // TODO: добавить "implements ShouldQu
     //-------------------------//
     // Parse FAQ and update it //
     //-------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
+      // 1. Принять и проверить входящие данные
+      $validator = r4_validate($this->data, [
+        "force"           => ["boolean"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-      Log::info('C3_update_faq');
+      // 2. Назначить значения по умолчанию
 
+        // 2.1. Если force отсутствует, назначить true
+        if(!array_key_exists('force', $this->data))
+          $this->data['force'] = true;
 
-    DB::commit(); } catch(\Exception $e) {
+      // 3. Получить кэш со списком всех FAQов
+      $faqs_list = json_decode(Cache::get('m12:faqs'), true);
+
+      // 4. Если force == true или $faqs_list пуст, обновить FAQ
+      if($this->data['force'] == true || empty($faqs_list)) {
+
+        // 4.1. Произвести парсинг FAQа
+        $result = runcommand('\M12\Commands\C1_parse_faq', []);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // 4.2. Обновить кэш FAQа
+        $result = runcommand('\M12\Commands\C2_update_cache', [
+          'force' => $this->data['force']
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+      }
+
+    } catch(\Exception $e) {
         $errortext = 'Invoking of command C3_update_faq from M-package M12 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M12', 'C3_update_faq']);
         return [
