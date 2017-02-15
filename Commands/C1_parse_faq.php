@@ -305,13 +305,44 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
       // 4. Парсинг групп
       call_user_func(function() USE ($root, $public) {
 
-        // 4.1. Получить из БД доступный список FAQов
+        // 4.1. Удалить из БД все группы, их их связи md1000/md1001
+        // - А также все ресурсы этих групп.
+        // - А также все связанные с этими группами статьи, и их связи.
+        call_user_func(function() USE ($public) {
+
+          // 1] Получить все группы
+          $groups = \M12\Models\MD2_groups::get();
+
+          // 2] Удалить все связи $groups_in_db
+          foreach($groups as $group) {
+
+            // 2.1] Удалить связи $group
+            $group->faqs()->detach();
+            $group->articles()->detach();
+
+            // 2.2] Удалить аватар $group из public
+
+              // Получить относительный путь аватара
+              $path_dest = $public.'/'.$group['uri_group_relative'].'/'.$group['avatar'];
+
+              // Удалить аватар, если он есть в public
+              if($this->storage->exists($path_dest))
+                $this->storage->delete($path_dest);
+
+          }
+
+          // 2] Удалить все группы
+          \M12\Models\MD2_groups::query()->delete();
+
+        });
+
+        // 4.2. Получить из БД доступный список FAQов
         $faqs_in_db = \M12\Models\MD1_faqs::get();
 
-        // 4.2. Пробежаться по всем $faqs_in_db
+        // 4.3. Пробежаться по всем $faqs_in_db
         foreach($faqs_in_db as $faq) {
 
-          // 4.2.1. Получить все доступные в $faq группы
+          // 4.3.1. Получить все доступные в $faq группы
           // - Формат: <имя группы> => <путь к группе относ.корня>
           $groups_in_root = call_user_func(function() USE ($root, $faq) {
 
@@ -331,7 +362,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
           });
 
-          // 4.2.2. Получить массив данных по всем группам
+          // 4.3.2. Получить массив данных по всем группам
           // - Формат:
           //
           //   [
@@ -379,29 +410,13 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
           });
 
-          // 4.2.3. Получить из БД доступный список групп
+          // 4.3.3. Получить из БД доступный список групп
           $groups_in_db = \M12\Models\MD2_groups::get();
 
-          // 4.2.4. Удалить из БД все группы, их их связи md1000/md1001
-          call_user_func(function() USE ($groups_in_db, $groups_in_root_data) {
-
-            // 1] Удалить все связи $groups_in_db
-            foreach($groups_in_db as $group) {
-
-              $group->faqs()->detach();
-              $group->articles()->detach();
-
-            }
-
-            // 2] Удалить все группы
-            \M12\Models\MD2_groups::query()->delete();
-
-          });
-
-          // 4.2.5. Установить автоинкремент, равный 1
+          // 4.3.5. Установить автоинкремент, равный 1
           DB::statement('ALTER TABLE m12.md2_groups AUTO_INCREMENT = 1;');
 
-          // 4.2.6. Добавить в БД все группы из $groups_in_root_data
+          // 4.3.6. Добавить в БД все группы из $groups_in_root_data
           call_user_func(function() USE ($groups_in_root_data, $faq, $root, $public) {
             foreach($groups_in_root_data as $group) {
 
@@ -443,13 +458,45 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
       // 5. Парсинг статей и кодов стран
       call_user_func(function() USE ($root, $public) {
 
-        // 5.1. Получить из БД доступный список групп
+        // 5.1. Удалить из БД все статьи, их их связи md1001/md1002
+        call_user_func(function() USE ($public) {
+
+          // 1] Получить все статьи в БД
+          $articles = \M12\Models\MD3_articles::get();
+
+          // 1] Получить массив ID всех статей
+          $articles_ids = $articles->pluck('id')->toArray();
+
+          // 2] Удалить все связи и ресурсы статей $articles_in_db
+          foreach($articles as $article) {
+
+            // 2.1] Удалить связи
+            $article->groups()->detach();
+            $article->countrycode()->detach();
+
+            // 2.2] Удалить папку с ресурсами статьи из public
+
+              // Получить относительный путь папки
+              $path_dest = $public.'/'.$article['uri_article_relative'];
+
+              // Удалить папку с ресурсами, если она уже есть в public
+              if($this->storage->exists($path_dest))
+                $this->storage->deleteDirectory($path_dest);
+
+          }
+
+          // 3] Удалить все статьи с id из $articles_ids
+          \M12\Models\MD3_articles::whereIn('id', $articles_ids)->delete();
+
+        });
+
+        // 5.2. Получить из БД доступный список групп
         $groups_in_db = \M12\Models\MD2_groups::get();
 
-        // 5.2. Пробежаться по всем $faqs_in_db
+        // 5.3. Пробежаться по всем $faqs_in_db
         foreach($groups_in_db as $group) {
 
-          // 5.2.1. Получить все доступные в $group статьи
+          // 5.3.1. Получить все доступные в $group статьи
           // - Формат: <имя статьи> => <путь к статье относ.корня>
           $articles_in_root = call_user_func(function() USE ($root, $group) {
 
@@ -476,7 +523,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
           });
 
-          // 5.2.2. Получить массив данных по всем статьям
+          // 5.3.2. Получить массив данных по всем статьям
           // - Формат:
           //
           //   [
@@ -565,31 +612,12 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
           });
 
-          // 5.2.3. Получить из БД доступный список статей, связанных с $group
+          // 5.3.3. Получить из БД доступный список статей, связанных с $group
           $articles_in_db = \M12\Models\MD3_articles::whereHas('groups', function($query) USE ($group) {
             $query->where('id', $group['id']);
           })->doesntHave('groups', 'or')->get();
 
-          // 5.2.4. Удалить из БД все статьи, их их связи md1001/md1002
-          call_user_func(function() USE ($articles_in_db, $articles_in_root_data, $group) {
-
-            // 1] Получить массив ID связанных с $group статей
-            $articles_ids = $articles_in_db->pluck('id')->toArray();
-
-            // 2] Удалить все связи $articles_in_db
-            foreach($articles_in_db as $article) {
-
-              $article->groups()->detach();
-              $article->countrycode()->detach();
-
-            }
-
-            // 3] Удалить все статьи с id из $articles_ids
-            \M12\Models\MD3_articles::whereIn('id', $articles_ids)->delete();
-
-          });
-
-          // 5.2.5. Установить автоинкремент, равный 1
+          // 5.3.4. Установить автоинкремент, равный 1
           call_user_func(function(){
 
             // 1] Получить значениед для автоинкремента
@@ -609,7 +637,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
 
           });
 
-          // 5.2.6. Добавить в БД все статьи из $groups_in_root_data
+          // 5.3.5. Добавить в БД все статьи из $articles_in_root_data
           call_user_func(function() USE ($articles_in_root_data, $root, $group, $public) {
             foreach($articles_in_root_data as $article) {
 
