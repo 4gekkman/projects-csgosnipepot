@@ -161,6 +161,10 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
     config(['filesystems.disks.local.root' => base_path('')]);
     $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
 
+    // Настроить Storage2 для текущей сессии
+    config(['filesystems.default' => 'local']);
+    config(['filesystems.disks.local.root' => base_path('')]);
+    $this->storage2 = new \Illuminate\Filesystem\Filesystem();
 
   }
 
@@ -178,7 +182,6 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
      *  3. Парсинг FAQов
      *  4. Парсинг групп
      *  5. Парсинг статей и кодов стран
-     *
      *
      *  N. Вернуть статус 0
      *
@@ -217,7 +220,10 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
           $results = [];
 
           // 2] Получить пути ко всем FAQам относ.корня
-          $faq_paths = $this->storage->directories($root);
+          if($this->storage->exists($root))
+            $faq_paths = $this->storage->directories($root);
+          else
+            $faq_paths = [];
 
           // 3] Наполнить $results
           foreach($faq_paths as $path) {
@@ -338,6 +344,7 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
               if($this->storage->exists($path_dest))
                 $this->storage->deleteDirectory($path_dest);
 
+
           }
 
           // 2] Удалить все группы
@@ -359,7 +366,10 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
             $results = [];
 
             // 2] Получить пути ко всем группам в FAQе $faq относ.корня
-            $group_paths = $this->storage->directories($root.'/'.$faq['name']);
+            if($this->storage->exists($root.'/'.$faq['name']))
+              $group_paths = $this->storage->directories($root.'/'.$faq['name']);
+            else
+              $group_paths = [];
 
             // 3] Наполнить $results
             foreach($group_paths as $path) {
@@ -514,7 +524,10 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
             $results = [];
 
             // 2] Получить пути ко всем статьям в группе $group относ.корня
-            $article_paths = $this->storage->directories($root.'/'.$group['uri_group_relative']);
+            if($this->storage->exists($root.'/'.$group['uri_group_relative']))
+              $article_paths = $this->storage->directories($root.'/'.$group['uri_group_relative']);
+            else
+              $article_paths = [];
 
             // 3] Наполнить $results
             foreach($article_paths as $path) {
@@ -672,17 +685,15 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
                 $path_dest    = $public.'/'.$article['uri_article_relative'];
 
                 // 3.2] Удалить папку с ресурсами, если она уже есть в public
-                if($this->storage->exists($path_dest))
-                  $this->storage->deleteDirectory($path_dest);
+                if($this->storage2->exists($path_dest))
+                  $this->storage2->deleteDirectory($path_dest);
 
                 // 3.3] Скопировать
-                config(['filesystems.default' => 'local']);
-                config(['filesystems.disks.local.root' => base_path('')]);
-                $this->storage = new \Illuminate\Filesystem\Filesystem();
-                $this->storage->copyDirectory(
-                  $path_source,
-                  $path_dest
-                );
+                \File::copyDirectory(base_path($path_source), base_path($path_dest));
+                //$this->storage2->copyDirectory(
+                //  $path_source,
+                //  $path_dest
+                //);
 
                 // 3.4] Удалить файл article.info из $dest
                 $this->storage->delete($path_dest.'/article.info');
