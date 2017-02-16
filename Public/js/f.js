@@ -354,23 +354,45 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			// 4] В зависимости от URI предпринять доп.действия
 			(function(){
 
-				// 4.1] Если URI == '\top'
+				// 4.1] Если URI == '/top'
 				if(uri == '/top') {
+
+					// Подготовить рекурсивную функцию
+					var recur = function recur(){
+						if(!model) {
+							setTimeout(function(){
+								recur();
+							}, 10);
+						}
+						else
+							model.f.s4.get_top();
+					};
 
 					// Запросить TOP игроков с сервера, если он ещё не получен
 					setTimeout(function(){
-						model.f.s4.get_top();
-					}, 1000);
+						recur();
+					}, 10);
 
 				}
 
-				// 4.2] Если URI == '\faq'
+				// 4.2] Если URI == '/faq'
 				if(uri == '/faq') {
+
+					// Подготовить рекурсивную функцию
+					var recur = function recur(){
+						if(!model) {
+							setTimeout(function(){
+								recur();
+							}, 10);
+						}
+						else
+							model.f.s5.get_faq(true);
+					};
 
 					// Запросить TOP игроков с сервера, если он ещё не получен
 					setTimeout(function(){
-						model.f.s5.get_faq(true);
-					}, 1000);
+						recur();
+					}, 10);
 
 				}
 

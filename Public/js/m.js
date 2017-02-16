@@ -29,6 +29,8 @@
  *    s0.8. Текущая и предыдущая величины прокрутки браузера
  *    s0.9. Количество залогиненных Steam-пользователей в системе
  *    s0.10. Серверное время
+ *    s0.11. Текущий хост (включая http/https)
+ *    s0.12. Текущий хост (включая http/https, порт и базовый URI)
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -414,6 +416,30 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		//------------------------------------------------//
 		// - Например: "1476891769"
 		self.m.s0.servertime.timestamp_s = ko.observable("");
+
+	//-------------------------------------------------//
+	// s0.11. Текущий хост (включая http/https и порт) //
+	//-------------------------------------------------//
+	self.m.s0.full_host = ko.observable((function(){
+
+		return layout_data.data.request.secure +
+					 layout_data.data.request.host.replace(/:\d+.*$/i, "") +
+				   ':' + layout_data.data.request.port;
+
+	})());
+
+	//--------------------------------------------------------------//
+	// s0.12. Текущий хост (включая http/https, порт и базовый URI) //
+	//--------------------------------------------------------------//
+	self.m.s0.full_host_andbaseuri = ko.observable((function(){
+
+		return layout_data.data.request.secure +
+					 layout_data.data.request.host.replace(/:\d+.*$/i, "") +
+				   ':' + layout_data.data.request.port +
+				   layout_data.data.request.baseuri;
+
+	})());
+
 
 
 	//-----------------------------------------------------------//
