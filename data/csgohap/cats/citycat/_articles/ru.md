@@ -6,7 +6,7 @@
 Кот смотрел в окно. Казалось, всё было кончено.
 
 ###### Изображение из папки статьи
-![alt text]({{$baseuri}}/myfaq/cats/cat/cat.jpg "Кот смотрит в окно")
+![alt text]($$url$$/csgohap/common/citycat/cat.jpg "Кот смотрит в окно")
 
 ###### Изображение по ссылке из интернета
 ![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Кот смотрит в окно")
