@@ -12,7 +12,7 @@
  * 	s5. Функционал ТОПа игроков
  *
  *    f.s5.get_faq      					| s5.1. Запросить данные FAQа с сервера
- *
+ *    f.s5.switch_article					| s5.2. Свернуть/Развернуть статью, добавить новое состояние в history
  *
  *
  */
@@ -42,7 +42,7 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 	// - Если group не пуста
 	//   • То is_initial игрогируется, и возвращаются только статьи для group.
 	//   • При этом, если статьи для group уже есть в m.s5.articles, то запрос не производится, функция завершается.
-	f.s5.get_faq = function(is_initial, group) {
+	f.s5.get_faq = function(is_initial, group, context, event) {
 
 		// 1] Если is_initial == true
 		if(is_initial && !group && is_initial == true) {
@@ -59,73 +59,10 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 		// 2] Если group не пуста
 		if(group && !is_initial) {
 
-			// 2.1] Если статьи для group есть в m.s5.articles, завершить
-			if(self.m.s5.articles()[group] && self.m.s5.articles()[group]() && self.m.s5.articles()[group]().length)
-				return;
+			// 2.1] Если статьи для group есть в m.s5.articles
+			if(self.m.s5.articles()[group] && self.m.s5.articles()[group]() && self.m.s5.articles()[group]().length) {
 
-			// 2.2] Назначить значение mode == 3
-			var what2return = 3;
-
-		}
-
-		// 3] Отправить AJAX-запрос и получить данные FAQа
-		ajaxko(self, {
-			key: 	    		"D10009:5",
-			from: 		    "ajaxko",
-			data: 		    {
- 				what2return: what2return,
- 				group: 			 group ? group : ""
-			},
-			prejob:       function(config, data, event){
-
-				// 1] Показать модальный щит со спиннером загрузки
-				self.m.s5.is_initial_shield_visible(true);
-
-			},
-			postjob:      function(data, params){},
-			ok_0:         function(data, params){
-
-				// 1] Получить входящие данные
-				var faq 			= data.data.faq;
-				var group 		= data.data.group;
-				var groups 		= data.data.groups;
-				var articles 	= data.data.articles;
-
-				// 2] Записать groups в m.s5.groups
-				(function(){
-
-					// 2.1] Очистить m.s5.groups
-					self.m.s5.groups.removeAll();
-
-					// 2.2] Записать groups в m.s5.groups
-					for(var i=0; i<groups.length; i++) {
-						self.m.s5.groups.push(ko.mapping.fromJS(groups[i]));
-					}
-
-				})();
-
-				// 3] Записать articles в m.s5.articles
-				// - Но только, если там ещё нет статей для этой группы.
-				(function(){
-
-					// 3.1] Если статей для choosen_group ещё нет, создать набл.массив
-					if(!self.m.s5.articles()[group])
-						self.m.s5.articles()[group] = ko.observableArray([]);
-
-					// 3.2] Записать groups в m.s5.groups
-					for(var i=0; i<articles.length; i++) {
-
-						// 3.2.1] Заменить в articles[i].html $$uri$$ на актуальный URL к папке с данными FAQа
-						articles[i].html.ru = articles[i].html.ru.replace(/\$\$url\$\$/, layoutmodel.m.s0.full_host()+'/'+server.data.public_faq_folder);
-
-						// 3.2.2] Добавить статью article[i] в m.s5.articles
-						self.m.s5.articles()[group].push(ko.mapping.fromJS(articles[i]));
-
-					}
-
-				})();
-
-				// 4] Выбрать группу group среди m.s5.groups
+				// 2.1.1] Выбрать группу group среди m.s5.groups
 				self.m.s5.choosen_group((function(){
 					var choosen_group = "";
 					for(var i=0; i<self.m.s5.groups().length; i++) {
@@ -135,26 +72,220 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 					return choosen_group;
 				})());
 
-				// 5] Записать название текущего FAQа
+				// 2.1.2] Добавить в историю новое состояние
+				var subdoc = layoutmodel.m.s1.selected_subdoc();
+				History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
+
+				// 2.1.n] Завершить
+				return;
+
+			}
+
+			// 2.3] Назначить значение mode == 3
+			var what2return = 3;
+
+		}
+
+		// 3] Получить параметры из query string
+		var qs_params = (function(){
+
+			// 3.1] Подготовить объект для результатов
+			var results = "";
+
+			// 3.2] Получить объект qs_array
+			var qs_array = layout_data.data.request.qs_array;
+
+			// 3.3] Если qs_array не пуст
+			if(qs_array && (qs_array['group'] || qs_array['article'])) {
+
+				// Записать в results объект
+				results = {};
+
+				// Если есть group, записать её в results
+				if(qs_array['group'])
+					results['group'] = qs_array['group'];
+
+				// Если есть article, записать её в results
+				if(qs_array['article'])
+					results['article'] = qs_array['article'];
+
+			}
+
+			// 3.n] Иначе вернуть пустую строку
+			return results;
+
+		})();
+
+		// 4] Определить, какую группу запрашивать из FAQ
+		var group2request = (function(){
+
+			// 4.1] Если qs_params пуст, или в нём нет group, то вернуть group
+			if(!qs_params || !qs_params['group']) return group;
+
+			// 4.2] Если what2return == 1
+			if(what2return == 1) return qs_params['group'];
+
+			// 4.3] Если what2return == 3
+			if(what2return == 3) return group;
+
+		})();
+
+		// 4] Отправить AJAX-запрос и получить данные FAQа
+		ajaxko(self, {
+			key: 	    		"D10009:5",
+			from: 		    "ajaxko",
+			data: 		    {
+ 				what2return: what2return,
+ 				group: 			 group2request ? group2request : ""
+			},
+			prejob:       function(config, data, event){
+
+				// 1] Показать модальный щит со спиннером загрузки
+				// - Если what2return == 1
+				if(what2return == 1)
+					self.m.s5.is_initial_shield_visible(true);
+
+				// 2] Спиннером загрузки группы
+				// - Если what2return == 3
+				if(what2return == 3)
+					context.is_spinner_visible(true);
+
+			},
+			postjob:      function(data, params){},
+			ajax_params:  {
+				what2return: 	what2return,
+				context: 			context,
+				qs_params:    qs_params
+			},
+			ok_0:         function(data, params){
+
+				// 1] Получить входящие данные
+				var faq 			= data.data.faq || "";
+				var group 		= data.data.group || "";
+				var groups 		= data.data.groups || [];
+				var articles 	= data.data.articles || [];
+
+				// 2] Если это инициирующий запуск
+				// - При первом клике по FAQ в главном меню.
+				if(params.what2return == 1) {
+
+					// 2.1] Записать groups в m.s5.groups
+					(function(){
+
+						// Очистить m.s5.groups
+						self.m.s5.groups.removeAll();
+
+						// Записать groups в m.s5.groups
+						for(var i=0; i<groups.length; i++) {
+							self.m.s5.groups.push(ko.mapping.fromJS(groups[i]));
+						}
+
+					})();
+
+				}
+
+				// 3] Если это не инициирующий запуск
+				// - При переключении групп
+				if(params.what2return == 3) {
+
+
+
+				}
+
+				// 4] Записать articles в m.s5.articles
+				// - Но только, если там ещё нет статей для этой группы.
+				(function(){
+
+					// 4.1] Если статей для choosen_group ещё нет, и articles не пуст, создать набл.массив
+					if(!self.m.s5.articles()[group] && (articles && articles.length))
+						self.m.s5.articles()[group] = ko.observableArray([]);
+
+					// 4.2] Записать groups в m.s5.groups
+					for(var i=0; i<articles.length; i++) {
+
+						// 4.2.1] Заменить в articles[i].html $$uri$$ на актуальный URL к папке с данными FAQа
+						articles[i].html.ru = articles[i].html.ru.replace(/\$\$url\$\$/, layoutmodel.m.s0.full_host()+'/'+server.data.public_faq_folder);
+
+						// 4.2.2] Добавить статью article[i] в m.s5.articles
+						self.m.s5.articles()[group].push(ko.mapping.fromJS(articles[i]));
+
+					}
+
+				})();
+
+				// 5] Выбрать группу group среди m.s5.groups
+				self.m.s5.choosen_group((function(){
+					var choosen_group = "";
+					for(var i=0; i<self.m.s5.groups().length; i++) {
+						if(self.m.s5.groups()[i].name_folder() == group)
+							choosen_group = self.m.s5.groups()[i];
+					}
+					return choosen_group;
+				})());
+
+				// 6] Если what2return == 1, и в qs_params есть article, и self.m.s5.choosen_group не пуст
+				// - Раскрыть эту статью.
+				if(params.what2return == 1 && params.qs_params && params.qs_params['article'] && self.m.s5.choosen_group()) {
+					for(var i=0; i<self.m.s5.articles()[group]().length; i++) {
+						if(params.qs_params['article'] == self.m.s5.articles()[group]()[i].name_folder()) {
+							self.m.s5.articles()[group]()[i].is_expanded(true);
+							var expanded_article = self.m.s5.articles()[group]()[i].name_folder();
+						}
+					}
+				}
+
+				// 7] Записать название текущего FAQа
 				self.m.s5.current_faq(faq);
 
-				// n] Скрыть модальный щит со спиннером загрузки
-				self.m.s5.is_initial_shield_visible(false);
+				// 8] Добавить в историю новое состояние
+				// - Если what2return == 3
+				// - Если params.qs_params, и в нём есть ключи group/article (хотя бы один из)
+				if(what2return == 3) {
+					var subdoc = layoutmodel.m.s1.selected_subdoc();
+					History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (expanded_article ? 'article=' + expanded_article : "") + (expanded_article ? '&' : '') + (group ? 'group=' + group : ""));
+				}
+
+				// n] Скрыть все спиннеры
+				if(params.what2return == 1) self.m.s5.is_initial_shield_visible(false);
+				if(params.what2return == 3) params.context.is_spinner_visible(false);
 
 			},
 			ok_1:         function(data, params){
 
-				// n] Скрыть модальный щит со спиннером загрузки
-				self.m.s5.is_initial_shield_visible(false);
+				// n] Скрыть все спиннеры
+				if(params.what2return == 1) self.m.s5.is_initial_shield_visible(false);
+				if(params.what2return == 3) params.context.is_spinner_visible(false);
 
 			},
 			ok_2:         function(data, params){
 
-				// n] Скрыть модальный щит со спиннером загрузки
-				self.m.s5.is_initial_shield_visible(false);
+				// n] Скрыть все спиннеры
+				if(params.what2return == 1) self.m.s5.is_initial_shield_visible(false);
+				if(params.what2return == 3) params.context.is_spinner_visible(false);
 
 			}
 		});
+
+	};
+
+
+	//----------------------------------------------------------------------//
+	// s5.2. Свернуть/Развернуть статью, добавить новое состояние в history //
+	//----------------------------------------------------------------------//
+	f.s5.switch_article = function(data, event) {
+
+		// 1] Свернуть/Развернуть статью
+		data.is_expanded(!data.is_expanded());
+
+		// 2] Добавить новое состояние в history
+
+			// 2.1] Получить имя группы и статьи, а также выбранный поддокумент
+			var group = self.m.s5.choosen_group().name_folder();
+			var article = data.name_folder();
+			var subdoc = layoutmodel.m.s1.selected_subdoc();
+
+			// 2.2] Добавить в историю новое состояние
+			History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (article ? 'article=' + article : "") + (article ? '&' : '') + (group ? 'group=' + group : ""));
 
 	};
 

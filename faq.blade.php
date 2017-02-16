@@ -50,7 +50,7 @@
           <?php /*----------------------------------->
           <!-- Аватар и заголовок выбранной группы -->
           <!-------------------------------------*/ ?>
-          <div class="avatar_and_header" data-bind="if: m.s5.choosen_group()">
+          <div style="display: none" class="avatar_and_header" data-bind="if: m.s5.choosen_group(), visible: m.s5.choosen_group()">
 
             <?php /*------>
             <!-- Аватар -->
@@ -69,7 +69,7 @@
           <?php /*----------->
           <!-- Сами статьи -->
           <!-------------*/ ?>
-          <div data-bind="if: m.s5.choosen_group()">
+          <div style="display: none" data-bind="if: m.s5.choosen_group(), visible: m.s5.choosen_group()">
             <div data-bind="foreach: m.s5.articles()[m.s5.choosen_group().name_folder()]">
 
               <?php /*------>
@@ -80,7 +80,7 @@
                 <?php /*--------->
                 <!-- Заголовок -->
                 <!-----------*/ ?>
-                <div class="article-header" data-bind="click: function(data, event){ data.is_expanded(!is_expanded()); }">
+                <div class="article-header" data-bind="click: $root.f.s5.switch_article">
                   <i class="mdi mdi-chevron-right" data-bind="visible: !is_expanded()"></i>
                   <span data-bind="text: name.ru"></span>
                 </div>
@@ -95,6 +95,12 @@
             </div>
           </div>
 
+          <?php /*---------------------------------------------------->
+          <!-- Если запрошенной через query string группы нет в FAQ -->
+          <!------------------------------------------------------*/ ?>
+          <div class="wrong_group" style="display: none" data-bind="visible: !m.s5.choosen_group()">
+            <span>Запрошенная группа статей отсутствует в FAQ. Выберите одну из доступных групп справа, кликнув по ней.</span>
+          </div>
 
         </td>
 
@@ -106,8 +112,22 @@
           <?php /*------>
           <!-- Группа -->
           <!--------*/ ?>
-          <div class="group" data-bind="css: {choosen: $data == $root.m.s5.choosen_group()}">
+          <div class="group" data-bind="css: {choosen: $data == $root.m.s5.choosen_group()}, click: $root.f.s5.get_faq.bind($data, false, name_folder())">
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
             <span data-bind="text: name.ru()"></span>
+
+            <?php /*---------------->
+            <!-- Спиннер загрузки -->
+            <!------------------*/ ?>
+            <div class="loader">
+              <div style="display: none" class="group_articles_load_spinner loader-inner ball-clip-rotate" data-bind="visible: is_spinner_visible">
+                <div></div>
+              </div>
+            </div>
+
           </div>
 
         </td>

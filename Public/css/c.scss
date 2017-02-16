@@ -2162,6 +2162,7 @@
       vertical-align: top;
     }
     .content .faq .faq-container .faq-content .faq-table .faq-groups .group {
+      position: relative;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -2177,6 +2178,13 @@
     }
     .content .faq .faq-container .faq-content .faq-table .faq-groups .group.choosen {
       background: darken(#284351, 2%);
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group .group_articles_load_spinner {
+      position: absolute; top: 4px; right: 4px;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group .group_articles_load_spinner>div {
+      border-color: lighten(#284351, 5%);
+      height: 20px; width: 20px;
     }
 
     // Стили статей
@@ -2240,7 +2248,7 @@
       .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header i {
         position: absolute; top: 1px; left: -7px;
         font-size: 1.4em;
-        color: #aaa;
+        color: #f7b454;
       }
       .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header span {
         vertical-align: middle;
@@ -2272,6 +2280,11 @@
         max-width: 100%;
         margin-left: auto;
         margin-right: auto;
+      }
+
+      // Запрошенная группа отсутствует
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .wrong_group {
+
       }
 
 
