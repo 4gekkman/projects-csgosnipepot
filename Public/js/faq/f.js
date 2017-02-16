@@ -47,9 +47,22 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 		// 1] Если is_initial == true
 		if(is_initial && !group && is_initial == true) {
 
-			// 1.1] Если группы уже загружены, завершить
-			if(self.m.s5.groups().length)
+			// 1.1] Если группы уже загружены
+			if(self.m.s5.groups().length) {
+
+				// Добавить состояние в историю
+				var subdoc = layoutmodel.m.s1.selected_subdoc();
+				History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
+
+				// Свернуть все развернутые статьи
+				for(var i=0; i<self.m.s5.articles()[self.m.s5.choosen_group().name_folder()]().length; i++) {
+					self.m.s5.articles()[self.m.s5.choosen_group().name_folder()]()[i].is_expanded(false);
+				}
+
+				// Завершить
 				return;
+
+			}
 
 			// 1.2] Назначить значение mode == 1
 			var what2return = 1;
@@ -240,10 +253,18 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 				// 8] Добавить в историю новое состояние
 				// - Если what2return == 3
 				// - Если params.qs_params, и в нём есть ключи group/article (хотя бы один из)
-				if(what2return == 3) {
-					var subdoc = layoutmodel.m.s1.selected_subdoc();
-					History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (expanded_article ? 'article=' + expanded_article : "") + (expanded_article ? '&' : '') + (group ? 'group=' + group : ""));
-				}
+
+					// 8.1] Если what2return == 3
+					if(what2return == 3) {
+						var subdoc = layoutmodel.m.s1.selected_subdoc();
+						History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (expanded_article ? 'article=' + expanded_article : "") + (expanded_article ? '&' : '') + (group ? 'group=' + group : ""));
+					}
+
+					// 8.2] Если what2return == 1
+					if(what2return == 1) {
+						var subdoc = layoutmodel.m.s1.selected_subdoc();
+						History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + expanded_article : "") + (false ? '&' : '') + (group ? 'group=' + group : ""));
+					}
 
 				// n] Скрыть все спиннеры
 				if(params.what2return == 1) self.m.s5.is_initial_shield_visible(false);
