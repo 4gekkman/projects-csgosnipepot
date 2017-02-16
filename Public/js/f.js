@@ -408,7 +408,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			if(parameters.first) {
 
 				// Подменить текущее состояние, а не добавлять новое
-				History.replaceState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : ''));  // document.getElementsByTagName("title")[0].innerHTML
+				History.replaceState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + (layout_data.data.request.querystring ? '?' + layout_data.data.request.querystring : ""));  // document.getElementsByTagName("title")[0].innerHTML
 
 			}
 
@@ -416,7 +416,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			else {
 
 				// Добавить в историю новое состояние
-				History.pushState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : ''));
+				History.pushState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + (layout_data.data.request.querystring ? '?' + layout_data.data.request.querystring : ""));
 
 			}
 

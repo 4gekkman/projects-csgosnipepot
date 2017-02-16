@@ -104,14 +104,20 @@ View::composer('L10003::layout', function($view) {
       if($m9_sound_global_ison == 1) $m9_sound_global_ison = true;
     }
 
+  // 5. Получить query string, и спарсить в массив
+  $querystring = \Request::getQueryString();
+  parse_str($querystring, $querystring_arr);
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
     'request'               => [
-      "secure"  => \Request::secure() ? "https://" : "http://",
-      "host"    => \Request::getHost(),
-      "port"    => \Request::getPort(),
-      "baseuri" => $baseuri
+      "secure"      => \Request::secure() ? "https://" : "http://",
+      "host"        => \Request::getHost(),
+      "port"        => \Request::getPort(),
+      "baseuri"     => $baseuri,
+      "querystring" => $querystring,
+      "qs_array"    => $querystring_arr
     ],
     'parameters' =>         $parameters,
     'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
