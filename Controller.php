@@ -219,6 +219,7 @@ class Controller extends BaseController {
         "servertime_s"            => \Carbon\Carbon::now()->timestamp,
         "classicgame_statistics"  => $classicgame_statistics,
         "usdrub_rate"             => $rate,
+        "public_faq_folder"       => config('M12.public_faq_folder')
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

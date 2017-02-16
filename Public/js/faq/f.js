@@ -103,7 +103,25 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 
 				})();
 
-				// 3] Выбрать группу group среди m.s5.groups
+				// 3] Записать articles в m.s5.articles
+				// - Но только, если там ещё нет статей для этой группы.
+				(function(){
+
+					// 3.1] Если статей для choosen_group ещё нет, создать набл.массив
+					if(!self.m.s5.articles[group])
+						self.m.s5.articles[group] = ko.observableArray([]);
+
+					// 3.2] Записать groups в m.s5.groups
+					for(var i=0; i<articles.length; i++) {
+
+						// 3.2.1] Добавить статью article[i] в m.s5.articles
+						self.m.s5.articles[group].push(ko.mapping.fromJS(articles[i]));
+
+					}
+
+				})();
+
+				// 4] Выбрать группу group среди m.s5.groups
 				self.m.s5.choosen_group((function(){
 					var choosen_group = "";
 					for(var i=0; i<self.m.s5.groups().length; i++) {
@@ -113,19 +131,8 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 					return choosen_group;
 				})());
 
-				// 4] Записать articles в m.s5.articles
-				(function(){
-
-					// 4.1] Очистить m.s5.groups
-					self.m.s5.articles.removeAll();
-
-					// 4.2] Записать groups в m.s5.groups
-					for(var i=0; i<articles.length; i++) {
-						self.m.s5.articles.push(ko.mapping.fromJS(articles[i]));
-					}
-
-				})();
-
+				// 5] Записать название текущего FAQа
+				self.m.s5.current_faq(faq);
 
 				// n] Скрыть модальный щит со спиннером загрузки
 				self.m.s5.is_initial_shield_visible(false);

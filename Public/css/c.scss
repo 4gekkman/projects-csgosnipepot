@@ -2180,31 +2180,85 @@
     }
 
     // Стили статей
-    .content .faq .faq-container .faq-content .faq-table .faq-articles {
-      border-right: 2px solid darken(#284351, 2%);
-      padding: 15px 20px 20px;
-      vertical-align: top;
-    }
-    .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header {
-      height: 40px;
-      margin-bottom: 10px;
-      -webkit-font-smoothing: subpixel-antialiased;
-      -moz-osx-font-smoothing: auto;
-      position: relative;
-      font-size: 1.4em;
-      line-height: 40px;
-    }
-    .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header img {
-      position: absolute;
-      max-height: 40px;
-      max-width: 40px;
-      border-radius: 6px;
-    }
-    .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header .article-header {
-      padding-left: 55px;
-      color: #fff;
-    }
 
+      // Общие стили
+      .content .faq .faq-container .faq-content .faq-table .faq-articles {
+        border-right: 2px solid darken(#284351, 2%);
+        padding: 15px 20px 20px;
+        vertical-align: top;
+      }
+
+      // Заголовок статьи с аватаром и названием группы
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header {
+        height: 40px;
+        margin-bottom: 10px;
+        -webkit-font-smoothing: subpixel-antialiased;
+        -moz-osx-font-smoothing: auto;
+        position: relative;
+        font-size: 1.4em;
+        line-height: 40px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header img {
+        position: absolute;
+        max-height: 40px;
+        max-width: 40px;
+        border-radius: 6px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header .article-header {
+        padding-left: 55px;
+        color: #fff;
+      }
+
+      // Общие стили статьи
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article {
+        border-bottom: 2px solid darken(#284351, 2%);
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article:last-child {
+        border: 0;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article.expanded {
+        background: #253d4a;
+      }
+
+      // Стили заголовочной части статьи
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header {
+        position: relative;
+        cursor: pointer;
+        height: 50px;
+        line-height: 44px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header:hover span {
+        border-bottom: 1px solid #ddd;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header i {
+        position: absolute; top: 0; left: 0;
+        margin-left: -7px;
+        font-size: 1.4em;
+        color: #aaa;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header span {
+        vertical-align: middle;
+        margin-left: 21px;
+      }
+
+      // Стили контента статьи
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content {
+        font-size: .9em;
+        height: 0;
+        overflow: hidden;
+        padding: 0;
+        color: #bbb;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content.expanded {
+        height: auto;
+        padding: 0 0 5px 21px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content a {
+        color: #68adbc;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content a:hover {
+        color: lighten(#68adbc, 10%);
+      }
 
 
 

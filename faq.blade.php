@@ -50,12 +50,12 @@
           <?php /*----------------------------------->
           <!-- Аватар и заголовок выбранной группы -->
           <!-------------------------------------*/ ?>
-          <div class="avatar_and_header" data-bind="if: m.s5.choosen_group">
+          <div class="avatar_and_header" data-bind="if: m.s5.choosen_group()">
 
             <?php /*------>
             <!-- Аватар -->
             <!--------*/ ?>
-            <img src="http://placehold.it/40x40">
+            <img data-bind="attr: {src: layoutmodel.m.s0.full_host()+'/'+server.data.public_faq_folder+'/'+m.s5.choosen_group().uri_group_relative()+'/'+m.s5.choosen_group().avatar()}">
 
             <?php /*--------->
             <!-- Заголовок -->
@@ -64,6 +64,35 @@
               <span data-bind="text: m.s5.choosen_group().name.ru()"></span>
             </div>
 
+          </div>
+
+          <?php /*----------->
+          <!-- Сами статьи -->
+          <!-------------*/ ?>
+          <div data-bind="if: m.s5.choosen_group()">
+            <div data-bind="foreach: m.s5.articles[m.s5.choosen_group().name_folder()]">
+
+              <?php /*------>
+              <!-- Статья -->
+              <!--------*/ ?>
+              <div class="article" data-bind="css: {expanded: is_expanded}">
+
+                <?php /*--------->
+                <!-- Заголовок -->
+                <!-----------*/ ?>
+                <div class="article-header">
+                  <i class="mdi mdi-chevron-right" data-bind="visible: !is_expanded()"></i>
+                  <span data-bind="text: name.ru"></span>
+                </div>
+
+                <?php /*-------------->
+                <!-- Контент статьи -->
+                <!----------------*/ ?>
+                <div class="article-content" data-bind="html: html.ru, css: {expanded: is_expanded}"></div>
+
+              </div>
+
+            </div>
           </div>
 
 
