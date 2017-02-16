@@ -200,9 +200,18 @@ class C1_parse_faq extends Job { // TODO: добавить "implements ShouldQue
           throw new \Exception('В конфиге M12 не найден путь faq_root_folder к корневому каталогу относительно корня проекта.');
 
         // 2] Получить относ.путь к папке, куда сохранять публичные ресурсы FAQ
-        $public = config('M12.public_faq_folder');
-        if(empty($root))
-          throw new \Exception('В конфиге M12 не найден путь public_faq_folder к папке, куда сохранять публичные ресурсы FAQ.');
+        $public = call_user_func(function(){
+
+          // 2.1] Получить public_faq_folder
+          $public_faq_folder = config('M12.public_faq_folder');
+
+          // 2.2] Получить путь к public_path относительно base_path
+          $relative_public = preg_replace("#".base_path()."/#ui", "", public_path());
+
+          // 2.3] Вернуть результат
+          return $relative_public . '/' . $public_faq_folder;
+
+        });
 
       // 2. Проверить, существует ли в ФС каталог по указанному пути
       $is_root_cat = file_exists(base_path($root));
