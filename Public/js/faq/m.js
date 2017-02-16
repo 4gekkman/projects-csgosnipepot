@@ -54,7 +54,7 @@ var ModelFaq = { constructor: function(self, m) { m.s5 = this;
 	//-------------------------------------------//
 	// s5.3. Загруженные статьи для разных групп //
 	//-------------------------------------------//
-	self.m.s5.articles = {};
+	self.m.s5.articles = ko.observable({});
 
 	//------------------------------------------------------//
 	// s5.4. Виден ли модальный щит стартовой загрузки FAQа //
@@ -66,22 +66,23 @@ var ModelFaq = { constructor: function(self, m) { m.s5 = this;
 	//------------------------------//
 	self.m.s5.current_faq = ko.observable("");
 
-
-
 	//--------------------------------------//
 	// s5.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
 	self.m.s5.indexes = {};
 
-		// s1.n.1. Общие вычисления //
-		//--------------------------//
-		ko.computed(function(){
+		// s1.n.1. Проставить max-height для всех articles //
+		//-------------------------------------------------//
+		ko.computed(function(){ setTimeout(function(){
 
-			// 1] Запустить команду запроса данных для ТОПа, если URI == '/faq'
-			//if(layoutmodel.m.s1.selected_subdoc() && layoutmodel.m.s1.selected_subdoc().uri() == '/faq')
- 			//	self.f.s5.get_faq(true);
+			//// 1] Получить все articles
+			//var articles = $('.faq-content .faq-articles .article');
+//
+			//console.log(articles);
 
-		}); //.extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+
+		}, 1000)}); //.extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+
 
 
 

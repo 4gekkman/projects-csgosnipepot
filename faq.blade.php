@@ -70,7 +70,7 @@
           <!-- Сами статьи -->
           <!-------------*/ ?>
           <div data-bind="if: m.s5.choosen_group()">
-            <div data-bind="foreach: m.s5.articles[m.s5.choosen_group().name_folder()]">
+            <div data-bind="foreach: m.s5.articles()[m.s5.choosen_group().name_folder()]">
 
               <?php /*------>
               <!-- Статья -->
@@ -80,7 +80,7 @@
                 <?php /*--------->
                 <!-- Заголовок -->
                 <!-----------*/ ?>
-                <div class="article-header">
+                <div class="article-header" data-bind="click: function(data, event){ data.is_expanded(!is_expanded()); }">
                   <i class="mdi mdi-chevron-right" data-bind="visible: !is_expanded()"></i>
                   <span data-bind="text: name.ru"></span>
                 </div>

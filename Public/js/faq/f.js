@@ -11,7 +11,8 @@
  *
  * 	s5. Функционал ТОПа игроков
  *
- *    f.s5.get_faq      	| s5.1. Запросить данные FAQа с сервера
+ *    f.s5.get_faq      					| s5.1. Запросить данные FAQа с сервера
+ *
  *
  *
  */
@@ -108,14 +109,17 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 				(function(){
 
 					// 3.1] Если статей для choosen_group ещё нет, создать набл.массив
-					if(!self.m.s5.articles[group])
-						self.m.s5.articles[group] = ko.observableArray([]);
+					if(!self.m.s5.articles()[group])
+						self.m.s5.articles()[group] = ko.observableArray([]);
 
 					// 3.2] Записать groups в m.s5.groups
 					for(var i=0; i<articles.length; i++) {
 
-						// 3.2.1] Добавить статью article[i] в m.s5.articles
-						self.m.s5.articles[group].push(ko.mapping.fromJS(articles[i]));
+						// 3.2.1] Заменить в articles[i].html $$uri$$ на актуальный URL к папке с данными FAQа
+						articles[i].html.ru = articles[i].html.ru.replace(/\$\$url\$\$/, layoutmodel.m.s0.full_host()+'/'+server.data.public_faq_folder);
+
+						// 3.2.2] Добавить статью article[i] в m.s5.articles
+						self.m.s5.articles()[group].push(ko.mapping.fromJS(articles[i]));
 
 					}
 
@@ -153,6 +157,7 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 		});
 
 	};
+
 
 
 
