@@ -203,6 +203,9 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
                 // 2) Раскодировать description из json в массив
                 $group->description = json_decode($group->description, true);
 
+                // n) Добавить доп.свойства
+                $group->is_spinner_visible = false;
+
               });
 
               // 2.n] Добавить в кэш все группы, связанные с $faq
@@ -240,7 +243,7 @@ class C2_update_cache extends Job { // TODO: добавить "implements Should
                   // 4) Раскодировать author из json в массив
                   $article->author = json_decode($article->author, true);
 
-                  // n) Добавить доп.свойство is_expanded
+                  // n) Добавить доп.свойства
                   $article->is_expanded = false;
 
                 });

@@ -179,40 +179,48 @@ class C4_get_faq extends Job { // TODO: добавить "implements ShouldQueue
 
       // 3. Назначить значения по умолчанию
 
-        // 3.1. Если group отсутствует, назначить ""
-        if(!array_key_exists('group', $this->data))
-          $this->data['group'] = "";
+        // 3.1. Если group отсутствует
+        if(!array_key_exists('group', $this->data) || empty($this->data['group'])) {
 
-        // 3.2. Если group_mode не пуст
-        if(array_key_exists('group_mode', $this->data)) {
+          // 1] Если group_mode пуст, назначить 1
+          if(!array_key_exists('group_mode', $this->data))
+            $this->data['group_mode'] = 1;
 
-          // 1] Если group_mode == 1
+          // 2] Если group_mode == 1
           if($this->data['group_mode'] == 1) {
 
-            // 1.1] Получить кэш с данными по всем группам фака faq
+            // 2.1] Получить кэш с данными по всем группам фака faq
             $groups_data = json_decode(Cache::tags(['m12:faq'])->get("m12:".$this->data['faq']), true);
 
-            // 1.2] Если $groups_data не пуст, записать первую группу
+            // 2.2] Если $groups_data не пуст, записать первую группу
             if(!empty($groups_data) && count($groups_data) > 0)
               $this->data['group'] = $groups_data[0]['name_folder'];
 
+            // 2.3] А если пусть, то назначить group == ''
+            else
+              $this->data['group'] = "";
+
           }
 
-          // 2] Если group_mode == 2
+          // 3] Если group_mode == 2
           if($this->data['group_mode'] == 2) {
 
-            // 2.1] Получить из конфига имя стартовой группы
+            // 3.1] Получить из конфига имя стартовой группы
             $start_group_name4faq = config('M12.start_group_names.'.$this->data['faq']);
 
-            // 2.2] Получить кэш с данными по всем группам фака faq
+            // 3.2] Получить кэш с данными по всем группам фака faq
             $groups_data = json_decode(Cache::tags(['m12:faq'])->get("m12:".$this->data['faq']), true);
 
-            // 2.3] Получить массив name_folder из $groups_data
+            // 3.3] Получить массив name_folder из $groups_data
             $groups_data_name_folders = collect($groups_data)->pluck('name_folder')->toArray();
 
-            // 2.4] Если $start_group_name4faq не пуст, и есть в $groups_data_name_folders, записать его в group
+            // 3.4] Если $start_group_name4faq не пуст, и есть в $groups_data_name_folders, записать его в group
             if(!empty($start_group_name4faq) && in_array($start_group_name4faq, $groups_data_name_folders))
               $this->data['group'] = $start_group_name4faq;
+
+            // 3.5] А если пусть, то назначить group == ''
+            else
+              $this->data['group'] = "";
 
           }
 
