@@ -360,7 +360,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 					// Запросить TOP игроков с сервера, если он ещё не получен
 					setTimeout(function(){
 						model.f.s4.get_top();
-					}, 10);
+					}, 1000);
 
 				}
 
@@ -370,7 +370,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 					// Запросить TOP игроков с сервера, если он ещё не получен
 					setTimeout(function(){
 						model.f.s5.get_faq(true);
-					}, 10);
+					}, 1000);
 
 				}
 
