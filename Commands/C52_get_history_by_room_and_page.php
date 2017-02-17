@@ -158,12 +158,20 @@ class C52_get_history_by_room_and_page extends Job { // TODO: добавить "
         throw new \Exception($validator['data']);
       }
 
-      // 2. Получить кэш с историей комнаты id_room
+      // 2. Обновить весь кэш истории, если это требуется
+      $result = runcommand('\M9\Commands\C51_update_history_cache', [
+        "all"   => true,
+        "force" => false
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 3. Получить кэш с историей комнаты id_room
       $history_all = json_decode(Cache::get('m9:history:'.$this->data['id_room']), true);
       if(empty($history_all))
         $history_all = [];
 
-      // 3. Отобрать из $history_all данные для страницы $history_all
+      // 4. Отобрать из $history_all данные для страницы $history_all
       $history_page = collect($history_all)
           ->slice(10*($this->data['page_num']-1))
           ->take(10)
