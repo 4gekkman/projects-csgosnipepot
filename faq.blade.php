@@ -98,7 +98,7 @@
           <?php /*---------------------------------------------------->
           <!-- Если запрошенной через query string группы нет в FAQ -->
           <!------------------------------------------------------*/ ?>
-          <div class="wrong_group" style="display: none" data-bind="visible: !m.s5.choosen_group()">
+          <div class="wrong_group" style="display: none" data-bind="visible: !m.s5.choosen_group() && m.s5.groups().length">
             <span>Запрошенная группа статей отсутствует в FAQ. Выберите одну из доступных групп справа, кликнув по ней.</span>
           </div>
 

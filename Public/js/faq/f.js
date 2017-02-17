@@ -13,6 +13,7 @@
  *
  *    f.s5.get_faq      					| s5.1. Запросить данные FAQа с сервера
  *    f.s5.switch_article					| s5.2. Свернуть/Развернуть статью, добавить новое состояние в history
+ *    f.s5.close_all_articles			| s5.3. Свернуть все статьи
  *
  *
  */
@@ -52,12 +53,10 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 
 				// Добавить состояние в историю
 				var subdoc = layoutmodel.m.s1.selected_subdoc();
-				History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
+				History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
 
 				// Свернуть все развернутые статьи
-				for(var i=0; i<self.m.s5.articles()[self.m.s5.choosen_group().name_folder()]().length; i++) {
-					self.m.s5.articles()[self.m.s5.choosen_group().name_folder()]()[i].is_expanded(false);
-				}
+				self.f.s5.close_all_articles();
 
 				// Завершить
 				return;
@@ -87,7 +86,10 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 
 				// 2.1.2] Добавить в историю новое состояние
 				var subdoc = layoutmodel.m.s1.selected_subdoc();
-				History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
+				History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
+
+				// 2.1.3] Свернуть все статьи
+				self.f.s5.close_all_articles();
 
 				// 2.1.n] Завершить
 				return;
@@ -201,7 +203,8 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 				// - При переключении групп
 				if(params.what2return == 3) {
 
-
+					// 3.1] Свернуть все статьи
+					self.f.s5.close_all_articles();
 
 				}
 
@@ -257,13 +260,13 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 					// 8.1] Если what2return == 3
 					if(what2return == 3) {
 						var subdoc = layoutmodel.m.s1.selected_subdoc();
-						History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (expanded_article ? 'article=' + expanded_article : "") + (expanded_article ? '&' : '') + (group ? 'group=' + group : ""));
+						History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (expanded_article ? 'article=' + expanded_article : "") + (expanded_article ? '&' : '') + (group ? 'group=' + group : ""));
 					}
 
 					// 8.2] Если what2return == 1
 					if(what2return == 1) {
 						var subdoc = layoutmodel.m.s1.selected_subdoc();
-						History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + expanded_article : "") + (false ? '&' : '') + (group ? 'group=' + group : ""));
+						History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + expanded_article : "") + (false ? '&' : '') + (group ? 'group=' + group : ""));
 					}
 
 				// n] Скрыть все спиннеры
@@ -306,9 +309,22 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 			var subdoc = layoutmodel.m.s1.selected_subdoc();
 
 			// 2.2] Добавить в историю новое состояние
-			History.pushState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (article ? 'article=' + article : "") + (article ? '&' : '') + (group ? 'group=' + group : ""));
+			History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (article ? 'article=' + article : "") + (article ? '&' : '') + (group ? 'group=' + group : ""));
 
 	};
+
+
+	//---------------------------//
+	// s5.3. Свернуть все статьи //
+	//---------------------------//
+	f.s5.close_all_articles = function() {
+
+		for(var i=0; i<self.m.s5.articles()[self.m.s5.choosen_group().name_folder()]().length; i++) {
+			self.m.s5.articles()[self.m.s5.choosen_group().name_folder()]()[i].is_expanded(false);
+		}
+
+	};
+
 
 
 
