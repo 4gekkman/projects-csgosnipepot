@@ -357,42 +357,78 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 				// 4.1] Если URI == '/top'
 				if(uri == '/top') {
 
-					// Подготовить рекурсивную функцию
-					var recur = function recur(){
-						if(!model) {
-							setTimeout(function(){
-								recur();
-							}, 10);
-						}
-						else
-							model.f.s4.get_top();
-					};
+					// 4.1.1] Запросить TOP игроков с сервера, если он ещё не получен
+					(function(){
 
-					// Запросить TOP игроков с сервера, если он ещё не получен
-					setTimeout(function(){
-						recur();
-					}, 10);
+						// Подготовить рекурсивную функцию
+						var recur = function recur(){
+							if(typeof model == 'undefined') {
+								setTimeout(function(){
+									recur();
+								}, 10);
+							}
+							else
+								model.f.s4.get_top();
+						};
+
+						// Запросить TOP игроков с сервера, если он ещё не получен
+						setImmediate(function(){
+							recur();
+						});
+
+					})();
 
 				}
 
 				// 4.2] Если URI == '/faq'
 				if(uri == '/faq') {
 
-					// Подготовить рекурсивную функцию
-					var recur = function recur(){
-						if(!model) {
-							setTimeout(function(){
-								recur();
-							}, 10);
-						}
-						else
-							model.f.s5.get_faq(true);
-					};
+					// 4.2.1] Запросить FAQ с сервера, если он ещё не получен
+					(function(){
 
-					// Запросить TOP игроков с сервера, если он ещё не получен
-					setTimeout(function(){
-						recur();
-					}, 10);
+						// Подготовить рекурсивную функцию
+						var recur = function recur(){
+							if(typeof model == 'undefined') {
+								setTimeout(function(){
+									recur();
+								}, 10);
+							}
+							else
+								model.f.s5.get_faq(true);
+						};
+
+						// Запросить TOP игроков с сервера, если он ещё не получен
+						setImmediate(function(){
+							recur();
+						});
+
+					})();
+
+				}
+
+				// 4.3] Если URI == '/'
+				if(uri == '/') {
+
+					// 4.3.1] Переключить вкладку внутри classic game на игру
+					(function(){
+
+						// Подготовить рекурсивную функцию
+						var recur = function recur(){
+							if(typeof model == 'undefined') {
+								setTimeout(function(){
+									recur();
+								}, 10);
+							}
+							else
+								model.f.s1.choose_tab('game');
+						};
+
+						// Переключить вкладку внутри classic game на игру
+						setImmediate(function(){
+							recur();
+						});
+
+					})();
 
 				}
 
@@ -415,8 +451,21 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			// 7] Если это не первый вход в документ
 			else {
 
-				// Добавить в историю новое состояние
-				History.pushState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + (layout_data.data.request.querystring ? '?' + layout_data.data.request.querystring : ""));
+				// 7.1] Определить значение для query string
+				var querystring = (function(){
+
+					// Включать URI в строку адреса, если uri == "/faq"
+					if(subdoc.uri() == "/faq")
+						return (layout_data.data.request.querystring ? '?' + layout_data.data.request.querystring : "");
+
+					// Иначе, не включать
+					else
+						return "";
+
+				})();
+
+				// 7.n] Добавить в историю новое состояние
+				History.pushState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + querystring);
 
 			}
 
