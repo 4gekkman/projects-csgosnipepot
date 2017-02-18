@@ -111,11 +111,22 @@ class T33_clone extends Command
   public function __construct()  // здесь можно сделать DI, например: __construct(DripEmailer $drip)
   {
 
-      // Вызвать конструктор класса Command
-      parent::__construct();
+    // Вызвать конструктор класса Command
+    parent::__construct();
 
-      // Записать значение аргумента в св-во $drip
-      //$this->drip = $drip;
+    // Записать значение аргумента в св-во $drip
+    //$this->drip = $drip;
+
+    // Настроить Storage для текущей сессии
+    config(['filesystems.default' => 'local']);
+    config(['filesystems.disks.local.root' => base_path('')]);
+    $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+    // Настроить Storage2 для текущей сессии
+    config(['filesystems.default' => 'local']);
+    config(['filesystems.disks.local.root' => base_path('')]);
+    $this->storage2 = new \Illuminate\Filesystem\Filesystem();
+
 
   }
 
@@ -158,6 +169,7 @@ class T33_clone extends Command
      *  1. Обновить приложение перед клонированием пакета с github
      *  2. Запросить у пользователя ID пакета, который он хочет клонировать с github
      *  3. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
+     *  4. С помощью git провести клонирование $packid в текущий проект
      *
      *  n. Обновить приложение после клонирования пакета с github
      *
@@ -200,16 +212,93 @@ class T33_clone extends Command
         ];
 
         // 2] Выяснить, верный ли формат имеет $packid
+        call_user_func(function() USE (&$checklist, $packid) {
 
+          // 2.1] Провести валидацию
+          $validator = r4_validate(['packid' => $packid], [
+            "packid"              => ["required", "regex:/^([MWR]{1}[1-9]{1}[0-9]*|[DL]{1}[0-9]{5,100})$/ui"],
+          ]); if($validator['status'] == -1)
+            return;
 
-        
+          // 2.2] Если всё в порядке
+          $checklist['format']['verdict'] = true;
+
+        });
+
         // 3] Выяснить, есть ли уже пакет в проекте
+        call_user_func(function() USE (&$checklist, $packid) {
 
+          // 3.1] Получить список имён всех пакетов в vendor/4gekkman
+          $all_package_names = collect($this->storage->directories('vendor/4gekkman'))->map(function($item){
+            return preg_replace("#vendor/4gekkman/#ui", "", $item);
+          })->toArray();
 
+          // 3.2] Если $packid есть в $all_package_names
+          if(in_array($packid, $all_package_names))
+            return;
 
-        // 4] Выяснить, есть ли уже пакет на github
+          // 3.3] Если нет
+          $checklist['presence']['verdict'] = true;
 
+        });
 
+        // 4] Выяснить, есть ли пакет, который требуется склонировать, на github
+        call_user_func(function() USE (&$checklist, $packid) {
+
+          // 4.1] Получить список всех (public & private) пакетов пользователя 4gekkman с github
+          $all_github_user_packs = call_user_func(function(){
+
+            // 1) Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+            $check = runcommand('\M1\Commands\C48_github_check');
+            if($check['status'] != 0)
+              return [
+                "success" => false,
+                "result"  => []
+              ];
+
+            // 2) Получить токен от github
+            $token = $check['data']['token'];
+
+            // 3) Создать экземпляр guzzle
+            $guzzle = new \GuzzleHttp\Client();
+
+            // 4) Выполнить запрос
+            $request_result = $guzzle->request('GET', 'https://api.github.com/user/repos', [
+              'headers' => [
+                'Authorization' => 'token '. $token
+              ],
+              'query' => [
+                'affiliation' => 'owner',
+                'direction'   => 'asc',
+                'per_page'    => 10000
+              ]
+            ]);
+            $status = $request_result->getStatusCode();
+            $body = $request_result->getBody();
+            if($status != 200)
+              return [
+                "success" => false,
+                "result"  => []
+              ];
+
+            // n) Вернуть результаты
+            return [
+              "success" => true,
+              "result"  => collect(json_decode($body, true))->pluck('name')->toArray()
+            ];
+
+          });
+          if($all_github_user_packs['success'] == false)
+            return;
+
+          // 4.2] Если такого пакета нет
+          if(!in_array($packid, $all_github_user_packs['result']))
+            return;
+
+          // 4.3] Если такой пакет есть
+          $checklist['github']['verdict'] = true;
+
+        });
 
         // 5] Вынести финальный вердикт
         $final_verdict = call_user_func(function() USE ($checklist) {
@@ -217,8 +306,10 @@ class T33_clone extends Command
           // 5.1] Попробовать найти в $checklist пункт с отрицательным вердиктом
           $notvalid = "";
           foreach($checklist as $item) {
-            if($item['verdict'] == false)
+            if($item['verdict'] == false) {
               $notvalid = $item;
+              break;
+            }
           }
 
           // 5.2] Если $notvalid не пуст, вернуть отрицательный вердикт
@@ -248,8 +339,21 @@ class T33_clone extends Command
         return;
       }
 
+    // 4. С помощью git провести клонирование $packid в текущий проект
 
 
+
+
+
+
+
+
+
+
+
+
+
+      $this->info('Успех!');
 
 
 
