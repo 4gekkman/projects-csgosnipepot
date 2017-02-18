@@ -168,8 +168,9 @@ class T33_clone extends Command
      *
      *  1. Обновить приложение перед клонированием пакета с github
      *  2. Запросить у пользователя ID пакета, который он хочет клонировать с github
-     *  3. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
-     *  4. С помощью git провести клонирование $packid в текущий проект
+     *  3. Получить токен от github
+     *  4. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
+     *  5. С помощью git провести клонирование $packid в текущий проект
      *
      *  n. Обновить приложение после клонирования пакета с github
      *
@@ -182,7 +183,28 @@ class T33_clone extends Command
     // 2. Запросить у пользователя ID пакета, который он хочет клонировать с github
     $packid = $this->ask("Type ID of the package you want to clone. For example: M12");
 
-    // 3. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
+    // 3. Получить токен от github
+
+      // 3.1. Получить
+      $token = call_user_func(function(){
+
+        // 1] Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+        $check = runcommand('\M1\Commands\C48_github_check');
+        if($check['status'] != 0)
+          return "";
+
+        // 2] Вернуть токен от github
+        return $check['data']['token'];
+
+      });
+
+      // 3.2. Если токен получить не удалось, сообщить и завершить
+      if(empty($token)) {
+        $this->error("The password/token for github from config not working.");
+        return;
+      }
+
+    // 4. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
     // - Функция возвращает структуру следующего содержания:
     //
     //   [
@@ -191,9 +213,9 @@ class T33_clone extends Command
     //   ]
     //
 
-      // 3.1. Выяснить, может ли $packid быть клонирова в этот проект
+      // 4.1. Выяснить, может ли $packid быть клонирова в этот проект
       // - Если нет, то почему?
-      $whether_could_be_cloned = call_user_func(function() USE ($packid) {
+      $whether_could_be_cloned = call_user_func(function() USE ($packid, $token) {
 
         // 1] Подготовить чек-лист
         $checklist = [
@@ -233,6 +255,8 @@ class T33_clone extends Command
             return preg_replace("#vendor/4gekkman/#ui", "", $item);
           })->toArray();
 
+          $checklist['presence']['verdict'] = true; // !!!!!!!!!!!!!!!!!
+
           // 3.2] Если $packid есть в $all_package_names
           if(in_array($packid, $all_package_names))
             return;
@@ -243,26 +267,15 @@ class T33_clone extends Command
         });
 
         // 4] Выяснить, есть ли пакет, который требуется склонировать, на github
-        call_user_func(function() USE (&$checklist, $packid) {
+        call_user_func(function() USE (&$checklist, $packid, $token) {
 
           // 4.1] Получить список всех (public & private) пакетов пользователя 4gekkman с github
-          $all_github_user_packs = call_user_func(function(){
+          $all_github_user_packs = call_user_func(function() USE ($token) {
 
-            // 1) Проверить работоспособность пароля и токена для github, указанных в конфиге M1
-            $check = runcommand('\M1\Commands\C48_github_check');
-            if($check['status'] != 0)
-              return [
-                "success" => false,
-                "result"  => []
-              ];
-
-            // 2) Получить токен от github
-            $token = $check['data']['token'];
-
-            // 3) Создать экземпляр guzzle
+            // 1) Создать экземпляр guzzle
             $guzzle = new \GuzzleHttp\Client();
 
-            // 4) Выполнить запрос
+            // 2) Выполнить запрос
             $request_result = $guzzle->request('GET', 'https://api.github.com/user/repos', [
               'headers' => [
                 'Authorization' => 'token '. $token
@@ -333,18 +346,22 @@ class T33_clone extends Command
 
       });
 
-      // 3.2. Если нет, то сообщить, почему, и завершить
+      // 4.2. Если нет, то сообщить, почему, и завершить
       if($whether_could_be_cloned['verdict'] == false) {
         $this->error("The package ".$packid." could not be cloned: ".$whether_could_be_cloned['error']);
         return;
       }
 
-    // 4. С помощью git провести клонирование $packid в текущий проект
+    // 5. Клонировать репозиторий $packid в vendor/4gekkman с помощью $token
+    // $clone_result = shell_exec('cd vendor/4gekkman/ivan; git clone https://'.$token.'@github.com/4gekkman/'.$packid.'.git');
+    $clone_result = shell_exec('cd vendor/4gekkman/ivan; git clone git@github.com:4gekkman/'.$packid);
 
 
+    Log::info($clone_result);
 
 
-
+    // $token
+    // git clone https://<token>@github.com/owner/repo.git
 
 
 
