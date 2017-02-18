@@ -107,7 +107,7 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          //'$schedule->command("m1:run_light")->cron("*/10 * * * * *");'
+          '//$schedule->command("m1:run_light")->cron("*/10*****");'
         ];
 
       //----------------------------------------------------//
@@ -145,7 +145,8 @@
           '\M1\Console\T29_run_light',
           '\M1\Console\T30_github_check',
           '\M1\Console\T31_github_new',
-          '\M1\Console\T32_github_del'
+          '\M1\Console\T32_github_del',
+          '\M1\Console\T33_clone'
         ];
 
         // Регистрация команд в методе register
