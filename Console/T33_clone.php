@@ -172,7 +172,8 @@ class T33_clone extends Command
      *  4. Попросить пользователя выбрать, какой пакет он хочет клонировать
      *  5. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
      *  6. Клонировать репозиторий $packid в vendor/4gekkman с помощью $token
-     *
+     *  7. Добавить пр.имён пакета $packid в composer.json проекта -> autoload -> psr-4
+     *  8. Добавить запись о пакете $packid в GitAutoPushScripts, с учётом имени папки проекта
      *
      *  n. Обновить приложение после клонирования пакета с github
      *
@@ -204,6 +205,7 @@ class T33_clone extends Command
       }
 
     // 3. Получить список всех (public & private) пакетов пользователя 4gekkman с github
+    // - Но только MWR-пакеты и DL-пакеты 10k+ серии.
 
       // 3.1. Получить массив имён всех пакетов пользователя 4gekkman с github
       $all_github_user_packs = call_user_func(function() USE ($token) {
@@ -230,11 +232,20 @@ class T33_clone extends Command
             "result"  => []
           ];
 
+        // 3] Получить результирующий массив
+        $result = collect(json_decode($body, true))->pluck('name')->toArray();
+
+        // 4] Провести фильтрацию результирующего массива
+        $result = collect($result)->filter(function($item){
+          if(!preg_match("/^([MWR]{1}[1-9]{1}[0-9]*|[DL]{1}[0-9]{5,100})$/ui", $item))
+            return false;
+          return true;
+        })->toArray();
+
         // n) Вернуть результаты
         return [
           "success"       => true,
-          "result"        => collect(json_decode($body, true))->pluck('name')->toArray(),
-          "result4choice" => collect(json_decode($body, true))->pluck('name', 'description')->toArray(),
+          "result"        => $result
         ];
 
       });
@@ -269,7 +280,7 @@ class T33_clone extends Command
           ],
           "presence" => [
             "verdict" => false,
-            "error"   => "This package is already in the project."
+            "error"   => "This package (".$packid.") is already in the project among: "
           ],
           "github" => [
             "verdict" => false,
@@ -295,15 +306,18 @@ class T33_clone extends Command
         call_user_func(function() USE (&$checklist, $packid) {
 
           // 3.1] Получить список имён всех пакетов в vendor/4gekkman
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path('')]);
+          $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
           $all_package_names = collect($this->storage->directories('vendor/4gekkman'))->map(function($item){
             return preg_replace("#vendor/4gekkman/#ui", "", $item);
           })->toArray();
 
-          $checklist['presence']['verdict'] = true; // !!!!!!!!!!!!!!!!!
-
           // 3.2] Если $packid есть в $all_package_names
-          if(in_array($packid, $all_package_names))
+          if(in_array($packid, $all_package_names)) {
+            $checklist['presence']['error'] = $checklist['presence']['error'] . implode(',', $all_package_names);
             return;
+          }
 
           // 3.3] Если нет
           $checklist['presence']['verdict'] = true;
@@ -371,7 +385,7 @@ class T33_clone extends Command
                   'eval `ssh-agent -s`;'.
                   'ssh-add id_rsa4clone;' .
                   'ssh-keyscan github.com >> /root/.ssh/known_hosts;' .
-                  'cd '.base_path('vendor/4gekkman/ivan').';'.
+                  'cd '.base_path('vendor/4gekkman').';'.
                   'git clone git@github.com:4gekkman/'.$packid;
 
       // 6.2. Выполнить клонирование
@@ -387,12 +401,60 @@ class T33_clone extends Command
       else
         $this->info('Repository '.$packid.' was successfully cloned.');
 
+    // 7. Добавить пр.имён пакета $packid в composer.json проекта -> autoload -> psr-4
+
+      // 7.1. Получить содержимое composer.json проекта
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path('')]);
+      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+      $composer = $this->storage->get('composer.json');
+
+      // 7.2. Получить содержимое объекта "psr-4" из $composer в виде массива
+      preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
+      $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
+      $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
+      $namespaces = explode(',', $namespaces[0]);
+      $namespaces = array_values(array_filter($namespaces, function($item){
+        return !empty($item);
+      }));
+
+      // 7.3. Добавить в $namespaces пространство имён нового пакета
+      array_push($namespaces, '"' . $packid . '\\\\":"vendor/4gekkman/' . $packid . '"');
+
+      // 7.4. Сформировать строку в формате значения "psr-4" из composer.json
+
+        // 1] Подготовить строку для результата
+        $namespaces_result = "{" . PHP_EOL;
+
+        // 2] Вставить в $namespaces_result все значения из $commands
+        for($i=0; $i<count($namespaces); $i++) {
+          if($i != count($namespaces)-1 )
+            $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . "," . PHP_EOL;
+          else
+            $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . PHP_EOL;
+        }
+
+        // 3] Завершить квадратной скобкой c запятой
+        $namespaces_result = $namespaces_result . "        }";
+
+      // 7.5. Заменить все \\\\ в $namespaces_result на \\\\\\
+      $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
+
+      // 7.6. Вставить $namespaces_result в $composer
+      $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
+
+      // 7.7. Заменить $composer
+      config(['filesystems.default' => 'local']);
+      config(['filesystems.disks.local.root' => base_path('')]);
+      $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+      $this->storage->put('composer.json', $composer);
+
+    // 8. Добавить запись о пакете $packid в GitAutoPushScripts, с учётом имени папки проекта
 
 
-    // Что ещё здесь надо сделать (не важно, какой тип пакета)
-    // 1. Добавить пр.имён M-пакета в composer.json проекта -> autoload -> psr-4
-    // 2. Добавить запись об указанном MDLWR-пакете в GitAutoPushScripts
-    //    - С учётом названия проекта.
+
+
+
 
 
 
