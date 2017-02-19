@@ -167,10 +167,12 @@ class T33_clone extends Command
      * Оглавление
      *
      *  1. Обновить приложение перед клонированием пакета с github
-     *  2. Запросить у пользователя ID пакета, который он хочет клонировать с github
-     *  3. Получить токен от github
-     *  4. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
-     *  5. С помощью git провести клонирование $packid в текущий проект
+     *  2. Получить токен от github
+     *  3. Получить список всех (public & private) пакетов пользователя 4gekkman с github
+     *  4. Попросить пользователя выбрать, какой пакет он хочет клонировать
+     *  5. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
+     *  6. Клонировать репозиторий $packid в vendor/4gekkman с помощью $token
+     *
      *
      *  n. Обновить приложение после клонирования пакета с github
      *
@@ -180,12 +182,9 @@ class T33_clone extends Command
     // 1. Обновить приложение перед клонированием пакета с github
     //$this->call('m1:parseapp');
 
-    // 2. Запросить у пользователя ID пакета, который он хочет клонировать с github
-    $packid = $this->ask("Type ID of the package you want to clone. For example: M12");
+    // 2. Получить токен от github
 
-    // 3. Получить токен от github
-
-      // 3.1. Получить
+      // 2.1. Получить
       $token = call_user_func(function(){
 
         // 1] Проверить работоспособность пароля и токена для github, указанных в конфиге M1
@@ -198,13 +197,58 @@ class T33_clone extends Command
 
       });
 
-      // 3.2. Если токен получить не удалось, сообщить и завершить
+      // 2.2. Если токен получить не удалось, сообщить и завершить
       if(empty($token)) {
         $this->error("The password/token for github from config not working.");
         return;
       }
 
-    // 4. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
+    // 3. Получить список всех (public & private) пакетов пользователя 4gekkman с github
+
+      // 3.1. Получить массив имён всех пакетов пользователя 4gekkman с github
+      $all_github_user_packs = call_user_func(function() USE ($token) {
+
+        // 1] Создать экземпляр guzzle
+        $guzzle = new \GuzzleHttp\Client();
+
+        // 2] Выполнить запрос
+        $request_result = $guzzle->request('GET', 'https://api.github.com/user/repos', [
+          'headers' => [
+            'Authorization' => 'token '. $token
+          ],
+          'query' => [
+            'affiliation' => 'owner',
+            'direction'   => 'asc',
+            'per_page'    => 10000
+          ]
+        ]);
+        $status = $request_result->getStatusCode();
+        $body = $request_result->getBody();
+        if($status != 200)
+          return [
+            "success" => false,
+            "result"  => []
+          ];
+
+        // n) Вернуть результаты
+        return [
+          "success"       => true,
+          "result"        => collect(json_decode($body, true))->pluck('name')->toArray(),
+          "result4choice" => collect(json_decode($body, true))->pluck('name', 'description')->toArray(),
+        ];
+
+      });
+
+      // 3.2. Если получить массив имён пакетов с github не удалось
+      if($all_github_user_packs['success'] == false) {
+        $this->error("Couldn't get packages list from github.");
+        return;
+      }
+
+    // 4. Попросить пользователя выбрать, какой пакет он хочет клонировать
+    $packid = $this->choice('Which M-package do you want to clone?', array_combine($all_github_user_packs['result'], $all_github_user_packs['result']));
+
+    // 5. Провести всестороннюю проверку возможности клонировать пакет $packid в этот проект
     // - Функция возвращает структуру следующего содержания:
     //
     //   [
@@ -213,9 +257,9 @@ class T33_clone extends Command
     //   ]
     //
 
-      // 4.1. Выяснить, может ли $packid быть клонирова в этот проект
+      // 5.1. Выяснить, может ли $packid быть клонирова в этот проект
       // - Если нет, то почему?
-      $whether_could_be_cloned = call_user_func(function() USE ($packid, $token) {
+      $whether_could_be_cloned = call_user_func(function() USE ($packid, $token, $all_github_user_packs) {
 
         // 1] Подготовить чек-лист
         $checklist = [
@@ -267,48 +311,13 @@ class T33_clone extends Command
         });
 
         // 4] Выяснить, есть ли пакет, который требуется склонировать, на github
-        call_user_func(function() USE (&$checklist, $packid, $token) {
+        call_user_func(function() USE (&$checklist, $packid, $token, $all_github_user_packs) {
 
-          // 4.1] Получить список всех (public & private) пакетов пользователя 4gekkman с github
-          $all_github_user_packs = call_user_func(function() USE ($token) {
-
-            // 1) Создать экземпляр guzzle
-            $guzzle = new \GuzzleHttp\Client();
-
-            // 2) Выполнить запрос
-            $request_result = $guzzle->request('GET', 'https://api.github.com/user/repos', [
-              'headers' => [
-                'Authorization' => 'token '. $token
-              ],
-              'query' => [
-                'affiliation' => 'owner',
-                'direction'   => 'asc',
-                'per_page'    => 10000
-              ]
-            ]);
-            $status = $request_result->getStatusCode();
-            $body = $request_result->getBody();
-            if($status != 200)
-              return [
-                "success" => false,
-                "result"  => []
-              ];
-
-            // n) Вернуть результаты
-            return [
-              "success" => true,
-              "result"  => collect(json_decode($body, true))->pluck('name')->toArray()
-            ];
-
-          });
-          if($all_github_user_packs['success'] == false)
-            return;
-
-          // 4.2] Если такого пакета нет
+          // 4.1] Если такого пакета нет
           if(!in_array($packid, $all_github_user_packs['result']))
             return;
 
-          // 4.3] Если такой пакет есть
+          // 4.2] Если такой пакет есть
           $checklist['github']['verdict'] = true;
 
         });
@@ -346,27 +355,44 @@ class T33_clone extends Command
 
       });
 
-      // 4.2. Если нет, то сообщить, почему, и завершить
+      // 5.2. Если нет, то сообщить, почему, и завершить
       if($whether_could_be_cloned['verdict'] == false) {
         $this->error("The package ".$packid." could not be cloned: ".$whether_could_be_cloned['error']);
         return;
       }
 
-    // 5. Клонировать репозиторий $packid в vendor/4gekkman с помощью $token
-    // $clone_result = shell_exec('cd vendor/4gekkman/ivan; git clone https://'.$token.'@github.com/4gekkman/'.$packid.'.git');
-    $clone_result = shell_exec('cd vendor/4gekkman/ivan; git clone git@github.com:4gekkman/'.$packid);
+    // 6. Клонировать репозиторий $packid в vendor/4gekkman с помощью $token
+
+      // 6.1. Подготовить команду
+      $command =  'cd /root/.ssh/keys_from_server;' .
+                  'cp id_rsa4clone ../id_rsa4clone;' .
+                  'cd ..;' .
+                  'chmod 400 id_rsa4clone;' .
+                  'eval `ssh-agent -s`;'.
+                  'ssh-add id_rsa4clone;' .
+                  'ssh-keyscan github.com >> /root/.ssh/known_hosts;' .
+                  'cd '.base_path('vendor/4gekkman/ivan').';'.
+                  'git clone git@github.com:4gekkman/'.$packid;
+
+      // 6.2. Выполнить клонирование
+      $clone_result = shell_exec($command);
+
+      // 6.3. Если $clone_result пуст, сообщить и завершить
+      if(empty($clone_result)) {
+        $this->error("Can't clone repo ".$packid." from github for some reason.");
+        return;
+      }
+
+      // 6.4. Иначе, сообщить, что репозиторий успешно склонирован
+      else
+        $this->info('Repository '.$packid.' was successfully cloned.');
 
 
-    Log::info($clone_result);
 
-
-    // $token
-    // git clone https://<token>@github.com/owner/repo.git
-
-
-
-
-
+    // Что ещё здесь надо сделать (не важно, какой тип пакета)
+    // 1. Добавить пр.имён M-пакета в composer.json проекта -> autoload -> psr-4
+    // 2. Добавить запись об указанном MDLWR-пакете в GitAutoPushScripts
+    //    - С учётом названия проекта.
 
 
 
