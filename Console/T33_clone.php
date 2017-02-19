@@ -452,6 +452,10 @@ class T33_clone extends Command
     // 8. Добавить запись о пакете $packid в GitAutoPushScripts, с учётом имени папки проекта
 
 
+      //$result = runcommand('\M1\Commands\C50_github_new_autopush', ["id_inner" => $this->data['id_inner']]);
+      //if($result['status'] != 0)
+      //  throw new \Exception($result['data']);
+
 
 
 
