@@ -158,6 +158,7 @@ class C27_del_w extends Job { // TODO: добавить "implements ShouldQueue"
       // 1. Получить входящие параметры
       $packid   = $this->data['packid'];
       $delconf  = $this->data['delconf'];
+      $delremote  = $this->data['delremote'];
 
       // 2. Проверить существование W-пакета $packid
       $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
@@ -165,7 +166,10 @@ class C27_del_w extends Job { // TODO: добавить "implements ShouldQueue"
         throw new \Exception("Package $packid does not exist.");
 
       // 3. Отменить автосохранение пакета $packid на github
-      $result = runcommand('\M1\Commands\C53_github_del', ["id_inner" => $packid]);
+      $result = runcommand('\M1\Commands\C53_github_del', [
+        "id_inner"  => $packid,
+        "delremote" => $delremote
+      ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']);
 

@@ -7,16 +7,14 @@
 /**
  *  Что делает
  *  ----------
- *    - Delete M-package
+ *    - Create and replace gitmodules file of the project using deploy github account and token from config
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        packid      // ID M-пакета для удаления
- *        delconf     // yes/no удалять ли конфиг M-пакета
- *        deldb       // yes/no удалять ли БД M-пакета
+ *
  *      ]
  *    ]
  *
@@ -48,7 +46,7 @@
 //---------------------------//
 // Пространство имён команды //
 //---------------------------//
-// - Пример для админ.документов:  M1\Commands
+// - Пример:  M1\Commands
 
   namespace M1\Commands;
 
@@ -103,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C20_del_m extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C56_make_gitmodules extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -137,186 +135,143 @@ class C20_del_m extends Job { // TODO: добавить "implements ShouldQueue"
     /**
      * Оглавление
      *
-     *  1. Получить входящие параметры
-     *  2. Проверить существование M-пакета $packid
-     *  3. Отменить автосохранение пакета $packid на github
-     *  4. Удалить каталог M-пакета $packid
-     *  5. Удалить пр.имён M-пакета из composer.json проекта -> autoload -> psr-4
-     *  6. Удалить файл-конфиг M-пакета (если требуется)
-     *  7. Удалить БД пакета (если требуется)
-     *  8. Удалить запись о пакете из providers в config/app.php
-     *  9. Вернуть результаты
+     *  1. Получить токен для деплоя от github
+     *  2. Получить имя github-аккаунта проекта
+     *  3. Получить массив имён всех пакетов пользователя $account с github с помощью $token
+     *  4. Сгенерировать содержимое для .gitmodules
+     *  5. Перезаписать файл .gitmodules содержимым из $gitmodules
+     *
+     *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------//
-    // Удалить указанный M-пакет //
-    //---------------------------//
+    //-----------------------------------------------------------------------------------------------------//
+    // Create and replace gitmodules file of the project using deploy github account and token from config //
+    //-----------------------------------------------------------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить входящие параметры
-      $packid     = $this->data['packid'];
-      $deldb      = $this->data['deldb'];
-      $delconf    = $this->data['delconf'];
-      $delremote  = $this->data['delremote'];
+      // 1. Получить токен для деплоя от github
+      $token = config("M1.deploy_github_oauth2");
+      if(!$token)
+        throw new \Exception('Отсутствует токен для деплоя проекта.');
 
-      // 2. Проверить существование M-пакета $packid
-      $pack = \M1\Models\MD2_packages::where('id_inner','=',$packid)->first();
-      if(empty($pack))
-        throw new \Exception("Package $packid does not exist.");
+      // 2. Получить имя github-аккаунта проекта
+      $account = config("M1.deploy_github_account_name");
+      if(!$token)
+        throw new \Exception('Отсутствует имя github-аккаунта проекта.');
 
-      // 3. Отменить автосохранение пакета $packid на github
-      $result = runcommand('\M1\Commands\C53_github_del', [
-        "id_inner"  => $packid,
-        "delremote" => $delremote
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']);
+      // 3. Получить массив имён всех пакетов пользователя $account с github с помощью $token
+      $all_github_user_packs = call_user_func(function() USE ($account, $token) {
 
-      // 4. Удалить каталог M-пакета $packid
-      config(['filesystems.default' => 'local']);
-      config(['filesystems.disks.local.root' => base_path()]);
-      $this->storage = new \Illuminate\Filesystem\Filesystem(); // new \Illuminate\Filesystem\FilesystemManager(app());
-      $this->storage->deleteDirectory('vendor/4gekkman/'.$packid);
+        // 1] Создать экземпляр guzzle
+        $guzzle = new \GuzzleHttp\Client();
 
-      // 5. Удалить пр.имён M-пакета из composer.json проекта -> autoload -> psr-4
+        // 2] Выполнить запрос
+        $request_result = $guzzle->request('GET', 'https://api.github.com/user/repos', [
+          'headers' => [
+            'Authorization' => 'token '. $token
+          ],
+          'query' => [
+            'affiliation' => 'owner',
+            'direction'   => 'asc',
+            'per_page'    => 10000
+          ]
+        ]);
+        $status = $request_result->getStatusCode();
+        $body = $request_result->getBody();
+        if($status != 200)
+          return [
+            "success" => false,
+            "result"  => []
+          ];
 
-        // 5.1. Получить содержимое composer.json проекта
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path()]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $composer = $this->storage->get('composer.json');
+        // 3] Получить результирующий массив
+        $result = collect(json_decode($body, true))->pluck('name')->toArray();
 
-        // 5.2. Получить содержимое объекта "psr-4" из $composer в виде массива
-        preg_match("/\"psr-4\" *: *\{.*\}/smuiU", $composer, $namespaces);
-        $namespaces = preg_replace("/\"psr-4\" *: */smuiU", '', $namespaces);
-        $namespaces = preg_replace("/['\n\r\s\{\}]/smuiU", '', $namespaces);
-        $namespaces = explode(',', $namespaces[0]);
-        $namespaces = array_values(array_filter($namespaces, function($item){
-          return !empty($item);
-        }));
+        // 4] Провести фильтрацию результирующего массива
+        $result = array_values(collect($result)->filter(function($item){
+          if(!preg_match("/^([MWR]{1}[1-9]{1}[0-9]*|[DL]{1}[0-9]{5,100})$/ui", $item))
+            return false;
+          return true;
+        })->toArray());
 
-        // 5.3. Удалить из $namespaces запись, содержащую 'vendor/4gekkman/'.$packid
-        $namespaces = array_values(array_filter($namespaces, function($item) USE ($packid) {
-          return !preg_match("#vendor/4gekkman/".$packid."#ui", $item);
-        }));
+        // n) Вернуть результаты
+        return [
+          "success"       => true,
+          "result"        => $result
+        ];
 
-        // 5.4. Сформировать строку в формате значения "psr-4" из composer.json
+      });
 
-          // 1] Подготовить строку для результата
-          $namespaces_result = "{" . PHP_EOL;
+      // 4. Сгенерировать содержимое для .gitmodules
+      // - Пример:
+      //
+      //  [submodule "M1"]
+      //  path = project/vendor/4gekkman/M1
+      //  url = https://<token>@github.com/owner/repo.git
+      //
+      //  [submodule "M2"]
+      //  path = project/vendor/4gekkman/M2
+      //  url = https://<token>@github.com/owner/repo.git
+      //
+      $gitmodules = call_user_func(function() USE ($token, $account, $all_github_user_packs) {
 
-          // 2] Вставить в $namespaces_result все значения из $commands
-          for($i=0; $i<count($namespaces); $i++) {
-            if($i != count($namespaces)-1 )
-              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . "," . PHP_EOL;
-            else
-              $namespaces_result = $namespaces_result . "            " . $namespaces[$i] . PHP_EOL;
-          }
+        // 1] Подготовить строку для результатов
+        $result = "";
 
-          // 3] Завершить квадратной скобкой c запятой
-          $namespaces_result = $namespaces_result . "        }";
+        // 2] Наполнить $result
+        foreach($all_github_user_packs['result'] as $pack) {
 
-        // 5.5. Заменить все \\\\ в $namespaces_result на \\\\\\
-        $namespaces_result = preg_replace("/\\\\/smuiU", "\\\\\\", $namespaces_result);
+          // 2.1] [submodule "$pack"]
+          $result = $result . '[submodule "'.$pack.'"]' . PHP_EOL;
 
-        // 5.6. Вставить $namespaces_result в $composer
-        $composer = preg_replace("/\"psr-4\" *: *\{.*\}/smuiU", '"psr-4": '.$namespaces_result, $composer);
+          // 2.2] path = project/vendor/$account/$pack
+          $result = $result . "path = project/vendor/$account/$pack" . PHP_EOL;
 
-        // 5.7. Заменить $composer
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path()]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->put('composer.json', $composer);
+          // 2.3] url = https://$token@github.com/$account/$pack.git
+          $result = $result . "url = https://$token@github.com/$account/$pack.git" . PHP_EOL . PHP_EOL;
 
-      // 6. Удалить файл-конфиг M-пакета (если требуется)
-      if($delconf == "yes") {
-
-        config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('config')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $this->storage->delete($packid.'.php');
-
-      }
-
-      // 7. Удалить БД пакета (если требуется)
-      if($deldb == "yes") {
-
-        // 1] Проверить, существует ли БД $packid_lowcase
-        $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
-        $db = DB::select($query, [$packid]);
-
-        // 2] Если существует, удалить
-        if(!empty($db)) {
-          $packid_lowcase = mb_strtolower($packid);
-          DB::select( DB::raw("DROP DATABASE $packid_lowcase") );
         }
 
-      }
+        // n] Вернуть результат
+        return $result;
 
-      // 8. Удалить запись о пакете из providers в config/app.php
+      });
 
-        // 8.1. Получить содержимое конфига app.php
+      // 5. Перезаписать файл .gitmodules содержимым из $gitmodules
+      call_user_func(function() USE ($gitmodules) {
+
+        // 1] Создать файл .gitmodules_temp с содержимым $gitmodules
         config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('config')]);
+        config(['filesystems.disks.local.root' => "/"]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        $config = $this->storage->get('app.php');
+        $create_result = $this->storage->put(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules_temp", $gitmodules);
 
-        // 8.2. Получить текущий список провайдеров из конфига app.php
-        // - И отфильтровать 1 так, чтобы удалить регистрацию всех провайдеров не моих пакетов.
-        $approviders = config('app.providers');
+        // 2] Если создать gitmodules_temp удалось
+        if($create_result) {
 
-        // 8.3. Удалить из $approviders запись, содержащую $packid.'\ServiceProvider::class'
-        $approviders = array_values(array_filter($approviders, function($item) USE ($packid) {
-          return !preg_match("/^".$packid."\\\\ServiceProvider$/ui", $item);
-        }));
+          // 2.1] Удалить gitmodules, если есть
+          $delete_result = $this->storage->delete(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules");
 
-        // 8.4. С помощью regex вставить $approviders в providers конфига $config
+          // 2.2] Переименовать gitmodules_temp в gitmodules
+          $this->storage->move(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules_temp", preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules");
 
-          // 1] Сформировать строку в формате массива из $approviders
-          $providers_str = call_user_func(function() USE ($approviders) {
+        }
 
-            // 1.1] Подготовить строку для результата
-            $result = "[" . PHP_EOL;
 
-            // 1.2] Вставить в $result все значения из $approviders
-            for($i=0; $i<count($approviders); $i++) {
-              if($i != count($approviders)-1 )
-                $result = $result . "        " . $approviders[$i] . "::class," . PHP_EOL;
-              else
-                $result = $result . "        " . $approviders[$i] . "::class" . PHP_EOL;
-            }
-
-            // 1.3] Завершить квадратной скобкой c запятой
-            $result = $result . "    ],";
-
-            // 1.4] Вернуть результат
-            return $result;
-
-          });
-
-          // 2] Вставить $providers_str в $config
-          $config = preg_replace("#'providers' *=> *\[.*\],#smuiU", "'providers' => ".$providers_str, $config);
-
-          // 3] Заменить config
-          $this->storage->put('app.php', $config);
-
-      // 9. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "packfullname"  => $packid,
-          "deldb"         => $deldb,
-          "delconf"       => $delconf
-        ]
-      ];
+      });
 
 
     } catch(\Exception $e) {
-        $errortext = "Deleting of the M-package have ended with error: ".$e->getMessage();
+        $errortext = 'Invoking of command C56_make_gitmodules from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        Log::info($errortext);
+        write2log($errortext, ['M1', 'C56_make_gitmodules']);
         return [
           "status"  => -2,
-          "data"    => $errortext
+          "data"    => [
+            "errortext" => $errortext,
+            "errormsg" => $e->getMessage()
+          ]
         ];
     }}); if(!empty($res)) return $res;
 

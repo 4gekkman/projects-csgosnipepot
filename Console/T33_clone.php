@@ -181,7 +181,7 @@ class T33_clone extends Command
      */
 
     // 1. Обновить приложение перед клонированием пакета с github
-    //$this->call('m1:parseapp');
+    $this->call('m1:parseapp');
 
     // 2. Получить токен от github
 
@@ -236,11 +236,11 @@ class T33_clone extends Command
         $result = collect(json_decode($body, true))->pluck('name')->toArray();
 
         // 4] Провести фильтрацию результирующего массива
-        $result = collect($result)->filter(function($item){
+        $result = array_values(collect($result)->filter(function($item){
           if(!preg_match("/^([MWR]{1}[1-9]{1}[0-9]*|[DL]{1}[0-9]{5,100})$/ui", $item))
             return false;
           return true;
-        })->toArray();
+        })->toArray());
 
         // n) Вернуть результаты
         return [
@@ -450,24 +450,15 @@ class T33_clone extends Command
       $this->storage->put('composer.json', $composer);
 
     // 8. Добавить запись о пакете $packid в GitAutoPushScripts, с учётом имени папки проекта
-
-
-      //$result = runcommand('\M1\Commands\C50_github_new_autopush', ["id_inner" => $this->data['id_inner']]);
-      //if($result['status'] != 0)
-      //  throw new \Exception($result['data']);
-
-
-
-
-
-
-
-      $this->info('Успех!');
-
-
+    $result = runcommand('\M1\Commands\C50_github_new_autopush', [
+      "id_inner" => $packid,
+      "project"  => preg_replace("/^.*\//ui", "", preg_replace("/\/[^\/]*$/ui", "", base_path()))
+    ]);
+    if($result['status'] != 0)
+      throw new \Exception($result['data']);
 
     // n. Обновить приложение после клонирования пакета с github
-    //Artisan::queue('m1:run_light');
+    Artisan::queue('m1:run_light');
 
   }
 

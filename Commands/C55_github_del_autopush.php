@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        project     | Имя папки проекта
+ *        id_inner    | ID пакета
  *      ]
  *    ]
  *
@@ -138,8 +139,9 @@ class C55_github_del_autopush extends Job { // TODO: добавить "implement
      *  1. Принять входящие данные и провести валидацию
      *  2. Получить массив ID всех MDLWR-пакетов
      *  3. Удалить из него $this->data['id_inner']
-     *  4. Сформировать строку $laravelpacks
-     *  5. Подменить $laravelpacks в powershell-скрипте
+     *  4. Сформировать JSON-строку в определённом формате
+     *  5. Сформировать строку $laravelpacks
+     *  6. Записать $laravelpacks в autosave2github.ps1
      *
      *  N. Вернуть статус 0
      *
@@ -152,13 +154,10 @@ class C55_github_del_autopush extends Job { // TODO: добавить "implement
 
       // 1. Принять входящие данные и провести валидацию
       $validator = r4_validate($this->data, [
-
-        "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
-
+        "project"   => ["required", "string"],
+        "id_inner"  => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
-
         throw new \Exception($validator['data']);
-
       }
 
       // 2. Получить массив ID всех MDLWR-пакетов
@@ -172,46 +171,76 @@ class C55_github_del_autopush extends Job { // TODO: добавить "implement
         return true;
       })->toArray();
 
-      // 4. Сформировать строку $laravelpacks
-      $laravelpacks = call_user_func(function() USE ($ids) {
+      // 4. Сформировать JSON-строку в определённом формате
+      // - В таком:
+      //
+      //    '[
+      //      {"project": "devapp", "packid": "M1"},
+      //      {"project": "devapp", "packid": "M2"}
+      //    ]'
+      $json = call_user_func(function() USE ($ids) {
 
-        // 1] Подготовить строку для результата
-        $result = '$laravelpacks = @(';
+        // 1] Подготовить массив для результатов
+        $results = [];
 
-        // 2] Вставить в $result все $ids
+        // 2] Наполнить $results
         foreach($ids as $id) {
-          $result = $result . '"' . $id . '",';
+          array_push($results, [
+            "project" => $this->data['project'],
+            "packid"  => $id
+          ]);
         }
 
-        // 3] Если последний символ в $result == ',', удадилть его
-        $result = rtrim($result, ",");
+        // m] Преобразовать $results в json-строку
+        $json = json_encode($results, JSON_PRETTY_PRINT);
 
-        // 3] Завершающий штрих
-        $result = $result . ')';
+        // n] Вернуть результаты
+        return $json;
 
-        // 4] Вернуть $result
+      });
+
+      // 5. Сформировать строку $laravelpacks
+      $laravelpacks = call_user_func(function() USE($json) {
+
+        // 1] Подготовить строку для результата
+        $result = '$laravelpacks = ' . "'";
+
+        // 2] Добавить $json в $result
+        $result = $result . $json;
+
+        // 3] В конец добавить закрывающую кавычку
+        $result = $result . "'";
+
+        // n] Вернуть $result
         return $result;
 
       });
 
-      // 5. Подменить $laravelpacks в powershell-скрипте
+      // 6. Записать $laravelpacks в autosave2github.ps1
+      call_user_func(function() USE ($laravelpacks) {
 
-        // 5.1. Получить путь к powershell-скрипту
-        $powershell_path = config('M1.github_powershell');
+        // 1] Получить путь к скрипту
+        $path = preg_replace("/\/[^\/]*$/ui", "", base_path()) . '/' . 'autosave2github.ps1';
 
-        // 5.2. Подготовить storage
+        // 2] Подготовить storage
         config(['filesystems.default' => 'local']);
         config(['filesystems.disks.local.root' => "/"]);
         $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
 
-        // 5.3. Получить содержимое файла $path
-        $psscript = $this->storage->get($powershell_path);
+        // 3] Получить содержимое файла $path
+        $file = $this->storage->get($path);
 
-        // 5.4. Вставить $psscript в $file
-        $psscript = preg_replace('#\$laravelpacks = @\(.*\)#smuiU', $laravelpacks, $psscript);
+        // 4] Вставить $laravelpacks в $file
+        $file = preg_replace('/\$laravelpacks = \'.*\'/smui', $laravelpacks, $file);
 
-        // 5.5. Заменить $file
-        $this->storage->put($powershell_path, $psscript);
+        // 5] Заменить $file
+        config(['filesystems.default' => 'local']);
+        config(['filesystems.disks.local.root' => "/"]);
+        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        $this->storage->put($path, $file);
+
+      });
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C55_github_del_autopush from M-package M1 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

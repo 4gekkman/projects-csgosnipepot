@@ -177,7 +177,10 @@ class C49_github_new extends Job { // TODO: добавить "implements ShouldQ
         throw new \Exception($result['data']);
 
       // 5. Добавить запись об указанном MDLWR-пакете в GitAutoPushScripts
-      $result = runcommand('\M1\Commands\C50_github_new_autopush', ["id_inner" => $this->data['id_inner']]);
+      $result = runcommand('\M1\Commands\C50_github_new_autopush', [
+        "id_inner" => $this->data['id_inner'],
+        "project"  => preg_replace("/^.*\//ui", "", preg_replace("/\/[^\/]*$/ui", "", base_path()))
+      ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']);
 

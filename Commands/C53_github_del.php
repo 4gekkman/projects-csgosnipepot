@@ -14,7 +14,8 @@
  *
  *    [
  *      "data" => [
- *
+ *        id_inner
+ *        delremote
  *      ]
  *    ]
  *
@@ -138,7 +139,7 @@ class C53_github_del extends Job { // TODO: добавить "implements ShouldQ
      *  1. Принять входящие данные и провести валидацию
      *  2. Проверить существование пакета $this->data['id_inner']
      *  3. Проверить валидность пароля, токена и существование ps-скрипта
-     *  4. Удалить для указанного MDLWR-пакета удалённый репозиторий на github
+     *  4. Удалить для указанного MDLWR-пакета удалённый репозиторий на github, если необходимо
      *  5. Удалить для указанного MDLWR-пакета запись из GitAutoPushScripts
      *
      *  N. Вернуть статус 0
@@ -152,13 +153,10 @@ class C53_github_del extends Job { // TODO: добавить "implements ShouldQ
 
       // 1. Принять входящие данные и провести валидацию
       $validator = r4_validate($this->data, [
-
         "id_inner"              => ["required", "regex:/^[MDLWR]{1}[1-9]+[0-9]*$/ui"],
-
+        "delremote"             => ["required", "in:no,yes"],
       ]); if($validator['status'] == -1) {
-
         throw new \Exception($validator['data']);
-
       }
 
       // 2. Проверить существование пакета $this->data['id_inner']
@@ -171,13 +169,18 @@ class C53_github_del extends Job { // TODO: добавить "implements ShouldQ
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 4. Удалить для указанного MDLWR-пакета удалённый репозиторий на github
-      $result = runcommand('\M1\Commands\C54_github_del_remote', ["id_inner" => $this->data['id_inner']]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']);
+      // 4. Удалить для указанного MDLWR-пакета удалённый репозиторий на github, если необходимо
+      if($this->data['delremote'] == 'yes') {
+        $result = runcommand('\M1\Commands\C54_github_del_remote', ["id_inner" => $this->data['id_inner']]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']);
+      }
 
       // 5. Удалить для указанного MDLWR-пакета запись из GitAutoPushScripts
-      $result = runcommand('\M1\Commands\C55_github_del_autopush', ["id_inner" => $this->data['id_inner']]);
+      $result = runcommand('\M1\Commands\C55_github_del_autopush', [
+        "id_inner" => $this->data['id_inner'],
+        "project"  => preg_replace("/^.*\//ui", "", preg_replace("/\/[^\/]*$/ui", "", base_path()))
+      ]);
       if($result['status'] != 0)
         throw new \Exception($result['data']);
 

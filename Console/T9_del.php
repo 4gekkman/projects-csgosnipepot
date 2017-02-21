@@ -242,6 +242,9 @@ class T9_del extends Command
         // 5] Спросить, удалять ли БД модуля, или оставить
         $params['deldb'] = $this->choice('[NOT REQUIRED] Should we delete the package database?', ["1"=>"no", "2"=>"yes"], "1");
 
+        // 6] Спросить, удалять ли удалённый репозиторий
+        $params['delremote'] = $this->choice('[NOT REQUIRED] Should we delete remote repository of the package?', ["1"=>"no", "2"=>"yes"], "1");
+
         // n] Вернуть $params
         return $params;
 
@@ -471,6 +474,9 @@ class T9_del extends Command
         // 4] Спросить, удалять ли конфиг пакета, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
+        // 5] Спросить, удалять ли удалённый репозиторий
+        $params['delremote'] = $this->choice('[NOT REQUIRED] Should we delete remote repository of the package?', ["1"=>"no", "2"=>"yes"], "1");
+
         // n] Вернуть $params
         return $params;
 
@@ -523,6 +529,9 @@ class T9_del extends Command
 
         // 4] Спросить, удалять ли конфиг пакета, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
+
+        // 5] Спросить, удалять ли удалённый репозиторий
+        $params['delremote'] = $this->choice('[NOT REQUIRED] Should we delete remote repository of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
         return $params;
@@ -577,6 +586,9 @@ class T9_del extends Command
         // 4] Спросить, удалять ли конфиг пакета, или оставить
         $params['delconf'] = $this->choice('[NOT REQUIRED] Should we delete the config of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
+        // 5] Спросить, удалять ли удалённый репозиторий
+        $params['delremote'] = $this->choice('[NOT REQUIRED] Should we delete remote repository of the package?', ["1"=>"no", "2"=>"yes"], "1");
+
         // n] Вернуть $params
         return $params;
 
@@ -623,6 +635,9 @@ class T9_del extends Command
           // 3.2] Если $dependencies не пуста, сообщить и завершить
           if(count($dependencies) != 0)
             throw new \Exception("Can't delete ".$params['packid'].", because this pack is dependency of: ".implode(', ', $dependencies));
+
+        // 4] Спросить, удалять ли удалённый репозиторий
+        $params['delremote'] = $this->choice('[NOT REQUIRED] Should we delete remote repository of the package?', ["1"=>"no", "2"=>"yes"], "1");
 
         // n] Вернуть $params
         return $params;

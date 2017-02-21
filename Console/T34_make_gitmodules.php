@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Light version of run
+ *    - Create and replace gitmodules file of the project using deploy github account and token from config
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T29_run_light extends Command
+class T34_make_gitmodules extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T29_run_light extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:run_light {--force}';
+    protected $signature = 'm1:make_gitmodules';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Light version of run';
+    protected $description = 'Create and replace gitmodules file of the project using deploy github account and token from config';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -152,40 +152,28 @@ class T29_run_light extends Command
   public function handle()
   {
 
-    // 1. Проверить, существует ли файл с настройками пакета M1
-    $file_exists = file_exists(base_path('config/M1.php'));
+    /**
+     * Оглавление
+     *
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
+     *
+     */
 
-    // 2. Получить значение параметра development_mode для пакета
-    if($file_exists)
-      $development_mode = config('M1.development_mode');
-    else
-      $development_mode = true;
-    if(!is_bool($development_mode))
-      $development_mode = true;
+    // 1. Выполнить команду
+    $result = runcommand('\M1\Commands\C56_make_gitmodules', $this->argument());
 
-    // 3. Если режим разработки включен, выполнить команды
-    if($development_mode || $this->option()['force'] === true) {
 
-      Artisan::queue('m1:parseapp');
-      Artisan::queue('m1:make_gitmodules');
-      Artisan::queue('m1:sp_regs_update');
-      Artisan::queue('m1:allrespublish');
-      Artisan::queue('m1:mdlw_cfgs_update');
-      Artisan::queue('m1:m_schedules_update');
-
-      Artisan::call('m1:suf');
-      Artisan::queue('m1:parseapp');
-      $this->info('Задачи run в очереди.');
-      write2log('Задачи run в очереди.', []);
-
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']['errormsg']);
+      return;
     }
 
-    // 4. Если режим разработки выключен, сообщить
-    else {
 
-      $this->info('Режим разработки выключен, команда завершает работу...');
-
-    }
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
 
   }
 

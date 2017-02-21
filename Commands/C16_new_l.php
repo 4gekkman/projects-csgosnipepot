@@ -178,15 +178,91 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
         $github       = $this->data['github'];
 
       // 2. Определить $packid
+      $packid = call_user_func(function() USE ($packid) {
 
-        // 2.1. Получить список ID (номеров) всех L-пакетов
+        // 2.1. Получить токен от github
+        $token = call_user_func(function(){
+
+          // 1] Проверить работоспособность пароля и токена для github, указанных в конфиге M1
+          $check = runcommand('\M1\Commands\C48_github_check');
+          if($check['status'] != 0)
+            return "";
+
+          // 2] Вернуть токен от github
+          return $check['data']['token'];
+
+        });
+        if(empty($token))
+          throw new \Exception("The password/token for github from config not working.");
+
+        // 2.2. Получить массив имён всех пакетов пользователя 4gekkman с github
+        $all_github_user_packs = call_user_func(function() USE ($token) {
+
+          // 1] Создать экземпляр guzzle
+          $guzzle = new \GuzzleHttp\Client();
+
+          // 2] Выполнить запрос
+          $request_result = $guzzle->request('GET', 'https://api.github.com/user/repos', [
+            'headers' => [
+              'Authorization' => 'token '. $token
+            ],
+            'query' => [
+              'affiliation' => 'owner',
+              'direction'   => 'asc',
+              'per_page'    => 10000
+            ]
+          ]);
+          $status = $request_result->getStatusCode();
+          $body = $request_result->getBody();
+          if($status != 200)
+            return [
+              "success" => false,
+              "result"  => []
+            ];
+
+          // 3] Получить результирующий массив
+          $result = collect(json_decode($body, true))->pluck('name')->toArray();
+
+          // 4] Провести фильтрацию результирующего массива
+          $result = array_values(collect($result)->filter(function($item){
+            if(!preg_match("/^([MWR]{1}[1-9]{1}[0-9]*|[DL]{1}[0-9]{5,100})$/ui", $item))
+              return false;
+            return true;
+          })->toArray());
+
+          // n) Вернуть результаты
+          return [
+            "success"       => true,
+            "result"        => $result
+          ];
+
+        });
+        if($all_github_user_packs['success'] == false)
+          throw new \Exception("Couldn't get packages list from github.");
+
+        // 2.3. Отфильтровать из $all_github_user_packs['result'] все не L-пакеты серии 10k+
+        $all_github_user_packs['result'] = array_values(collect($all_github_user_packs['result'])->filter(function($item){
+          if(!preg_match("/^[L]{1}[0-9]{5,100}$/ui", $item))
+            return false;
+          return true;
+        })->toArray());
+
+        // 2.4. Получить из $all_github_user_packs['result'] список номеров из ID
+        $all_github_user_packs_nums = collect($all_github_user_packs['result'])->map(function($item){
+          return preg_replace("/^l/ui", "", $item);
+        })->toArray();
+
+        // 2.5. Получить список ID (номеров) всех L-пакетов, которые фактически есть в проекте
         $packids = array_map(function($item){
           return mb_substr($item, 1);
         }, \M1\Models\MD2_packages::whereHas('packtypes',function($query) {
             $query->where('name','=','L');
         })->pluck('id_inner')->toArray());
 
-        // 2.2. Если $packid не передан, определить его автоматически
+        // 2.6. Добавить в $packids значения из $all_github_user_packs_nums, которых там ещё нет
+        $packids = array_values(array_unique(array_merge($packids, $all_github_user_packs_nums), SORT_REGULAR));
+
+        // 2.7. Если $packid не передан, определить его автоматически
         if(empty($packid)) {
           $packid = call_user_func(function() USE ($packids) {
             if(!is_array($packids) || empty($packids)) {
@@ -198,12 +274,17 @@ class C16_new_l extends Job { // TODO: добавить "implements ShouldQueue"
           });
         }
 
-        // 2.3. Если $packid передан, определить, доступен ли он
+        // 2.8. Если $packid передан, определить, доступен ли он
         if(!empty($packid)) {
           if(in_array($packid, $packids)) {
             throw new \Exception("Can't create L-package with id $packid, because L-package with id $packid already exists.");
           }
         }
+
+        // 2.n. Вернуть результат
+        return $packid;
+
+      });
 
       // 3. Сформировать внутренний ID пакета (напр.: L1)
       $packfullname = 'L'.$packid;
