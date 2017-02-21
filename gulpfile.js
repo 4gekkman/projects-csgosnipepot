@@ -59,15 +59,12 @@ gulp.task('lastuse', function(callback) {
 
 		// sources: start
     sources["styles"] = [
-      "../L10003/Public/css/**/*.*", 
       "../D10009/Public/css/**/*.*", 
     ];
     sources["javascript"] = [
-      "../L10003/Public/js/", 
       "../D10009/Public/js/", 
     ];
     sources["assets"] = [
-      "../L10003/Public/assets/**/*.*", 
       "../D10009/Public/assets/**/*.*", 
     ];
     // sources: end
@@ -82,19 +79,15 @@ gulp.task('lastuse', function(callback) {
 
 		// dests: start
     dests["styles"] = [
-      "../../../public/public/L10003/css", 
       "../../../public/public/D10009/css", 
     ];
     dests["javascript"] = [
-      "../../../public/public/L10003/js", 
       "../../../public/public/D10009/js", 
     ];
     dests["assets"] = [
-      "../../../public/public/L10003/assets", 
       "../../../public/public/D10009/assets", 
     ];
     dests["php"] = [
-      "../L10003/**/*.php", 
       "../D10009/**/*.php", 
     ];
     // dests: end
