@@ -251,10 +251,10 @@ class C56_make_gitmodules extends Job { // TODO: добавить "implements Sh
         if($create_result) {
 
           // 2.1] Удалить gitmodules, если есть
-          $delete_result = $this->storage->delete(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.submodules");
+          $delete_result = $this->storage->delete(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules");
 
           // 2.2] Переименовать gitmodules_temp в gitmodules
-          $this->storage->move(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules_temp", preg_replace("/\/[^\/]*$/ui", "", base_path())."/.submodules");
+          $this->storage->move(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules_temp", preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules");
 
         }
 
