@@ -157,10 +157,13 @@ class T26_queue extends Command
 
     // 2. Вывести очередь
     write2log(PHP_EOL . PHP_EOL . '----------------------------------------' . PHP_EOL .           '---------- Содержимое '.$this->argument('queue') . PHP_EOL .           '----------------------------------------');
+    Log::info(PHP_EOL . PHP_EOL . '----------------------------------------' . PHP_EOL .           '---------- Содержимое '.$this->argument('queue') . PHP_EOL .           '----------------------------------------');
     foreach($queue as $task) {
       write2log(mb_substr(json_encode(json_decode($task, true)['data'],JSON_UNESCAPED_UNICODE), 0, 25), []);
+      Log::info(mb_substr(json_encode(json_decode($task, true)['data'],JSON_UNESCAPED_UNICODE), 0, 25), []);
     }
     write2log(' --> конец <-- ' . PHP_EOL . '----------------------------------------' . PHP_EOL);
+    Log::info(' --> конец <-- ' . PHP_EOL . '----------------------------------------' . PHP_EOL);
 
     // 3. Сообщить о том, что содержимое очереди отправлено в лог
     $this->info('Текущее содержимое очереди отправлено в лог M2' . PHP_EOL);
