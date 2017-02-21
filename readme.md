@@ -1,4 +1,4 @@
-# D10005 - ФInterface for the M8 package (bots and automation)
+# D10005 - Interface for the M8 package (bots and automation)
 ---
 ## Оглавление
 
