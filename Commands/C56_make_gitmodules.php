@@ -226,7 +226,7 @@ class C56_make_gitmodules extends Job { // TODO: добавить "implements Sh
           $result = $result . '[submodule "'.$pack.'"]' . PHP_EOL;
 
           // 2.2] path = project/vendor/$account/$pack
-          $result = $result . "path = project/vendor/$account/$pack" . PHP_EOL;
+          $result = $result . "path = project/vendor/4gekkman/$pack" . PHP_EOL;
 
           // 2.3] url = https://$token@github.com/$account/$pack.git
           $result = $result . "url = https://$token@github.com/$account/$pack.git" . PHP_EOL . PHP_EOL;
@@ -251,10 +251,10 @@ class C56_make_gitmodules extends Job { // TODO: добавить "implements Sh
         if($create_result) {
 
           // 2.1] Удалить gitmodules, если есть
-          $delete_result = $this->storage->delete(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules");
+          $delete_result = $this->storage->delete(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.submodules");
 
           // 2.2] Переименовать gitmodules_temp в gitmodules
-          $this->storage->move(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules_temp", preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules");
+          $this->storage->move(preg_replace("/\/[^\/]*$/ui", "", base_path())."/.gitmodules_temp", preg_replace("/\/[^\/]*$/ui", "", base_path())."/.submodules");
 
         }
 
