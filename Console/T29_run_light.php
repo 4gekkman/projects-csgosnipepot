@@ -179,6 +179,7 @@ class T29_run_light extends Command
         runcommand('\M1\Commands\C35_m_schedules_update', []);
         Artisan::call('m1:suf');
         runcommand('\M1\Commands\C1_parseapp', []);
+        shell_exec('composer dump-autoload');
       } catch(\Exception $e) {
 
         // Снять из кэша метку о том, что run_light выполняется
