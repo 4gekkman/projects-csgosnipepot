@@ -149,15 +149,6 @@ class C57_update_forks extends Job { // TODO: добавить "implements Shoul
     //---------------------------------------------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить из конфига значение выключателя автообновления форков
-      // - Если выключено, то завершить.
-      $deploy_github_forks_autoupdate = config("M1.deploy_github_forks_autoupdate");
-      if(empty($deploy_github_forks_autoupdate))
-        return [
-          "status"  => 0,
-          "data"    => ""
-        ];
-
       // 2. Получить из конфига прочие параметры деплой-аккаунта проекта
 
         // 1] Имя деплой-аккаунта на github
@@ -240,33 +231,80 @@ class C57_update_forks extends Job { // TODO: добавить "implements Shoul
 
           // n] Вернуть результат
           return [
-            "status" => $request_result->getStatusCode(),
-            "body"   => $request_result->getBody()
+            "status"    => $request_result->getStatusCode(),
+            "body"      => $request_result->getBody(),
+            "contents"  => json_decode($request_result->getBody()->getContents(), true)
           ];
 
         });
 
-        // 4.2. Если $pull прошёл успешно, выполнить merge
-        if($pull['status'] != 422) {
+        // 4.2. Провести анализ полученных результатов
+        $analysis = call_user_func(function() USE ($pull) {
 
-          // 1] Создать экземпляр guzzle
-          $guzzle = new \GuzzleHttp\Client();
+          // 1] Составить чек-лист
+          $checklist = [
 
-          // 2] Выполнить запрос
-          $request_result = $guzzle->request('PUT', "https://api.github.com/repos/$account/$fork/pulls/".$pull['num']."/merge", [
-            'headers' => [
-              'Authorization' => 'token '. $token
+            // 1.1] Был ли PULL-запрос успешно создан?
+            "is_created" => [
+              "verdict" => false,
+              "error"   => ""
             ],
-            'exceptions' => false
-          ]);
 
-        }
+            // 1.2] Ответил ли github статусом 422 и ошибкой "No commits between..."
+            "no_commits_422" => [
+              "verdict" => false,
+              "error"   => ""
+            ],
+
+            // 1.3] Ответил ли github статусом 422 и ошибкой "A pull request already exists..."
+            "already_exists_422" => [
+              "verdict" => false,
+              "error"   => ""
+            ],
+
+            // 1.4] Ответил ли github статусом не 201, или статусом не 422 и одной из вышеперечисленных ошибок
+            "unknown" => [
+              "verdict" => false,
+              "error"   => ""
+            ]
+
+          ];
+
+          // 2]
+
+
+
+          // n] Вернуть результат
+          return $checklist;
+
+
+        });
+
+
+        Log::info($pull['contents']['errors'][0]['message']);
+
+
+        // 4.2. Если $pull прошёл успешно, выполнить merge
+//        if($pull['status'] != 422) {
+//
+//          // 1] Создать экземпляр guzzle
+//          $guzzle = new \GuzzleHttp\Client();
+//
+//          // 2] Выполнить запрос
+//          $request_result = $guzzle->request('PUT', "https://api.github.com/repos/$account/$fork/pulls/".$pull['num']."/merge", [
+//            'headers' => [
+//              'Authorization' => 'token '. $token
+//            ],
+//            'exceptions' => false
+//          ]);
+//
+//        }
 
         // 4.3. Подождать секунду
         sleep(1);
 
 
-        
+
         break;
 
       }
