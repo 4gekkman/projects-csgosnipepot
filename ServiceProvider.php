@@ -147,7 +147,8 @@
           '\M1\Console\T31_github_new',
           '\M1\Console\T32_github_del',
           '\M1\Console\T33_clone',
-          '\M1\Console\T34_make_gitmodules'
+          '\M1\Console\T34_make_gitmodules',
+          '\M1\Console\T35_update_forks'
         ];
 
         // Регистрация команд в методе register

@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Light version of run
+ *    - Update forks in projects github account via token
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T29_run_light extends Command
+class T35_update_forks extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T29_run_light extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm1:run_light {--force}';
+    protected $signature = 'm1:update_forks';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Light version of run';
+    protected $description = 'Update forks in projects github account via token';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -152,51 +152,28 @@ class T29_run_light extends Command
   public function handle()
   {
 
-    // 1. Проверить, существует ли файл с настройками пакета M1
-    $file_exists = file_exists(base_path('config/M1.php'));
+    /**
+     * Оглавление
+     *
+     *  1. Выполнить команду
+     *  2. В случае неудачи, вывести текст ошибки
+     *  3. В случае успеха, вывести соотв.сообщение
+     *
+     */
 
-    // 2. Получить значение параметра development_mode для пакета
-    if($file_exists)
-      $development_mode = config('M1.development_mode');
-    else
-      $development_mode = true;
-    if(!is_bool($development_mode))
-      $development_mode = true;
+    // 1. Выполнить команду
+    $result = runcommand('\M1\Commands\C57_update_forks', $this->argument());
 
-    // 3. Выполнить команды
-    if($development_mode || $this->option()['force'] === true && !Cache::has('m1:parse_app:invoking')) {
 
-      // 1] Добавить в кэш метку о том, что run_light выполняется
-      Cache::put('m1:parse_app:invoking', 1, 60);
-
-      // 2] Выполнить соотв.команды
-      try {
-        runcommand('\M1\Commands\C1_parseapp', []);
-        runcommand('\M1\Commands\C56_make_gitmodules', []);
-        runcommand('\M1\Commands\C2_sp_regs_update', []);
-        runcommand('\M1\Commands\C3_allrespublish', []);
-        runcommand('\M1\Commands\C33_mdlw_cfgs_update', []);
-        runcommand('\M1\Commands\C35_m_schedules_update', []);
-        Artisan::call('m1:suf');
-        runcommand('\M1\Commands\C1_parseapp', []);
-      } catch(\Exception $e) {
-
-        // Снять из кэша метку о том, что run_light выполняется
-        Cache::forget('m1:parse_app:invoking');
-
-      }
-
-      // 3] Снять из кэша метку о том, что run_light выполняется
-      Cache::forget('m1:parse_app:invoking');
-
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']['errormsg']);
+      return;
     }
 
-    // 4. Если режим разработки выключен, сообщить
-    else {
 
-      $this->info('Режим разработки выключен, команда завершает работу...');
-
-    }
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
 
   }
 
