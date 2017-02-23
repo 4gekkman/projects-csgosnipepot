@@ -294,8 +294,10 @@ class T35_update_forks extends Command
           // 3.2. Провести анализ полученных результатов
           $analysis = call_user_func(function() USE ($pull) {
 
+            $this->info($pull['status']);
+
             // a] Подождать, пока не будет известен статус запроса
-            while(!$pull['status']) sleep(1);
+            while(empty($pull['status'])) sleep(1);
 
             // 1] Составить чек-лист
             $checklist = [
