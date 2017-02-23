@@ -294,6 +294,8 @@ class T35_update_forks extends Command
           // 3.2. Провести анализ полученных результатов
           $analysis = call_user_func(function() USE ($pull) {
 
+            $this->info(json_encode($pull));
+
             // 1] Составить чек-лист
             $checklist = [
 
@@ -388,7 +390,7 @@ class T35_update_forks extends Command
 
               // 4.2] Записать инфу в checklist
               $checklist['unknown']['verdict']  = true;
-              $checklist['unknown']['error']    = $message;
+              $checklist['unknown']['error']    = json_encode($pull['contents']);
               $checklist['unknown']['status']   = $pull['status'];
 
             }
