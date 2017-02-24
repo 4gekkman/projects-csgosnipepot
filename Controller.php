@@ -19,9 +19,7 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   D10010:1              (v)      Описание
- *                  POST-API2   D10010:2              (v)      Описание
- *
+ *                  POST-API1   D10010:1                   Получить FAQ
  *
  *
  */
@@ -124,6 +122,7 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
+        'public_faq_folder'     => config('M12.public_faq_folder')
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -206,12 +205,27 @@ class Controller extends BaseController {
       // - А в $key прислать ключ-код номер операции.
       if(!empty($key) && empty($command)) {
 
-        //-----------------------------//
+        //---------------------------------//
         // Нестандартная операция D10010:1 //
-        //-----------------------------//
+        //---------------------------------//
+        // - Получить FAQ
         if($key == 'D10010:1') {
 
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
 
+          // 2. Выполнить команду
+          $result = runcommand('\M12\Commands\C4_get_faq', [
+            'faq'         => 'csgohapdashboard',
+            'group_mode'  => 2,                    // Брать в качестве стартовой группу указанную в конфиге
+            'group'       => $data['group'],
+            'what2return' => $data['what2return']
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // n. Вернуть результаты
+          return $result;
 
         }
 
