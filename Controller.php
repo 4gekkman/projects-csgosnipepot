@@ -18,8 +18,8 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   L10004:1              (v)      Описание
- *                  POST-API2   L10004:2              (v)      Описание
+ *                  POST-API1   L10004:1                   Безопасная обёртка для команды логаута
+ *                  POST-API2   L10004:2                   Безопасная обёртка для команды постинга в чат
  *
  *
  *
@@ -161,14 +161,65 @@ class Controller extends BaseController {
       // - А в $key прислать ключ-код операции.
       if(!empty($key) && empty($command)) {
 
-        //-----------------------------//
+
+        //---------------------------------//
         // Нестандартная операция L10004:1 //
-        //-----------------------------//
-        if($key == 'L10004:1') {
+        //---------------------------------//
+        // - Безопасная обёртка для команды логаута
+        if($key == 'L10004:1') { try {
 
+          // 1. Выполнить команду
+          $result = runcommand('\M5\Commands\C59_logout', [
 
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
 
-        }
+          // 2. Вернуть результаты
+          return $result;
+
+        } catch(\Exception $e) {
+          $errortext = 'Invoking of command L10004:L10004:1 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          Log::info($errortext);
+          write2log($errortext, ['M9', 'L10004:L10004:1']);
+          return [
+            "status"  => -2,
+            "data"    => [
+              "errortext" => $errortext,
+              "errormsg" => $e->getMessage()
+            ]
+          ];
+        }}
+
+        //---------------------------------//
+        // Нестандартная операция L10004:2 //
+        //---------------------------------//
+        // - Безопасная обёртка для команды постинга в чат
+        if($key == 'L10004:2') { try {
+
+          // 1. Выполнить команду
+          $result = runcommand('\M10\Commands\C3_clientside_post_to_chat_room', [
+            "message" => Input::get('data')['message'],
+            "room"    => "dashboard_common"
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2. Вернуть результаты
+          return $result;
+
+        } catch(\Exception $e) {
+          $errortext = 'Invoking of command L10004:L10004:2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          Log::info($errortext);
+          write2log($errortext, ['M9', 'L10004:L10004:2']);
+          return [
+            "status"  => -2,
+            "data"    => [
+              "errortext" => $errortext,
+              "errormsg" => $e->getMessage()
+            ]
+          ];
+        }}
 
 
       }

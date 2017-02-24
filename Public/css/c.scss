@@ -1,18 +1,1151 @@
-/*------------------------------//
-//                              //
-//  Собственные стили L-пакета  //
-//                              //
-//------------------------------//
+/*----------------------------//
+//                            //
+//  Все стили шаблона L10004  //
+//                            //
+//----------------------------//
 // Оглавление //
 //------------//
 
-  1. ...
+  А. Шрифты
+  Б. Кастомные стили для тостов toastr
 
+  1. Все переменные стилей
+  2. Общие стили шаблона
+  3. Стили фиксированной шапки сайта
+  4. Стили фиксированного главного меню слева
+  5. Стили фиксированного чата справа
+  6. Стили для контентной области и контентного столбца
+  7. Экран загрузки документа
+  8. Модальный щит загрузки со спинером
 
 //------------------------------//
 // Стили //
 //-------*/
 
-// 1. ...
+//-----------//
+// А. Шрифты //
+//-----------//
 
+@font-face {
+    font-family: 'PTsansRegular';
+    src: url('/public/L10003/assets/fonts/regular/regular.eot');
+    src: url('/public/L10003/assets/fonts/regular/regular.eot') format('embedded-opentype'),
+         url('/public/L10003/assets/fonts/regular/regular.woff2') format('woff2'),
+         url('/public/L10003/assets/fonts/regular/regular.woff') format('woff'),
+         url('/public/L10003/assets/fonts/regular/regular.ttf') format('truetype'),
+         url('/public/L10003/assets/fonts/regular/regular.svg#PTsansRegular') format('svg');
+}
+@font-face {
+    font-family: 'PTsansBold';
+    src: url('/public/L10003/assets/fonts/regular/bold.eot');
+    src: url('/public/L10003/assets/fonts/regular/bold.eot') format('embedded-opentype'),
+         url('/public/L10003/assets/fonts/regular/bold.woff2') format('woff2'),
+         url('/public/L10003/assets/fonts/regular/bold.woff') format('woff'),
+         url('/public/L10003/assets/fonts/regular/bold.ttf') format('truetype'),
+         url('/public/L10003/assets/fonts/regular/bold.svg#PTsansBold') format('svg');
+}
+*, html, body {
+  font-family: PTsansRegular, "PT Sans", Sans-Serif;
+}
+
+
+//--------------------------------------//
+// Б. Кастомные стили для тостов toastr //
+//--------------------------------------//
+
+  // Б1. Общие стили всех тостов
+  #toast-container {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 0 14px;
+    margin-left: 10px;
+    background-color: transparent !important;
+    transition: all .5s ease;
+    font-size: 13px;
+  }
+  #toast-container>div {
+    padding: 10px 15px 13px 15px !important;
+  }
+  #toast-container .toast {
+    background-color: #444b51;
+    border: 0;
+    border-top: 3px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 1px 1px RGBA(0,0,0,0);
+    opacity: 0.9;
+    transition: box-shadow .3s ease;
+    background-image: none !important;
+  }
+  #toast-container .toast:hover {
+    box-shadow: 0 0 1px 1px RGBA(0,0,0,.3);
+    opacity: 0.9;
+    -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+    filter: alpha(opacity=100);
+  }
+  #toast-container .toast .toast-close-button {
+    outline: 0 !important;
+    color: #aaa;
+    text-shadow: none;
+    opacity: 0.8 !important;
+    font-family: serif, sans-serif;
+    transition: all .5s ease;
+  }
+  #toast-container .toast .toast-close-button:hover {
+    transform: rotate(-90deg);
+  }
+  #toast-container .toast .toast-message {
+    line-height: 15px;
+    font-size: 14px;
+    color: #ccc;
+  }
+  #toast-container .toast .toast-title {
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  // Б2. Стили для типов тостов: warning, error, success
+
+    // 2.1. warning
+    #toast-container .toast.toast-warning {
+      border-top: 3px solid yellow;
+    }
+
+    // 2.2. error
+    #toast-container .toast.toast-error {
+      border-top: 3px solid red;
+    }
+
+    // 2.3. success
+    #toast-container .toast.toast-success {
+      border-top: 3px solid #00bc00;
+    }
+
+  // Б3. Стили для тоста оффера выплаты выигрыша
+
+    // 3.1. Общие стили
+    #toast-container .toast.win-payout-offer {
+      border-top: 0 !important;
+      padding: 0 !important;
+      cursor: default;
+      min-height: 50px;
+
+      /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ae579c+0,cf6263+50,ef7e2b+100 */
+      background: #ae579c !important; /* Old browsers */
+      background: -moz-linear-gradient(45deg,  #ae579c 0%, #cf6263 50%, #ef7e2b 100%) !important; /* FF3.6-15 */
+      background: -webkit-linear-gradient(45deg,  #ae579c 0%,#cf6263 50%,#ef7e2b 100%) !important; /* Chrome10-25,Safari5.1-6 */
+      background: linear-gradient(45deg,  #ae579c 0%,#cf6263 50%,#ef7e2b 100%) !important; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ae579c', endColorstr='#ef7e2b',GradientType=1 ) !important; /* IE6-9 fallback on horizontal gradient */
+    }
+    #toast-container .toast.win-payout-offer .toast-message {
+      color: #fff;
+    }
+    #toast-container .toast.win-payout-offer .toast-close-button {
+      position: absolute; top: 5px; right: 10px;
+      color: #fff !important;
+      opacity: 1 !important;
+      transition: all .5s ease;
+    }
+    #toast-container .toast.win-payout-offer .toast-close-button:hover {
+      color: #fff;
+      opacity: 1 !important;
+      transform: rotate(90deg);
+    }
+
+    // 3.2. Класс processing (бот формирует оффер)
+    #toast-container .toast.win-payout-offer.processing {
+      height: 150px;
+    }
+    #toast-container .toast.win-payout-offer.processing .toast-close-button {
+      display: none;
+    }
+    #toast-container .toast.win-payout-offer.processing .toast-message {
+      text-align: center;
+    }
+    #toast-container .toast.win-payout-offer.processing .toast-message img {
+      display: inline-block;
+      margin-top: 40px;
+    }
+    #toast-container .toast.win-payout-offer.processing .toast-message div {
+      display: inline-block;
+      width: 250px;
+      margin-top: 20px;
+      line-height: 20px;
+    }
+    #toast-container .toast.win-payout-offer.processing .toast-message div span {}
+
+    // 3.3. Класс ready (бот успешно сформировал оффер)
+
+      // Общие стили
+      #toast-container .toast.win-payout-offer.ready {
+        height: 200px;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-close-button {
+        display: none;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message {
+        text-align: center;
+      }
+
+      // Заголовок
+      #toast-container .toast.win-payout-offer.ready .toast-message .header {
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 25px;
+      }
+
+      // Информационный блок
+      #toast-container .toast.win-payout-offer.ready .toast-message .information-block {
+        display: block;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .information-block .information {
+        display: inline-block;
+        margin-right: 20px;
+        cursor: default;
+        color: RGBA(255,255,255,.7);
+        font-size: 14px;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .information-block .information span {
+        vertical-align: middle;
+        cursor: default;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .information-block .information i {
+        vertical-align: middle;
+        margin-right: 2px;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .information-block .information .dollar {
+        vertical-align: middle;
+        margin-right: 2px;
+        cursor: default;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .information-block .information:last-child {
+        margin-right: 0;
+      }
+
+      // Таймер
+      #toast-container .toast.win-payout-offer.ready .toast-message .timer {
+        font-size: 24px;
+        margin-top: 30px;
+        padding-right: 23px;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .timer i {
+        margin-right: 5px;
+        vertical-align: middle;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .timer span {
+        vertical-align: middle;
+      }
+
+      // Кнопка
+      #toast-container .toast.win-payout-offer.ready .toast-message .buttons {
+        position: absolute; bottom:0; left:0;
+        width: 100%;
+        background-color: #fff;
+        height: 50px;
+        line-height: 50px;
+        cursor: pointer;
+        transition: all .3s ease;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .buttons:hover {
+        height: 56px;
+        padding-top: 3px;
+        //line-height: 54px;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .buttons span {
+        color: #ca606b;
+        font-size: 15px;
+        transition: all .3s ease;
+      }
+      #toast-container .toast.win-payout-offer.ready .toast-message .buttons:hover span {
+        font-size: 16px;
+        opacity: .7;
+      }
+
+//--------------------------//
+// 1. Все переменные стилей //
+/*--------------------------//
+
+  1.1. Размеры шрифтов
+  1.2. Переменные цветов
+  1.3. Переменные размеров
+
+//--------------------------*/
+
+  // 1.1. Размеры шрифтов
+
+    // Общие
+    $fonts_size:              13px;     // Общий размер шрифта на сайте
+
+  // 1.2. Переменные цветов
+
+    // Общие
+    $color_body_bg:           #2A3D4B;  // Фон
+    $color_mainFontColor:     #fff;     // Главный общий цвет шрифта
+
+    // Скролл бар
+    $color_scrollBarBg:       #16161b;  // Фон скролл бара
+    $color_scrollBarThumb:    #ccc;     // Цвет бегунка скролл бара
+
+    // Шапка сайта
+    $color_header_bg:         #16161b;  // Фон шапки сайта
+    $color_header_opacity:    .85;      // Полупрозрачность шапки
+
+    // Главное левое меню
+    $color_mainmenu_bg:       #223340;  // Фон главного левого меню
+    $color_mm_toogle_bg:      transparent; // Фон переключателя ширины
+
+    // Правый чат
+    $color_rightchat_bg:      rgb(40, 67, 81);  // Фон правого чата
+    $color_rc_controls_bg:    #183440;  // Фон панели управления правым чатом
+    $color_rcbut_bg:          #212f35;  // Фон кнопки раскрытия правого чата
+    $color_rcbut_color:       #ddd;     // Цвет иконки и текста кнопки раскрытия правого чата
+    $color_rc_msgbg_big:      #2a4655;  // Цвет фона сообщений большой версии чата
+    $color_rc_min_bord:       #1e2b30;  // Цвет нижнего бордера сообщений минимизированного чата
+
+
+  // 1.3. Переменные размеров
+
+    // Шапка сайта
+    $sizes_header_height:     50px;     // Высота шапки сайта
+
+    // Главное меню
+
+      // Общие размеры
+      $sizes_mainmenu_width:    240px;    // Ширина главного меню
+      $sizes_mainmenu_whidden:  55px;     // Ширина главного меню в узком состоянии
+      $sizes_mainmenu_itemh:    63px;     // Высота пункта главного меню
+
+      // Переключатель ширины
+      $sizes_mm_toogle_height:  40px;     // Высота переключателя ширины
+
+    // Правая панель чата
+
+      // Общие размеры
+      $sizes_rightchat_width:     240px;    // Ширина правой панели чата при ширине экрана менее 1400px
+      $sizes_rightchat_width_big: 310px;    // Ширина правой панели чата при ширине экрана от 1400px
+      $sizes_rightchat_ctrlh:     40px;     // Высота панельки скрытия чата и выбора комнаты
+
+      // Панель эл-в управления правым чатом
+      $sizes_rc_ctrls_height:   40px;     // Высота панели управления правым чатом
+
+    // Чат
+    $sizes_chat_msg_minheight:  40px;     // Минимальная высота сообщения в чате
+    $sizes_chat_msg_inputheight:40px;     // Высота поля для ввода сообщений в чат
+
+
+
+
+//------------------------//
+// 2. Общие стили шаблона //
+//------------------------//
+
+  // html, body
+  html, body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    background: $color_body_bg;
+    color: $color_mainFontColor;
+    font-size: $fonts_size;
+  }
+
+  // Отменить влияние margin, padding и border на ширину всех CSS-элементов
+  *, *:after, *:before {
+    box-sizing: border-box;
+  }
+
+  // Убрать лишний отступ под изображениями
+  img {
+    vertical-align: bottom;
+  }
+
+  // Контент документа сдвинуть вниз на высоту шапки
+  .content {
+    position: relative;
+    padding-top: $sizes_header_height + 15px;
+  }
+
+  // Кастомные стили для скроллбара
+  body::-webkit-scrollbar-track
+  {
+    //-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    background-color: $color_scrollBarBg;
+  }
+  body::-webkit-scrollbar
+  {
+    width: 6px;
+    height: 6px;
+    background-color: $color_scrollBarBg;
+  }
+  body::-webkit-scrollbar-thumb
+  {
+    border-radius: 3px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: $color_scrollBarThumb;
+  }
+
+  // Моя тема для пёрфект скроллбара
+  .menu .ps-scrollbar-y-rail {
+    visibility: hidden;
+  }
+
+
+//------------------------------------//
+// 3. Стили фиксированной шапки сайта //
+/*------------------------------------//
+Оглавление
+
+  3.1. Общие стили шапки
+  3.2. Область шапки над чатом и гл.меню (для логотипа)
+    3.2.1. Общий стиль области
+    3.2.2. Логотип
+  3.3. Область шапки справа от логотипа
+    3.3.1. Общий стиль области
+    3.3.2. Кнопка "Log in"
+    3.3.3. Управление звуком
+    3.3.4. Информация об аккаунте аутентифицированного пользователя
+
+//------------------------------------*/
+
+  //------------------------//
+  // 3.1. Общие стили шапки //
+  //------------------------//
+  .site-header {
+    position: fixed; top: 0; left: 0;
+    height: $sizes_header_height; width: 100%;
+    min-width: 500px;
+    background: $color_header_bg;
+    opacity: $color_header_opacity;
+    z-index: 9999;
+  }
+
+  //-------------------------------------------------------//
+  // 3.2. Область шапки над чатом и гл.меню (для логотипа) //
+  //-------------------------------------------------------//
+
+    // 3.2.1. Общий стиль области
+    .site-header .area1 {
+      width: $sizes_mainmenu_width;
+      height: 100%;
+    }
+
+    // 3.2.2. Логотип
+    .site-header .area1 .logo img {
+      max-height: 50px;
+      margin-left: 10px;
+    }
+
+  //--------------------------------------------//
+  // 3.3. Область шапки с элементами управления //
+  //--------------------------------------------//
+
+    // 3.3.1. Общий стиль области
+    .site-header .area2 {
+      position: absolute; top: 0; right: 0; left: $sizes_mainmenu_width;
+      height: 100%;
+      text-align: right;
+    }
+
+    // 3.3.2. Кнопка "Log in"
+    .site-header .area2 .login_button {
+      display: inline-block; vertical-align: middle;
+      height: $sizes_header_height*0.7;
+      line-height: $sizes_header_height*0.7;
+      margin: $sizes_header_height*0.15 10px;
+      padding: 0 $sizes_header_height*0.3;
+      font-size: 1.3em;
+      border: 1px solid #ccc;
+      color: #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .site-header .area2 .login_button:hover {
+      border: 1px solid #fff;
+      color: #fff;
+    }
+
+    // 3.3.3. Управление звуком
+    .site-header .area2 .soundcontrol_guest {
+      display: inline-block; vertical-align: middle;
+      height: $sizes_header_height;
+      line-height: $sizes_header_height - 12px;
+      font-size: 2em;
+      margin-right: 15px;
+      color: #ccc;
+      transition: all .2s ease;
+    }
+    .site-header .area2 .soundcontrol_guest img {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .site-header .area2 .soundcontrol_guest:hover {
+      color: #fff;
+    }
+
+    // 3.3.4. Информация об аккаунте аутентифицированного пользователя
+
+      // Общие стили
+      .site-header .area2 .account {
+        position: relative;
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        max-width: 300px;
+      }
+
+      // Аватар
+      .site-header .area2 .account .avatar {
+        position: absolute;
+        top: 0; right: 5px;
+      }
+      .site-header .area2 .account .avatar img {
+        height: $sizes_header_height*0.9;
+        border-radius: $sizes_header_height*0.9;
+        margin: $sizes_header_height*0.05 10px;
+      }
+
+      // Никнэйм и кнопка "Log out"
+      .site-header .area2 .account .nickname_logout {
+        height: $sizes_header_height;
+        margin-right: $sizes_header_height + 20px + 5px;
+        padding-left: 20px;
+        border-left: 1px solid #444;
+      }
+      .site-header .area2 .account .nickname {
+        height: $sizes_header_height*0.55;
+        line-height: $sizes_header_height*0.55*1.3;
+        vertical-align: bottom;
+        text-align: right;
+        font-size: 1.3em;
+        overflow: hidden;
+        cursor: default;
+      }
+      .site-header .area2 .account .logout {
+        height: $sizes_header_height*0.45;
+        line-height: $sizes_header_height*0.45;
+        text-align: right;
+      }
+      .site-header .area2 .account .logout span {
+        font-size: 1.1em;
+        color: #6ea0ad;
+        cursor: pointer;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .account .logout span:hover {
+        color: #7FB8C7;
+        border-bottom: 1px solid #7FB8C7;
+      }
+
+
+
+//---------------------------------------------//
+// 4. Стили фиксированного главного меню слева //
+/*---------------------------------------------//
+Оглавление
+
+  4.1. Общие стили меню
+  4.2. Меню в узком состоянии
+  4.3. Переключатель главного меню в узком состоянии
+  4.4. Стили пункта меню
+  4.5. Стили счётчика пользователей онлайн
+
+//------------------------------------*/
+
+  //-----------------------//
+  // 4.1. Общие стили меню //
+  //-----------------------//
+  .menu {
+    position: fixed;
+    min-height: 100%;
+    left: 0;
+    width: $sizes_mainmenu_width;
+    top: $sizes_header_height;
+    background: $color_mainmenu_bg;
+    z-index: 101;
+    transition: width .5s ease;
+  }
+
+  //-----------------------------//
+  // 4.2. Меню в узком состоянии //
+  //-----------------------------//
+  .menu.menu-hidden {
+    width: $sizes_mainmenu_whidden;
+  }
+
+  //----------------------------------------------------//
+  // 4.3. Переключатель главного меню в узком состоянии //
+  //----------------------------------------------------//
+  .menu .toggle {
+    height: $sizes_mm_toogle_height;
+    background: $color_mm_toogle_bg;
+    text-align: center;
+    line-height: $sizes_mm_toogle_height;
+    font-size: 2.5em;
+    cursor: pointer;
+  }
+  .menu .toggle i {
+    color: #3b535e;
+    display: inline-block;
+    transition: all .5s ease;
+  }
+  .menu .toggle:hover i {
+    color: #557888;
+  }
+  .menu.menu-hidden .toggle i {
+    transform: rotate(180deg);
+  }
+
+  //------------------------//
+  // 4.4. Стили пункта меню //
+  //------------------------//
+
+    // Контейнер главного меню
+    .menu .items {}
+
+    // Пункт главного меню
+    .menu .items .item {
+      height: $sizes_mainmenu_itemh; width: 100%;
+      border-bottom: 1px solid #161f24;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-size: 34px;
+    }
+    .menu:not(.menu-hidden) .items .item:hover {
+      background: #172125 !important;
+    }
+    .menu.menu-hidden .items .item:hover {
+      width: $sizes_mainmenu_width;
+      border-radius: 0 4px 4px 0;
+    }
+
+    // Иконка пункта меню
+    .menu .items .item .item-content .icon {
+      position: absolute;
+      left: 0;
+      width: $sizes_mainmenu_whidden;
+      text-align: center;
+      line-height: $sizes_mainmenu_itemh;
+      font-size: 34px;
+    }
+    .menu .items .item .item-content .icon i {}
+
+    // Стиль выбранного пункта меню
+    .menu .items .item.choosen {
+      color: #59b0db;
+      background: #172125 !important;
+    }
+
+    // Стандартный контент пункта меню
+    .menu .items .item .item-content {
+      margin-left: $sizes_mainmenu_whidden + 5px;
+      font-size: 16px;
+      text-align: left;
+      height: $sizes_mainmenu_itemh;
+      line-height: $sizes_mainmenu_itemh;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    // Контент пунктов меню игр
+    .menu .items .item .item-content .uppart {
+      position: relative;
+      height: $sizes_mainmenu_itemh*0.5;
+      line-height: $sizes_mainmenu_itemh*0.7;
+      font-weight: bold;
+    }
+    .menu .items .item .item-content .uppart .bubblepanel {
+      position: absolute; top: 12px; right: 10px;
+      font-size: 13px;
+      line-height: 17px;
+      border-radius: 5px;
+      padding: 2px 4px;
+      background-color: #f6e444;
+      color: #212f35;
+      transition: all 1s ease;
+    }
+    .menu .items .item .item-content .uppart .bubblepanel.lifted {
+      top: 0px;
+      opacity: 0;
+    }
+    .menu .items .item .item-content .downpart {
+      height: $sizes_mainmenu_itemh*0.5;
+      line-height: $sizes_mainmenu_itemh*0.4;
+      font-size: 13px;
+      padding-right: 10px;
+    }
+    .menu .items .item .item-content .downpart .game-state {
+      color: #9ea7b3;
+    }
+    .menu .items .item .item-content .downpart .game-prize {
+      color: #68adbc;
+      float: right;
+    }
+
+
+
+  //------------------------------------------//
+  // 4.5. Стили счётчика пользователей онлайн //
+  //------------------------------------------//
+
+    // Контейнер счётчика пользователей
+    .menu .users-counter {
+      height: $sizes_mainmenu_itemh/1.5; width: 100%;
+      border-top: 2px solid #2F5463;
+      text-align: center;
+      line-height: $sizes_mainmenu_itemh/1.6;
+      color: #aaa;
+      font-size: 1.1em;
+    }
+
+    // Стили контента при скрытом меню
+    .menu .users-counter .content-menu-hidden {}
+
+    // Стили контента при раскрытом скрытом меню
+    .menu .users-counter .content-menu-not-hidden { }
+
+
+
+//-------------------------------------//
+// 5. Стили фиксированного чата справа //
+/*-------------------------------------//
+Оглавление
+
+  5.1. Общие стили чата
+  5.2. Чат в убранном состоянии
+  5.3. Панель управления чатом
+  5.4. Кнопка раскрытия чата
+  5.5. Стили перенесённого влево чата (при малой ширине браузера)
+  5.6. Стили сообщений в чате
+
+//------------------------------------*/
+
+  //-----------------------//
+  // 5.1. Общие стили чата //
+  //-----------------------//
+  .chat-right-container {
+    position: fixed;
+    right: 0;
+    z-index: 2;
+    height: 100%;
+  }
+  .chat-right-container .chat {
+    left: 100%;
+    margin-left: -$sizes_rightchat_width;
+    width: $sizes_rightchat_width;
+    top: $sizes_header_height;
+    position: fixed;
+    margin-bottom: 35px;
+    background: $color_rightchat_bg;
+    min-height: 100%;
+    height: 100%;
+    z-index: 101;
+    overflow: hidden;
+    transition: all .5s ease;
+  }
+  @media(min-width: 1400px) {
+    .chat-right-container .chat {
+      margin-left: -$sizes_rightchat_width_big;
+      width: $sizes_rightchat_width_big;
+    }
+  }
+
+  //-------------------------------//
+  // 5.2. Чат в убранном состоянии //
+  //-------------------------------//
+  .chat-right-container .chat.hidden-chat {
+    margin-left: 0;
+  }
+
+  //------------------------------//
+  // 5.3. Панель управления чатом //
+  //------------------------------//
+
+    // Общие стили
+    .chat-right-container .controls {
+      height: $sizes_rc_ctrls_height;
+      background: $color_rc_controls_bg;
+      text-align: center;
+      line-height: $sizes_rc_ctrls_height;
+      cursor: pointer;
+      position: relative;
+    }
+
+    // Кнопка сокрытия чата
+    .chat-right-container .controls .hide_chat_button {
+      height: $sizes_rc_ctrls_height;
+      text-align: center;
+      line-height: $sizes_rc_ctrls_height;
+      font-size: 2.5em;
+      cursor: pointer;
+      float: left;
+      margin-left: 7px;
+    }
+    .chat-right-container .controls .hide_chat_button i {
+      color: #3b535e;
+      transition: all .5s ease;
+    }
+    .chat-right-container .controls .hide_chat_button:hover i {
+      color: #557888;
+    }
+
+    // Надпись "Чат" и иконка
+    .chat-right-container .controls .chatheader {
+      position: absolute;
+      left: 35%;
+      display: inline-block;
+      height: $sizes_rc_ctrls_height;
+      text-align: center;
+      padding: 0 45px 0 0;
+      color: #ccc;
+    }
+    .chat-right-container .controls .chatheader i {
+      font-size: 1.7em;
+      vertical-align: middle;
+      margin: 0 5px 0 7px;
+    }
+    .chat-right-container .controls .chatheader span {
+      font-size: 1.3em;
+      vertical-align: middle;
+    }
+
+
+  //----------------------------//
+  // 5.4. Кнопка раскрытия чата //
+  //----------------------------//
+  .chat_right_open {
+    position: fixed;
+    z-index: 1;
+    right: 0; top: 50%;
+    width: 80px;
+    height: 35px;
+    line-height: 35px;
+    margin-top: -17px;
+    background: $color_rcbut_bg;
+    cursor: pointer;
+    transform: rotate(-90deg) translate3d(0,22px,0);
+    border-radius: 4px 4px 0 0;
+    color: $color_rcbut_color;
+    transition: all 1s ease;
+  }
+  .chat_right_open.hidden-chat-button {
+    margin-right: -35px;
+  }
+  .chat_right_open i {
+    font-size: 1.7em;
+    vertical-align: middle;
+    margin: 0 5px 0 7px;
+  }
+  .chat_right_open span {
+    font-size: 1.3em;
+    vertical-align: middle;
+  }
+
+  //-----------------------------------------------------------------//
+  // 5.5. Стили перенесённого влево чата (при малой ширине браузера) //
+  //-----------------------------------------------------------------//
+  .chat-right-container .chat.minimized {
+    height: 280px;
+    bottom: 0;
+    right: inherit;
+    min-height: unset;
+    left: 60px;
+    top: unset;
+    margin-bottom: unset;
+    margin-left: 0;
+    transition: all .5s ease;
+  }
+  .chat-right-container .chat.minimized.min-chat-not-expanded {
+    margin-bottom: -240px;
+  }
+  .chat-right-container .chat.minimized .controls .hide_chat_button {
+    transition: all .5s ease;
+  }
+  .chat-right-container .chat.minimized.min-chat-not-expanded .controls .hide_chat_button {
+    transform: rotate(180deg);
+  }
+  .chat-right-container .chat.minimized .chat-messages {
+    position: relative;
+    height: calc(100% - #{$sizes_rightchat_ctrlh} - #{$sizes_chat_msg_inputheight});
+  }
+
+  //-----------------------------//
+  // 5.6. Стили сообщений в чате //
+  //-----------------------------//
+
+    // Общие и для большого чата
+    .chat-right-container .chat:not(.minimized) .chat-messages {
+      position: relative;
+      height: calc(100% - #{$sizes_header_height} - #{$sizes_rightchat_ctrlh} - #{$sizes_chat_msg_inputheight});
+    }
+    .chat-right-container .chat .chat-messages .ps-scrollbar-y-rail {
+      visibility: hidden;
+    }
+    .chat-right-container .chat .chat-messages .ps-scrollbar-x-rail {
+      visibility: hidden;
+    }
+    .chat-right-container .chat .chat-messages .chat-message {
+      //margin-bottom: 10px;
+      transition: all 0.1s ease;
+      color: #aaa;
+      word-break: break-word;
+      overflow: hidden;
+      margin: 5px;
+      margin-top: 0;
+      box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.1);
+      background-color: $color_rc_msgbg_big;
+    }
+    .chat-right-container .chat .chat-messages .chat-message:first-child {
+      margin-top: 5px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message:hover {
+      color: #ddd;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message {
+      min-height: $sizes_chat_msg_minheight;
+      line-height: 0.9em;
+      font-weight: 400;
+      cursor: default;
+      font-size: 1em;
+      color: #fff;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(1) {
+      color: #59b0db;
+      line-height: 25px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: default;
+      padding-right: 5px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(2) {
+      padding-right: 5px;
+      padding-bottom: 12px;
+      -webkit-transition: all .5s ease;
+      transition: all .5s ease;
+      line-height: 14px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .avatarka {
+      text-align: center;
+      padding-top: 8px;
+      padding-bottom: 5px;
+      vertical-align: top;
+      border-radius: 0 0 6px 0;
+      padding-left: 4px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .avatarka img {
+      width: 34px;
+      height: 34px;
+      max-width: 34px;
+      max-height: 34px;
+      border-radius: 17px;
+    }
+
+    // Компактные стили для малого чата
+    .chat-right-container .chat.minimized .chat-messages .chat-message {
+      box-shadow: none;
+      margin: 0; margin-bottom: 1px;
+      border-bottom: 1px solid $color_rc_min_bord;
+    }
+    .chat-right-container .chat.minimized .chat-messages .chat-message .message {
+      min-height: $sizes_chat_msg_minheight*0.7;
+    }
+    .chat-right-container .chat.minimized .chat-messages .chat-message .message div:nth-child(1) {
+      line-height: 25px;
+    }
+    .chat-right-container .chat.minimized .chat-messages .chat-message .message div:nth-child(2) {
+      padding-bottom: 7px;
+    }
+
+  //--------------------------------------------------------------------//
+  // 5.7. Стили панельки с градиентом прозрачности в верхней части чата //
+  //--------------------------------------------------------------------//
+  .chat-right-container .chat .gradient-panel {
+    position: absolute;
+    top: $sizes_rc_ctrls_height; left: 0;
+    width: 100%;
+    height: $sizes_chat_msg_minheight/2;
+
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#17232a+0,7db9e8+100&1+0,0.01+100 */
+    background: -moz-linear-gradient(top,  $color_rc_controls_bg 0%, rgba(125,185,232,0.01) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, $color_rc_controls_bg 0%,rgba(125,185,232,0.01) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, $color_rc_controls_bg 0%,rgba(125,185,232,0.01) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='$color_rc_controls_bg', endColorstr='#037db9e8',GradientType=0 ); /* IE6-9 */
+
+  }
+
+  //-------------------------------------//
+  // 5.8. Поле для ввода сообщений в чат //
+  //-------------------------------------//
+
+    // Общие стили панели ввода сообщений в чат
+    .chat-right-container .chat .chat-input {
+      position: absolute;
+      left: 0;
+      width: 100%; height: 40px;
+      background: $color_rc_controls_bg;
+    }
+
+    // Стили панели для крупной версии чата
+    .chat-right-container .chat:not(.minimized) .chat-input {
+      top: calc(100% - #{$sizes_header_height} - #{$sizes_chat_msg_inputheight});
+    }
+
+    // Стили панели для мини-версии чата
+    .chat-right-container .chat.minimized .chat-input {
+      top: calc(100% - #{$sizes_chat_msg_inputheight});
+    }
+
+    // Стили кнопки "Send"
+    .chat-right-container .chat .chat-input .send {
+      position: absolute;
+      right: 0; top: 0;
+      width: $sizes_chat_msg_inputheight + 10px;
+      height: $sizes_chat_msg_inputheight;
+      line-height: $sizes_chat_msg_inputheight;
+      text-align: center;
+      font-size: 1.7em;
+      cursor: pointer;
+      border-left: 1px solid $color_rightchat_bg;
+      transition: all .2s ease;
+    }
+    .chat-right-container .chat .chat-input .send i {
+      color: #ddd;
+      transition: all .3s ease;
+    }
+    .chat-right-container .chat .chat-input .send:hover i {
+      color: #269a95;
+    }
+
+    // Стили поля для ввода сообщений
+    .chat-right-container .chat .chat-input input {
+      height: $sizes_chat_msg_inputheight;
+      margin-right: $sizes_chat_msg_inputheight + 10px;
+      background-color: transparent;
+      border: 0;
+      outline: 0;
+      font-size: 1.2em;
+      padding: 0 10px;
+    }
+
+    // Стили сообщения для не аутентиф.пользователей
+    .chat-right-container .chat .chat-input .msg-for-not-auth {
+      text-align: center;
+      line-height: $sizes_chat_msg_inputheight;
+    }
+    .chat-right-container .chat .chat-input .msg-for-not-auth a {
+      cursor: pointer;
+    }
+
+
+
+//-------------------------------------------------------//
+// 6. Стили для контентной области и контентного столбца //
+/*-------------------------------------------------------//
+
+  6.1. Общие стили контентной области
+  6.2. Если левый сайдбар раскрыт
+  6.3. Если правый сайдбар раскрыт
+  6.4. Общие стили контентного столбца
+
+//---------------------------------------*/
+
+  //-------------------------------------//
+  // 6.1. Общие стили контентной области //
+  //-------------------------------------//
+  .content {
+    padding-left: $sizes_mainmenu_whidden;
+    padding-top: $sizes_header_height;
+    padding-right: 0;
+    min-height: 1000px;
+    text-align: center;
+    transition: all .5s ease;
+  }
+
+  //---------------------------------//
+  // 6.2. Если левый сайдбар раскрыт //
+  //---------------------------------//
+  .content.left-sidebar-expanded {
+    padding-left: $sizes_mainmenu_width;
+  }
+
+  //----------------------------------//
+  // 6.3. Если правый сайдбар раскрыт //
+  //----------------------------------//
+  .content.right-sidebar-expanded {
+    padding-right: $sizes_rightchat_width;
+  }
+  @media (min-width: 1400px) {
+    .content.right-sidebar-expanded {
+      padding-right: $sizes_rightchat_width_big;
+    }
+  }
+
+  //--------------------------------------//
+  // 6.4. Общие стили контентного столбца //
+  //--------------------------------------//
+  .content .content-column {
+    position: relative;
+    display: inline-block;
+    width: 860px;
+    min-height: 1000px;
+    text-align: left;
+    //background: #444;
+  }
+
+//-----------------------------//
+// 7. Экран загрузки документа //
+//-----------------------------//
+body {
+  overflow: hidden;
+}
+.start-loading-screen {
+  display: block;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: $color_body_bg;
+  z-index: 99999999;
+  opacity: 1;
+  transition: all 1s ease;
+}
+.start-loading-screen.hide-start-loading-screen {
+  opacity: 0;
+}
+.start-loading-screen.displaynone {
+  display: none;
+}
+.start-loading-screen img {
+  position: absolute;
+  top: 50%;
+  margin-top: -77px;
+  left: calc(50% - 340px);
+  -webkit-animation: loadhorse 1s linear 0s infinite;
+}
+
+//---------------------------------------//
+// 8. Модальный щит загрузки со спинером //
+//---------------------------------------//
+
+  //------------------//
+  // 8.1. Общие стили //
+  //------------------//
+  .content .modal_shield {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #284351;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    justify-content: center;
+    text-align: center;
+    line-height: 250px;
+  }
 
