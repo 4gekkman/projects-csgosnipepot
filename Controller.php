@@ -19,7 +19,7 @@
  * Нестандартные POST-операции
  *
  *                  POST-API1   L10003:1                   Безопасная обёртка для команды логаута
- *                  POST-API1   L10003:2                   Безопасная обёртка для команды постинга в чат
+ *                  POST-API2   L10003:2                   Безопасная обёртка для команды постинга в чат
  *
  *
  *
@@ -196,11 +196,10 @@ class Controller extends BaseController {
         // - Безопасная обёртка для команды постинга в чат
         if($key == 'L10003:2') { try {
 
-          write2log(123, []);
-
           // 1. Выполнить команду
           $result = runcommand('\M10\Commands\C3_clientside_post_to_chat_room', [
             "message" => Input::get('data')['message'],
+            "room"    => "main"
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);

@@ -72,10 +72,14 @@ View::composer('L10003::layout', function($view) {
     // 3] Наполнить $result
     // - Кроме count($parameters) последних значений
     for($i=0; $i<(count($segments) - count($parameters)); $i++) {
-      $result = $result . $segments[$i];
+      $result = $result . $segments[$i] . '/';
     }
 
-    // n] Вернуть результат
+    // 4] Удалить / в конце, но только если $result != '/'
+    if($result != '/')
+      $result = preg_replace("#/$#ui", "", $result);
+
+    // n] Вернуть $result
     return $result;
 
   });
