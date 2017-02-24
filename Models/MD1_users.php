@@ -77,7 +77,7 @@ class MD1_users extends Model {
     public function emailauthcodes() { return $this->belongsToMany('\M5\Models\MD9_emailauthcodes', 'm5.md1011', 'id_user', 'id_code'); }
     public function phoneauthcodes() { return $this->belongsToMany('\M5\Models\MD10_phoneauthcodes', 'm5.md1012', 'id_user', 'id_code'); }
     public function genders() { return $this->belongsTo('\M5\Models\MD11_genders', 'gender', 'id'); }
-    public function m10_rooms() { return $this->belongsToMany('\M10\Models\MD1_rooms', 'm10.md2002', 'id_user', 'id_room'); }
+    public function m10_rooms() { return $this->belongsToMany('\M10\Models\MD1_rooms', 'm10.md2003', 'id_user', 'id_room'); }
     public function m10_messages() { return $this->belongsToMany('\M10\Models\MD2_messages', 'm10.md2001', 'id_user', 'id_message'); }
     public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md2000', 'id_user', 'id_bot'); }
     public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2000', 'id_user', 'id_bet')->withPivot(['tickets_from','tickets_to']); }
