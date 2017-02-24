@@ -173,7 +173,9 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
       }
 
       // 2. Попробовать найти комнату с id_room
-      $room = \M10\Models\MD1_rooms::find($this->data['id_room']);
+      $room = \M10\Models\MD1_rooms::with(['m5_users_md2003'])
+          ->where('id', $this->data['id_room'])
+          ->first();
       if(empty($room))
         throw new \Exception("Can't find the room with ID = ".$this->data['id_room']);
 
@@ -258,20 +260,52 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
       if(!$user->m10_messages->contains($new_message->id))
         $user->m10_messages()->attach($new_message->id);
 
-      // 11. Транслировать сообщение всем клиентам-подписчикам
-      Event::fire(new \R2\Broadcast([
-        'channels' => ['m10:chat_main'],
-        'queue'    => 'chat',
-        'data'     => [
-          'message' => [
-            'id'          => $new_message->id,
-            'steamname'   => $user->nickname,
-            'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
-            'level'       => '1',
-            'message'     => $new_message->message,
-          ]
-        ]
-      ]));
+      // 11. Транслировать сообщение
+
+        // 11.1. Если получатели не указаны, то всем подписчикам через публичный канал
+        if(count($room['m5_users_md2003']) == 0) {
+
+          Event::fire(new \R2\Broadcast([
+            'channels' => ['m10:chat_main'],
+            'queue'    => 'chat',
+            'data'     => [
+              'message' => [
+                'id'          => $new_message->id,
+                'steamname'   => $user->nickname,
+                'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
+                'level'       => '1',
+                'message'     => $new_message->message,
+              ]
+            ]
+          ]));
+
+        }
+
+        // 11.2. Если получатели указаны, то только этим получателям через частный канал
+        else if(count($room['m5_users_md2003']) > 0) {
+          foreach($room['m5_users_md2003'] as $recipient) {
+
+            // 1] Получить ID получателя
+            $id = $recipient['id'];
+
+            // 2] Транслировать данные получателю
+            Event::fire(new \R2\Broadcast([
+              'channels' => ['m10:private:'.$id],
+              'queue'    => 'chat',
+              'data'     => [
+                'message' => [
+                  'id'          => $new_message->id,
+                  'steamname'   => $user->nickname,
+                  'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
+                  'level'       => '1',
+                  'message'     => $new_message->message,
+                ]
+              ]
+            ]));
+
+          }
+        }
+
 
 
     DB::commit(); } catch(\Exception $e) {

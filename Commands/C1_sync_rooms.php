@@ -168,6 +168,8 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
           "*.allow_guests"    => ["required", "regex:/^[01]{1}$/ui"],
           "*.moderator_ids"   => ["r4_defined", "array"],
           "*.moderator_ids.*" => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],
+          "*.recipients"      => ["r4_defined", "array"],
+          "*.recipients.*"    => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],
         ]); if($validator['status'] == -1) {
           throw new \Exception($validator['data']);
         }
@@ -204,13 +206,16 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
           $room2save->max_messages    = $room['max_messages'];
           $room2save->allow_guests    = $room['allow_guests'];
 
-          // 2.3] Назначить комнате модераторов
+          // 2.3] Сохранить $room2save и сделать commit
+          $room2save->save(); DB::commit();
+
+          // 2.4] Назначить комнате модераторов
           foreach($room['moderator_ids'] as $moderator_id) {
 
-            // 2.3.1] Удостовериться, что пользователь с таким ID имеется
+            // 2.4.1] Удостовериться, что пользователь с таким ID имеется
             $user = \M5\Models\MD1_users::withTrashed()->where('id', $moderator_id)->first();
 
-            // 2.3.2] Если такой есть, то назначить его модератором комнаты $room2save, если ещё не назначен
+            // 2.4.2] Если такой есть, то назначить его модератором комнаты $room2save, если ещё не назначен
             if(!empty($user)) {
               if(!$room2save->m5_users->contains($moderator_id))
                 $room2save->m5_users()->attach($moderator_id);
@@ -218,8 +223,19 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
 
           }
 
-          // 2.4] Сохранить $room2save
-          $room2save->save();
+          // 2.5] Назначить комнате получателей
+          foreach($room['recipients'] as $recipient_id) {
+
+            // 2.5.1] Удостовериться, что пользователь с таким ID имеется
+            $user = \M5\Models\MD1_users::withTrashed()->where('id', $recipient_id)->first();
+
+            // 2.5.2] Если такой есть, то назначить его получателем сообщений из комнаты $room2save, если ещё не назначен
+            if(!empty($user)) {
+              if(!$room2save->m5_users_md2003->contains($recipient_id))
+                $room2save->m5_users_md2003()->attach($recipient_id);
+            }
+
+          }
 
         }
 
@@ -237,16 +253,19 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
           $room2save->max_messages    = $room['max_messages'];
           $room2save->allow_guests    = $room['allow_guests'];
 
-          // 3.3] Отвязать всех модераторов от комнаты
+          // 3.3] Сохранить $room2save и сделать commit
+          $room2save->save(); DB::commit();
+
+          // 3.4] Отвязать всех модераторов от комнаты
           $room2save->m5_users()->detach();
 
-          // 3.4] Назначить комнате модераторов
+          // 3.5] Назначить комнате модераторов
           foreach($room['moderator_ids'] as $moderator_id) {
 
-            // 3.4.1] Удостовериться, что пользователь с таким ID имеется
+            // 3.5.1] Удостовериться, что пользователь с таким ID имеется
             $user = \M5\Models\MD1_users::withTrashed()->where('id', $moderator_id)->first();
 
-            // 3.4.2] Если такой есть, то назначить его модератором комнаты $room2save, если ещё не назначен
+            // 3.5.2] Если такой есть, то назначить его модератором комнаты $room2save, если ещё не назначен
             if(!empty($user)) {
               if(!$room2save->m5_users->contains($moderator_id))
                 $room2save->m5_users()->attach($moderator_id);
@@ -254,8 +273,19 @@ class C1_sync_rooms extends Job { // TODO: добавить "implements ShouldQu
 
           }
 
-          // 3.5] Сохранить $room2save
-          $room2save->save();
+          // 3.6] Назначить комнате получателей
+          foreach($room['recipients'] as $recipient_id) {
+
+            // 3.6.1] Удостовериться, что пользователь с таким ID имеется
+            $user = \M5\Models\MD1_users::withTrashed()->where('id', $recipient_id)->first();
+
+            // 3.6.2] Если такой есть, то назначить его получателем сообщений из комнаты $room2save, если ещё не назначен
+            if(!empty($user)) {
+              if(!$room2save->m5_users_md2003->contains($recipient_id))
+                $room2save->m5_users_md2003()->attach($recipient_id);
+            }
+
+          }
 
         }
 

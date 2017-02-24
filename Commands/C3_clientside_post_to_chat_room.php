@@ -15,6 +15,7 @@
  *    [
  *      "data" => [
  *        message
+ *        room
  *      ]
  *    ]
  *
@@ -159,15 +160,16 @@ class C3_clientside_post_to_chat_room extends Job { // TODO: добавить "i
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
         "message"         => ["required", "string"],
+        "room"            => ["required", "string"],
       ]); if($validator['status'] == -1) {
         throw new \Exception("There is no message.");
       }
 
-      // 2. Получить комнату с именем "main"
-      $room = \M10\Models\MD1_rooms::where('name', 'main')->first();
+      // 2. Получить комнату с именем $this->data['room']
+      $room = \M10\Models\MD1_rooms::where('name', $this->data['room'])->first();
       if(empty($room))
       if(empty($room))
-        throw new \Exception("Can't find the room with NAME = 'main'");
+        throw new \Exception("Can't find the room with NAME = '".$this->data['room']."'");
 
       // 3. Выполнить C2_add_message_to_the_room от имени вызвавшего эту команду пользователя
       $result = runcommand('\M10\Commands\C2_add_message_to_the_room', [

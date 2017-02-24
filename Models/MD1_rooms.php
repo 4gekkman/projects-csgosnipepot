@@ -71,6 +71,7 @@ class MD1_rooms extends Model {
     public function messages() { return $this->belongsToMany('\M10\Models\MD2_messages', 'm10.md1000', 'id_room', 'id_message'); }
     public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm10.md2000', 'id_room', 'id_user'); }
     public function m5_users_md2002() { return $this->belongsToMany('\M5\Models\MD1_users', 'm10.md2002', 'id_room', 'id_user'); }
+    public function m5_users_md2003() { return $this->belongsToMany('\M5\Models\MD1_users', 'm10.md2003', 'id_room', 'id_user'); }
     // relationships stop
 
 
