@@ -47,16 +47,185 @@
 <!--------------------------->
 Оглавление
 
+  1. Контейнер ЕСУБ
+    1.1. Шапка
+    1.2. Контент ЕСУБ
 
-
+      1.2.1. Главный интерфейс документа
 
 
 -------------------------*/ ?>
 @section('content')
+<?php /*-------------------------->
+<!-- Контентный столбец (860px) -->
+<!----------------------------*/ ?> <div class="content-column">
+<div class="botnet">
 
-  Контент документа
+  <?php /*----------------->
+  <!-- 1. Контейнер ЕСУБ -->
+  <!-------------------*/ ?>
+  <div class="botnet-container">
 
-@stop
+    <?php /*---------->
+    <!-- 1.1. Шапка -->
+    <!------------*/ ?>
+    <div class="header">
+
+      <?php /*------------>
+      <!-- 1] Заголовок -->
+      <!--------------*/ ?>
+      <div class="logo_and_name">
+        <i class="mdi mdi-robot"></i>
+        <span>Единая система управления ботами</span>
+      </div>
+
+    </div>
+
+    <?php /*------------------------------>
+    <!-- A. Главный интерфейс документа -->
+    <!--------------------------------*/ ?>
+    <div class="botnet-content"><table class="botnet-table"><tbody><tr>
+
+      <?php /*----------------->
+      <!-- A1. Боты и задачи -->
+      <!-------------------*/ ?>
+      <td class="left-part">
+        Боты и задачи
+      </td>
+
+      <?php /*-------------------->
+      <!-- A2. Группы и фильтры -->
+      <!----------------------*/ ?>
+      <td class="right-part">
+
+        <?php /*------------------------------------->
+        <!-- A2.1. Интерфейс создания новой группы -->
+        <!---------------------------------------*/ ?>
+        <div class="newgroup-cont">
+
+          <?php /*--------------------------------------------------->
+          <!-- A2.1.1. Кнопка "Новая группа" в правом верхнем углу -->
+          <!-----------------------------------------------------*/ ?>
+          <div style="display: none" class="new-group-button-cont" data-bind="visible: !$root.m.s1.groups.new.ison()">
+            <div class="new-group-button">
+              <span>Новая группа</span>
+            </div>
+          </div>
+
+          <?php /*--------------------------------------->
+          <!-- A2.1.2. Интерфейс создания новой группы -->
+          <!-----------------------------------------*/ ?>
+          <div style="display: none" data-bind="visible: $root.m.s1.groups.new.ison">
+
+            Интерфейс создания новой группы
+
+          </div>
+
+        </div>
+
+        <?php /*------------------------->
+        <!-- A2.2. Перманентные группы -->
+        <!---------------------------*/ ?>
+        <div class="pg-cont">
+
+          <?php /*--------------------------------->
+          <!-- A2.2.1. Список перманентных групп -->
+          <!-----------------------------------*/ ?>
+          <div class="pg-list" data-bind="foreach: m.s1.groups.permanent.list">
+
+            <?php /*------------------->
+            <!-- Перманентная группа -->
+            <!---------------------*/ ?>
+            <div class="permanent-group" data-bind="click: $root.f.s1.choose_group, css: {choosen: $root.m.s1.groups.choosen().permanent && $root.m.s1.groups.choosen().permanent() && $data.id() == $root.m.s1.groups.choosen().id()}">
+              <span data-bind="text: name"></span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <?php /*--------------------------->
+        <!-- A2.3. Группы из базы данных -->
+        <!-----------------------------*/ ?>
+        <div class="bd-list" data-bind="foreach: m.s1.groups.variable.list">
+
+          <?php /*--------------------->
+          <!-- Группа из базы данных -->
+          <!-----------------------*/ ?>
+          <div class="bd-group" data-bind="click: $root.f.s1.choose_group, css: {choosen: !$root.m.s1.groups.choosen().permanent && $data.id() == $root.m.s1.groups.choosen().id()}">
+
+            <?php /*------------------------------>
+            <!-- 1] Содержимое в обычном режиме -->
+            <!--------------------------------*/ ?>
+            <div style="display: none" data-bind="visible: !$root.m.s1.groups.rename.group() || $root.m.s1.groups.rename.group().id() != id()">
+
+              <?php /*---------->
+              <!-- Имя группы -->
+              <!------------*/ ?>
+              <div class="group-name">
+                <span data-bind="text: name"></span>
+              </div>
+
+              <?php /*--------------->
+              <!-- Блок управления -->
+              <!-----------------*/ ?>
+              <div class="controls">
+                <i class="mdi mdi-rename-box rename" title="Переименовать" data-bind="click: $root.f.s1.turnon_rename_group_mode"></i>
+                <i class="mdi mdi-delete-empty delete" title="Удалить"></i>
+              </div>
+
+            </div>
+
+            <?php /*------------------------------------->
+            <!-- 2] Содержимое в режиме переименования -->
+            <!---------------------------------------*/ ?>
+            <div style="display: none" data-bind="visible: $root.m.s1.groups.rename.group() && $root.m.s1.groups.rename.group().id() == id()">
+
+              <?php /*------------------------------->
+              <!-- Input для переименования группы -->
+              <!---------------------------------*/ ?>
+              <input type="text" data-bind="textInput: $root.m.s1.groups.rename.input, attr: {id: 'rename_input_of_db_group_'+id()}">
+
+              <?php /*--------------->
+              <!-- Блок управления -->
+              <!-----------------*/ ?>
+              <div class="controls renamemode">
+                <i class="mdi mdi-check apply" title="Подтвердить переименование" data-bind="click: $root.f.s1.apply_group_rename"></i>
+                <i class="mdi mdi-close cancel" title="Отменить переименование" data-bind="click: $root.f.s1.cancel_group_rename"></i>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <?php /*------------->
+        <!-- A2.4. Фильтры -->
+        <!---------------*/ ?>
+        <div class="filters">
+
+          <?php /*------------------------->
+          <!-- A2.4.1. Фильтры для групп -->
+          <!---------------------------*/ ?>
+          <div class="bot-filters" data-bind="foreach: m.s1.filters.list">
+            <label>
+              <input type="checkbox" data-bind="checked: value">
+              <span data-bind="text: name"></span>
+            </label>
+          </div>
+
+        </div>
+
+
+      </td>
+
+    </tr></tbody></table></div>
+
+  </div>
+
+</div>
+</div>@stop
 
 
 

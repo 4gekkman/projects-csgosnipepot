@@ -6,14 +6,331 @@
 // Оглавление //
 //------------//
 
-  1. ...
-
+  1. Переменные стилей ЕСУБ
+  2. Общие стили ЕСУБ
+  3. Стили шапки ЕСУБ
+  4. Стили контента ЕСУБ
+    4.1. Общие стили контента ЕСУБ
+    4.2. Стили главного интерфейса ЕСУБ
+      4.2.1. Общие стили главного интерфейса ЕСУБ
+      4.2.2. Стили перманентных групп главного интерфейса ЕСУБ
+      4.2.3. Стили групп из БД главного интерфейса ЕСУБ
+      4.2.4. Стили групп из БД главного интерфейса ЕСУБ
+      4.2.5. Стили фильтров
+      4.2.6. Стили интерфейса создания новой группы
 
 //------------------------------//
 // Стили //
 //-------*/
 
-// 1. ...
+  //---------------------------//
+  // 1. Переменные стилей ЕСУБ //
+  //---------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $botnet_main_color: #212f35;            // Главный цвет
+      $botnet_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $botnet_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $botnet_color_header_height: 50px;      // Высота шапки
+
+
+  //---------------------//
+  // 2. Общие стили ЕСУБ //
+  //---------------------//
+
+    // Внешний контейнер
+    .content .botnet {
+
+    }
+
+    // Внутренний контейнер
+    .content .botnet .botnet-container {
+      margin-top: 20px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //---------------------//
+  // 3. Стили шапки ЕСУБ //
+  //---------------------//
+
+    // Общие стили шапки классической игры
+    .content .botnet .botnet-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $botnet_color_header_height;
+    }
+
+    // Заголовок
+    .content .botnet .botnet-container .header .logo_and_name {
+      position: absolute; left: 0; faq: 0;
+      height: $botnet_color_header_height;
+      line-height: $botnet_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .botnet .botnet-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .botnet .botnet-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //------------------------//
+  // 4. Стили контента ЕСУБ //
+  //------------------------//
+
+    //--------------------------------//
+    // 4.1. Общие стили контента ЕСУБ //
+    //--------------------------------//
+
+       // Стили контейнера контента
+      .content .botnet .botnet-container .botnet-content {
+        position: relative;
+        min-height: 250px;
+        color: #ddd;
+        font-size: 1.3em;
+        //background: #fff;
+      }
+
+    //-------------------------------------//
+    // 4.2. Стили главного интерфейса ЕСУБ //
+    //-------------------------------------//
+
+      //---------------------------------------------//
+      // 4.2.1. Общие стили главного интерфейса ЕСУБ //
+      //---------------------------------------------//
+
+        // Стили контентной таблицы
+        .content .botnet .botnet-container .botnet-content .botnet-table {
+          border-collapse: collapse;
+          width: 100%;
+          min-height: 250px;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table>tbody {
+          display: table-row-group;
+          vertical-align: middle;
+          border-color: inherit;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table>tbody>tr {
+          display: table-row;
+          vertical-align: inherit;
+          border-color: inherit;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table>tbody>tr>td {
+          display: table-cell;
+        }
+
+        // Общие стили левой колонки
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part {
+          border-right: 2px solid darken(#284351, 2%);
+          vertical-align: top;
+        }
+
+        // Общие стили правой колонки
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part {
+          width: 250px;
+          overflow: hidden;
+          vertical-align: top;
+        }
+
+      //----------------------------------------------------------//
+      // 4.2.2. Стили перманентных групп главного интерфейса ЕСУБ //
+      //----------------------------------------------------------//
+
+        // Общие стили перманентных групп
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .pg-cont {
+          border-top: 2px solid #253d4a;
+          border-bottom: 2px solid #253d4a;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .pg-cont .pg-list {
+          position: relative;
+        }
+
+        // Стили перманентной группы
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .pg-cont .pg-list .permanent-group {
+          height: 40px;
+          line-height: 39px;
+          padding: 0 15px;
+          cursor: default;
+          user-select: none;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .pg-cont .pg-list .permanent-group:hover {
+          background: #253d4a;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .pg-cont .pg-list .permanent-group.choosen {
+          background: #253d4a;
+        }
+
+      //---------------------------------------------------//
+      // 4.2.4. Стили групп из БД главного интерфейса ЕСУБ //
+      //---------------------------------------------------//
+
+        // Общие стили перманентных групп
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list {
+          position: relative;
+        }
+
+        // Стили группы из БД
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group {
+          position: relative;
+          height: 40px;
+          line-height: 39px;
+          padding: 0 15px;
+          cursor: default;
+          user-select: none;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group:hover {
+          background: #253d4a;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group.choosen {
+          background: #253d4a;
+        }
+
+        // Стили блока управления
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls {
+          position: absolute; top: 0; right: 15px;
+          height: 100%;
+          display: none;
+          color: #fff;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group:hover .controls {
+          display: block;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i {
+          opacity: .3;
+          transition: all .2s ease;
+          cursor: pointer;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i.rename:hover {
+          color: #ddd04d;
+          opacity: .8;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i.delete:hover {
+          color: #dd3b35;
+          opacity: .8;
+        }
+
+        // Стили input'а переименования
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group input {
+          width: 100%;
+          height: 39px;
+          line-height: 39px;
+          outline: 0;
+          padding: 0 40px 0 0;
+          border: 0;
+          background: transparent;
+          color: #55afdd;
+        }
+
+        // Стили блока управления в режиме переименования
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls.renamemode {
+          display: block;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i.apply {
+          color: #00bc00;
+          opacity: .8;
+          transition: all .5s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i.apply:hover {
+          font-size: 1.3em;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i.cancel {
+          color: #dd3b35;
+          opacity: .8;
+          transition: all .5s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .bd-list .bd-group .controls i.cancel:hover {
+          font-size: 1.3em;
+        }
+
+      //-----------------------//
+      // 4.2.5. Стили фильтров //
+      //-----------------------//
+
+        // Общие стили фильтров
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .filters {
+          position: relative;
+          background: #183440;
+          padding: 15px;
+        }
+
+        // Фильтры ботов
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .filters .bot-filters {
+          font-size: .8em;
+          color: #ccc;
+          transition: all .3s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .filters .bot-filters label {
+          display: block;
+          user-select: none;
+          transition: all .3s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .filters .bot-filters label:hover {
+          color: #fff;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .filters .bot-filters label input[type=checkbox] {
+          vertical-align: middle;
+          outline: 0;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .filters .bot-filters label span {
+          vertical-align: middle;
+          padding-left: 3px;
+        }
+
+      //-------------------------------------------------//
+      // 4.2.6. Стили интерфейса создания новой группы   //
+      //-------------------------------------------------//
+
+        // Общие стили интерфейса создания новой группы
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .newgroup-cont {
+          position: relative;
+          height: 40px;
+        }
+
+        // Стили кнопки "Новая группа" в правом верхнем углу
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .newgroup-cont .new-group-button-cont {
+          padding-top: 4px;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .newgroup-cont .new-group-button-cont .new-group-button {
+          border-radius: 5px;
+          margin: 0 15px;
+          background-color: transparent;
+          border: 2px solid #55afdd;
+          color: #55afdd;
+          padding: 0 10px;
+          height: 32px;
+          cursor: pointer;
+          text-align: center;
+          transition: all .5s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .newgroup-cont .new-group-button-cont .new-group-button:hover {
+          background: #55afdd;
+          color: #fff;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .right-part .newgroup-cont .new-group-button-cont .new-group-button span {
+          vertical-align: middle;
+        }
+
 
 
 

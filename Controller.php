@@ -19,7 +19,7 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   D10011:1              (v)      Описание
+ *                  POST-API1   D10011:1              (v)      Переименовать группу
  *                  POST-API2   D10011:2              (v)      Описание
  *
  *
@@ -112,7 +112,9 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. ...
+      // 1. Получить все группы ботов из базы данных
+      $groups = \M8\Models\MD7_groups::all();
+
 
 
       // N. Вернуть клиенту представление и данные $data
@@ -124,6 +126,7 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
+        'groups'                => $groups
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -206,12 +209,20 @@ class Controller extends BaseController {
       // - А в $key прислать ключ-код номер операции.
       if(!empty($key) && empty($command)) {
 
-        //-----------------------------//
+        //---------------------------------//
         // Нестандартная операция D10011:1 //
-        //-----------------------------//
+        //---------------------------------//
+        // - Переименовать группу
         if($key == 'D10011:1') {
 
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
 
+          // 2. Выполнить команду
+          $result = runcommand('\M8\Commands\C34_rename_group', $data);
+
+          // n. Вернуть результаты
+          return $result;
 
         }
 
