@@ -224,7 +224,6 @@ class Controller extends BaseController {
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
 
-
   } // конец getIndex()
 
 
