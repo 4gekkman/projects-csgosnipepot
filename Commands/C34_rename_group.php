@@ -7,14 +7,15 @@
 /**
  *  Что делает
  *  ----------
- *    - Get bots list
+ *    - Rename the group
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id
+ *        name
  *      ]
  *    ]
  *
@@ -101,7 +102,7 @@
 //---------//
 // Команда //
 //---------//
-class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C34_rename_group extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,63 +136,48 @@ class C1_bots extends Job { // TODO: добавить "implements ShouldQueue" -
     /**
      * Оглавление
      *
-     *  1. Получить всех не удалённых ботов и включённых ботов
-     *  n. Вернуть результаты
+     *  1. Провести валидацию входящих параметров
+     *  2. Попробовать найти группу с name
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------//
-    // Получить всех ботов //
-    //---------------------//
-    $res = call_user_func(function() { try {
+    //------------------//
+    // Rename the group //
+    //------------------//
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить всех включенных ботов
-      $bots = \M8\Models\MD1_bots::query()->get();
-      if(empty($bots))
-        $bots = collect([]);
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
+        "id"              => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "name"            => ["required", "string"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
+      }
 
-      // --- старый код ---
+      // 2. Попробовать найти группу с name, если такая есть, вернуть ошибку
+      $group_with_name = \M8\Models\MD7_groups::where('name', $this->data['name'])->first();
+      if(!empty($group_with_name))
+        throw new \Exception('1');
 
-      // 1. Выполнить синхронизацию ботов с пользователями, и наоборот
-      //$result = runcommand('\M8\Commands\C2_sync');
-      //if($result['status'] != 0)
-      //  throw new \Exception($result['data']);
+      // 3. Переименовать группу
 
-      // 2. Получить всех ботов
-      // $bots = \M8\Models\MD1_bots::query()->get();
-      // if(empty($bots)) $bots = collect([]);
+        // 1] Получить группу
+        $group = \M8\Models\MD7_groups::where('id', $this->data['id'])->first();
+        if(!empty($group_with_name))
+          throw new \Exception('2');
 
-      // 3. Добавить ботам некоторые поля из m5_users, удалить из $bots поле m5_users
-      //foreach($bots as &$bot) {
-      //
-      //  // 3.1. Добавить ботам некоторые поля из m5_users
-      //  $bot->id_user = $bot->m5_users[0]->id;
-      //  $bot->steam_name = $bot->m5_users[0]->nickname;
-      //  $bot->id_steam = $bot->m5_users[0]->ha_provider_uid;
-      //  $bot->avatar_steam = $bot->m5_users[0]->avatar_steam;
-      //
-      //  // 3.2. Удалить из $bots поле m5_users
-      //  unset($bot->m5_users);
-      //
-      //}
-
-      // n. Вернуть результаты
-      return [
-        "status"  => 0,
-        "data"    => [
-          "bots"          => $bots,
-          "bots_total"    => $bots->count()
-        ]
-      ];
+        // 2] Переименовать
+        $group->name = $this->data['name'];
+        $group->save();
 
 
-    } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_bots from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    DB::commit(); } catch(\Exception $e) {
+        $errortext = 'Invoking of command C34_rename_group from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C1_bots']);
+        write2log($errortext, ['M8', 'C34_rename_group']);
         return [
           "status"  => -2,
           "data"    => [

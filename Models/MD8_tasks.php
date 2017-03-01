@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD2_items extends Model {
+class MD8_tasks extends Model {
 
   /**
    *
@@ -49,7 +49,7 @@ class MD2_items extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm8.md2_items';
+  protected $table = 'm8.md8_tasks';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
@@ -60,6 +60,7 @@ class MD2_items extends Model {
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
+    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//
@@ -67,13 +68,7 @@ class MD2_items extends Model {
   //------------------//
 
     // relationships start
-    public function exteriors() { return $this->belongsToMany('\M8\Models\MD3_exteriors', 'm8.md1000', 'id_item', 'id_exterior'); }
-    public function knife_types() { return $this->belongsToMany('\M8\Models\MD4_knife_types', 'm8.md1001', 'id_item', 'id_knife_type'); }
-    public function weapon_models() { return $this->belongsToMany('\M8\Models\MD5_weapon_models', 'm8.md1002', 'id_item', 'id_weapon_model'); }
-    public function bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md1003', 'id_item', 'id_bot'); }
-    public function trades() { return $this->belongsToMany('\M8\Models\MD9_trades', 'm8.md1010', 'id_item', 'id_trade')->withPivot(['price','assetid_bot','assetid_partner']); }
-    public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2001', 'id_item', 'id_bet')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
-    public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2006', 'id_item', 'id_win')->withPivot(['price','assetid']); }
+    public function groups() { return $this->belongsToMany('\M8\Models\MD7_groups', 'm8.md1005', 'id_task', 'id_group'); }
     // relationships stop
 
 

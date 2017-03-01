@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD2_items extends Model {
+class MD9_trades extends Model {
 
   /**
    *
@@ -49,7 +49,7 @@ class MD2_items extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm8.md2_items';
+  protected $table = 'm8.md9_trades';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
@@ -67,13 +67,9 @@ class MD2_items extends Model {
   //------------------//
 
     // relationships start
-    public function exteriors() { return $this->belongsToMany('\M8\Models\MD3_exteriors', 'm8.md1000', 'id_item', 'id_exterior'); }
-    public function knife_types() { return $this->belongsToMany('\M8\Models\MD4_knife_types', 'm8.md1001', 'id_item', 'id_knife_type'); }
-    public function weapon_models() { return $this->belongsToMany('\M8\Models\MD5_weapon_models', 'm8.md1002', 'id_item', 'id_weapon_model'); }
-    public function bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md1003', 'id_item', 'id_bot'); }
-    public function trades() { return $this->belongsToMany('\M8\Models\MD9_trades', 'm8.md1010', 'id_item', 'id_trade')->withPivot(['price','assetid_bot','assetid_partner']); }
-    public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2001', 'id_item', 'id_bet')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
-    public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2006', 'id_item', 'id_win')->withPivot(['price','assetid']); }
+    public function bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md1007', 'id_trade', 'id_bot'); }
+    public function trades_statuses() { return $this->belongsToMany('\M8\Models\MD10_trades_statuses', 'm8.md1008', 'id_trade', 'id_trade_status'); }
+    public function items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm8.md1010', 'id_trade', 'id_item')->withPivot(['price','assetid_bot','assetid_partner']); }
     // relationships stop
 
 
