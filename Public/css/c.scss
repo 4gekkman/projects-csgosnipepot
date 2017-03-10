@@ -19,6 +19,7 @@
   6. Стили для контентной области и контентного столбца
   7. Экран загрузки документа
   8. Модальный щит загрузки со спинером
+  9. Интерфейс "Пополнение баланса"
 
 
 ////------------------------------////
@@ -452,6 +453,7 @@
       position: absolute; top: 0; right: 0; left: $sizes_mainmenu_width;
       height: 100%;
       text-align: right;
+      font-size: 0;
     }
 
     // 3.3.2. Кнопка "Log in"
@@ -461,7 +463,7 @@
       line-height: $sizes_header_height*0.7;
       margin: $sizes_header_height*0.15 10px;
       padding: 0 $sizes_header_height*0.3;
-      font-size: 1.3em;
+      font-size: 16px;
       border: 1px solid #ccc;
       color: #ccc;
       border-radius: 4px;
@@ -474,24 +476,51 @@
     }
 
     // 3.3.3. Управление звуком
-    .site-header .area2 .soundcontrol_guest {
-      display: inline-block; vertical-align: middle;
-      height: $sizes_header_height;
-      line-height: $sizes_header_height - 12px;
-      font-size: 2em;
-      margin-right: 15px;
-      color: #ccc;
-      transition: all .2s ease;
-    }
-    .site-header .area2 .soundcontrol_guest img {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-    }
-    .site-header .area2 .soundcontrol_guest:hover {
-      color: #fff;
-    }
+
+      // Стили для гостя
+      .site-header .area2 .soundcontrol_guest {
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        line-height: $sizes_header_height - 12px;
+        font-size: 2em;
+        margin-right: 15px;
+        color: #ccc;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .soundcontrol_guest img {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        transition: all .5s ease;
+      }
+      .site-header .area2 .soundcontrol_guest:hover {
+        color: #fff;
+      }
+
+      // Стили для аутентифицированного пользователя soundcontrol_authuser
+      .site-header .area2 .soundcontrol_authuser {
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        line-height: $sizes_header_height - 12px;
+        font-size: 2em;
+        padding-right: 15px;
+        padding-left: 15px;
+        color: #ccc;
+        border-left: 1px solid #444;
+        background: transparent;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .soundcontrol_authuser img {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        transition: all .5s ease;
+      }
+      .site-header .area2 .soundcontrol_authuser:hover {
+        color: #fff;
+      }
 
     // 3.3.4. Информация об аккаунте аутентифицированного пользователя
 
@@ -501,6 +530,8 @@
         display: inline-block; vertical-align: middle;
         height: $sizes_header_height;
         max-width: 300px;
+        font-size: 13px;
+        border-left: 1px solid #444;
       }
 
       // Аватар
@@ -519,7 +550,6 @@
         height: $sizes_header_height;
         margin-right: $sizes_header_height + 20px + 5px;
         padding-left: 20px;
-        border-left: 1px solid #444;
       }
       .site-header .area2 .account .nickname {
         height: $sizes_header_height*0.55;
@@ -544,6 +574,57 @@
       .site-header .area2 .account .logout span:hover {
         color: #7FB8C7;
         border-bottom: 1px solid #7FB8C7;
+      }
+
+    // 3.3.5. Баланс аутентифицированного пользователя
+
+      // Общие стили
+      .site-header .area2 .balance {
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        line-height: $sizes_header_height;
+        padding-right: 15px;
+        padding-left: 15px;
+        color: #ccc;
+        font-size: 16px;
+        cursor: pointer;
+        background: transparent;
+        user-select: none;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .balance:hover {
+        background: #2e6234;
+      }
+
+      // Надпись "Ваши монеты"
+      .site-header .area2 .balance .youcoins_span {
+        vertical-align: middle;
+        font-size: 1.3em;
+        padding-right: 10px;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .balance:hover .youcoins_span {
+        color: #fff;
+      }
+
+      // Баланс пользователя
+      .site-header .area2 .balance .yourcoins_balance {
+        vertical-align: middle;
+        font-size: 1.3em;
+        padding-right: 10px;
+        color: #f59c1a;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .balance:hover .yourcoins_balance {
+        color: #ff9700;
+      }
+
+      // Иконка с монетами
+      .site-header .area2 .balance img {
+        display: inline-block;
+        vertical-align: middle;
+        max-width: 32px;
+        max-height: 32px;
       }
 
 
@@ -835,7 +916,10 @@
     transform: rotate(-90deg) translate3d(0,22px,0);
     border-radius: 4px 4px 0 0;
     color: $color_rcbut_color;
-    transition: all 1s ease;
+    transition: margin-right 1s ease, color .2s ease;
+  }
+  .chat_right_open:hover {
+    color: #f59c1a;
   }
   .chat_right_open.hidden-chat-button {
     margin-right: -35px;
@@ -1155,6 +1239,268 @@ body {
     line-height: 250px;
   }
 
+//-----------------------------------//
+// 9. Интерфейс "Пополнение баланса" //
+//-----------------------------------//
+
+  //----------------------------//
+  // 9.1. Стили модального щита //
+  //----------------------------//
+  .fade-shield {
+    background: rgba(50, 50, 50, 0.75);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  //-----------------------------------------//
+  // 9.2. Стили окна выбора способа депозита //
+  //-----------------------------------------//
+
+    //-----------------------------------------------//
+    // 9.2.1. Прозрачный модальный щит на весь экран //
+    //-----------------------------------------------//
+    .deposit-window-cont {
+      background: transparent;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 440px;
+      text-align: center;
+    }
+
+    //------------------------------------//
+    // 9.2.2. Общие стили модального окна //
+    //------------------------------------//
+    .deposit-window-cont .deposit-window {
+      position: absolute;
+      top: calc(50% - 200px);
+      left: calc(50% - 430px);
+      display: inline-block;
+      width: 860px;
+      height: 400px;
+      background-color: rgba(30, 40, 50, 0.95);
+      box-shadow: 0 17px 53px 12px rgba(12, 19, 25, 0.76);
+      border-radius: 4px;
+    }
+
+    //----------------------------------------//
+    // 9.2.3. Стили заголовка модального окна //
+    //----------------------------------------//
+
+      // Общие стили
+      .deposit-window-cont .deposit-window .header {
+        position: relative;
+        background: #192429;
+        height: 55px;
+        text-align: left;
+      }
+
+      // Стили надписи-заголовка
+      .deposit-window-cont .deposit-window .header .header-text {
+        font-size: 25px;
+        padding-left: 15px;
+        color: #fff;
+        line-height: 55px;
+      }
+
+      // Кнопка "закрыть"
+      .deposit-window-cont .deposit-window .header i {
+        position: absolute;
+        top: 14px;
+        right: 8px;
+        font-size: 25px;
+        line-height: 28px;
+        color: lighten(#1b2934, 10%);
+        cursor: pointer;
+        transition: all .3s ease;
+      }
+      .deposit-window-cont .deposit-window .header i:hover {
+        color: #fff;
+      }
+
+      // Размер баланса аутентифицированного пользователя
+      .deposit-window-cont .deposit-window .header .header-balance {
+        float: right;
+        font-size: 20px;
+        font-weight: 600;
+        color: #d1ff78;
+        line-height: 55px;
+        padding-right: 55px;
+      }
+
+      // Надпись "Баланс"
+      .deposit-window-cont .deposit-window .header .header-balance-text {
+        float: right;
+        font-size: 20px;
+        line-height: 55px;
+        padding-right: 10px;
+      }
+
+    //------------------------------------------//
+    // 9.2.4. Стили содержимого модального окна //
+    //------------------------------------------//
+
+      // Общие стили
+      .deposit-window-cont .deposit-window .mw-content {
+        height: 345px;
+        text-align: left;
+      }
+      .deposit-window-cont .deposit-window .mw-content {
+        border-collapse: collapse;
+        width: 100%;
+        min-height: 345px;
+      }
+      .deposit-window-cont .deposit-window .mw-content>tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+      }
+      .deposit-window-cont .deposit-window .mw-content>tbody>tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+      }
+      .deposit-window-cont .deposit-window .mw-content>tbody>tr>td {
+        display: table-cell;
+      }
+
+      // Картинка и заголовок кажодго из разделов
+      .deposit-window-cont .deposit-window .mw-content .img_and_header {
+        height: 80px;
+      }
+      .deposit-window-cont .deposit-window .mw-content .img_and_header .img {
+        display: inline-block;
+        position: relative;
+        width: 110px;
+        vertical-align: middle;
+      }
+      .deposit-window-cont .deposit-window .mw-content .img_and_header .img img {
+        max-width: 100%;
+      }
+      .deposit-window-cont .deposit-window .mw-content .img_and_header .h-part {
+        display: inline-block;
+        position: relative;
+        width: 150px;
+        padding-left: 5px;
+        font-weight: 700;
+        vertical-align: top;
+        font-size: 1.2em;
+      }
+
+      // Кнопка "Пополнить"
+      .deposit-window-cont .deposit-window .mw-content .deposit-button-cont {
+        position: absolute; bottom: 0; left: 0;
+        width: 100%; height: 54px;
+        text-align: center;
+      }
+      .deposit-window-cont .deposit-window .mw-content .deposit-button-cont .deposit-button {
+        display: inline-block;
+        width: 193px;
+        height: 44px;
+        background: #2483D0;
+        border-radius: 3px;
+        border: none;
+        margin-bottom: 10px;
+        font-size: 17px;
+        color: #fff;
+        transition: all .3s ease;
+      }
+      .deposit-window-cont .deposit-window .mw-content .deposit-button-cont .deposit-button:hover {
+        background: lighten(#2483D0, 5%);
+      }
+      .deposit-window-cont .deposit-window .mw-content .deposit-button-cont .deposit-button.disabled:focus {
+        outline: none;
+      }
+      .deposit-window-cont .deposit-window .mw-content .deposit-button-cont .deposit-button.disabled {
+        background: #6b7076;
+        cursor: default;
+      }
+
+      // Основной текст
+      .deposit-window-cont .deposit-window .mw-content .main-text {
+        font-size: 1.13em;
+        line-height: 1.3em;
+        padding-bottom: 25px;
+        padding-right: 20px;
+        padding-left: 10px;
+      }
+
+      // Текст-пояснение
+      .deposit-window-cont .deposit-window .mw-content .desc-text {
+        color: #b0dcfa;
+        padding-right: 20px;
+        padding-left: 10px;
+      }
+
+      // Модальное окошко "Coming soon"
+      .deposit-window-cont .deposit-window .mw-content .modal-coming-soon {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: #1b2934;
+        opacity: .8;
+        text-align: center;
+      }
+      .deposit-window-cont .deposit-window .mw-content .modal-coming-soon img {
+        display: inline-block;
+        max-width: 70%;
+        margin-top: 85px;
+        opacity: .8;
+      }
+
+      // Пополнить скинами
+      .deposit-window-cont .deposit-window .mw-content .byskins {
+        position: relative;
+        padding: 20px 10px 10px 10px;
+        width: 33.333%;
+        overflow: hidden;
+        vertical-align: top;
+        border-right: 1px solid #000;
+      }
+      .deposit-window-cont .deposit-window .mw-content .byskins .img_and_header .img {
+
+      }
+      .deposit-window-cont .deposit-window .mw-content .byskins .img_and_header .h-part {
+
+      }
+
+      // Реферальная программа
+      .deposit-window-cont .deposit-window .mw-content .byrefs {
+        position: relative;
+        padding: 20px 10px 10px 10px;
+        width: 33.333%;
+        overflow: hidden;
+        vertical-align: top;
+        border-right: 1px solid #000;
+      }
+      .deposit-window-cont .deposit-window .mw-content .byrefs .img_and_header .img {
+        width: 70px;
+      }
+      .deposit-window-cont .deposit-window .mw-content .byrefs .img_and_header .h-part {
+        width: 190px;
+        padding-left: 7px;
+      }
+
+      // Пополнить деньгами
+      .deposit-window-cont .deposit-window .mw-content .bymoney {
+        position: relative;
+        padding: 20px 10px 10px 10px;
+        width: 33.333%;
+        overflow: hidden;
+        vertical-align: top;
+      }
+      .deposit-window-cont .deposit-window .mw-content .bymoney .img_and_header .img {
+        width: 80px;
+      }
+      .deposit-window-cont .deposit-window .mw-content .bymoney .img_and_header .h-part {
+        width: 160px;
+        padding-left: 7px;
+        text-align: right;
+      }
 
 
 

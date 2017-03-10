@@ -16,6 +16,7 @@
  *    f.s0.logout                   | s0.3. Выйти из своей учётной записи
  *    f.s0.update_messages          | s0.4. Обновить модель чата данными с сервера
  *    f.s0.sound                    | s0.5. Проиграть указанный аудио-файл
+ *    f.s0.update_balance           | s0.6. Обрабатывает входящие обновления баланса из websocket текущего аутентиф.пользователя
  *
  *  s1. Функционал модели управления поддокументами приложения
  *
@@ -34,14 +35,20 @@
  *
  *    f.s4.switch                   | s4.1. Изменить состояние раскрытости левого меню
  *
- *  s5. Функционал модели чата 
- *  
+ *  s5. Функционал модели чата
+ *
  *    f.s5.post_to_the_chat_main    | s5.1. Запостить сообщение в главную комнату чата
  *    f.s5.add_incoming_msg         | s5.2. Добавить в чат новое, поступившее по websocket сообщение
  *
  *  s6. Функционал для работы с классической игрой
  *
  *    f.s6.notify_animate           | s6.1. Запустить анимацию уведомления о ставке в пункте меню Classic game
+ *
+ *  s7. Функционал для работы с popup-окном выбора способа депозита
+ *
+ *    f.s7.close_popup              | s7.1. Закрыть popup-окно выбора депозита
+ *    f.s7.kopeyky                  | s7.2. За "каждые/каждую" N копеек/копейку
+ *
  *
  *
  */
@@ -288,6 +295,68 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 		};
 
+		//--------------------------------------------------------------------------------------------//
+		// s0.6. Обрабатывает входящие обновления баланса из websocket текущего аутентиф.пользователя //
+		//--------------------------------------------------------------------------------------------//
+		f.s0.update_balance = function(data) {
+
+			// 1] Обновить баланс
+			self.m.s0.balance(data.balance);
+
+			// 2] Сообщить об успешном изменении баланса
+			// - В зависимости от типа операции.
+
+				// 2.1] Увеличение баланса
+				if(data.type == 1) {
+
+					// Монету / Монеты / Монет
+					var coins_str = (function(){
+
+						var declension = declension_by_number(data.coins);
+						if(declension == 1) return 'монету';
+						if(declension == 2) return 'монеты';
+						if(declension == 3) return 'монет';
+						return 'монет';
+
+					})();
+
+					// Вывести сообщение
+					toastr.success('Ваш баланс успешно пополнен на '+data.coins+' '+coins_str+'.');
+
+				}
+
+				// 2.2] Уменьшение баланса
+				if(data.type == 2) {
+
+					// Монета / Монеты / Монет
+					var coins_str = (function(){
+
+						var declension = declension_by_number(data.coins);
+						if(declension == 1) return 'монета';
+						if(declension == 2) return 'монеты';
+						if(declension == 3) return 'монет';
+						return 'монет';
+
+					})();
+
+					// Списана / Списаны
+					var withdraw_str = (function(){
+
+						var declension = declension_by_number(data.coins);
+						if(declension == 1) return 'списана';
+						if(declension == 2) return 'списаны';
+						if(declension == 3) return 'списаны';
+						return 'списаны';
+
+					})();
+
+					// Вывести сообщение
+					toastr.success('С вашего баланса успешно '+withdraw_str+' '+data.coins+' '+coins_str+'.');
+
+				}
+
+		};
+
 
 
 	//------------------------------------------------------------------------//
@@ -424,6 +493,32 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 						};
 
 						// Переключить вкладку внутри classic game на игру
+						setImmediate(function(){
+							recur();
+						});
+
+					})();
+
+				}
+
+				// 4.4] Если URI == '/deposit'
+				if(uri == '/deposit') {
+
+					// 4.4.1] Запросить инвентарь пользователя с сервера, если он ещё не получен, без force
+					(function(){
+
+						// Подготовить рекурсивную функцию
+						var recur = function recur(){
+							if(typeof model == 'undefined') {
+								setTimeout(function(){
+									recur();
+								}, 10);
+							}
+							else
+								model.f.s6.update_inventory(false, false);
+						};
+
+						// Запросить TOP игроков с сервера, если он ещё не получен
 						setImmediate(function(){
 							recur();
 						});
@@ -632,7 +727,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 		};
 
 
-	
+
 	//----------------------------------------//
 	// 			        		 			                //
 	// 			 s5. Функционал модели чата 			//
@@ -735,8 +830,8 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 				self.m.s5.messages.shift();
 
 		};
-	
-	
+
+
 	//------------------------------------------------------------//
 	// 			        		 			                                    //
 	// 			 s6. Функционал для работы с классической игрой 			//
@@ -767,6 +862,79 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			}, 1000);
 
 		};
+
+
+	//----------------------------------------------------------------------------//
+	// 			        		 			                                                    //
+	// 			 s7. Функционал для работы с popup-окном выбора способа депозита 			//
+	// 			         					                                                    //
+	//----------------------------------------------------------------------------//
+	f.s7 = {};
+
+		//------------------------------------------//
+		// s7.1. Закрыть popup-окно выбора депозита //
+		//------------------------------------------//
+		f.s7.close_popup = function(data, event) {
+
+			// 1] Закрыть popup-окно выбора депозита
+			self.m.s7.ison(false);
+
+			// 2] Сделать body снова прокручеваемым
+			document.body.style.overflow = 'auto';
+
+		};
+
+		//-------------------------------------------//
+		// s7.2. За "каждые/каждую" N копеек/копейку //
+		//-------------------------------------------//
+		// - 1 копейку, 2-4 копейки, 5 копеек.
+		// - За каждые 20 копеек.
+		// - За каждую 1/21/31/41.../101 копейку.
+		// - За каждую 101 копейку.
+		f.s7.kopeyky = function(data, event) {
+
+			// 1] Получить кол-во копеек в 1 центе США по текущему курсу
+			// - В виде строки.
+			var value = ''+Math.round(layout_data.data.usdrub_rate);
+
+			// 2] Каждые или каждую?
+			// - Если последняя цифра 1, и всего цифр не 2, то каждую.
+			// - Иначе: каждые.
+			var every = (function(){
+
+				if(value.length != 2 && value[value.length-1] == 1) return 'каждую';
+				else return 'каждые';
+
+			})();
+
+			// 3] Копейку, копейки или копеек
+			// - Всё зависит от последней цифры:
+			//     1: 	копейку
+			//     2-4: копейки
+			//     5+: 	копеек.
+			var kop = (function(){
+
+				if(value[value.length-1] == 1) return 'копейку';
+				else if([2,3,4].indexOf(value[value.length-1]) != -1) return 'копейки';
+				else return 'копеек';
+
+			})();
+
+			// n] Вернуть результаты
+			return {
+				every: every,
+				kop: kop
+			};
+
+		};
+
+
+
+
+
+
+
+
 
 
 

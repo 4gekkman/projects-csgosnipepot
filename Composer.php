@@ -112,6 +112,50 @@ View::composer('L10003::layout', function($view) {
   $querystring = \Request::getQueryString();
   parse_str($querystring, $querystring_arr);
 
+  // 6. Получить ID пользователя
+  $id_user = call_user_func(function(){
+
+    // 1] Извлечь auth_cache
+    $auth = json_decode(session('auth_cache'), true);
+
+    // 2] Получить и вернуть ID запрашивающего пользователя
+    if(!array_key_exists('user', $auth) || !array_key_exists('id', $auth['user']))
+      return "";
+    return $auth['user']['id'];
+
+  });
+
+  // 7. Получить баланс пользователя в центах
+  $balance = call_user_func(function() USE ($id_user) {
+
+    // 7.1. Если это аутентифицированный пользователь
+    if(!empty($id_user)) {
+      $balance  = runcommand('\M13\Commands\C2_get_balance', [
+        "id_user" => $id_user
+      ]);
+      if($balance['status'] != 0)
+        throw new \Exception($balance['data']['errormsg']);
+      return $balance['data']['balance'];
+    }
+
+    // 7.2. Если это НЕ аутентифицированный пользователь
+    else {
+      return 0;
+    }
+
+  });
+
+  // 8. Получить значение USD/RUB
+  $rate = runcommand('\M9\Commands\C50_get_rate', [
+    'pair' => 'USD/RUB'
+  ]);
+  if($rate['status'] != 0)
+    $rate = 60;
+  else if(array_key_exists('data', $rate) && array_key_exists('rate', $rate['data']))
+    $rate = $rate['data']['rate'];
+  else
+    $rate = 60;
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -130,7 +174,9 @@ View::composer('L10003::layout', function($view) {
     'messages'              => $messages,
     'chat_main'             => $chat_main,
     'servertime_s'          => \Carbon\Carbon::now()->timestamp,
-    'm9_sound_global_ison'  => $m9_sound_global_ison
+    'm9_sound_global_ison'  => $m9_sound_global_ison,
+    'balance'               => $balance,
+    'usdrub_rate'           => $rate,
   ], JSON_UNESCAPED_UNICODE));
 
 
