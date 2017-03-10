@@ -43,7 +43,7 @@
         // 2] Пары 'событие-обработчик' документов M-пакета //
         //--------------------------------------------------//
         $pairs2register = [
-
+          'M13\EventHandlers\H1_ticks' => 'R2\Event'
         ];
 
       //----------------------------------//
@@ -117,7 +117,21 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-
+          '\M13\Console\T1_new_wallet',
+          '\M13\Console\T2_get_balance',
+          '\M13\Console\T3_get_inventory',
+          '\M13\Console\T4_make_trade',
+          '\M13\Console\T5_processor',
+          '\M13\Console\T6_update_cache',
+          '\M13\Console\T7_active_offers_expiration_tracking',
+          '\M13\Console\T8_cancel_the_active_trade',
+          '\M13\Console\T9_cancel_the_active_trade_dbpart',
+          '\M13\Console\T10_active_offers_tracking',
+          '\M13\Console\T11_active_to_accepted',
+          '\M13\Console\T12_offers_toothcomb',
+          '\M13\Console\T13_add_coins',
+          '\M13\Console\T14_subtract_coins',
+          '\M13\Console\T15_subtract_deposited_skins_from_inv'
         ];
 
         // Регистрация команд в методе register

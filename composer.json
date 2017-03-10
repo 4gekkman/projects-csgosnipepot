@@ -12,7 +12,10 @@
 						"homepage": "https://github.com/4gekkman/m13"
         }
     ],
-    "require": {},
+    "require": {
+			"4gekkman/M5": "~1.0",
+			"4gekkman/M8": "~1.0"
+		},
     "autoload": {
         "psr-4": {"M13\\": ""}
     }
