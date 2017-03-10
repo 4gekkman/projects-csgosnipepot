@@ -732,7 +732,6 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
    * Д5. Создать элемент
    * Д6. Удалить элемент
    *
-   *
    */
 
 

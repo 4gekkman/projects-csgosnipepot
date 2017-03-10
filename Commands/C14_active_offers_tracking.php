@@ -336,7 +336,7 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
         if($to['id_status_new'] == 2) continue;
 
         // 4] Добавить $to в $bets_ex_active
-        array_push($bets_ex_active, $to['tradeoffer_steam_format']);
+        array_push($bets_ex_active, $to);
 
       }
 
@@ -350,11 +350,11 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
 
           // 1] Получить нужные данные в короткие переменные
           $tradeoffer     = $bets_ex_active[$i]['tradeoffer'];
-            $betid          = $tradeoffer['id'];
-            $tradeofferid   = $bets_ex_active[$i]['tradeofferid'];
-            $id_status_new  = $bets_ex_active[$i]['id_status_new'];
-            $id_user        = $tradeoffer['m5_users'][0]['id'];
-            $id_room        = $tradeoffer['rooms'][0]['id'];
+          $betid          = $tradeoffer['id'];
+          $tradeofferid   = $bets_ex_active[$i]['tradeofferid'];
+          $id_status_new  = $bets_ex_active[$i]['id_status_new'];
+          $id_user        = $tradeoffer['m5_users'][0]['id'];
+          $id_room        = $tradeoffer['rooms'][0]['id'];
 
           // 2] Если статус оффера изменился на Accepted
           if($id_status_new == 3) {
