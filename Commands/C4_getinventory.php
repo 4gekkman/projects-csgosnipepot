@@ -399,7 +399,6 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                 $item[$key] = $value;
               }
 
-
             }
 
             // 4] Провести обработку каждой вещи в $items
@@ -585,9 +584,23 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                   // 3.1] Добавить в каждый из $item показатель стабильности его цены
                   $item['is_price_unstable'] = $item_db->is_price_unstable;
 
-                  // 3.2] Добавить в $item его тип
+                  // 3.2] Проверить, undefined ли тип вещи
+                  $is_undefined = call_user_func(function() USE ($item_db) {
+                    if(
+                      $item_db->is_case != '1' &&
+                      $item_db->is_key != '1' &&
+                      $item_db->is_startrak != '1' &&
+                      $item_db->is_souvenir != '1' &&
+                      $item_db->is_souvenir_package != '1' &&
+                      $item_db->is_knife != '1' &&
+                      $item_db->is_weapon != '1') return 1;
+                    else
+                      return 0;
+                  });
+
+                  // 3.3] Добавить в $item его тип
                   $item['itemtypes'] = [
-                    "undefined"         => 0,
+                    "undefined"         => $is_undefined,
                     "case"              => $item_db->is_case == '1' ? 1 : 0,
                     "key"               => $item_db->is_key == '1' ? 1 : 0,
                     "startrak"          => $item_db->is_startrak == '1' ? 1 : 0,
@@ -597,7 +610,7 @@ class C4_getinventory extends Job { // TODO: добавить "implements Should
                     "weapon"            => $item_db->is_weapon == '1' ? 1 : 0,
                   ];
 
-                  // 3.3] Перейти к следующей итерации
+                  // 3.4] Перейти к следующей итерации
                   continue;
 
                 }

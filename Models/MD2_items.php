@@ -72,6 +72,7 @@ class MD2_items extends Model {
     public function weapon_models() { return $this->belongsToMany('\M8\Models\MD5_weapon_models', 'm8.md1002', 'id_item', 'id_weapon_model'); }
     public function bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md1003', 'id_item', 'id_bot'); }
     public function trades() { return $this->belongsToMany('\M8\Models\MD9_trades', 'm8.md1010', 'id_item', 'id_trade')->withPivot(['price','assetid_bot','assetid_partner']); }
+    public function m13_trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md2002', 'id_item', 'id_trade')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
     public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2001', 'id_item', 'id_bet')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
     public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2006', 'id_item', 'id_win')->withPivot(['price','assetid']); }
     // relationships stop
