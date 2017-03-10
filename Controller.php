@@ -23,7 +23,9 @@
  *                  POST-API2   D10009:2                   Сохранение в куки нового значения для выключателя звука
  *                  POST-API3   D10009:3                   Подгрузить указанную страницу истории для classic game, для указанной комнаты
  *                  POST-API4   D10009:4                   Получить ТОП игроков
- *                  POST-API4   D10009:5                   Получить FAQ
+ *                  POST-API5   D10009:5                   Получить FAQ
+ *                  POST-API6   D10009:6                   Обновить инвентарь аутентифицированного пользователя
+ *                  POST-API7   D10009:7                   Создать новый трейд с запросом вещей пользователя
  *
  *
  *
@@ -195,12 +197,23 @@ class Controller extends BaseController {
       $rate = runcommand('\M9\Commands\C50_get_rate', [
         'pair' => 'USD/RUB'
       ]);
-      if($result['status'] != 0)
+      if($rate['status'] != 0)
         $rate = 60;
       else if(array_key_exists('data', $rate) && array_key_exists('rate', $rate['data']))
         $rate = $rate['data']['rate'];
       else
         $rate = 60;
+
+      // 8. Получить конфигурацию для системы депозита
+      $deposit_configs = call_user_func(function(){
+
+        return [
+          'min_skin2accept_price_cents'       => config("M13.min_skin2accept_price_cents") ?: '10',
+          'skin_price2accept_spread_in_perc'  => config("M13.skin_price2accept_spread_in_perc") ?: '30',
+          'item_type_filters'                 => config("M13.item_type_filters")
+        ];
+
+      });
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -219,7 +232,8 @@ class Controller extends BaseController {
         "servertime_s"            => \Carbon\Carbon::now()->timestamp,
         "classicgame_statistics"  => $classicgame_statistics,
         "usdrub_rate"             => $rate,
-        "public_faq_folder"       => config('M12.public_faq_folder')
+        "public_faq_folder"       => config('M12.public_faq_folder'),
+        "deposit_configs"         => $deposit_configs
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -446,6 +460,115 @@ class Controller extends BaseController {
           return $result;
 
         }
+
+        //---------------------------------//
+        // Нестандартная операция D10009:6 //
+        //---------------------------------//
+        // - Обновить инвентарь аутентифицированного пользователя
+        if($key == 'D10009:6') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Получить значения параметров
+
+            // 2.1. force
+            $force = call_user_func(function(){
+
+              // 1] Получить входящие параметры
+              $data = Input::get('data');
+
+              // 2] Если $data пуста, вернуть false
+              if(empty($data)) return false;
+
+              // 3] Если в дата нет force, вернуть false
+              if(!array_key_exists('force', $data)) return false;
+
+              // 4] Если force не булево, вернуть false
+              $validator = r4_validate($data, [
+                "force"              => ["boolean"],
+              ]); if($validator['status'] == -1) {
+                return false;
+              }
+
+              // 5] Вернуть значение force
+              return $data['force'];
+
+            });
+
+            // 2.2. steamid
+            $steamid = call_user_func(function(){
+
+              // 1] Получить auth_cache
+              $auth = json_decode(session('auth_cache'), true);
+              if(empty($auth)) return "";
+
+              // 2] Получить пользователя
+              if(!array_key_exists('user', $auth)) return "";
+              $user = $auth['user'];
+              if(empty($user)) return "";
+
+              // 3] Получить steamid пользователя
+              if(!array_key_exists('ha_provider_uid', $user)) return "";
+              $steamid = $user['ha_provider_uid'];
+              if(empty($steamid)) return "";
+
+              // 4] Вернуть результат
+              return $steamid;
+
+            });
+
+          // 3. Выполнить команду
+          $result = runcommand('\M13\Commands\C3_get_inventory', [
+            "force"   => $force,
+            "steamid" => $steamid
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+        //---------------------------------//
+        // Нестандартная операция D10009:7 //
+        //---------------------------------//
+        // - Создать новый трейд с запросом вещей пользователя
+        if($key == 'D10009:7') {
+
+          // 1. Получить steamid пользователя
+          $steamid = call_user_func(function(){
+
+            // 1] Получить auth_cache
+            $auth = json_decode(session('auth_cache'), true);
+            if(empty($auth)) return "";
+
+            // 2] Получить пользователя
+            if(!array_key_exists('user', $auth)) return "";
+            $user = $auth['user'];
+            if(empty($user)) return "";
+
+            // 3] Получить steamid пользователя
+            if(!array_key_exists('ha_provider_uid', $user)) return "";
+            $steamid = $user['ha_provider_uid'];
+            if(empty($steamid)) return "";
+
+            // 4] Вернуть результат
+            return $steamid;
+
+          });
+
+          // 2. Выполнить команду
+          $result = runcommand('\M13\Commands\C4_make_trade', [
+            'items2bet'       => Input::get('data')['items2bet'],
+            'players_steamid' => $steamid
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+
 
       }
 

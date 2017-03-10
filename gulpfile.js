@@ -160,6 +160,10 @@ for(var javascriptnum=0; javascriptnum<sources["javascript"].length; javascriptn
 					sources["javascript"][javascriptnum]+'faq/m.js',
 					sources["javascript"][javascriptnum]+'faq/f.js',
 
+					// Deposit
+					sources["javascript"][javascriptnum]+'deposit/m.js',
+					sources["javascript"][javascriptnum]+'deposit/f.js',
+
 					// Основная модель и функционал
 					sources["javascript"][javascriptnum]+'m.js',
 					sources["javascript"][javascriptnum]+'f.js',

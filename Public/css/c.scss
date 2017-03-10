@@ -12,6 +12,7 @@
   2. Стили профиля
   3. Стили ТОПа игроков
   4. Стили FAQ
+  5. Стили интерфейса пополнения баланса скинами
 
 ////------------------------------////
 ////             ////
@@ -181,7 +182,7 @@
       position: absolute; top: 0;
       left: 0; right: 0;
       margin: 5.5px auto;
-      width: 33.333333333%;
+      width: 300px;
       overflow: hidden;
       //margin-top: $cg_color_header_height*0.15;
       //margin-bottom: $cg_color_header_height*0.15;
@@ -213,7 +214,7 @@
     }
     .content .classic-game .cg-container .header .choose-room i {
       position: absolute; top: 0; right: 0;
-      width: $cg_color_header_height; height: $cg_color_header_height;
+      width: $cg_color_header_height;
       height: $cg_color_header_height*0.7;
       line-height: $cg_color_header_height*0.7;
       text-align: center;
@@ -918,6 +919,7 @@
       background: darken($cg_main_color, 5%) !important;
       height: 6px !important;
     }
+
 
   //---------------------//
   // 1.9. Ставки раунда  //
@@ -2077,12 +2079,12 @@
   // 4.2. Общие стили FAQ //
   //----------------------//
 
-    // Внешний контейнер классической игры
+    // Внешний контейнер
     .content .faq {
 
     }
 
-    // Внутренний контейнер классической игры
+    // Внутренний контейнер
     .content .faq .faq-container {
       //margin-faq: 15px;
       border-radius: 6px;
@@ -2102,7 +2104,7 @@
 
     // Заголовок
     .content .faq .faq-container .header .logo_and_name {
-      position: absolute; left: 0; faq: 0;
+      position: absolute; left: 0; top: 0;
       height: $faq_color_header_height;
       line-height: $faq_color_header_height;
       width: 100%;
@@ -2287,14 +2289,501 @@
 
       }
 
+      
+//------------------------------------------------//
+// 5. Стили интерфейса пополнения баланса скинами //
+/*------------------------------------------------//
+Оглавление
+
+  5.1. Переменные стилей депозита
+  5.2. Общие стили депозита
+  5.3. Стили шапки депозита
+  5.4. Стили контента депозита
+
+//---------------*/       
+
+  //---------------------------------//
+  // 5.1. Переменные стилей депозита //
+  //---------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $depo_main_color: #212f35;            // Главный цвет
+      $depo_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $depo_color_header_bg: #1B2934;       // Цвет фона шапки
+
+      // Выбранная сортировка
+      $depo_color_sort_choosen: lighten(#4285f4, 15%);
+
+      // Цвет кнопок пагинации
+      $depo_color_pagi_button: #4285f4;
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $depo_color_header_height: 50px;      // Высота шапки
+
+      // Высота блока инвентаря и выбранных предметов
+      $depo_size_inv_height: 525px;
+
+      // Высота полоски индикаци качества вещи
+      $depo_sizes_strip_height: 2px;
+
+  //---------------------------//
+  // 5.2. Общие стили депозита //
+  //---------------------------//
+
+    // Внешний контейнер
+    .content .deposit {
+
+    }
+
+    // Внутренний контейнер
+    .content .deposit .deposit-container {
+      //margin-faq: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //---------------------------//
+  // 5.3. Стили шапки депозита //
+  //---------------------------//
+
+    // Общие стили шапки классической игры
+    .content .deposit .deposit-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $depo_color_header_height;
+    }
+
+    // Заголовок
+    .content .deposit .deposit-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $depo_color_header_height;
+      line-height: $depo_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .deposit .deposit-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .deposit .deposit-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+    // Баланс
+    .content .deposit .deposit-container .header .logo_and_name .balance {
+      float: right;
+      padding-right: 15px;
+    }
+
+  //------------------------------//
+  // 5.4. Стили контента депозита //
+  //------------------------------//
+
+    //--------------------------------------//
+    // 5.4.1. Общие стили контента депозита //
+    //--------------------------------------//
+
+      // Общие стили таблицы
+      .content .deposit .deposit-container .deposit-content {
+        position: relative;
+        min-height: 250px;
+        color: #ddd;
+        font-size: 1.3em;
+        //background: #fff;
+      }
+      .content .deposit .deposit-container .depo-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-height: 250px;
+      }
+      .content .deposit .deposit-container .depo-table>tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+      }
+      .content .deposit .deposit-container .depo-table>tbody>tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+      }
+      .content .deposit .deposit-container .depo-table>tbody>tr>td {
+        display: table-cell;
+      }
+
+      // Левый столбец
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col {
+        //border-right: 2px solid darken(#284351, 2%);
+        padding: 10px 15px 15px 15px;
+        vertical-align: top;
+      }
+
+      // Правый столбец
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col {
+        padding: 10px 15px 15px 22px;
+        width: 180px;
+        overflow: hidden;
+        vertical-align: top;
+      }
+
+    //-----------------------------------------------//
+    // 5.4.2. Сортировка и пагинация в левом столбце //
+    //-----------------------------------------------//
+    
+      // Общие стили
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+      }
+    
+      // Сортировка
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface {
+        display: inline-block;
+        margin-left: 0;
+        padding-left: 15px;
+        user-select: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface .opacity1 {
+        opacity: 1 !important;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li {
+        display: inline-block;
+        padding-right: 10px;
+        list-style-type: none;
+        cursor: pointer;
+        transition: all .3s ease;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li:hover {
+        color: lighten($depo_color_sort_choosen, 20%);
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li.choosen {
+        color: #4285f4;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li .sortdir {
+        display: inline-block;
+        margin-left: -5px;
+        width: 17px;
+      }
+
+      // Пагинация
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi {
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+        user-select: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi .pagi-button {
+        display: inline-block;
+        border-radius: 4px;
+        background: $depo_color_pagi_button;
+        text-align: center;
+        margin-bottom: 2px;
+        height: 26px;
+        line-height: 26px;
+        width: 40px;
+        cursor: pointer;
+        transition: all .3s ease;
+        font-size: 1.3em;
+        vertical-align: middle;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi .pagi-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi .pagi-button.disabled {
+        //opacity: 0;
+        background: darken(#284351, 5%);
+        color: #ddd;
+        cursor: default;
+      }
+
+      // Поиск
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input {
+        position: relative;
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input input {
+        width: 100%;
+        height: 30px;
+        border-radius: 3px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid #4285f4;
+        padding: 0 35px 0 15px;
+        outline: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input input:hover {
+        border: 1px solid #5a95f5;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input input:focus {
+        border: 1px solid #5a95f5;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input i {
+        position: absolute;
+        right: 7px;
+        top: 1px;
+        font-size: 18px;
+        color: #4285f4;
+      }      
+      
+      
+      
 
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    //------------------------------------------------------------------------------------------//
+    // 5.4.3. Итоговое кол-во монет, которые получит игрок за выбранные скины, в правом столбце //
+    //------------------------------------------------------------------------------------------//
+
+      // Общие стили
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .total-coins {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+        padding: 0 5px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .total-coins img {
+        max-width: 20px;
+        max-height: 20px;
+        vertical-align: middle;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .total-coins span {
+        vertical-align: middle;
+        font-size: 1.2em;
+        font-weight: bold;
+      }
+
+    //--------------------------------------------//
+    // 5.4.4. Стили скинов в интерфейсе депозита //
+    //--------------------------------------------//
+
+      // Общие стили оставшихся в инвентаре скинов
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory .deposit-left-items-cont {
+        padding: 10px 10px 0 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Когда нет подходящих вещей для пополнения баланса
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory .there_is_no_items {
+        position: absoute; top: 0; left: 0;
+        width: 100%; height: 525px; line-height: 525px;
+        color: #fff; text-align: center;
+        font-size: 35px;
+      }
+
+      // Общие стили выбранных для депозита скинов
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .choosen-skins {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        max-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .choosen-skins .deposit-choosen-items-cont {
+        position: relative;
+        min-height: $depo_size_inv_height - 10px;
+        max-height: $depo_size_inv_height - 10px;
+        padding: 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Стили для perfect scrollbar контейнера выбранных для депозита скинов
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .ps-scrollbar-x-rail {
+        display: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .ps-scrollbar-y-rail {
+        background: transparent !important;
+        opacity: .6 !important;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .ps-scrollbar-y-rail>div {
+        background: darken($cg_main_color, 5%) !important;
+        width: 6px !important;
+      }
+
+      // Стили одной позиции в интерфейсе
+
+        // Общие
+        .content .deposit .deposit-container .deposit-content .item {
+          position: relative;
+          display: inline-block;
+          width: 120px;
+          height: 120px;
+          background: lighten($depo_color_header_bg, 2%);
+          border: 1px solid lighten($depo_color_header_bg, 9%);
+          margin: 0 8px 8px 0;
+          cursor: pointer;
+          user-select: none;
+          transition: all .3s ease;
+        }
+        .content .deposit .deposit-container .deposit-content .item:hover {
+          border: 1px solid lighten($depo_color_header_bg, 14%);
+        }
+
+        // Полоса с качеством
+        .content .deposit .deposit-container .deposit-content .item .strip {
+          display: inline-block;
+          height: $depo_sizes_strip_height;
+          width: 100%;
+        }
+
+        // Изображение
+        .content .deposit .deposit-container .deposit-content .item .img_cont {
+          position: absolute; top: 0px; left: 0;
+          width: 120px;
+          height: 120px;
+          line-height: 120px;
+          text-align: center;
+        }
+        .content .deposit .deposit-container .deposit-content .item .img_cont img {
+          display: inline-block;
+          max-width: 90px;
+          max-height: 90px;
+          vertical-align: middle;
+        }
+
+        // Стоимость вещи в монетах
+        .content .deposit .deposit-container .deposit-content .item .value_in_coins {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 30px;
+          text-align: center;
+          font-size: 14px;
+          vertical-align: middle;
+          color: #ffda44;
+        }
+        .content .deposit .deposit-container .deposit-content .item .value_in_coins img {
+          display: inline-block;
+          width: 14px;
+          height: 14px;
+          vertical-align: middle;
+        }
+
+        // Название
+        .content .deposit .deposit-container .deposit-content .item .marketname {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 21px;
+          text-align: center;
+          font-size: 12px;
+          overflow: hidden;
+          vertical-align: middle;
+          padding: 0 5px;
+          padding-top: 5px;
+          -webkit-transition: all .2s ease;
+          transition: all .2s ease;
+          //transition-delay: .1s;
+        }
+        .content .deposit .deposit-container .deposit-content .item:hover .marketname {
+          height: 88px;
+          line-height: 18px;
+          //padding-top: 7px;
+        }
+
+
+
+    //-----------------------------------------//
+    // 5.4.5. Модальный щит загрузки инвентаря //
+    //-----------------------------------------//
+    .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory .modal-inv {
+      background: lighten($depo_color_header_bg, 5%);
+      line-height: $depo_size_inv_height;
+    }
+
+    //----------------------------------------------------//
+    // 5.4.6. Подвалы системы пополнения депозита скиными //
+    //----------------------------------------------------//
+
+      // Общие стили
+      .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer {
+        height: 30px;
+        line-height: 30px;
+        margin: 10px 0;
+      }
+
+      // Кнопка "Депозит"
+      .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .depo-button {
+        width: 100%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #4285f4;
+        cursor: pointer;
+        font-size: 1em;
+        border-radius: 4px;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .depo-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+
+    //-------------------------------------------------//
+    // 5.4.7. Кнопка обновления инвентаря пользователя //
+    //-------------------------------------------------//
+    .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .upd-inv-button {
+      display: inline-block;
+      float: left;
+      height: 30px;
+      line-height: 30px;
+      font-size: 1em;
+      padding: 0 20px;
+      background: #4285f4;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+      -webkit-transition: all .3s ease;
+      transition: all .3s ease;
+    }
+    .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .upd-inv-button:hover {
+      color: white;
+      background: #5a95f5;
+    }
+
+
+
+
+
+
+
+

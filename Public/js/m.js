@@ -38,6 +38,7 @@
  *  s3. Модель профиля пользователя
  *  s4. Модель ТОПа игроков
  *  s5. Модель FAQ
+ *  s6. Модель интерфейса пополнения баланса скинами
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -152,6 +153,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 						//case "update_inventory": 				self.f.s0.update_inventory_data(data.data.data.data.inventory.data.rgDescriptions); break;
 
 						//case "tradeoffer_wins_cancel": 	self.f.s8.tradeoffer_cancel(data.data.data.data); break;
+
+						case "m13:balance:inventory:subtract:update": self.f.s6.update_inventory_data(data.data.data.data.inventory_cache.rgDescriptions, true);
+
 					}
 
 				});
@@ -408,6 +412,14 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	self.m.s5 = Object.create(ModelFaq).constructor(self, self.m);
 
 
+	//-------------------------------------------------------------//
+	// 			        		 	                                         //
+	// 			 s6. Модель интерфейса пополнения баланса скинами 		 //
+	// 			         			                                         //
+	//-------------------------------------------------------------//
+	// - См. D10009/Public/js/deposit/m.js
+  self.m.s6 = Object.create(ModelDeposit).constructor(self, self.m);
+
 
 	//------------------------------------------------------------//
 	// 			        		 	                                        //
@@ -551,9 +563,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 		})();
 
-		//---------------------------------//
-		// X1.10. Запустить работу очереди //
-		//---------------------------------//
+		//--------------------------------//
+		// X1.9. Запустить работу очереди //
+		//--------------------------------//
 		(function(){
 
 			// 1. Подготовить рекурсивную функцию
@@ -578,6 +590,19 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		(function(){
 
 			self.f.s1.smootbets_update();
+
+		})();
+
+		//------------------------------------------------------------------------------------------------//
+		// X1.11. Инициализировать perfect scrollbar для блока с выбранными для пополнения баланса вещами //
+		//------------------------------------------------------------------------------------------------//
+		(function(){
+
+			Ps.initialize(document.getElementsByClassName('deposit-choosen-items-cont')[0], {
+				wheelSpeed: 1.03,
+				wheelPropagation: false,
+				minScrollbarLength: 10
+			});
 
 		})();
 
