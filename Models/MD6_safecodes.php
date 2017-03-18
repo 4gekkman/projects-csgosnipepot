@@ -67,7 +67,7 @@ class MD6_safecodes extends Model {
   //------------------//
 
     // relationships start
-    public function trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md1003', 'md6_safecodes_id', 'md4_trades_id')->withPivot(['md4_trades_id','md6_safecodes_id']); }
+    public function trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md1003', 'id_safecode', 'id_trade'); }
     // relationships stop
 
 

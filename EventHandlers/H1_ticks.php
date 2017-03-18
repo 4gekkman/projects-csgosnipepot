@@ -188,12 +188,20 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
         $cache = +$cache + 1;
 
         // 1.3. Записать обновлённый $cache в кэш
-        $cache = Cache::put('m13:processing:last_datetime', $cache, 30);
+        Cache::put('m13:processing:last_datetime', $cache, 30);
 
         // 1.4. Если $cache >= 10 секундам, запустить C5_processor
-        $result = runcommand('\M13\Commands\C5_processor', [], 0, ['on'=>true, 'name'=>'m13_processor']);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        if($cache >= 10) {
+
+          // 1] Запустить процессор
+          $result = runcommand('\M13\Commands\C5_processor', [], 0, ['on'=>true, 'name'=>'m13_processor']);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Сбросить кэш в 0
+          Cache::put('m13:processing:last_datetime', 0, 30);
+
+        }
 
       });
 

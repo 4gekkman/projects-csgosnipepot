@@ -67,7 +67,7 @@ class MD4_trades extends Model {
   //------------------//
 
     // relationships start
-    public function safecodes() { return $this->belongsToMany('\M13\Models\MD6_safecodes', 'm13.md1003', 'md4_trades_id', 'md6_safecodes_id')->withPivot(['md4_trades_id','md6_safecodes_id']); }
+    public function safecodes() { return $this->belongsToMany('\M13\Models\MD6_safecodes', 'm13.md1003', 'id_trade', 'id_safecode'); }
     public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm13.md2001', 'id_trade', 'id_user'); }
     public function m8_items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm13.md2002', 'id_trade', 'id_item')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
     public function m8_bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm13.md2003', 'id_trade', 'id_bot'); }

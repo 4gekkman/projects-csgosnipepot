@@ -135,7 +135,7 @@ class C5_processor extends Job { // TODO: добавить "implements ShouldQue
     /**
      * Примечания
      *
-     *   ▪ Сама команда C5_processor каждую минуту добавляется в очередь "m13_processor".
+     *   ▪ Сама команда C5_processor каждые 10 секунд добавляется в очередь "m13_processor".
      *   ▪ Все команды выполняются по очереди либо в "m13_processor" (продакшн), либо в smallbroadcast (отладка)
      *   ▪ Очередь обслуживает демон queue:work --daemon, что обеспечивает высокую скорость работы.
      *

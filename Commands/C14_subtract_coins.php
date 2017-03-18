@@ -188,7 +188,11 @@ class C14_subtract_coins extends Job { // TODO: добавить "implements Sho
         // 5.1. Вычислить новый баланс
         $new_balance = +$wallet_and_balance['data']['balance'] - +$this->data['coins'];
 
-        // 5.2. Записать $new_balance в wallet
+        // 5.2. Если новый баланс < 0, вернуть ошибку 1
+        if($new_balance < 0)
+          throw new \Exception('1');
+
+        // 5.3. Записать $new_balance в wallet
         $wallet_and_balance['data']['wallet']->balance = $new_balance;
 
         // 5.n. Сохранить

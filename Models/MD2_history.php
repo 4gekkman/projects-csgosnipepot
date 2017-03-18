@@ -68,7 +68,6 @@ class MD2_history extends Model {
 
     // relationships start
     public function wallets() { return $this->belongsToMany('\M13\Models\MD1_wallets', 'm13.md1000', 'id_history', 'id_wallet'); }
-    public function operation_types() { return $this->belongsToMany('\M13\Models\MD3_operation_types', 'm13.md1001', 'id_history', 'id_operation_types'); }
     // relationships stop
 
 
