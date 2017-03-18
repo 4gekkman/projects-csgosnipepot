@@ -148,17 +148,17 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
     //--------------------//
     try {
 
-      // 1.1. Получить ключи, присланные с событием
+      // 1] Получить ключи, присланные с событием
       $eventkeys = $event->data['keys'];
 
-      // 1.2. Получить ключи, поддерживаемые обработчиком
+      // 2] Получить ключи, поддерживаемые обработчиком
       $handlerkeys = PARAMkeysPARAM;
 
-      // 1.3. Если ни один ключ не подходит, завершить
+      // 3] Если ни один ключ не подходит, завершить
       $testkeys = array_intersect($handlerkeys, $eventkeys);
       if(empty($testkeys)) return;
 
-      // 1.4. Получить входящие данные
+      // 4] Получить входящие данные
       $data = $event->data;
 
     } catch(\Exception $e) {
@@ -172,7 +172,7 @@ class PARAMhandlerfullnamePARAM  // TODO: написать "implements ShouldQue
     }
 
     //--------------------//
-    // 1.  //
+    // PARAMdescriptionPARAM //
     //--------------------//
     $res = call_user_func(function() USE ($event) { try { DB::beginTransaction();
 

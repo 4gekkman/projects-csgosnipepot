@@ -143,7 +143,7 @@ class PARAMcomfullnamePARAM extends Job { // TODO: добавить "implements 
      */
 
     //-------------------------------------//
-    // 1.  //
+    // PARAMdescriptionPARAM //
     //-------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
