@@ -527,6 +527,32 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
+				// 4.5] Если URI == '/shop'
+				if(uri == '/shop') {
+
+					// 4.5.1] Выполнить начальную загрузку товаров магазина, если они ранее ещё не загружены
+					(function(){
+
+						// Подготовить рекурсивную функцию
+						var recur = function recur(){
+							if(typeof model == 'undefined') {
+								setTimeout(function(){
+									recur();
+								}, 10);
+							}
+							else
+								model.f.s7.init_goods();
+						};
+
+						// Запросить TOP игроков с сервера, если он ещё не получен
+						setImmediate(function(){
+							recur();
+						});
+
+					})();
+
+				}
+
 			})();
 
 			// 5] Выбрать поддокумент subdoc
