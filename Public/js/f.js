@@ -164,7 +164,7 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 					// 2.1.2] Добавить в историю новое состояние
 					var subdoc = layoutmodel.m.s1.selected_subdoc();
-					History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
+					History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + '?' + (false ? 'article=' + false : "") + (false ? '&' : '') + (self.m.s5.choosen_group().name_folder() ? 'group=' + self.m.s5.choosen_group().name_folder() : ""));
 
 					// 2.1.3] Свернуть все статьи
 					self.f.s5.close_all_articles();
@@ -332,8 +332,6 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 					self.m.s5.current_faq(faq);
 
 					// 8] Добавить в историю новое состояние
-					// - Если what2return == 3
-					// - Если params.qs_params, и в нём есть ключи group/article (хотя бы один из)
 
 						// 8.1] Если what2return == 3
 						if(what2return == 3) {

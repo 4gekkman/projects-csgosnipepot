@@ -11,7 +11,7 @@
 <!---------------------*/ ?>
 @section('title')
 
-  <title>D10010 - CSGOHAP dashboard FAQ</title>
+  <title>CSGOHAP dashboard FAQ</title>
 
 @stop
 
