@@ -45,4 +45,23 @@ return [
       ]
     ],
 
+    //----------------------//
+    // 5] Настройки M14     //
+    //    M14 configuration //
+    //----------------------//
+
+      // 1] Название группы ботов из M8 для магазина | M8 bot group name for shop
+      'bot_group_name_to_accept_deposits' => 'Shop',
+
+      // 2] Через сколько секунд отменять исходящие трейды | Limit in secs for sent offers
+      'sent_offers_limit_secs' => 300,
+
+      // 3] Кол-во попыток создать трейд до признания сделки по нему не состоявшейся | Num of tries to create offer until consider trade failed
+      'tries_create_offer_until_failed' => 50,
+
+      // 4] Email's, на которые отправлять заказы на скины | Emails to send skin orders
+      'emails_skin_orders' => [
+        'gtmmm2011@gmail.com'
+      ],
+
 ];
