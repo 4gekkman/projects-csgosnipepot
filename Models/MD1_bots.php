@@ -72,6 +72,7 @@ class MD1_bots extends Model {
     public function groups() { return $this->belongsToMany('\M8\Models\MD7_groups', 'm8.md1004', 'id_bot', 'id_group'); }
     public function trades() { return $this->belongsToMany('\M8\Models\MD9_trades', 'm8.md1007', 'id_bot', 'id_trade'); }
     public function m13_trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md2003', 'id_bot', 'id_trade'); }
+    public function m14_trades() { return $this->belongsToMany('\M14\Models\MD4_trades', 'm14.md2003', 'id_bot', 'id_trade'); }
     public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2002', 'id_bot', 'id_bet'); }
     public function m9_rooms() { return $this->belongsToMany('\M9\Models\MD1_rooms', 'm9.md2003', 'id_bot', 'id_room'); }
     public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2005', 'id_bot', 'id_win')->withPivot(['is_free','tradeofferid','offer_expired_at']); }
