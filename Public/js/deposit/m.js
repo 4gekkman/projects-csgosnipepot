@@ -420,7 +420,7 @@ var ModelDeposit = { constructor: function(self, m) { m.s6 = this;
 
 				})());
 
-				// 2.8. Записать содержимое items_filtered_sorted_paginated в items_at_curpage
+				// 2.8] Записать содержимое items_filtered_sorted_paginated в items_at_curpage
 				self.m.s6.deposit.left.items_at_curpage(self.m.s6.deposit.left.items_filtered_sorted_paginated());
 
 			}).extend({deferred: true});  //extend({rateLimit: 100, method: "notifyWhenChangesStop"});

@@ -13,6 +13,7 @@
   3. Стили ТОПа игроков
   4. Стили FAQ
   5. Стили интерфейса пополнения баланса скинами
+  6. Стили магазина скинов
 
 ////------------------------------////
 ////             ////
@@ -2549,10 +2550,6 @@
         color: #4285f4;
       }      
       
-      
-      
-
-
     //------------------------------------------------------------------------------------------//
     // 5.4.3. Итоговое кол-во монет, которые получит игрок за выбранные скины, в правом столбце //
     //------------------------------------------------------------------------------------------//
@@ -2719,8 +2716,6 @@
           //padding-top: 7px;
         }
 
-
-
     //-----------------------------------------//
     // 5.4.5. Модальный щит загрузки инвентаря //
     //-----------------------------------------//
@@ -2781,9 +2776,487 @@
     }
 
 
+//--------------------------//
+// 6. Стили магазина скинов //
+/*--------------------------//
+Оглавление
+
+  6.1. Переменные стилей магазина
+  6.2. Общие стили магазина
+  6.3. Стили шапки магазина
+  6.4. Стили контента магазина
+
+//---------------*/
+
+  //---------------------------------//
+  // 6.1. Переменные стилей магазина //
+  //---------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $shop_main_color: #212f35;            // Главный цвет
+      $shop_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $shop_color_header_bg: #1B2934;       // Цвет фона шапки
+
+      // Выбранная сортировка
+      $shop_color_sort_choosen: lighten(#4285f4, 15%);
+
+      // Цвет кнопок пагинации
+      $shop_color_pagi_button: #4285f4;
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $shop_color_header_height: 50px;      // Высота шапки
+
+      // Высота блока товаров и выбранных предметов
+      $shop_size_inv_height: 525px;
+
+      // Высота полоски индикаци качества вещи
+      $shop_sizes_strip_height: 2px;
+
+  //---------------------------//
+  // 6.2. Общие стили магазина //
+  //---------------------------//
+
+    // Внешний контейнер
+    .content .shop {
+
+    }
+
+    // Внутренний контейнер
+    .content .shop .shop-container {
+      //margin-faq: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //---------------------------//
+  // 6.3. Стили шапки магазина //
+  //---------------------------//
+
+    // Общие стили шапки классической игры
+    .content .shop .shop-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $shop_color_header_height;
+    }
+
+    // Заголовок
+    .content .shop .shop-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $shop_color_header_height;
+      line-height: $shop_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .shop .shop-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .shop .shop-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+    // Баланс и кнопка пополнить
+    .content .shop .shop-container .header .logo_and_name .balance {
+      float: right;
+      line-height: 50px;
+      height: 50px;
+      padding-left: 10px;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+    .content .shop .shop-container .header .logo_and_name .balance:hover {
+      background: #2e6234;
+    }
+    .content .shop .shop-container .header .logo_and_name .balance i {
+      float: right;
+      color: #f39c26;
+      font-size: 2em;
+      vertical-align: middle;
+      transition: all .3s ease;
+    }
+    .content .shop .shop-container .header .logo_and_name .balance:hover i {
+      color: lighten(#f39c26, 10%);
+    }
+    .content .shop .shop-container .header .logo_and_name .balance span {
+      vertical-align: middle;
+    }
+
+  //------------------------------//
+  // 6.4. Стили контента магазина //
+  //------------------------------//
+
+    //--------------------------------------//
+    // 6.4.1. Общие стили контента магазина //
+    //--------------------------------------//
+
+      // Общие стили таблицы
+      .content .shop .shop-container .shop-content {
+        position: relative;
+        min-height: 250px;
+        color: #ddd;
+        font-size: 1.3em;
+        //background: #fff;
+      }
+      .content .shop .shop-container .shop-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-height: 250px;
+      }
+      .content .shop .shop-container .shop-table>tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+      }
+      .content .shop .shop-container .shop-table>tbody>tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+      }
+      .content .shop .shop-container .shop-table>tbody>tr>td {
+        display: table-cell;
+      }
+
+      // Левый столбец
+      .content .shop .shop-container .shop-content .shop-table .left-col {
+        //border-right: 2px solid darken(#284351, 2%);
+        padding: 10px 15px 15px 15px;
+        vertical-align: top;
+      }
+
+      // Правый столбец
+      .content .shop .shop-container .shop-content .shop-table .right-col {
+        padding: 10px 15px 15px 22px;
+        width: 180px;
+        overflow: hidden;
+        vertical-align: top;
+      }
+
+    //-----------------------------------------------//
+    // 6.4.2. Сортировка и пагинация в левом столбце //
+    //-----------------------------------------------//
+    
+      // Общие стили
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+      }
+    
+      // Сортировка
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface {
+        display: inline-block;
+        margin-left: 0;
+        padding-left: 15px;
+        user-select: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface .opacity1 {
+        opacity: 1 !important;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li {
+        display: inline-block;
+        padding-right: 10px;
+        list-style-type: none;
+        cursor: pointer;
+        transition: all .3s ease;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li:hover {
+        color: lighten($depo_color_sort_choosen, 20%);
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li.choosen {
+        color: #4285f4;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li .sortdir {
+        display: inline-block;
+        margin-left: -5px;
+        width: 17px;
+      }
+
+      // Пагинация
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi {
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+        user-select: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi .pagi-button {
+        display: inline-block;
+        border-radius: 4px;
+        background: $depo_color_pagi_button;
+        text-align: center;
+        margin-bottom: 2px;
+        height: 26px;
+        line-height: 26px;
+        width: 40px;
+        cursor: pointer;
+        transition: all .3s ease;
+        font-size: 1.3em;
+        vertical-align: middle;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi .pagi-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi .pagi-button.disabled {
+        //opacity: 0;
+        background: darken(#284351, 5%);
+        color: #ddd;
+        cursor: default;
+      }
+
+      // Поиск
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input {
+        position: relative;
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input input {
+        width: 100%;
+        height: 30px;
+        border-radius: 3px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid #4285f4;
+        padding: 0 35px 0 15px;
+        outline: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input input:hover {
+        border: 1px solid #5a95f5;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input input:focus {
+        border: 1px solid #5a95f5;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input i {
+        position: absolute;
+        right: 7px;
+        top: 1px;
+        font-size: 18px;
+        color: #4285f4;
+      }  
+      
+    //----------------------------------------------------------------------------------------//
+    // 6.4.3. Итоговое кол-во монет, которые игрок отдаст за выбранные в правом столбце скины //
+    //----------------------------------------------------------------------------------------//
+
+      // Общие стили
+      .content .shop .shop-container .shop-content .shop-table .right-col .total-coins {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+        padding: 0 5px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .total-coins img {
+        max-width: 20px;
+        max-height: 20px;
+        vertical-align: middle;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .total-coins span {
+        vertical-align: middle;
+        font-size: 1.2em;
+        font-weight: bold;
+      }      
+      
+    //-------------------------------------------//
+    // 6.4.4. Стили скинов в интерфейсе магазина //
+    //-------------------------------------------//
+
+      // Общие стили оставшихся на полке товаров
+      .content .shop .shop-container .shop-content .shop-table .left-col .goods {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .goods .shop-left-items-cont {
+        padding: 10px 10px 0 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Когда в магазине нет товаров
+      .content .shop .shop-container .shop-content .shop-table .left-col .goods .there_is_no_items {
+        position: absoute; top: 0; left: 0;
+        width: 100%; height: 525px; line-height: 525px;
+        color: #fff; text-align: center;
+        font-size: 35px;
+      }
+
+      // Общие стили товаров в корзине
+      .content .shop .shop-container .shop-content .shop-table .right-col .choosen-skins {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        max-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .choosen-skins .shop-choosen-items-cont {
+        position: relative;
+        min-height: $depo_size_inv_height - 10px;
+        max-height: $depo_size_inv_height - 10px;
+        padding: 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Стили для perfect scrollbar контейнера выбранных для депозита скинов
+      .content .shop .shop-container .shop-content .shop-table .right-col .ps-scrollbar-x-rail {
+        display: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .ps-scrollbar-y-rail {
+        background: transparent !important;
+        opacity: .6 !important;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .ps-scrollbar-y-rail>div {
+        background: darken($cg_main_color, 5%) !important;
+        width: 6px !important;
+      }
+
+      // Стили одной позиции в интерфейсе
+
+        // Общие
+        .content .shop .shop-container .shop-content .item {
+          position: relative;
+          display: inline-block;
+          width: 120px;
+          height: 120px;
+          background: lighten($depo_color_header_bg, 2%);
+          border: 1px solid lighten($depo_color_header_bg, 9%);
+          margin: 0 8px 8px 0;
+          cursor: pointer;
+          user-select: none;
+          transition: all .3s ease;
+        }
+        .content .shop .shop-container .shop-content .item:hover {
+          border: 1px solid lighten($depo_color_header_bg, 14%);
+        }
+
+        // Полоса с качеством
+        .content .shop .shop-container .shop-content .item .strip {
+          display: inline-block;
+          height: $depo_sizes_strip_height;
+          width: 100%;
+        }
+
+        // Изображение
+        .content .shop .shop-container .shop-content .item .img_cont {
+          position: absolute; top: 0px; left: 0;
+          width: 120px;
+          height: 120px;
+          line-height: 120px;
+          text-align: center;
+        }
+        .content .shop .shop-container .shop-content .item .img_cont img {
+          display: inline-block;
+          max-width: 90px;
+          max-height: 90px;
+          vertical-align: middle;
+        }
+
+        // Стоимость вещи в монетах
+        .content .shop .shop-container .shop-content .item .value_in_coins {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 30px;
+          text-align: center;
+          font-size: 14px;
+          vertical-align: middle;
+          color: #ffda44;
+        }
+        .content .shop .shop-container .shop-content .item .value_in_coins img {
+          display: inline-block;
+          width: 14px;
+          height: 14px;
+          vertical-align: middle;
+        }
+
+        // Название
+        .content .shop .shop-container .shop-content .item .marketname {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 21px;
+          text-align: center;
+          font-size: 12px;
+          overflow: hidden;
+          vertical-align: middle;
+          padding: 0 5px;
+          padding-top: 5px;
+          -webkit-transition: all .2s ease;
+          transition: all .2s ease;
+          //transition-delay: .1s;
+        }
+        .content .shop .shop-container .shop-content .item:hover .marketname {
+          height: 88px;
+          line-height: 18px;
+          //padding-top: 7px;
+        }
+
+    //---------------------------------------//
+    // 6.4.5. Модальный щит загрузки товаров //
+    //---------------------------------------//
+    .content .shop .shop-container .shop-content .shop-table .left-col .goods .modal-inv {
+      background: lighten($depo_color_header_bg, 5%);
+      line-height: $depo_size_inv_height;
+    }      
 
 
+    //-------------------------//
+    // 6.4.6. Подвалы магазина //
+    //-------------------------//
 
+      // Общие стили
+      .content .shop .shop-container .shop-content .shop-table .shop-footer {
+        height: 30px;
+        line-height: 30px;
+        margin: 10px 0;
+      }
 
-
-
+      // Кнопка "Купить"
+      .content .shop .shop-container .shop-content .shop-table .shop-footer .buy-button {
+        width: 100%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #4285f4;
+        cursor: pointer;
+        font-size: 1em;
+        border-radius: 4px;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+      .content .shop .shop-container .shop-content .shop-table .shop-footer .buy-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+      
+      

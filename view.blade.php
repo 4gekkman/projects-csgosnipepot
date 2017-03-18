@@ -142,9 +142,7 @@
 <?php /*---------->
 <!-- 4. Магазин -->
 <!------------*/ ?>
-<div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/shop'">
-  <span>Магазин</span>
-</div>
+@include('D10009::Subviews.shop')
 
 <?php /*----------------------->
 <!-- 5. Профиль пользователя -->

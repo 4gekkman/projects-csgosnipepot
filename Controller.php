@@ -26,7 +26,8 @@
  *                  POST-API5   D10009:5                   Получить FAQ
  *                  POST-API6   D10009:6                   Обновить инвентарь аутентифицированного пользователя
  *                  POST-API7   D10009:7                   Создать новый трейд с запросом вещей пользователя
- *
+ *                  POST-API8   D10009:8                   Обновить товарные остатки при первом входе в магазин
+ *                  POST-API9   D10009:9                   Осуществить покупку, создать новый трейд для доставки вещей покупателю
  *
  *
  */
@@ -560,6 +561,65 @@ class Controller extends BaseController {
           // 2. Выполнить команду
           $result = runcommand('\M13\Commands\C4_make_trade', [
             'items2bet'       => Input::get('data')['items2bet'],
+            'players_steamid' => $steamid
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+        //---------------------------------//
+        // Нестандартная операция D10009:8 //
+        //---------------------------------//
+        // - Обновить товарные остатки при первом входе в магазин
+        if($key == 'D10009:8') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Выполнить команду
+          $result = runcommand('\M14\Commands\C4_get_goods', [
+
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+        //---------------------------------//
+        // Нестандартная операция D10009:9 //
+        //---------------------------------//
+        // - Осуществить покупку, создать новый трейд для доставки вещей покупателю
+        if($key == 'D10009:9') {
+
+          // 1. Получить steamid пользователя
+          $steamid = call_user_func(function(){
+
+            // 1] Получить auth_cache
+            $auth = json_decode(session('auth_cache'), true);
+            if(empty($auth)) return "";
+
+            // 2] Получить пользователя
+            if(!array_key_exists('user', $auth)) return "";
+            $user = $auth['user'];
+            if(empty($user)) return "";
+
+            // 3] Получить steamid пользователя
+            if(!array_key_exists('ha_provider_uid', $user)) return "";
+            $steamid = $user['ha_provider_uid'];
+            if(empty($steamid)) return "";
+
+            // 4] Вернуть результат
+            return $steamid;
+
+          });
+
+          // 2. Выполнить команду
+          $result = runcommand('\M14\Commands\C5_buy', [
+            'items2buy'       => Input::get('data')['items2buy'],
+            'items2order'     => Input::get('data')['items2order'],
             'players_steamid' => $steamid
           ]);
 

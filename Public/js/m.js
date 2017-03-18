@@ -39,6 +39,7 @@
  *  s4. Модель ТОПа игроков
  *  s5. Модель FAQ
  *  s6. Модель интерфейса пополнения баланса скинами
+ *  s7. Модель магазина скинов
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -130,6 +131,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 					case "classicgame_statistics_update": self.f.s1.update_statistics(data.data.data.data); break;
 
 					case "classicgame_history_new": 			self.f.s1.add_new_history(data.data.data.data); break;
+
+					case "m14:update:goods": 							self.f.s7.update_goods_add_subtract(data.data.data.data); break;
+					case "m14:update:goods:order": 				self.f.s7.update_goods_order_add_sub(data.data.data.data); break;
 				}
 
 			});
@@ -154,7 +158,12 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 						//case "tradeoffer_wins_cancel": 	self.f.s8.tradeoffer_cancel(data.data.data.data); break;
 
-						case "m13:balance:inventory:subtract:update": self.f.s6.update_inventory_data(data.data.data.data.inventory_cache.rgDescriptions, true);
+						case "m13:balance:inventory:subtract:update": self.f.s6.update_inventory_data(data.data.data.data.inventory_cache.rgDescriptions, true); break;
+						case "m14:trade:created": 										self.f.s7.offer_created(data.data.data.data); break;
+						case "m14:trade:not_enough_money": 						self.f.s7.offer_not_enough_money(data.data.data.data); break;
+						case "m14:trade:reserved": 										self.f.s7.offer_reserved(data.data.data.data); break;
+						case "m14:buy:order:reserved": 								self.f.s7.items2order_reserved(data.data.data.data); break;
+						case "m14:buy:order:success": 								self.f.s7.items2order_success(data.data.data.data); break;
 
 					}
 
@@ -421,6 +430,15 @@ var ModelProto = { constructor: function(ModelFunctions) {
   self.m.s6 = Object.create(ModelDeposit).constructor(self, self.m);
 
 
+	//---------------------------------------//
+	// 			        		 	                   //
+	// 			 s7. Модель магазина скинов 		 //
+	// 			         			                   //
+	//---------------------------------------//
+	// - См. D10009/Public/js/shop/m.js
+  self.m.s7 = Object.create(ModelShop).constructor(self, self.m);
+
+
 	//------------------------------------------------------------//
 	// 			        		 	                                        //
 	// 			 sN. Данные, которым доступны все прочие данные  			//
@@ -599,6 +617,19 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		(function(){
 
 			Ps.initialize(document.getElementsByClassName('deposit-choosen-items-cont')[0], {
+				wheelSpeed: 1.03,
+				wheelPropagation: false,
+				minScrollbarLength: 10
+			});
+
+		})();
+
+		//-------------------------------------------------------------------------------------//
+		// X1.12. Инициализировать perfect scrollbar для блока с выбранными для покупки вещами //
+		//-------------------------------------------------------------------------------------//
+		(function(){
+
+			Ps.initialize(document.getElementsByClassName('shop-choosen-items-cont')[0], {
 				wheelSpeed: 1.03,
 				wheelPropagation: false,
 				minScrollbarLength: 10

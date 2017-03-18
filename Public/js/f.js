@@ -23,6 +23,7 @@
  *  s4. Функционал ТОПа игроков
  *  s5. Функционал FAQ
  *  s6. Функционал интерфейса пополнения баланса скинами
+ *  s7. Функционал магазина скинов
  *
  *
  */
@@ -236,6 +237,14 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 	// - См. D10009/Public/js/deposit/f.js
 	f.s6 = Object.create(ModelFunctionsDeposit).constructor(self, f);
 
+
+	//------------------------------------------//
+	// 			        		 			                  //
+	// 			 s7. Функционал магазина скинов			//
+	// 			         					                  //
+	//------------------------------------------//
+	// - См. D10009/Public/js/shop/f.js
+	f.s7 = Object.create(ModelFunctionsShop).constructor(self, f);
 
 
 

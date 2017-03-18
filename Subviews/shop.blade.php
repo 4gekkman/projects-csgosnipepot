@@ -1,23 +1,23 @@
-<?php /*---------------------------->
-<!-- 11. Пополнить баланс скинами -->
-<!---------------------------------->
+<?php /*----------------->
+<!-- 4. Магазин скинов -->
+<!----------------------->
 Подоглавление:
 
-  11.1. Контейнер интерфейса
+  4.1. Контейнер интерфейса
 
-    11.1.1. Шапка
-    11.1.2. Контент интерфейса
+    4.1.1. Шапка
+    4.1.2. Контент интерфейса
 
 -------------------*/ ?>
-<div class="deposit" data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/deposit'">
+<div class="shop" data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/shop'">
 
-  <?php /*-------------------------->
-  <!-- 11.1. Контейнер интерфейса -->
-  <!----------------------------*/ ?>
-  <div class="deposit-container">
+  <?php /*------------------------->
+  <!-- 4.1. Контейнер интерфейса -->
+  <!---------------------------*/ ?>
+  <div class="shop-container">
 
     <?php /*------------>
-    <!-- 11.1.1. Шапка -->
+    <!-- 4.1.1. Шапка -->
     <!--------------*/ ?>
     <div class="header">
 
@@ -25,21 +25,33 @@
       <!-- 1] Заголовок -->
       <!--------------*/ ?>
       <div class="logo_and_name">
-        <i class="mdi mdi-plus-circle-outline"></i>
-        <span>Пополнить баланс скинами</span>
-        <span class="balance" data-bind="text: 'Баланс: '+layoutmodel.m.s0.balance()"></span>
+
+        <?php /*--------------------->
+        <!-- 1] Аватар и заголовок -->
+        <!-----------------------*/ ?>
+        <i class="mdi mdi-shopping"></i>
+        <span>Магазин</span>
+
+        <?php /*------------------------------>
+        <!-- 2] Баланс и кнопка "Пополнить" -->
+        <!--------------------------------*/ ?>
+        <div class="balance" data-bind="click: function(){ layoutmodel.m.s7.ison(true); }" title="Пополнить баланс">
+          <i class="mdi mdi-plus-circle-outline"></i>
+          <span data-bind="text: 'Баланс: '+layoutmodel.m.s0.balance()"></span>
+        </div>
+
       </div>
 
     </div>
 
-    <?php /*-------------------------->
-    <!-- 11.1.2. Контент интерфейса -->
-    <!----------------------------*/ ?>
-    <div class="deposit-content"><table class="depo-table"><tbody><tr>
+    <?php /*------------------------->
+    <!-- 4.1.2. Контент интерфейса -->
+    <!---------------------------*/ ?>
+    <div class="shop-content"><table class="shop-table"><tbody><tr>
 
-      <?php /*----------------------->
-      <!-- 11.1.2.1. Левая колонка -->
-      <!-------------------------*/ ?>
+      <?php /*---------------------->
+      <!-- 4.1.2.1. Левая колонка -->
+      <!------------------------*/ ?>
       <td class="left-col">
 
         <?php /*------------------------->
@@ -60,16 +72,16 @@
             <?php /*--------------------------->
             <!-- 1.2.2] Интерфейс сортировки -->
             <!-----------------------------*/ ?>
-            <ul class="sort-interface" data-bind="foreach: m.s6.sort.criterias.list">
+            <ul class="sort-interface" data-bind="foreach: m.s7.sort.criterias.list">
 
               <?php /*--------------------------------->
               <!-- Критерий и направление сортировки -->
               <!-----------------------------------*/ ?>
-              <li data-bind="css: {'choosen': $root.m.s6.sort.criterias.choosen().name() == name()}, click: $root.f.s6.choose_sort.bind($data)">
+              <li data-bind="css: {'choosen': $root.m.s7.sort.criterias.choosen().name() == name()}, click: $root.f.s7.choose_sort.bind($data)">
                 <span data-bind="text: text"></span>
                 <div class="sortdir">
-                  <i style="display: none" class="mdi mdi-menu-up" data-bind="visible: $root.m.s6.sort.criterias.choosen().name() == name() && $root.m.s6.sort.directions.choosen().name() == 'asc'"></i>
-                  <i style="display: none" class="mdi mdi-menu-down" data-bind="visible: $root.m.s6.sort.criterias.choosen().name() == name() && $root.m.s6.sort.directions.choosen().name() == 'desc'"></i>
+                  <i style="display: none" class="mdi mdi-menu-up" data-bind="visible: $root.m.s7.sort.criterias.choosen().name() == name() && $root.m.s7.sort.directions.choosen().name() == 'asc'"></i>
+                  <i style="display: none" class="mdi mdi-menu-down" data-bind="visible: $root.m.s7.sort.criterias.choosen().name() == name() && $root.m.s7.sort.directions.choosen().name() == 'desc'"></i>
                 </div>
               </li>
 
@@ -85,14 +97,14 @@
             <?php /*--------------------------->
             <!-- 2.1] Кнопка пагинации влево -->
             <!-----------------------------*/ ?>
-            <div class="pagi-button" data-bind="click: f.s6.pagi_prev, css: {disabled: m.s6.deposit.pagi.pagenum() == 1}">
+            <div class="pagi-button" data-bind="click: f.s7.pagi_prev, css: {disabled: m.s7.shop.pagi.pagenum() == 1}">
               <i class="mdi mdi-chevron-left"></i>
             </div>
 
             <?php /*---------------------------->
             <!-- 2.2] Кнопка пагинации вправо -->
             <!------------------------------*/ ?>
-            <div class="pagi-button" data-bind="click: f.s6.pagi_next, css: {disabled: m.s6.deposit.pagi.pagenum() == m.s6.deposit.pagi.count()}">
+            <div class="pagi-button" data-bind="click: f.s7.pagi_next, css: {disabled: m.s7.shop.pagi.pagenum() == m.s7.shop.pagi.count()}">
               <i class="mdi mdi-chevron-right"></i>
             </div>
 
@@ -106,32 +118,32 @@
             <?php /*------------------>
             <!-- 3.1] Строка поиска -->
             <!--------------------*/ ?>
-            <input type="text" placeholder="" data-bind="textInput: m.s6.deposit.left.searchinput">
+            <input type="text" placeholder="" data-bind="textInput: m.s7.shop.left.searchinput">
             <i class="mdi mdi-magnify"></i>
 
           </div>
 
         </div>
 
-        <?php /*------------>
-        <!-- 2] Инвентарь -->
-        <!--------------*/ ?>
-        <div class="inventory">
+        <?php /*--------->
+        <!-- 2] Товары -->
+        <!-----------*/ ?>
+        <div class="goods">
 
-          <?php /*-------------------------------->
-          <!-- 2.1] Остающиеся в инвентаре вещи -->
-          <!----------------------------------*/ ?>
-          <div style="display: none" class="deposit-left-items-cont" data-bind="foreach: m.s6.deposit.left.items_at_curpage, visible: m.s6.deposit.left.items_filtered_sorted_paginated().length">
+          <?php /*--------------------------------->
+          <!-- 2.1] Остающиеся "на полке" товары -->
+          <!-----------------------------------*/ ?>
+          <div style="display: none" class="shop-left-items-cont" data-bind="foreach: m.s7.shop.left.items_at_curpage, visible: m.s7.shop.left.items_filtered_sorted_paginated().length">
 
             <?php /*---->
             <!-- Вещь -->
             <!------*/ ?>
-            <div class="item" data-bind="click: $root.f.s6.move_to_mybet">
+            <div class="item" data-bind="click: $root.f.s7.move_to_cart">
 
               <?php /*----------------------------------->
               <!-- 1) Цветовая индикация качества вещи -->
               <!-------------------------------------*/ ?>
-              <div class="strip" data-bind="style: {background: $root.f.s6.get_cat_quality_item_color($data)}" style="background: transparent;"></div>
+              <div class="strip" data-bind="style: {background: $root.f.s7.get_cat_quality_item_color($data)}" style="background: transparent;"></div>
 
               <?php /*-------------->
               <!-- 2) Изображение -->
@@ -145,7 +157,7 @@
               <!------------------------*/ ?>
               <div class="value_in_coins">
                 <img src="{!! asset('public/D10009/assets/icons/coins/coins_v5.svg') !!}">
-                <span data-bind="text: Math.round(price()*100*((100 - server.data.deposit_configs.skin_price2accept_spread_in_perc)/100))"></span>
+                <span data-bind="text: Math.round(price()*100)"></span>
               </div>
 
               <?php /*----------->
@@ -159,18 +171,18 @@
 
           </div>
 
-          <?php /*---------------------------------------------------------------->
-          <!-- 2.2] Если в инвентаре нет вещей, которыми можно пополнить баланс -->
-          <!------------------------------------------------------------------*/ ?>
-          <div style="display: none" class="there_is_no_items" data-bind="visible: !m.s6.deposit.left.items_filtered_sorted_paginated().length">
-            <span>Подходящих вещей нет</span><br>
+          <?php /*--------------------->
+          <!-- 2.2] Если товаров нет -->
+          <!-----------------------*/ ?>
+          <div style="display: none" class="there_is_no_items" data-bind="visible: !m.s7.shop.left.items_filtered_sorted_paginated().length">
+            <span>Магазин пуст</span><br>
           </div>
 
           <?php /*--------------------------------------->
           <!-- 2.n] Модальный щит загрузки со спинером -->
           <!-----------------------------------------*/ ?>
           <div class="loader">
-            <div style="display: none" class="modal_shield loader-inner ball-clip-rotate modal-inv" data-bind="visible: m.s6.is_inv_loading_shield_visible">
+            <div style="display: none" class="modal_shield loader-inner ball-clip-rotate modal-inv" data-bind="visible: m.s7.is_goods_loading_shield_visible">
               <div></div>
             </div>
           </div>
@@ -180,7 +192,7 @@
         <?php /*------------------------------------------------------>
         <!-- 3] Доп.элементы управления в левом столбце (в подвале) -->
         <!--------------------------------------------------------*/ ?>
-        <div class="deposit-footer">
+        <div class="shop-footer">
 
           <?php /*-------------->
           <!-- 3.1] Пагинация -->
@@ -190,33 +202,26 @@
             <?php /*------------------------->
             <!-- 1) Кнопка пагинации влево -->
             <!---------------------------*/ ?>
-            <div class="pagi-button" data-bind="click: f.s6.pagi_prev, css: {disabled: m.s6.deposit.pagi.pagenum() == 1}">
+            <div class="pagi-button" data-bind="click: f.s7.pagi_prev, css: {disabled: m.s7.shop.pagi.pagenum() == 1}">
               <i class="mdi mdi-chevron-left"></i>
             </div>
 
             <?php /*-------------------------->
             <!-- 2) Кнопка пагинации вправо -->
             <!----------------------------*/ ?>
-            <div class="pagi-button" data-bind="click: f.s6.pagi_next, css: {disabled: m.s6.deposit.pagi.pagenum() == m.s6.deposit.pagi.count()}">
+            <div class="pagi-button" data-bind="click: f.s7.pagi_next, css: {disabled: m.s7.shop.pagi.pagenum() == m.s7.shop.pagi.count()}">
               <i class="mdi mdi-chevron-right"></i>
             </div>
 
-          </div>
-
-          <?php /*-------------------------------->
-          <!-- 3.2] Кнопка "Обновить инвентарь" -->
-          <!----------------------------------*/ ?>
-          <div class="upd-inv-button" data-bind="click: f.s6.update_inventory.bind($data, true, true)">
-            <span>Обновить инвентарь</span>
           </div>
 
         </div>
 
       </td>
 
-      <?php /*------------------------>
-      <!-- 11.1.2.2. Правая колонка -->
-      <!--------------------------*/ ?>
+      <?php /*----------------------->
+      <!-- 4.1.2.2. Правая колонка -->
+      <!-------------------------*/ ?>
       <td class="right-col">
 
         <?php /*------------------------------------------------------------------>
@@ -224,28 +229,28 @@
         <!--------------------------------------------------------------------*/ ?>
         <div class="total-coins">
           <img src="{!! asset('public/D10009/assets/icons/coins/coins_v5.svg') !!}">
-          <span data-bind="text: m.s6.deposit.choosen.items_value_in_coins"></span>
+          <span data-bind="text: m.s7.shop.choosen.items_value_in_coins"></span>
         </div>
 
-        <?php /*------------------------------->
-        <!-- 2] Выбранные для депозита скины -->
-        <!---------------------------------*/ ?>
+        <?php /*----------------->
+        <!-- 2] Вещи в корзине -->
+        <!-------------------*/ ?>
         <div class="choosen-skins">
 
-          <?php /*------------------------------------------>
-          <!-- 2.1] Выбранные для пополнения баланса вещи -->
-          <!--------------------------------------------*/ ?>
-          <div class="deposit-choosen-items-cont" data-bind="foreach: m.s6.deposit.choosen.items">
+          <?php /*------------------->
+          <!-- 2.1] Вещи в корзине -->
+          <!---------------------*/ ?>
+          <div class="shop-choosen-items-cont" data-bind="foreach: m.s7.shop.choosen.items">
 
             <?php /*---->
             <!-- Вещь -->
             <!------*/ ?>
-            <div class="item" data-bind="click: $root.f.s6.move_to_myinventory">
+            <div class="item" data-bind="click: $root.f.s7.remove_from_cart">
 
               <?php /*----------------------------------->
               <!-- 1) Цветовая индикация качества вещи -->
               <!-------------------------------------*/ ?>
-              <div class="strip" data-bind="style: {background: $root.f.s6.get_cat_quality_item_color($data)}" style="background: transparent;"></div>
+              <div class="strip" data-bind="style: {background: $root.f.s7.get_cat_quality_item_color($data)}" style="background: transparent;"></div>
 
               <?php /*-------------->
               <!-- 2) Изображение -->
@@ -259,7 +264,7 @@
               <!------------------------*/ ?>
               <div class="value_in_coins">
                 <img src="{!! asset('public/D10009/assets/icons/coins/coins_v5.svg') !!}">
-                <span data-bind="text: Math.round(price()*100*((100 - server.data.deposit_configs.skin_price2accept_spread_in_perc)/100))"></span>
+                <span data-bind="text: Math.round(price()*100)"></span>
               </div>
 
               <?php /*----------->
@@ -278,13 +283,13 @@
         <?php /*------------------------------------------------------->
         <!-- 3] Доп.элементы управления в правом столбце (в подвале) -->
         <!---------------------------------------------------------*/ ?>
-        <div class="deposit-footer">
+        <div class="shop-footer">
 
-          <?php /*---------------->
-          <!-- Кнопка "Депозит" -->
-          <!------------------*/ ?>
-          <div class="depo-button" data-bind="click: f.s6.deposit">
-            <span>Пополнить</span>
+          <?php /*--------------->
+          <!-- Кнопка "Купить" -->
+          <!-----------------*/ ?>
+          <div class="buy-button" data-bind="click: f.s7.buy">
+            <span>Купить</span>
           </div>
 
         </div>
