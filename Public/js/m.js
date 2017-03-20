@@ -467,6 +467,15 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			bg_color:   '#223340',
 			brd_color:  'transparent',
 			visible:    true
+		},
+		{
+			uri:        '/lk/shop',
+			icon_mdi:   'mdi-shopping',
+			icon_url:   '',
+			title:      'Магазин скинов',
+			bg_color:   '#223340',
+			brd_color:  'transparent',
+			visible:    true
 		}
 	]);
 
