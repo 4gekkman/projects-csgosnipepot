@@ -112,7 +112,28 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. ...
+      // 1. Получить актуальные товарные остатки из магазина
+      $allgoods = runcommand('\M14\Commands\C4_get_goods', []);
+      if($allgoods['status'] != 0)
+        throw new \Exception($allgoods['data']['errormsg']);
+
+      // 2. Получить из M8 коллекцию скинов, min цена которых >= указанной в конфиге
+      $skins2add = call_user_func(function(){
+
+        // 1] Получить из конфига MIN цену скинов для добавления в скины на заказ, в центах
+        $skins2order_min_price_cents = config("D10012.skins2order_min_price_cents");
+        if(empty($skins2order_min_price_cents))
+          $skins2order_min_price_cents = 10000;
+
+        // 2] Получить коллекцию скинов
+        return \M8\Models\MD2_items::
+            where('price', '>=', round($skins2order_min_price_cents/100))
+            ->where('is_souvenir_package', '!=', 1)
+            ->where('is_souvenir', '!=', 1)
+            ->where('steammarket_image', '!=', '')
+            ->get();
+
+      });
 
 
       // N. Вернуть клиенту представление и данные $data
@@ -124,6 +145,9 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
+
+        'allgoods'              => $allgoods['data'],
+        'skins2add'             => $skins2add,
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

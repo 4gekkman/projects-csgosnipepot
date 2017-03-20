@@ -11,7 +11,7 @@
 <!---------------------*/ ?>
 @section('title')
 
-  <title>D10012 - CSGOHAP dashboard skins shop</title>
+  <title>CSGOHAP dashboard skins shop</title>
 
 @stop
 
@@ -53,10 +53,250 @@
 
 -------------------------*/ ?>
 @section('content')
+<?php /*-------------------------->
+<!-- Контентный столбец (860px) -->
+<!----------------------------*/ ?> <div class="content-column">
+<div class="standard-admin-panel">
 
-  Контент документа
+  <?php /*------------------->
+  <!-- 1. Контейнер FAQа -->
+  <!---------------------*/ ?>
+  <div class="container-block">
 
-@stop
+    <?php /*---------->
+    <!-- 1.1. Шапка -->
+    <!------------*/ ?>
+    <div class="header">
+
+      <?php /*------------>
+      <!-- 1] Заголовок -->
+      <!--------------*/ ?>
+      <div class="logo_and_name">
+        <i class="mdi mdi-shopping"></i>
+        <span>Управление магазином скинов</span>
+      </div>
+
+    </div>
+
+    <?php /*----------------->
+    <!-- 1.2. Контент FAQа -->
+    <!-------------------*/ ?>
+    <div class="content-block">
+
+      <?php /*------------------------------->
+      <!-- 1.2.1. Таблица с контентом FAQа -->
+      <!---------------------------------*/ ?>
+      <table class="content-table"><tbody><tr>
+
+        <?php /*---------------------->
+        <!-- 1.2.1.1. Левый столбец -->
+        <!------------------------*/ ?>
+        <td class="left">
+
+          <?php /*----------------->
+          <!-- 1] Скины на заказ -->
+          <!-------------------*/ ?>
+          <div class="skins2order" style="display: none" data-bind="visible: m.s1.selected_subdoc().name() == 'skins2order'">
+
+            <?php /*----------------------->
+            <!-- А1] Панель инструментов -->
+            <!-------------------------*/ ?>
+            <div class="tools">
+
+              <?php /*--------------------------------------------->
+              <!-- A1.1. Кнопка "Добавить" в правом верхнем углу -->
+              <!-----------------------------------------------*/ ?>
+              <div style="display: none" class="add-button" data-bind="visible: m.s2.selected_subdoc().name() == 'list', click: f.s2.select_skins2order_subdoc.bind($data, 'add')">
+                <span>Добавить скины в магазин</span>
+              </div>
+
+              <?php /*----------------------------------------->
+              <!-- A1.2. Кнопка "Назад" в левом верхнем углу -->
+              <!-------------------------------------------*/ ?>
+              <div style="display: none" class="back-button" data-bind="visible: m.s2.selected_subdoc().name() == 'add', click: f.s2.select_skins2order_subdoc.bind($data, 'list')">
+                <span>← Назад</span>
+              </div>
+
+            </div>
+
+            <?php /*---------------------------------------------->
+            <!-- А2] Поддокументы поддокумента "Скины на заказ" -->
+            <!------------------------------------------------*/ ?>
+            <div class="subdocs">
+
+              <?php /*--------------------------------------->
+              <!-- А2.1] Список скинов на заказ в магазине -->
+              <!-----------------------------------------*/ ?>
+              <div style="display: none" class="list" data-bind="visible: m.s2.selected_subdoc().name() == 'list'">
+
+                <?php /*----------->
+                <!-- 2.1] Товары -->
+                <!-------------*/ ?>
+                <div class="goods">
+
+                  <?php /*--------------------------------->
+                  <!-- 2.1.1] Остающиеся "на полке" товары -->
+                  <!-----------------------------------*/ ?>
+                  <div style="display: none" class="goods-cont" data-bind="foreach: m.s3.items, visible: m.s3.items().length">
+
+                    <?php /*---->
+                    <!-- Вещь -->
+                    <!------*/ ?>
+                    <div class="item" data-bind="click: $root.f.s3.remove_item_from_items2order">
+
+                      <?php /*----------------------------------->
+                      <!-- 1) Цветовая индикация качества вещи -->
+                      <!-------------------------------------*/ ?>
+                      <div class="strip" data-bind="style: {background: $root.f.s0.get_cat_quality_item_color($data)}" style="background: transparent;"></div>
+
+                      <?php /*-------------->
+                      <!-- 2) Изображение -->
+                      <!----------------*/ ?>
+                      <div class="img_cont">
+                        <img data-bind="attr: {src: icon_url() + ' 2x'}">
+                      </div>
+
+                      <?php /*---------------------->
+                      <!-- 3) Стоимость в монетах -->
+                      <!------------------------*/ ?>
+                      <div class="value_in_coins">
+                        <img src="{!! asset('public/D10009/assets/icons/coins/coins_v5.svg') !!}">
+                        <span data-bind="text: Math.round(price()*100)"></span>
+                      </div>
+
+                      <?php /*----------->
+                      <!-- 4) Название -->
+                      <!-------------*/ ?>
+                      <div class="marketname">
+                        <span data-bind="text: market_name"></span>
+                      </div>
+
+                      <?php /*-------------------->
+                      <!-- 5) Надпись "Удалить" -->
+                      <!----------------------*/ ?>
+                      <div class="sign delete">
+                        <span>Удалить</span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*--------------------->
+                  <!-- 2.2] Если товаров нет -->
+                  <!-----------------------*/ ?>
+                  <div style="display: none" class="there_is_no_items" data-bind="visible: !m.s3.items().length">
+                    <span>Товаров на заказ нет в магазине</span><br>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <?php /*-------------------------------------------------------->
+              <!-- А2.2] Интерфейс для добавления скинов на заказ в магазин -->
+              <!----------------------------------------------------------*/ ?>
+              <div style="display: none" class="add" data-bind="visible: m.s2.selected_subdoc().name() == 'add'">
+
+                <?php /*----------->
+                <!-- 2.1] Товары -->
+                <!-------------*/ ?>
+                <div class="goods">
+
+                  <?php /*--------------------------------->
+                  <!-- 2.1.1] Остающиеся "на полке" товары -->
+                  <!-----------------------------------*/ ?>
+                  <div style="display: none" class="goods-cont" data-bind="foreach: m.s4.items, visible: m.s4.items().length">
+
+                    <?php /*---->
+                    <!-- Вещь -->
+                    <!------*/ ?>
+                    <div class="item" data-bind="click: $root.f.s4.add_item_to_items2order">
+
+                      <?php /*-------------->
+                      <!-- 1) Изображение -->
+                      <!----------------*/ ?>
+                      <div class="img_cont">
+                        <img data-bind="attr: {src: steammarket_image() + ' 2x'}">
+                      </div>
+
+                      <?php /*---------------------->
+                      <!-- 2) Стоимость в монетах -->
+                      <!------------------------*/ ?>
+                      <div class="value_in_coins">
+                        <img src="{!! asset('public/D10009/assets/icons/coins/coins_v5.svg') !!}">
+                        <span data-bind="text: Math.round(price()*100)"></span>
+                      </div>
+
+                      <?php /*----------->
+                      <!-- 3) Название -->
+                      <!-------------*/ ?>
+                      <div class="marketname">
+                        <span data-bind="text: name"></span>
+                      </div>
+
+                      <?php /*--------------------->
+                      <!-- 4) Надпись "Добавить" -->
+                      <!-----------------------*/ ?>
+                      <div class="sign delete">
+                        <span>Добавить</span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <?php /*--------------------->
+                  <!-- 2.2] Если товаров нет -->
+                  <!-----------------------*/ ?>
+                  <div style="display: none" class="there_is_no_items" data-bind="visible: !m.s4.items().length">
+                    <span>Товары для добавления в товары на заказ отсутствуют</span><br>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <?php /*------------>
+          <!-- 2] Настройки -->
+          <!--------------*/ ?>
+          <div style="display: none" data-bind="visible: m.s1.selected_subdoc().name() == 'settings'">
+            Настройки
+          </div>
+
+        </td>
+
+        <?php /*----------------------->
+        <!-- 1.2.1.2. Правый столбец -->
+        <!-------------------------*/ ?>
+        <td class="right" data-bind="foreach: m.s1.subdocs">
+
+          <?php /*----------->
+          <!-- Поддокумент -->
+          <!-------------*/ ?>
+          <div class="menu-item" data-bind="css: {choosen: $data == $root.m.s1.selected_subdoc()}, click: $root.f.s1.select_subdoc">
+
+            <?php /*--------->
+            <!-- Заголовок -->
+            <!-----------*/ ?>
+            <span data-bind="text: title"></span>
+
+          </div>
+
+        </td>
+
+      </tr></tbody></table>
+
+    </div>
+
+  </div>
+
+</div>
+</div> @stop
 
 
 

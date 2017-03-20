@@ -6,14 +6,372 @@
 // Оглавление //
 //------------//
 
-  1. ...
+  1. Переменные стилей FAQ
+  2. Общие стили FAQ
+  3. Стили шапки FAQ
+  4. Стили контента FAQ
+    4.1. Общие стили контента
+    4.2. Общие стили правого столбца
+    4.3. Общие стили левого столбца
+    4.4. Стити панели инструментов поддокумента "Скины на заказ"
+    4.5. Стити поддокументов поддокумента "Скины на заказ"
 
 
 //------------------------------//
 // Стили //
 //-------*/
 
-// 1. ...
+  //--------------------------//
+  // 1. Переменные стилей FAQ //
+  //--------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $main_color: #212f35;            // Главный цвет
+      $colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $color_header_height: 50px;      // Высота шапки
+
+  //--------------------//
+  // 2. Общие стили FAQ //
+  //--------------------//
+
+    // Внешний контейнер
+    .content .standard-admin-panel {
+
+    }
+
+    // Внутренний контейнер
+    .content .standard-admin-panel .container-block {
+      margin-top: 20px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //--------------------//
+  // 3. Стили шапки FAQ //
+  //--------------------//
+
+    // Общие стили шапки
+    .content .standard-admin-panel .container-block .header {
+      position: relative;
+      background: #1B2934;
+      height: $color_header_height;
+    }
+
+    // Заголовок
+    .content .standard-admin-panel .container-block .header .logo_and_name {
+      position: absolute; left: 0; faq: 0;
+      height: $color_header_height;
+      line-height: $color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .standard-admin-panel .container-block .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .standard-admin-panel .container-block .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //-----------------------//
+  // 4. Стили контента FAQ //
+  //-----------------------//
+
+    //---------------------------//
+    // 4.1. Общие стили контента //
+    //---------------------------//
+
+      // Общие стили контентного блока
+      .content .standard-admin-panel .container-block .content-block {
+        position: relative;
+        min-height: 250px;
+        color: #ddd;
+        font-size: 1.3em;
+        //background: #fff;
+      }
+      
+      // Стили таблицы контентного блока
+      .content .standard-admin-panel .container-block .content-block .content-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-height: 250px;
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table>tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table>tbody>tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table>tbody>tr>td {
+        display: table-cell;
+      }
+
+    //----------------------------------//
+    // 4.2. Общие стили правого столбца //
+    //----------------------------------//
+
+      // Общие стили правого столбца
+      .content .standard-admin-panel .container-block .content-block .content-table .right {
+        width: 250px;
+        overflow: hidden;
+        vertical-align: top;
+      }
+      
+      // Стили пунктов меню
+      .content .standard-admin-panel .container-block .content-block .content-table .right .menu-item {
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        height: 32px;
+        line-height: 31px;
+        padding: 0 5px 0 20px;
+        user-select: none;
+        cursor: pointer;
+        transition: all .2s ease;
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table .right .menu-item:hover {
+        background: darken(#284351, 2%);
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table .right .menu-item.choosen {
+        background: darken(#284351, 2%);
+      }
+
+    //---------------------------------//
+    // 4.3. Общие стили левого столбца //
+    //---------------------------------//
+
+      // Общие стили правого столбца
+      .content .standard-admin-panel .container-block .content-block .content-table .left {
+        border-right: 2px solid darken(#284351, 2%);
+        vertical-align: top;
+      }
+
+    //--------------------------------------------------------------//
+    // 4.4. Стити панели инструментов поддокумента "Скины на заказ" //
+    //--------------------------------------------------------------//
+
+      // Общие стили
+      .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .tools {
+        height: 42px;
+        line-height: 42px;
+      }
+
+      // Стили кнопки "Добавить" в правом верхнем углу
+      .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .tools .add-button {
+        display: inline-block;
+        float: right;
+        border-radius: 5px;
+        margin: 8px 4px 8px 15px;
+        background-color: transparent;
+        border: 2px solid #55afdd;
+        color: #55afdd;
+        padding: 0 15px;
+        height: 26px;
+        line-height: 22px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 1em;
+        transition: all .5s ease;
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .tools .add-button:hover {
+        background: #55afdd;
+        color: #fff;
+      }
+
+      // Стили кнопки "Назад" в левом верхнем углу
+      .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .tools .back-button {
+        display: inline-block;
+        float: left;
+        border-radius: 5px;
+        margin: 8px 15px 8px 4px;
+        background-color: transparent;
+        border: 2px solid #55afdd;
+        color: #55afdd;
+        padding: 0 15px;
+        height: 26px;
+        line-height: 22px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 1em;
+        transition: all .5s ease;
+      }
+      .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .tools .back-button:hover {
+        background: #55afdd;
+        color: #fff;
+      }
+
+    //--------------------------------------------------------//
+    // 4.5. Стити поддокументов поддокумента "Скины на заказ" //
+    //--------------------------------------------------------//
+
+      //----------------------------------------------------------------//
+      // 4.5.1. Общие стили поддокументов поддокумента "Скины на заказ" //
+      //----------------------------------------------------------------//
+      .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs {
+
+      }
+
+      //----------------------------------------------------------------------------//
+      // 4.5.2. Общие стили скинов во всём интерфейсе поддокумента "Скины на заказ" //
+      //----------------------------------------------------------------------------//
+  
+        // Общие стили оставшихся на полке товаров
+        .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods {
+          position: relative;
+          min-height: 525px;
+          background: lighten(#1B2934, 5%);
+          overflow: hidden;
+          border-radius: 3px;
+          margin: 0 43px 10px 43px;
+        }
+        .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .goods-cont {
+          padding: 10px 10px 0 10px;
+          padding-right: 0;
+          font-size: 0;
+          overflow: hidden;
+        }
+  
+        // Когда в магазине нет товаров
+        .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .there_is_no_items {
+          position: absoute; top: 0; left: 0;
+          width: 100%; height: 525px; line-height: 525px;
+          color: #fff; text-align: center;
+          font-size: 35px;
+        }
+  
+        // Стили одной позиции в интерфейсе
+  
+          // Общие
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item {
+            position: relative;
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+            background: lighten(#1B2934, 2%);
+            border: 1px solid lighten(#1B2934, 9%);
+            margin: 0 8px 8px 0;
+            cursor: pointer;
+            user-select: none;
+            transition: all .3s ease;
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item:hover {
+            border: 1px solid lighten(#1B2934, 14%);
+          }
+  
+          // Полоса с качеством
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .strip {
+            display: inline-block;
+            height: 2px;
+            width: 100%;
+          }
+  
+          // Изображение
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .img_cont {
+            position: absolute; top: 0px; left: 0;
+            width: 120px;
+            height: 120px;
+            line-height: 120px;
+            text-align: center;
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .img_cont img {
+            display: inline-block;
+            max-width: 90px;
+            max-height: 90px;
+            vertical-align: middle;
+          }
+  
+          // Стоимость вещи в монетах
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .value_in_coins {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            font-size: 14px;
+            vertical-align: middle;
+            color: #ffda44;
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .value_in_coins img {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+          }
+  
+          // Название
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .marketname {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            line-height: 21px;
+            text-align: center;
+            font-size: 12px;
+            overflow: hidden;
+            vertical-align: middle;
+            padding: 0 5px;
+            padding-top: 5px;
+            -webkit-transition: all .2s ease;
+            transition: all .2s ease;
+            //transition-delay: .1s;
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item:hover .marketname {
+            height: 88px;
+            line-height: 18px;
+            //padding-top: 7px;
+          }
+
+          // Панельки с надписью "Удалить" или "Добавить"
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .sign {
+            position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 40px; line-height: 40px;
+            opacity: 0;
+            font-weight: bold;
+            text-align: center;
+            background: #000;
+            font-size: 16px;
+            transition: all .2s ease;
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item:hover .sign {
+            opacity: 1;
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .sign .del {
+
+          }
+          .content .standard-admin-panel .container-block .content-block .content-table .left .skins2order .subdocs .goods .item .sign .add {
+
+          }
+
+
+
+
 
 
 
