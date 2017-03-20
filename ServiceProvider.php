@@ -138,7 +138,9 @@
           '\M14\Console\T17_add_goods',
           '\M14\Console\T18_update_tos_goods',
           '\M14\Console\T19_get_tos_goods',
-          '\M14\Console\T20_to_order_skins_processing'
+          '\M14\Console\T20_to_order_skins_processing',
+          '\M14\Console\T21_add_skin2order',
+          '\M14\Console\T22_remove_skin2order'
         ];
 
         // Регистрация команд в методе register
