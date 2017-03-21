@@ -144,8 +144,8 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
      *  6. Проверить, не отсутствуют ли в $items какие-либо вещи из items2buy
      *  7. Сгенерировать случайный код безопасности
      *  8. Получить из $uac все items2buy, и из $ordercache все items2order
-     *  9. Получить игрока, который хочет совершить покупку
-     *  10. Получить неповторяющийся массив ID всех ботов, у которых есть вещи из $items2buy_from_uac
+     *  9. Получить индекс вещей из $items2buy_from_uac, доступных по ID бота
+     *  10. Получить игрока, который хочет совершить покупку, и проверить валидность его Trade URL
      *  11. Подсчитать общую стоимость покупки в монетах
      *  12. Проверить, есть ли у $user в кошельке достаточно монет для покупки
      *  13. Записать в БД информацию о покупке
@@ -379,12 +379,7 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
 
         });
 
-      // 9. Получить игрока, который хочет совершить покупку
-      $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
-      if(empty($user))
-        throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
-
-      // 10. Получить индекс вещей из $items2buy_from_uac, доступных по ID бота
+      // 9. Получить индекс вещей из $items2buy_from_uac, доступных по ID бота
       // - Вида:
       //
       //  [
@@ -436,6 +431,47 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
         return $results;
 
       });
+
+      // 10. Получить игрока, который хочет совершить покупку, и проверить валидность его Trade URL
+
+        // 10.1. Получить игрока
+        $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
+        if(empty($user))
+          throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
+
+        // 10.2. Получить первого бота из $bot_items_index
+        $bot = \M8\Models\MD1_bots::where('id', array_keys($bot_items_index)[0])->first();
+
+        // 10.3. Проверить валидность его Trade URL
+        $is_users_tradeurl_valid = call_user_func(function() USE ($user, $bot) {
+
+          // 1] Получить steam_tradeurl пользователя $user
+          $steam_tradeurl = $user['steam_tradeurl'];
+
+          // 2] Получить "Partner ID" и "Token" из торгового URL
+          $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
+            "trade_url" => $steam_tradeurl
+          ]);
+          if($partner_and_token['status'] != 0)
+            return false;
+
+          // 3] Получить steamname и steamid по торговому URL
+          $result = runcommand('\M8\Commands\C30_get_steamname_and_steamid_by_tradeurl', [
+            "id_bot"  => $bot['id'],
+            "partner" => $partner_and_token['data']['partner'],
+            "token"   => $partner_and_token['data']['token']
+          ]);
+          if($result['status'] != 0)
+            return false;
+
+          // n] Вернуть true
+          return true;
+
+        });
+
+        // 10.4. Если Trade URL не валиден, создать ошибку и сообщить об этом
+        if($is_users_tradeurl_valid == false)
+          throw new \Exception('Вероятно, указанный Вами в профиле торговый URL не валиден. Пожалуйста, перейдите в профиль и укажите валидный торговый URL.');
 
       // 11. Подсчитать общую стоимость покупки в монетах
       $purchase_sum_coins = call_user_func(function() USE ($items2buy_from_uac, $items2order_from_ordercache) {
