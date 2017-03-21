@@ -107,7 +107,8 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-
+          '$schedule->command("m15:reset_statuses")->cron("0 0 * * * *");',
+          '$schedule->command("m15:get_time_until_next_day")->cron("* * * * * *");',
         ];
 
       //----------------------------------------------------//
@@ -117,7 +118,11 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-
+          '\M15\Console\T1_get_status',
+          '\M15\Console\T2_new_status',
+          '\M15\Console\T3_get_freecoins',
+          '\M15\Console\T4_reset_statuses',
+          '\M15\Console\T5_get_time_until_next_day'
         ];
 
         // Регистрация команд в методе register
