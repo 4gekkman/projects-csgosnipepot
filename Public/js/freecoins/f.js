@@ -46,8 +46,10 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 		// 1] Если пользователь уже получал сегодня награду, завершить
 		if(self.m.s8.reword.is_got_reword() == 1) return;
 
-		// 2] Если интерфейс заблокирован, завершить
-		if(self.m.s0.ajax_counter()) return;
+		// 2] Завершить, если (или):
+		// - Интерфейс заблокирован.
+		// - Это анонимный пользователь.
+		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in()) return;
 
 		// 3] Выполнить ajax-запрос
 		ajaxko(self, {

@@ -335,7 +335,8 @@ f.s6.deposit = function(data, event) {
 
 	// 1] Завершить, если (или):
 	// - Интерфейс заблокирован.
-	if(self.m.s0.ajax_counter()) return;
+	// - Это анонимный пользователь.
+	if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in()) return;
 
 	// 2] Учесть лимиты и ограничения
 	// - В случае нарушения лимитов, сообщить и завершить
