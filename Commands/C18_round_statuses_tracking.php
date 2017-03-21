@@ -564,7 +564,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
       // 7. Транслировать свежие игровые данные через публичный канал
       // - Если статус любого раунда был изменён
-      if($is_any_round_status_was_changed == true) {
+      //if($is_any_round_status_was_changed == true) {
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:public'],
           'queue'    => 'm9_lottery_broadcasting',
@@ -575,7 +575,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             ]
           ]
         ]));
-      }
+      //}
       DB::commit();
 
       // m. Вернуть результаты
