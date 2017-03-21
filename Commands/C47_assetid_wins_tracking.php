@@ -319,8 +319,6 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
             }
           }
 
-          Log::info('$is_empty_assetid_bots_in_bet = '.$is_empty_assetid_bots_in_bet);
-
           // 13] Если $is_empty_assetid_bots_in_bet == false
           if($is_empty_assetid_bots_in_bet == false) {
 
@@ -337,9 +335,6 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
               return "";
 
             });
-
-            Log::info('$round_history = ');
-            Log::info($round_history);
 
             // 13.3] Если $round_history найдена, транслировать через публичный канал
             if(!empty($round_history)) {
