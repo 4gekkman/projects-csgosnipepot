@@ -144,7 +144,7 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
      *  6. Отфильтровать из $items вещи типов, запрещённых в item_type_filters
      *  7. Сгенерировать случайный код безопасности
      *  8. Определить, какой бот будет принимать вещи
-     *  9. Получить игрока, который хочет сделать ставку
+     *  9. Получить игрока, который хочет сделать ставку, и проверить валидность его Trade URL
      *  10. Подготовить массив assetid вещей, которые бот должен запросить
      *  11. Подсчитать суммарную стоимость передаваемых вещей в центах
      *  12. Подсчитать суммарное кол-во монет, которые будут выданы (с учётом skin_price2accept_spread_in_perc)
@@ -342,10 +342,43 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         if(empty($bot))
           throw new \Exception('Не удалось найти бота, который мог бы принять вещи.');
 
-      // 9. Получить игрока, который хочет сделать ставку
-      $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
-      if(empty($user))
-        throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
+      // 9. Получить игрока, который хочет сделать ставку, и проверить валидность его Trade URL
+
+        // 9.1. Получить игрока
+        $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
+        if(empty($user))
+          throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
+
+        // 9.2. Проверить валидность его Trade URL
+        $is_users_tradeurl_valid = call_user_func(function() USE ($user, $bot) {
+
+          // 1] Получить steam_tradeurl пользователя $user
+          $steam_tradeurl = $user['steam_tradeurl'];
+
+          // 2] Получить "Partner ID" и "Token" из торгового URL
+          $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
+            "trade_url" => $steam_tradeurl
+          ]);
+          if($partner_and_token['status'] != 0)
+            return false;
+
+          // 3] Получить steamname и steamid по торговому URL
+          $result = runcommand('\M8\Commands\C30_get_steamname_and_steamid_by_tradeurl', [
+            "id_bot"  => $bot['id'],
+            "partner" => $partner_and_token['data']['partner'],
+            "token"   => $partner_and_token['data']['token']
+          ]);
+          if($result['status'] != 0)
+            return false;
+
+          // n] Вернуть true
+          return true;
+
+        });
+
+        // 9.3. Если Trade URL не валиден, создать ошибку и сообщить об этом
+        if($is_users_tradeurl_valid == false)
+          throw new \Exception('Вероятно, указанный Вами в профиле торговый URL не валиден. Пожалуйста, перейдите в профиль и укажите валидный торговый URL.');
 
       // 10. Подготовить массив assetid вещей, которые бот должен запросить
       // - В формате <assetid> => <market_name>
