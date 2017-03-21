@@ -420,13 +420,26 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
-			// 4] В зависимости от URI предпринять доп.действия
+			// 4] Если это анон, а доступ к документу для анонов закрыт, переадресовать на anon_redir, и завершить
+			if(!self.m.s0.is_logged_in() && !subdoc.vis4anon()) {
+
+				// 4.1] Переадресовать
+				self.f.s1.choose_subdoc({
+					uri: subdoc.anon_redir()
+				});
+
+				// 4.2] Завершить
+				return;
+
+			}
+
+			// 5] В зависимости от URI предпринять доп.действия
 			(function(){
 
-				// 4.1] Если URI == '/top'
+				// 5.1] Если URI == '/top'
 				if(uri == '/top') {
 
-					// 4.1.1] Запросить TOP игроков с сервера, если он ещё не получен
+					// 5.1.1] Запросить TOP игроков с сервера, если он ещё не получен
 					(function(){
 
 						// Подготовить рекурсивную функцию
@@ -449,10 +462,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
-				// 4.2] Если URI == '/faq'
+				// 5.2] Если URI == '/faq'
 				if(uri == '/faq') {
 
-					// 4.2.1] Запросить FAQ с сервера, если он ещё не получен
+					// 5.2.1] Запросить FAQ с сервера, если он ещё не получен
 					(function(){
 
 						// Подготовить рекурсивную функцию
@@ -475,10 +488,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
-				// 4.3] Если URI == '/'
+				// 5.3] Если URI == '/'
 				if(uri == '/') {
 
-					// 4.3.1] Переключить вкладку внутри classic game на игру
+					// 5.3.1] Переключить вкладку внутри classic game на игру
 					(function(){
 
 						// Подготовить рекурсивную функцию
@@ -501,10 +514,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
-				// 4.4] Если URI == '/deposit'
+				// 5.4] Если URI == '/deposit'
 				if(uri == '/deposit') {
 
-					// 4.4.1] Запросить инвентарь пользователя с сервера, если он ещё не получен, без force
+					// 5.4.1] Запросить инвентарь пользователя с сервера, если он ещё не получен, без force
 					(function(){
 
 						// Подготовить рекурсивную функцию
@@ -527,10 +540,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				}
 
-				// 4.5] Если URI == '/shop'
+				// 5.5] Если URI == '/shop'
 				if(uri == '/shop') {
 
-					// 4.5.1] Выполнить начальную загрузку товаров магазина, если они ранее ещё не загружены
+					// 5.5.1] Выполнить начальную загрузку товаров магазина, если они ранее ещё не загружены
 					(function(){
 
 						// Подготовить рекурсивную функцию
@@ -555,13 +568,13 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			})();
 
-			// 5] Выбрать поддокумент subdoc
+			// 6] Выбрать поддокумент subdoc
 			self.m.s1.selected_subdoc(subdoc);
 
-			// 5] Прокрутить документ в самый верх
+			// 7] Прокрутить документ в самый верх
 			// window.scrollTo(0, 0);
 
-			// 6] Если это первый вызов subdoc
+			// 8] Если это первый вызов subdoc
 			if(parameters.first) {
 
 				// Подменить текущее состояние, а не добавлять новое
@@ -569,10 +582,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
-			// 7] Если это не первый вход в документ
+			// 9] Если это не первый вход в документ
 			else {
 
-				// 7.1] Определить значение для query string
+				// 9.1] Определить значение для query string
 				var querystring = (function(){
 
 					// Включать URI в строку адреса, если uri == "/faq"
@@ -585,7 +598,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 				})();
 
-				// 7.n] Добавить в историю новое состояние
+				// 9.n] Добавить в историю новое состояние
 				History.pushState({state:subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + querystring);
 
 			}

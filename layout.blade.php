@@ -192,7 +192,7 @@
       <?php /*---------->
       <!-- Пункт меню -->
       <!------------*/ ?>
-      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}, visible: visible">
+      <div class="item" data-bind="style: {backgroundColor: bg_color, borderColor: brd_color}, css: {choosen: $data.uri() == $root.m.s1.selected_subdoc().uri()}, visible: (visible() && (layoutmodel.m.s0.is_logged_in() ? true : vis4anon()))">
 
         <?php /*---------------------->
         <!-- 1] Контент пункта меню -->

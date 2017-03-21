@@ -492,7 +492,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Classic game',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
-			visible:    true
+			visible:    true,
+			vis4anon:   true,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/double',
@@ -501,7 +503,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Double game',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
-			visible:    true
+			visible:    false,
+			vis4anon:   true,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/coinflip',
@@ -510,7 +514,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Coinflip',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
-			visible:    true
+			visible:    false,
+			vis4anon:   true,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/shop',
@@ -519,7 +525,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Магазин',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    true,
+			vis4anon:   false,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/profile',
@@ -528,7 +536,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Профиль',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    true,
+			vis4anon:   false,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/ref',
@@ -537,7 +547,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Партнёрка',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    false,
+			vis4anon:   false,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/top',
@@ -546,7 +558,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'ТОП игроков',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    true,
+			vis4anon:   true,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/faq',
@@ -555,7 +569,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'F.A.Q.',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    true,
+			vis4anon:   true,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/support',
@@ -564,7 +580,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Тех.поддержка',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    true,
+			vis4anon:   true,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/free',
@@ -573,7 +591,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Free coins',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    true
+			visible:    true,
+			vis4anon:   false,
+			anon_redir: '/'
 		},
 		{
 			uri:        '/deposit',
@@ -582,7 +602,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			title:      'Deposit',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
-			visible:    false
+			visible:    false,
+			vis4anon:   false,
+			anon_redir: '/'
 		}
 	]);
 
