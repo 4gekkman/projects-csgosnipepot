@@ -34,6 +34,7 @@
  *    f.s1.get_initial_history 						| s1.21. Получить стартовый набор с историей (10 шт.) для выбранной комнаты
  *    f.s1.get_more_history               | s1.22. Получить ещё 10 позиций истории для выбранной комнаты
  *    f.s1.add_new_history                | s1.23. Добавить в историю комнаты новую единицу истории
+ *    f.s1.queue_remove                   | s1.24. Удалить из очереди все состояния с указанным статусом, и опубликовать итоговую очередь состояний
  *
  */
 
@@ -289,8 +290,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				})();
 
-
-
 				// 3.n] Обновить значение m.s1.game.choosen_status
 				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
@@ -303,7 +302,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// 4.1] Текущее серверное время, unix timestamp в секундах
 				var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
-				// 4.2] Время начала состояния Started, unix timestamp в секундах
+				// 4.2] Время старта раунда, unix timestamp в секундах
 				var started_at_s = Math.round(moment.utc(room2update.rounds()[0].started_at()).unix());
 
 				// 4.3] Получить данные по длительности различных состояний из конфига выбранной комнаты
@@ -350,134 +349,167 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// 6] В зависимости от условия, выполнить или запланировать выполнение функции update
 
-				// 6.1] Если для room2update пришли данные с состоянием Lottery
-				if(newstatus == "Lottery") {
+				// 6.1] Если для room2update пришли данные с состоянием Created
+				if(newstatus == "Created") {
 
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
-					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
-
-					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
-					if(data[i].id == 2) console.log('switchtimes.lottery = '+switchtimes.lottery);
-
-					// 6.1.2] Если timestamp_s >= switchtimes.lottery
-					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.lottery) {
-						if(data[i].id == 2) console.log('Update now');
-						update();
-					}
-
-					// 6.1.3] В ином случае, запланировать выполнение update
-					// - На момент времени switchtimes.lottery.
-					else {
-						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.lottery, update, room2update_id, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
-					}
-
-				}
-
-				// 6.2] Если для room2update пришли данные с состоянием Winner
-				else if(newstatus == "Winner") {
-
-					// 6.2.1] Текущее серверное время, unix timestamp в секундах
-					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
-
-					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
-					if(data[i].id == 2) console.log('switchtimes.winner = '+switchtimes.winner);
-
-					// 6.2.2] Если timestamp_s >= switchtimes.lottery
-					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.winner) {
-						if(data[i].id == 2) console.log('Update now');
-						update();
-					}
-
-					// 6.2.3] В ином случае, запланировать выполнение update
-					// - На момент времени switchtimes.winner.
-					else {
-						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.winner, update, room2update_id, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
-					}
-
-				}
-
-				// 6.3] Если для room2update пришли данные с состоянием Finished
-				else if(newstatus == "Finished") {
-
-
-
-
-				}
-
-				// 6.4] Если для room2update пришли данные с состоянием Created
-				else if(newstatus == "Created") {
-
-					// 6.4.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
 					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
 					if(data[i].id == 2) console.log('switchtimes.created = '+switchtimes.created);
 
-					// 6.4.2] Если timestamp_s >= switchtimes.created
+					// 6.1.2] Если timestamp_s >= switchtimes.created
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.created) {
-						if(data[i].id == 2) console.log('Update now');
-						update();
-					}
+					//if(timestamp_s >= switchtimes.created) {
+					//	if(data[i].id == 2) console.log('Update now');
+					//	update();
+					//}
 
-					// 6.4.3] В ином случае, запланировать выполнение update
+					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.created.
-					else {
+					//else {
+					if(newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
 						if(data[i].id == 2) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
 					}
+					//}
 
 				}
 
-				// 6.5] Если для room2update пришли данные с состоянием First bet
+				// 6.2] Если для room2update пришли данные с состоянием First bet
 				else if(newstatus == "First bet") {
 
-					// 6.5.1] Текущее серверное время, unix timestamp в секундах
+					// 6.2.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
-					// 6.5.2] Получить статус комнаты room2update
+					// 6.2.2] Получить статус комнаты room2update
 					var status = room2update.rounds()[0].rounds_statuses()[0].status();
 
-					// 6.5.3] Если текущий статус последнего раунда в room2update = Created
+					// 6.2.3] Если текущий статус последнего раунда в room2update = Created
 					// - Выполнить update прямо сейчас.
-					if(status == "Created") {
-						if(data[i].id == 2) console.log('Update now');
-						update();
-					}
+					//if(status == "Created") {
+					//	if(data[i].id == 2) console.log('Update now');
+					//	update();
+					//}
 
-					// 6.5.4] В ином случае, запланировать выполнение update
-					else {
+					// 6.2.4] В ином случае, запланировать выполнение update
+					//else {
+					if(newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
  						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
+						self.f.s1.queue_add(0, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
 					}
+					//}
 
 				}
 
-				// 6.6] Если для room2update пришли данные с состоянием First bet
+				// 6.3] Если для room2update пришли данные с состоянием Started
 				else if(newstatus == "Started") {
+
+					// 6.3.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
+
+					// 6.3.2] Получить статус комнаты room2update
+					var status = room2update.rounds()[0].rounds_statuses()[0].status();
+
+					// 6.3.3] Если текущий статус последнего раунда в room2update = First bet или Started
+					// - Выполнить update прямо сейчас.
+					//if(status == "First bet" || status == "Started") {
+					//	if(data[i].id == 2) console.log('Update now');
+					//	update();
+					//}
+
+					// 6.3.4] В ином случае, запланировать выполнение update
+					//else {
+					if(['Pending', 'Lottery', 'Winner', 'Finished'].indexOf(room2update.rounds()[0].rounds_statuses()[0].status()) == -1) {
+ 						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(0, update, room2update_id, newstatus, 'Started fresh data delayed update in room #'+data[i].id, false, true);
+					}
+					//}
+
+				}
+
+				// 6.4] Если для room2update пришли данные с состоянием Pending
+				else if(newstatus == "Pending") {
+
+					// 6.4.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
+
+					// 6.4.2] Получить статус комнаты room2update
+					var status = room2update.rounds()[0].rounds_statuses()[0].status();
+
+					// 6.4.3] Если текущий статус последнего раунда в room2update = First bet или Started
+					// - Выполнить update прямо сейчас.
+					//if(status == "Started") {
+					//	if(data[i].id == 2) console.log('Update now');
+					//	update();
+					//}
+
+					// 6.3.4] В ином случае, запланировать выполнение update
+					//else {
+					if(switchtimes.pending && !isNaN(switchtimes.pending) && newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
+ 						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(switchtimes.pending, update, room2update_id, newstatus, 'Pending fresh data delayed update in room #'+data[i].id, false, false);
+					}
+					//}
+
+				}
+
+				// 6.5] Если для room2update пришли данные с состоянием Lottery
+				else if(newstatus == "Lottery") {
+
+					// 6.5.1] Текущее серверное время, unix timestamp в секундах
+					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
+
+					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2) console.log('switchtimes.lottery = '+switchtimes.lottery);
+
+					// 6.5.2] Если timestamp_s >= switchtimes.lottery
+					// - Выполнить update прямо сейчас.
+					//if(timestamp_s >= switchtimes.lottery) {
+					//	if(data[i].id == 2) console.log('Update now');
+					//	update();
+					//}
+
+					// 6.5.3] В ином случае, запланировать выполнение update
+					// - На момент времени switchtimes.lottery.
+					//else {
+					if(switchtimes.lottery && !isNaN(switchtimes.lottery) && newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
+						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(switchtimes.lottery, update, room2update_id, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
+					}
+					//}
+
+				}
+
+				// 6.6] Если для room2update пришли данные с состоянием Winner
+				else if(newstatus == "Winner") {
 
 					// 6.6.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
-					// 6.6.2] Получить статус комнаты room2update
-					var status = room2update.rounds()[0].rounds_statuses()[0].status();
+					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2) console.log('switchtimes.winner = '+switchtimes.winner);
 
-					// 6.6.3] Если текущий статус последнего раунда в room2update = First bet или Started
+					// 6.6.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(status == "First bet" || status == "Started") {
-						if(data[i].id == 2) console.log('Update now');
-						update();
-					}
+					//if(timestamp_s >= switchtimes.winner) {
+					//	if(data[i].id == 2) console.log('Update now');
+					//	update();
+					//}
 
-					// 6.6.4] В ином случае, запланировать выполнение update
-					else {
- 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Started fresh data delayed update in room #'+data[i].id, false, true);
+					// 6.6.3] В ином случае, запланировать выполнение update
+					// - На момент времени switchtimes.winner.
+					//else {
+					if(switchtimes.winner && !isNaN(switchtimes.winner) && newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
+						if(data[i].id == 2) console.log('Delayed update');
+						self.f.s1.queue_add(switchtimes.winner, update, room2update_id, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
 					}
+					//}
+
+				}
+
+				// 6.7] Если для room2update пришли данные с состоянием Finished
+				else if(newstatus == "Finished") {
 
 				}
 
@@ -618,8 +650,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Получить UID обновления: <номер комнаты>_<номер раунда>_<имя статуса>
 		var uid = room2update.id() + '_' +
 							room2update.rounds()[0].id() + '_' +
-							newstatus + '_' +
-							Date.now();
+							newstatus;
 
 		// 1.2] Попробовать найти задачу с UID в m.s1.game.queue
 		var is_uid_in_queue = (function(){
@@ -640,7 +671,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				description: description,
 				room2update_id: room2update_id,
 				is_firstbet: is_firstbet,
-				is_started: is_started
+				is_started: is_started,
+				newstatus: newstatus
 			});
 		}
 
@@ -702,7 +734,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		for(var i=0; i<self.m.s1.game.queue().length; i++) {
 
 			// 2.1] Если это не First bet или Started
-			if(!self.m.s1.game.queue()[i].is_firstbet && !self.m.s1.game.queue()[i].is_started) {
+			//if(!self.m.s1.game.queue()[i].is_firstbet && !self.m.s1.game.queue()[i].is_started) {
+
 				if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
 					self.m.s1.game.queue()[i].func();
 					var uid = self.m.s1.game.queue()[i].uid;
@@ -711,42 +744,43 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 						return false;
 					});
 				}
-			}
+
+			//}
 
 			// 2.2] В противном случае
-			else {
-
-				// 2.2.1] Получить комнату, которую надо обновить
-				var room2update = self.m.s1.indexes.rooms[self.m.s1.game.queue()[i].room2update_id];
-
-				// 2.2.2] Получить статус комнаты room2update
-				var status = room2update.rounds()[0].rounds_statuses()[0].status();
-
-				// 2.2.3] Если это First bet и статус room2update = "Created" или "First bet"
-				if(self.m.s1.game.queue()[i].is_firstbet && (status == "Created" || status == "First bet")) {
-
-					self.m.s1.game.queue()[i].func();
-					var uid = self.m.s1.game.queue()[i].uid;
-					self.m.s1.game.queue.remove(function(item){
-						if(item.uid == uid) return true;
-						return false;
-					});
-
-				}
-
-				// 2.2.4] Если это Started и статус room2update = "First bet" или "Started"
-				else if(self.m.s1.game.queue()[i].is_started && (status == "First bet" || status == "Started")) {
-
-					self.m.s1.game.queue()[i].func();
-					var uid = self.m.s1.game.queue()[i].uid;
-					self.m.s1.game.queue.remove(function(item){
-						if(item.uid == uid) return true;
-						return false;
-					});
-
-				}
-
-			}
+			//			else {
+			//
+			//				// 2.2.1] Получить комнату, которую надо обновить
+			//				var room2update = self.m.s1.indexes.rooms[self.m.s1.game.queue()[i].room2update_id];
+			//
+			//				// 2.2.2] Получить статус комнаты room2update
+			//				var status = room2update.rounds()[0].rounds_statuses()[0].status();
+			//
+			//				// 2.2.3] Если это First bet и статус room2update = "Created" или "First bet"
+			//				if(self.m.s1.game.queue()[i].is_firstbet && (status == "Created" || status == "First bet")) {
+			//
+			//					self.m.s1.game.queue()[i].func();
+			//					var uid = self.m.s1.game.queue()[i].uid;
+			//					self.m.s1.game.queue.remove(function(item){
+			//						if(item.uid == uid) return true;
+			//						return false;
+			//					});
+			//
+			//				}
+			//
+			//				// 2.2.4] Если это Started и статус room2update = "First bet" или "Started"
+			//				else if(self.m.s1.game.queue()[i].is_started && (status == "First bet" || status == "Started")) {
+			//
+			//					self.m.s1.game.queue()[i].func();
+			//					var uid = self.m.s1.game.queue()[i].uid;
+			//					self.m.s1.game.queue.remove(function(item){
+			//						if(item.uid == uid) return true;
+			//						return false;
+			//					});
+			//
+			//				}
+			//
+			//			}
 
 		}
 
@@ -1562,6 +1596,34 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		self.m.s1.history.all()[id_room].pop();
 
 	};
+
+	//---------------------------------------------------------------------------------------------------------//
+	// s1.24. Удалить из очереди все состояния с указанным статусом, и опубликовать итоговую очередь состояний //
+	//---------------------------------------------------------------------------------------------------------//
+	f.s1.queue_remove = function(status) {
+
+		// 1] Удалить из s1.game.queue все состояния со статусом status
+		self.m.s1.game.queue.remove(function(item){
+			return item.newstatus = status;
+		});
+
+		// 2] Вычислить итоговую очередь состояний
+		var queue = (function(){
+
+			var result = [];
+			for(var i=0; i<self.m.s1.game.queue().length; i++) {
+				result.push(self.m.s1.game.queue()[i].newstatus + ' | ' + self.m.s1.game.queue()[i].uid);
+			}
+			return result;
+
+		})();
+
+		// n] Вернуть итоговую очередь состояний
+		return queue;
+
+	};
+
+
 
 
 
