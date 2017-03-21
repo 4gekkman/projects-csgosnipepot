@@ -24,6 +24,7 @@
  *  s5. Функционал FAQ
  *  s6. Функционал интерфейса пополнения баланса скинами
  *  s7. Функционал магазина скинов
+ *  s8. Функционал Free Coins
  *
  *
  */
@@ -245,6 +246,16 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 	//------------------------------------------//
 	// - См. D10009/Public/js/shop/f.js
 	f.s7 = Object.create(ModelFunctionsShop).constructor(self, f);
+
+
+	//--------------------------------------//
+	// 			        		 			              //
+	// 			 s8. Функционал Free Coins			//
+	// 			         					              //
+	//--------------------------------------//
+	// - См. D10009/Public/js/freecoins/f.js
+	f.s8 = Object.create(ModelFunctionsFc).constructor(self, f);
+
 
 
 

@@ -361,17 +361,17 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// 6.1.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.lottery) {
+					//if(timestamp_s >= switchtimes.lottery) {
 						if(data[i].id == 2) console.log('Update now');
 						update();
-					}
+					//}
 
 					// 6.1.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.lottery.
-					else {
-						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.lottery, update, room2update_id, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
-					}
+					//else {
+					//	if(data[i].id == 2) console.log('Delayed update');
+					//	self.f.s1.queue_add(switchtimes.lottery, update, room2update_id, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
+					//}
 
 				}
 
@@ -386,17 +386,17 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// 6.2.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.winner) {
+					//if(timestamp_s >= switchtimes.winner) {
 						if(data[i].id == 2) console.log('Update now');
 						update();
-					}
+					//}
 
 					// 6.2.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.winner.
-					else {
-						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.winner, update, room2update_id, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
-					}
+					//else {
+					//	if(data[i].id == 2) console.log('Delayed update');
+					//	self.f.s1.queue_add(switchtimes.winner, update, room2update_id, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
+					//}
 
 				}
 
@@ -419,17 +419,17 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// 6.4.2] Если timestamp_s >= switchtimes.created
 					// - Выполнить update прямо сейчас.
-					if(timestamp_s >= switchtimes.created) {
+					//if(timestamp_s >= switchtimes.created) {
 						if(data[i].id == 2) console.log('Update now');
 						update();
-					}
+					//}
 
 					// 6.4.3] В ином случае, запланировать выполнение update
 					// - На момент времени switchtimes.created.
-					else {
-						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
-					}
+					//else {
+					//	if(data[i].id == 2) console.log('Delayed update');
+					//	self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
+					//}
 
 				}
 
@@ -444,16 +444,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// 6.5.3] Если текущий статус последнего раунда в room2update = Created
 					// - Выполнить update прямо сейчас.
-					if(status == "Created") {
+					//if(status == "Created") {
 						if(data[i].id == 2) console.log('Update now');
 						update();
-					}
+					//}
 
 					// 6.5.4] В ином случае, запланировать выполнение update
-					else {
- 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
-					}
+					//else {
+ 					//	if(data[i].id == 2) console.log('Delayed update');
+					//	self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
+					//}
 
 				}
 
@@ -468,16 +468,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// 6.6.3] Если текущий статус последнего раунда в room2update = First bet или Started
 					// - Выполнить update прямо сейчас.
-					if(status == "First bet" || status == "Started") {
+					//if(status == "First bet" || status == "Started") {
 						if(data[i].id == 2) console.log('Update now');
 						update();
-					}
+					//}
 
 					// 6.6.4] В ином случае, запланировать выполнение update
-					else {
- 						if(data[i].id == 2) console.log('Delayed update');
-						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Started fresh data delayed update in room #'+data[i].id, false, true);
-					}
+					//else {
+ 					//	if(data[i].id == 2) console.log('Delayed update');
+					//	self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Started fresh data delayed update in room #'+data[i].id, false, true);
+					//}
 
 				}
 
@@ -1549,11 +1549,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		var history 						= data.history;
 		var history_all_count 	= data.history_all_count;
 
-		// 4] Записать общее кол-во единиц истории для текущей комнаты в кэше
-		self.m.s1.history.totalcount()[id_room](history_all_count);
-
- 		// 5] Если у текущей комнаты ещё нет истории, завершить
+ 		// 4] Если у текущей комнаты ещё нет истории, завершить
 		if(!self.m.s1.history.is_in_choosen_room()) return;
+
+		// 5] Записать общее кол-во единиц истории для текущей комнаты в кэше
+		self.m.s1.history.totalcount()[id_room](history_all_count);
 
 		// 6] Добавить history в начало m.s1.history.all
 		self.m.s1.history.all()[id_room].unshift(ko.mapping.fromJS(history));

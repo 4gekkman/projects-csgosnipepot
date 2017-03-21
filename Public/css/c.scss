@@ -14,6 +14,7 @@
   4. Стили FAQ
   5. Стили интерфейса пополнения баланса скинами
   6. Стили магазина скинов
+  7. Стили Free Coins
 
 ////------------------------------////
 ////             ////
@@ -3260,3 +3261,204 @@
       }
       
       
+//---------------------//
+// 7. Стили Free Coins //
+/*---------------------//
+Оглавление
+
+  7.1. Переменные стилей Free Coins
+  7.2. Общие стили Free Coins
+  7.3. Стили шапки Free Coins
+  7.4. Стили контента Free Coins
+
+//-----------------------*/
+
+  //-----------------------------------//
+  // 7.1. Переменные стилей Free Coins //
+  //-----------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $fc_main_color: #212f35;            // Главный цвет
+      $fc_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $fc_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $fc_color_header_height: 50px;      // Высота шапки
+
+  //-----------------------------//
+  // 7.2. Общие стили Free Coins //
+  //-----------------------------//
+
+    // Внешний контейнер
+    .content .fc {
+
+    }
+
+    // Внутренний контейнер
+    .content .fc .fc-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //-----------------------------//
+  // 7.3. Стили шапки Free Coins //
+  //-----------------------------//
+
+    // Общие стили шапки классической игры
+    .content .fc .fc-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $top_color_header_height;
+    }
+
+    // Заголовок
+    .content .fc .fc-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $top_color_header_height;
+      line-height: $top_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .fc .fc-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .fc .fc-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //--------------------------------//
+  // 7.4. Стили контента Free Coins //
+  //--------------------------------//
+
+    //----------------------------------------//
+    // 7.4.1. Общие стили контента Free Coins //
+    //----------------------------------------//
+
+      // Стили контейнера
+      .content .fc .fc-container .fc-content {
+        position: relative;
+        min-height: 250px;
+        padding: 0 15px 15px 0;
+      }
+
+      // Общие стили блоков раздела
+      .content .fc .fc-container .fc-content .fc-block {
+        display: inline-block;
+        position: relative;
+        width: 265px; height: 265px;
+        margin-top: 15px;
+        margin-left: 15px;
+        background: #243645;
+      }
+
+      // Заголовок
+      .content .fc .fc-container .fc-content .fc-block .fc-header {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 50px; line-height: 50px;
+        text-align: center;
+        color: #fff;
+        font-size: 1.3em;
+      }
+
+      // Кнопка "Получить"
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button {
+        position: absolute; bottom: 15px; left: 20%;
+        width: 60%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #4285f4;
+        cursor: pointer;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 1.2em;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+
+      // Спиннер в кнопке "Получить"
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button .loader {
+        position: absolute;
+        top: 3px;
+        right: 0;
+      }
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button .loader .loader-inner div {
+        width: 20px;
+        height: 20px;
+      }
+
+      // Картинка в центре блока
+      .content .fc .fc-container .fc-content .fc-block .fc-center-img {
+        position: absolute;
+        top: calc(50% - 50px);
+        left: calc(50% - 50px);
+        max-width: 100px; max-height: 100px;
+      }
+
+    //---------------------------------//
+    // 7.4.2. Стили ежедневной награды //
+    //---------------------------------//
+
+      // Времени осталось до следующего дня
+      .content .fc .fc-container .fc-content .fc-block .fc-time-until-next-day {
+        position: absolute; bottom: 15px; left: 20%;
+        width: 60%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #1b2934;
+        cursor: default;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 1.2em;
+        user-select: none;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+
+      // Количество монет
+      .content .fc .fc-container .fc-content .fc-block .fc-coins {
+        position: absolute; bottom: 55px; left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

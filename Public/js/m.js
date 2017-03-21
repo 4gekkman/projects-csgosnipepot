@@ -40,6 +40,7 @@
  *  s5. Модель FAQ
  *  s6. Модель интерфейса пополнения баланса скинами
  *  s7. Модель магазина скинов
+ *  s8. Модель Free Coins
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -437,6 +438,15 @@ var ModelProto = { constructor: function(ModelFunctions) {
 	//---------------------------------------//
 	// - См. D10009/Public/js/shop/m.js
   self.m.s7 = Object.create(ModelShop).constructor(self, self.m);
+
+
+	//---------------------------------//
+	// 			        		 	             //
+	// 			 s8. Модель Free Coins 		 //
+	// 			         			             //
+	//---------------------------------//
+	// - См. D10009/Public/js/freecoins/m.js
+  self.m.s8 = Object.create(ModelFc).constructor(self, self.m);
 
 
 	//------------------------------------------------------------//

@@ -28,6 +28,7 @@
  *                  POST-API7   D10009:7                   Создать новый трейд с запросом вещей пользователя
  *                  POST-API8   D10009:8                   Обновить товарные остатки при первом входе в магазин
  *                  POST-API9   D10009:9                   Осуществить покупку, создать новый трейд для доставки вещей покупателю
+ *                  POST-API9   D10009:10                  Пользователь запрашивает бесплатные монеты (ежедневная награда)
  *
  *
  */
@@ -216,6 +217,64 @@ class Controller extends BaseController {
 
       });
 
+      // 9. Получить данные для модели ежедневной награды аутентиф.пользователя
+      $reward = call_user_func(function(){
+
+        // 9.1. Размер ежедневной награды
+        $coins = config("M15.daily_coins_payout_num_everyuser");
+        if(empty($coins))
+          $coins = 10;
+
+        // 9.2. Сколько времени осталось до наступления следующих суток
+        $time_until_next_day = call_user_func(function(){
+
+          // 1] Выполнить команду
+          $result = runcommand('\M15\Commands\C5_get_time_until_next_day', []);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Вернуть результат
+          return $result['data']['end'];
+
+        });
+
+
+        // 9.3. Получил ли уже сегодня текущий аутентиф.пользователь свою награду
+
+          // 1] Получить ID текущего пользователя
+          $id_user = lib_current_user_id();
+
+          // 2] Если $id_user == -1, вернуть пустую строку
+          if($id_user == -1)
+            $is_got_reword = "";
+
+          // 3] Иначе, выполнить команду
+          else
+            $is_got_reword = call_user_func(function(){
+
+              // Выполнить команду
+              $result = runcommand('\M15\Commands\C1_get_status', [
+                "id_user" => lib_current_user_id()
+              ]);
+              if($result['status'] != 0)
+                throw new \Exception($result['data']['errormsg']);
+
+              // Вернуть результат
+              return $result['data']['status']['id_status'];
+
+            });
+
+          // 9.n. Вернуть результат
+          return [
+            "coins"               => $coins,
+            "time_until_next_day" => $time_until_next_day,
+            "is_got_reword"       => $is_got_reword
+          ];
+
+      });
+
+
+
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
 
@@ -234,7 +293,8 @@ class Controller extends BaseController {
         "classicgame_statistics"  => $classicgame_statistics,
         "usdrub_rate"             => $rate,
         "public_faq_folder"       => config('M12.public_faq_folder'),
-        "deposit_configs"         => $deposit_configs
+        "deposit_configs"         => $deposit_configs,
+        "reward"                  => $reward
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -627,6 +687,36 @@ class Controller extends BaseController {
           return $result;
 
         }
+
+        //----------------------------------//
+        // Нестандартная операция D10009:10 //
+        //----------------------------------//
+        // - Пользователь запрашивает бесплатные монеты (ежедневная награда)
+        if($key == 'D10009:10') {
+
+          // 1. Получить ID текущего пользователя
+          $id_user = lib_current_user_id();
+
+          // 2. Если $id_user == -1, вернуть ошибку "2"
+          if($id_user == -1)
+            return [
+              "status"  => -2,
+              "data"    => [
+                "errortext" => "",
+                "errormsg"  => "2"
+              ]
+            ];
+
+          // 3. Выполнить команду
+          $result = runcommand('\M15\Commands\C3_get_freecoins', [
+            "id_user" => $id_user
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
 
 
 

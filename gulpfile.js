@@ -168,6 +168,10 @@ for(var javascriptnum=0; javascriptnum<sources["javascript"].length; javascriptn
 					sources["javascript"][javascriptnum]+'shop/m.js',
 					sources["javascript"][javascriptnum]+'shop/f.js',
 
+					// Free Coins
+					sources["javascript"][javascriptnum]+'freecoins/m.js',
+					sources["javascript"][javascriptnum]+'freecoins/f.js',
+
 					// Основная модель и функционал
 					sources["javascript"][javascriptnum]+'m.js',
 					sources["javascript"][javascriptnum]+'f.js',

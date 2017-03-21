@@ -176,9 +176,7 @@
 <?php /*-------------->
 <!-- 10. Free coins -->
 <!----------------*/ ?>
-<div data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/freecoins'">
-  <span>Free coins</span>
-</div>
+@include('D10009::Subviews.freecoins')
 
 <?php /*---------------------------->
 <!-- 11. Пополнить баланс скинами -->
