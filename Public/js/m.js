@@ -567,7 +567,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			visible:    true
 		},
 		{
-			uri:        '/freecoins',
+			uri:        '/free',
 			icon_mdi:   'mdi-coin',
 			icon_url:   '',
 			title:      'Free coins',
