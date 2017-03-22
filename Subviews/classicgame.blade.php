@@ -274,7 +274,7 @@
             <div class="make-a-bet">
               <div class="button" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>
                 <i class="fa fa-fw fa-steam"></i>
-                <span>Войти, чтобы ставить</span>
+                <span>Войти, чтобы играть</span>
               </div>
             </div>
 
