@@ -338,7 +338,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// Когда надо переключить в Lottery
 					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
-					// Когда надо переключить в Winner 
+					// Когда надо переключить в Winner
 					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 1);
 
 					// Когда надо переключить в Created
