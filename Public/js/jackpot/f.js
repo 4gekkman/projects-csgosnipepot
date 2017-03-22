@@ -336,9 +336,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					st.pending = moment.utc(+started_at_s + +durations.started);
 
 					// Когда надо переключить в Lottery
-					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending - 1.5);
+					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
-					// Когда надо переключить в Winner
+					// Когда надо переключить в Winner 
 					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 1);
 
 					// Когда надо переключить в Created
@@ -781,7 +781,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 								if(item.uid == uid) return true;
 								return false;
 							});
-						} 
+						}
 
 						// 1.1.n) Иначе, всже выполнить func перед удалением из очереди
 						else {
