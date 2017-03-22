@@ -756,21 +756,34 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 1.1) Если newstatus == Pending, Lottery, Winner
 					if(['Pending', 'Lottery', 'Winner'].indexOf(self.m.s1.game.queue()[i].newstatus) != -1) {
 
-						// 1.1.1) Если текущий статус уже равен Pending
-						// - Просто удалить задачу из очереди, не выполняя её.
-						// - Перейти к следующей итерации
-						if(self.m.s1.game.queue()[i].newstatus == status) {
-
-							// Удалить
+						// 1.1.1) Если newstatus == Pending, а status == Pending, Lottery, Winner, Finished
+						if(self.m.s1.game.queue()[i].newstatus == "Pending" && ['Pending', 'Lottery', 'Winner', 'Finished'].indexOf(status) != -1) {
 							var uid = self.m.s1.game.queue()[i].uid;
 							self.m.s1.game.queue.remove(function(item){
 								if(item.uid == uid) return true;
 								return false;
 							});
-
 						}
 
-						// 1.1.2) Иначе
+						// 1.1.2) Если newstatus == Pending, а status == Pending, Lottery, Winner, Finished
+						else if(self.m.s1.game.queue()[i].newstatus == "Lottery" && ['Lottery', 'Winner', 'Finished'].indexOf(status) != -1) {
+							var uid = self.m.s1.game.queue()[i].uid;
+							self.m.s1.game.queue.remove(function(item){
+								if(item.uid == uid) return true;
+								return false;
+							});
+						}
+
+						// 1.1.3) Если newstatus == Pending, а status == Pending, Lottery, Winner, Finished
+						else if(self.m.s1.game.queue()[i].newstatus == "Winner" && ['Winner', 'Finished'].indexOf(status) != -1) {
+							var uid = self.m.s1.game.queue()[i].uid;
+							self.m.s1.game.queue.remove(function(item){
+								if(item.uid == uid) return true;
+								return false;
+							});
+						} 
+
+						// 1.1.n) Иначе, всже выполнить func перед удалением из очереди
 						else {
 							self.m.s1.game.queue()[i].func();
 							var uid = self.m.s1.game.queue()[i].uid;
