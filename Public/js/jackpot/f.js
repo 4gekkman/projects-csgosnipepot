@@ -197,8 +197,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		(function(){ for(var i=0; i<data.length; i++) {
 
 			// 1] Получить ссылку на комнату, которую надо обновить
-			var room2update_id = data[i].id;
-			var room2update = self.m.s1.indexes.rooms[room2update_id];
+
+				// 1.1] Получить
+				var room2update_id = data[i].id;
+				var room2update = self.m.s1.indexes.rooms[room2update_id];
+
+				// 1.2] Если текущий статус Started, и should_client_handle == false, завершить
+				if(room2update.rounds()[0].rounds_statuses()[0].status() == "Started") {
+					if(!jsondata.should_client_handle)
+						continue;
+				}
 
 			// 2] Если room2update отсутствует, перейти к следующей итерации
 			if(!room2update) continue;
@@ -394,7 +402,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// 6.2.4] В ином случае, запланировать выполнение update
 					//else {
-					if(newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
+					if(['Started', 'Pending', 'Lottery', 'Winner', 'Finished'].indexOf(room2update.rounds()[0].rounds_statuses()[0].status()) == -1) {
  						if(data[i].id == 2) console.log('Delayed update');
 						self.f.s1.queue_add(0, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
 					}
@@ -733,54 +741,60 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// - Выполнять эти функции, удалять из очереди
 		for(var i=0; i<self.m.s1.game.queue().length; i++) {
 
-			// 2.1] Если это не First bet или Started
-			//if(!self.m.s1.game.queue()[i].is_firstbet && !self.m.s1.game.queue()[i].is_started) {
+			// 2.2.1] Получить комнату, которую надо обновить
+			var room2update = self.m.s1.indexes.rooms[self.m.s1.game.queue()[i].room2update_id];
 
-				if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
-					self.m.s1.game.queue()[i].func();
-					var uid = self.m.s1.game.queue()[i].uid;
-					self.m.s1.game.queue.remove(function(item){
-						if(item.uid == uid) return true;
-						return false;
-					});
-				}
+			// 2.2.2] Получить статус комнаты room2update
+			var status = room2update.rounds()[0].rounds_statuses()[0].status();
 
-			//}
+			// 2.2.3] Если пришло время, выполнить запланированную задачу
+			if(ts >= self.m.s1.game.queue()[i].unixtimestamp) {
 
-			// 2.2] В противном случае
-			//			else {
-			//
-			//				// 2.2.1] Получить комнату, которую надо обновить
-			//				var room2update = self.m.s1.indexes.rooms[self.m.s1.game.queue()[i].room2update_id];
-			//
-			//				// 2.2.2] Получить статус комнаты room2update
-			//				var status = room2update.rounds()[0].rounds_statuses()[0].status();
-			//
-			//				// 2.2.3] Если это First bet и статус room2update = "Created" или "First bet"
-			//				if(self.m.s1.game.queue()[i].is_firstbet && (status == "Created" || status == "First bet")) {
-			//
-			//					self.m.s1.game.queue()[i].func();
-			//					var uid = self.m.s1.game.queue()[i].uid;
-			//					self.m.s1.game.queue.remove(function(item){
-			//						if(item.uid == uid) return true;
-			//						return false;
-			//					});
-			//
-			//				}
-			//
-			//				// 2.2.4] Если это Started и статус room2update = "First bet" или "Started"
-			//				else if(self.m.s1.game.queue()[i].is_started && (status == "First bet" || status == "Started")) {
-			//
-			//					self.m.s1.game.queue()[i].func();
-			//					var uid = self.m.s1.game.queue()[i].uid;
-			//					self.m.s1.game.queue.remove(function(item){
-			//						if(item.uid == uid) return true;
-			//						return false;
-			//					});
-			//
-			//				}
-			//
-			//			}
+				// 1) Выполнить задачу
+				(function(){
+
+					// 1.1) Если newstatus == Pending, Lottery, Winner
+					if(['Pending', 'Lottery', 'Winner'].indexOf(self.m.s1.game.queue()[i].newstatus) != -1) {
+
+						// 1.1.1) Если текущий статус уже равен Pending
+						// - Просто удалить задачу из очереди, не выполняя её.
+						// - Перейти к следующей итерации
+						if(self.m.s1.game.queue()[i].newstatus == status) {
+
+							// Удалить
+							var uid = self.m.s1.game.queue()[i].uid;
+							self.m.s1.game.queue.remove(function(item){
+								if(item.uid == uid) return true;
+								return false;
+							});
+
+						}
+
+						// 1.1.2) Иначе
+						else {
+							self.m.s1.game.queue()[i].func();
+							var uid = self.m.s1.game.queue()[i].uid;
+							self.m.s1.game.queue.remove(function(item){
+								if(item.uid == uid) return true;
+								return false;
+							});
+						}
+
+					}
+
+					// 1.n) В общем случае
+					else {
+						self.m.s1.game.queue()[i].func();
+						var uid = self.m.s1.game.queue()[i].uid;
+						self.m.s1.game.queue.remove(function(item){
+							if(item.uid == uid) return true;
+							return false;
+						});
+					}
+
+				})();
+
+			}
 
 		}
 
