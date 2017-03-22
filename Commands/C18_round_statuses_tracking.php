@@ -137,11 +137,12 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
      *
      *  1. Получить все игровые данные из кэша
      *  2. Подготовить маячёк (изменился ли статус любого раунда)
-     *  3. Пробежаться по $rooms, если надо поменять статусы последних раундов
-     *  4. Сделать commit
-     *  5. Обновить весь кэш, если статус любого раунда был изменён
-     *  6. Получить свежие игровые данные
-     *  7. Транслировать свежие игровые данные через публичный канал
+     *  3. Подготовить массив новых статусов комнат $rooms
+     *  4. Пробежаться по $rooms, если надо поменять статусы последних раундов
+     *  5. Сделать commit
+     *  6. Обновить весь кэш, если статус любого раунда был изменён
+     *  7. Получить свежие игровые данные
+     *  8. Транслировать свежие игровые данные через публичный канал
      *
      *  m. Вернуть результаты
      *
@@ -161,10 +162,14 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
       // 2. Подготовить маячёк (изменился ли статус любого раунда)
       $is_any_round_status_was_changed = false;
 
-      // 3. Пробежаться по $rooms, если надо поменять статусы последних раундов
+      // 3. Подготовить массив новых статусов комнат $rooms
+      // - Если статус любой комнаты изменился, то он попадает в этот массив.
+      $newstatuses = [];
+
+      // 4. Пробежаться по $rooms, если надо поменять статусы последних раундов
       foreach($rooms as $room) {
 
-        // 3.1. Получить набор параметров, необходимых для трекинга статуса
+        // 4.1. Получить набор параметров, необходимых для трекинга статуса
         $params = call_user_func(function() USE ($room) {
 
           // 1] Подготовить массив для результата
@@ -274,7 +279,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
         });
 
-        // 3.2. Вычислить подходящий статус для $room в текущем состоянии
+        // 4.2. Вычислить подходящий статус для $room в текущем состоянии
         $suitable_room_status = call_user_func(function() USE ($params, $room) {
 
           // 1] Created
@@ -432,7 +437,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
         });
 
-        // 3.3. Если вычисленный статус отличается от старого в бОльшую сторону
+        // 4.3. Если вычисленный статус отличается от старого в бОльшую сторону
         // - Провести операцию по смене статуса для $params['lastround'].
         // - Не забыть указать ended_at и comment для старого статуса.
         // - Не забыть указать started_at для нового статуса.
@@ -448,6 +453,10 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           $suitable_room_status['name'] != $params['status_name'] &&
           $suitable_room_status['id'] > $params['status']
         ) {
+
+          // a] Добавить name в $newstatuses
+          if(!in_array($suitable_room_status['name'], $newstatuses))
+            array_push($newstatuses, $suitable_room_status['name']);
 
           // 1] Отметить, что статус был изменён
           $is_any_round_status_was_changed = true;
@@ -545,10 +554,10 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
       }
 
-      // 4. Сделать commit
+      // 5. Сделать commit
       DB::commit();
 
-      // 5. Обновить весь кэш, если статус любого раунда был изменён
+      // 6. Обновить весь кэш, если статус любого раунда был изменён
       if($is_any_round_status_was_changed == true) {
         $result = runcommand('\M9\Commands\C13_update_cache', [
           "all" => true
@@ -557,26 +566,51 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           throw new \Exception($result['data']['errormsg']);
       }
 
-      // 6. Получить свежие игровые данные
+      // 7. Получить свежие игровые данные
       $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1, 'safe' => true]);
       if($allgamedata['status'] != 0)
         throw new \Exception($allgamedata['data']['errormsg']);
 
-      // 7. Транслировать свежие игровые данные через публичный канал
+      // 8. Транслировать свежие игровые данные через публичный канал
       // - Если статус любого раунда был изменён
-      //if($is_any_round_status_was_changed == true) {
+
+        // 8.1. Обрабатывать на клиенте этот пуш, если текущий статус раунда "Started"
+        $should_client_handle = call_user_func(function() USE ($is_any_round_status_was_changed, $newstatuses) {
+
+          //          // 1] Если есть раунды с новыми статусами, то да
+          //          if($is_any_round_status_was_changed == true)
+          //            return true;
+          //
+          //          // 2] В противном случае
+          //          else {
+          //
+          //            // 2.1] Если в $newstatuses нет 'First bet' или 'Started', то да
+          //            if(!in_array('First bet', $newstatuses) && !in_array('Started', $newstatuses))
+          //              return true;
+          //
+          //            // 2.2] Иначе, нет
+          //            else
+          //              return false;
+          //
+          //          }
+
+          return true;
+
+        });
+
+        // 8.2. Послать свежие данные
         Event::fire(new \R2\Broadcast([
           'channels' => ['m9:public'],
           'queue'    => 'm9_lottery_broadcasting',
           'data'     => [
             'task' => 'fresh_game_data',
             'data' => [
-              'rooms' => $allgamedata['data']['rooms']
+              'rooms'                 => $allgamedata['data']['rooms'],
+              'should_client_handle'  => $should_client_handle
             ]
           ]
         ]));
-      //}
-      DB::commit();
+        DB::commit();
 
       // m. Вернуть результаты
       return [
