@@ -485,8 +485,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 	//---------------------------------------------------------------------------------------//
 	self.m.s1.game.time = {};
 
-		// 1] Сколько секунд прошло с момента загрузки документа
-		self.m.s1.game.time.gone_s = ko.observable(0);
+		// 1] Сколько ms прошло с момента загрузки документа
+		self.m.s1.game.time.gone_ms = ko.observable(0);
 
 		// 2] Получить смещение часовой зоны клиента в секундах относ. UTC
 		self.m.s1.game.time.utc_offset_s = ko.observable((function(){
@@ -503,8 +503,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.time.ts = ko.observable(layoutmodel.m.s0.servertime.timestamp_s());
 		ko.computed(function(){
 
-			// 3.1] Пусть оно срабатывает каждые 200 мс
-			self.m.s1.game.time.gone_s();
+			// 3.1] Пусть оно срабатывает каждые 100 мс
+			self.m.s1.game.time.gone_ms();
 
 			// 3.2] Получить текущий timestamp в UTC в мс и с
 			var current_ts_ms = new Date().getTime();
@@ -516,9 +516,21 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 3.4] Сформировать текущий timestamp в UTC в с (с учётом delta)
 			var current_ts_with_delta_s = Math.floor(+current_ts_s+delta_s);
 
-			// 3.5] Если time.ts отличается от current_ts_s, записать current_ts_s
-			if(current_ts_with_delta_s > self.m.s1.game.time.ts())
-				return m.s1.game.time.ts(current_ts_with_delta_s);
+			// 3.5] Получить разницу между current_ts_with_delta_s и m.s1.game.time.ts
+			var delta2_s = current_ts_with_delta_s - self.m.s1.game.time.ts();
+
+			// 3.6] Если time.ts отличается от current_ts_s, записать current_ts_s
+			if(current_ts_with_delta_s > self.m.s1.game.time.ts()) {
+
+				// 3.6.1] Если delta2_s <= 1
+				if(delta2_s <= 1 || !self.m.s1.game.time.ts())
+					return self.m.s1.game.time.ts(current_ts_with_delta_s);
+
+				// 3.6.2] Иначе, увеличить time.ts лишь на 1 секунду
+				else
+					self.m.s1.game.time.ts(+self.m.s1.game.time.ts() + 1)
+
+			}
 
 		});
 
@@ -1528,14 +1540,19 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){
 
 			// 1] Если текущий статус текущего раунда выбранной комнаты не "Started", завершить
-			if(!self.m.s1.game.choosen_status() || ['Started'].indexOf(self.m.s1.game.choosen_status()) == -1)
+			if(!self.m.s1.game.choosen_status() || (['Started', 'Pending'].indexOf(self.m.s1.game.choosen_status()) == -1))
 				return;
 
 			// 2] Выполнять при каждом изменении в
 			self.m.s1.game.counters.lottery.seconds();
 
 			// 3] Проиграть звук тиков игры
-			self.f.s1.playsound('timer-tick-quiet');
+			if(self.m.s1.game.choosen_status() == 'Started' && self.m.s1.game.counters.lottery.seconds() != '00') {
+				self.f.s1.playsound('timer-tick-quiet');
+			}
+			else if(self.m.s1.game.choosen_status() == 'Pending' && self.m.s1.game.counters.lottery.seconds() == '00') {
+				self.f.s1.playsound('timer-tick-quiet');
+			}
 
 			// 2] Если до начала розыгрыша более 5 секунд
 			//if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() >= 5)

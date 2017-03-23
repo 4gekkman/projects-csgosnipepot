@@ -1375,7 +1375,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		if(
 			(!layoutmodel.m.s4.is_global_volume_on() ||
 			layoutmodel.m.s1.selected_subdoc().uri() != '/') &&
-			['click', 'game-start', 'win', 'timer-tick-quiet', 'timer-tick-last-5-seconds'].indexOf(id_sound) != -1
+			['click', 'game-start', 'win', 'timer-tick-quiet', 'timer-tick-last-5-seconds', 'lottery'].indexOf(id_sound) != -1
 		)
 			return;
 

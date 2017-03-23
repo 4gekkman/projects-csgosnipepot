@@ -578,8 +578,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			// 1. Подготовить рекурсивную функцию
 			var f = function f(self) {
 
-				// 1.1. Прибавить единицу к m.s1.game.time.left_s
-				self.m.s1.game.time.gone_s(+self.m.s1.game.time.gone_s() + 100);
+				// 1.1. Прибавить единицу к m.s1.game.time.gone_ms
+				self.m.s1.game.time.gone_ms(+self.m.s1.game.time.gone_ms() + 100);
 
 				// 1.2. Рекурсивно запустить f
 				setTimeout(f, 100, self);
