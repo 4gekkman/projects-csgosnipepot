@@ -503,40 +503,36 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.time.ts = ko.observable(layoutmodel.m.s0.servertime.timestamp_s());
 		ko.computed(function(){
 
-				// 3.1] Пусть оно срабатывает каждые 100 мс
-				self.m.s1.game.time.gone_ms();
+			// 4.1] Пусть оно срабатывает каждые 100 мс
+			self.m.s1.game.time.gone_ms();
 
-			setImmediate(function(){
+			// 4.2] Получить текущий timestamp в UTC в мс и с
+			var current_ts_ms = new Date().getTime();
+			var current_ts_s = Math.floor(current_ts_ms/1000);
 
-				// 3.2] Получить текущий timestamp в UTC в мс и с
-				var current_ts_ms = new Date().getTime();
-				var current_ts_s = Math.floor(current_ts_ms/1000);
+			// 4.3] Получить дельту в мс между m.s1.game.time.ts и current_ts_s
+			var delta_ms = +layoutmodel.m.s0.servertime.timestamp_s()*1000 - +current_ts_ms;
 
-				// 3.3] Получить дельту в секундах между m.s1.game.time.ts и current_ts_s
-				var delta_s = +layoutmodel.m.s0.servertime.timestamp_s() - +Math.floor(current_ts_ms/1000);
+			// 4.4] Сформировать текущий timestamp в UTC в мс (с учётом delta)
+			var current_ts_with_delta_ms = Math.floor(+current_ts_ms+delta_ms);
 
-				// 3.4] Сформировать текущий timestamp в UTC в с (с учётом delta)
-				var current_ts_with_delta_s = Math.floor(+current_ts_s+delta_s);
+			// 4.5] Получить разницу в мс между current_ts_with_delta_ms и m.s1.game.time.ts
+			var delta2_ms = current_ts_with_delta_ms - self.m.s1.game.time.ts()*1000;
 
-				// 3.5] Получить разницу между current_ts_with_delta_s и m.s1.game.time.ts
-				var delta2_s = current_ts_with_delta_s - self.m.s1.game.time.ts();
+			// 4.6] Если time.ts отличается от current_ts_s, записать current_ts_s
+			if(current_ts_with_delta_ms > self.m.s1.game.time.ts()*1000) {
 
-				// 3.6] Если time.ts отличается от current_ts_s, записать current_ts_s
-				if(current_ts_with_delta_s > self.m.s1.game.time.ts()) {
+				// 4.6.1] Если delta2_ms <= 1000
+				if(delta2_ms <= 1000 || !self.m.s1.game.time.ts())
+					return self.m.s1.game.time.ts(Math.floor(current_ts_with_delta_ms/1000));
 
-					// 3.6.1] Если delta2_s <= 1
-					if(delta2_s <= 1 || !self.m.s1.game.time.ts())
-						return self.m.s1.game.time.ts(current_ts_with_delta_s);
+				// 4.6.2] Иначе, увеличить time.ts лишь на 1 секунду
+				else
+					self.m.s1.game.time.ts(+self.m.s1.game.time.ts() + 1)
 
-					// 3.6.2] Иначе, увеличить time.ts лишь на 1 секунду
-					else
-						self.m.s1.game.time.ts(+self.m.s1.game.time.ts() + 1)
+			}
 
-				}
-
-			});
-
-		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+		});
 
 	//--------------------------------------------//
 	// s1.10. Счётчики раундов для каждой комнаты //
@@ -1474,7 +1470,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){
 
 			if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1)
-				setTimeout(self.f.s1.lottery, 100);
+				setImmediate(self.f.s1.lottery, 100);
 			//else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')
 			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 			//else

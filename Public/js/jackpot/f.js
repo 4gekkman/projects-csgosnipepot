@@ -172,7 +172,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	f.s1.fresh_game_data = function(jsondata) {
 
 		// a] Вкл/Выкл логгирование
-		var is_logs_on = false;
+		var is_logs_on = true;
 
 		// 1. Подготовить функцию для парсинга json
 		// - Если передан не валидный json, она вернёт jsonString
@@ -234,12 +234,207 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 3.2.2] Если св-ва key нет в data, пропускаем
 					if(!data[key]) continue;
 
-					setTimeout(function(key, room2update){
+					// 3.2.3] Если key не ['m8_bots', 'rounds'], пропускаем
+					if(['m8_bots', 'rounds'].indexOf(key) == -1) continue;
 
-						// 3.2.3] Обновить св-во key в room2update данными из data
-						room2update[key](ko.mapping.fromJS(data[key])());
+					// 3.2.4] Если key == "rounds"
+					// - Обновить каждый раунд индивидуально, если это требуется.
+					if(key == "rounds") {
 
-					}, 1, key, room2update);
+						// 1) Одинаковые ли ID у новых и старых раундов
+						var is_same_rounds = (function(){
+							return room2update[key]()[0].id() == data[key][0].id && room2update[key]()[1].id() == data[key][1].id
+						})();
+console.log('is_same_rounds = '+is_same_rounds);
+						// 2) Если разные, обновить раунды полностью
+						if(!is_same_rounds) {
+
+							// 2.1) Обновить
+							room2update[key](ko.mapping.fromJS(data[key])());
+
+							// 2.n) Перейти к след.итерации
+							continue;
+
+						}
+
+						// 3) Если одинаковые, обновить лишь 0-й раунд избирательно
+						else {
+
+							// 3.1) Получить ссылку на раунд, который надо обновить
+							var round2update = room2update[key]()[0];
+							var round2update_data = data[key][0];
+console.log('round2update = '+round2update);
+console.log('round2update_data = '+round2update_data);
+							// 3.2) Получить старый и новый статусы статусы
+							var status_new = round2update_data.rounds_statuses[0].status;
+							var status_old = round2update.rounds_statuses()[0].status();
+console.log('status_old = '+status_old);
+console.log('status_new = '+status_new);
+							// 3.3) Если status_new == status_old == 'Created'
+							// - Ничего не обновлять.
+							if(status_new == status_old && status_old == 'Created')
+								continue;
+
+							// 3.4) Если status_new == ['First bet', 'Started']
+							// - Лишь добавить в bets новые ставки в соотв.порядке.
+							// - И обновить rounds_statuses.
+							// - И обновить started_at.
+							if((status_new == 'First bet') || (status_new == 'Started')) {
+
+ 								// 3.4.1) Обновить rounds_statuses
+								round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
+
+								// 3.4.2) Если есть новые ставки, добавить их
+								if(round2update.bets().length != round2update_data.bets.length) {
+									for(var i=round2update.bets().length; i<round2update_data.bets.length; i++) {
+										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
+									}
+								}
+
+								console.log('round2update.started_at() = '+round2update.started_at());
+								console.log('round2update_data.started_at = '+round2update_data.started_at);
+								console.log('round2update.started_at() != round2update_data.started_at = '+round2update.started_at() != round2update_data.started_at);
+
+								// 3.4.3) Обновить started_at, если он отличается от старого
+								if(round2update.started_at() != round2update_data.started_at)
+									round2update.started_at(ko.mapping.fromJS(round2update_data.started_at)());
+
+								// 3.4.n) Перейти к след.итерации
+								continue;
+
+							}
+
+							// 3.5) Если status_new == status_old == 'Pending'
+							// - Ничего не обновлять.
+							if(status_new == status_old && status_old == 'Pending')
+								continue;
+
+							// 3.6) Если status_new == 'Pending' != status_old
+							// - Обновить только rounds_statuses, avatars_strip и avatar_winner_stop_percents
+							if(status_new == 'Pending' && status_new != status_old) {
+
+ 								// 3.6.1) Обновить rounds_statuses
+								round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
+
+								// 3.6.2) Обновить avatars_strip
+								if(round2update.avatars_strip() != round2update_data.avatars_strip)
+									round2update.avatars_strip(ko.mapping.fromJS(round2update_data.avatars_strip)());
+
+								// 3.6.3) Обновить avatar_winner_stop_percents
+								if(round2update.avatar_winner_stop_percents() != round2update_data.avatar_winner_stop_percents)
+									round2update.avatar_winner_stop_percents(ko.mapping.fromJS(round2update_data.avatar_winner_stop_percents)());
+
+								// 3.6.n) Перейти к след.итерации
+								continue;
+
+							}
+
+							// 3.7) Если Если status_new == status_old == 'Lottery'
+							// - Ничего не обновлять.
+							if(status_new == status_old && status_old == 'Lottery')
+								continue;
+
+							// 3.8) Если Если status_new == 'Lottery'
+							// - Обновить всё, но в bets лишь добавить новые ставки, если есть.
+							if(status_new == 'Lottery') {
+
+								// 3.8.1) Обновить
+								for(var round_key in round2update) { if(!round2update.hasOwnProperty(round_key)) continue;
+
+									// Если round_key != bets и != 'rounds_statuses'
+									if(round_key != 'bets' && round_key != 'rounds_statuses') {
+										round2update[round_key](ko.mapping.fromJS(round2update_data[round_key])());
+									}
+
+									// Иначе
+									else if(round_key == 'bets') {
+
+										if(round2update.bets().length != round2update_data.bets.length) {
+											for(var i=round2update.bets().length; i<round2update_data.bets.length; i++) {
+												round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
+											}
+										}
+
+									}
+
+									else if(round_key == 'rounds_statuses') {
+
+										round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
+
+									}
+
+								}
+
+								// 3.8.n) Перейти к след.итерации
+								continue;
+
+							}
+
+							// 3.9) Если status_new == ['Winner', 'Finished']
+							// - Обновить всё, кроме bets, и перейти к след.итерации.
+							if(['Winner', 'Finished'].indexOf(status_new) != -1) {
+
+								// 3.9.1) Обновить
+								for(var round_key in round2update) { if(!round2update.hasOwnProperty(round_key)) continue;
+
+									// Если round_key != bets и != 'rounds_statuses'
+									if(round_key != 'bets' && round_key != 'rounds_statuses') {
+										round2update[round_key](ko.mapping.fromJS(round2update_data[round_key])());
+									}
+
+									// Иначе
+									else if(round_key == 'bets') {
+
+										continue;
+
+									}
+
+									else if(round_key == 'rounds_statuses') {
+
+										round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
+
+									}
+
+								}
+
+								// 3.9.n) Перейти к след.итерации
+								continue;
+
+							}
+
+							// 3.n) Перейти к след.итерации
+							continue;
+
+						}
+
+					}
+
+					// 3.2.n] Обновить св-во key в room2update данными из data
+					room2update[key](ko.mapping.fromJS(data[key])());
+
+
+
+					//setTimeout(function(key, room2update){
+					//
+					//	// 3.2.3] Если key != 'bets', обновить св-во key в room2update данными из data
+					//	if(key != 'bets')
+					//		room2update[key](ko.mapping.fromJS(data[key])());
+					//
+					//	// 3.2.4] Если key == 'bets'
+					//	else {
+					//
+					//		for(var key_in_bets in room2update[key]) {
+					//
+					//			if(!room2update[key].hasOwnProperty(key_in_bets)) continue;
+					//			setTimeout(function(key, key_in_bets, room2update){
+					//				room2update[key][key_in_bets](ko.mapping.fromJS(data[key][key_in_bets])());
+					//			}, 1, key, key_in_bets, room2update);
+					//
+					//		}
+					//
+					//	}
+					//
+					//}, 1, key, room2update);
 
 				}
 
@@ -262,7 +457,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 3.4] Запустить lottery (если новый статус lottery), или обновить значение currentpos
 					var newstatus = self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status();
 					if(newstatus == 'Lottery')
-						setTimeout(self.f.s1.lottery, 100);
+						setImmediate(self.f.s1.lottery, 100);
 					else if(['Winner', 'Finished', 'Created'].indexOf(newstatus) != -1 && newstatus != 'Lottery')
 						self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 					else
@@ -694,6 +889,42 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				newstatus: newstatus
 			});
 		}
+
+		// 1.4] Удалить из queue дубли статусов Pending, Lottery, Winner
+
+			// Функция для удаления
+			var remove = function(state){
+
+				// 1] Получить все uid из queue для newstatus == state
+				var uids = (function(){
+
+					var results = [];
+					for(var i=0; i<self.m.s1.game.queue().length; i++) {
+						if(self.m.s1.game.queue()[i].newstatus == state)
+							results.push(self.m.s1.game.queue()[i].uid);
+					}
+					return results;
+
+				})();
+
+				// 2] Если uids > 1, удалить из queue все, кроме первого
+				if(uids.length > 1) {
+					self.m.s1.game.queue.remove(function(item){
+						for(var i=0; i<uids.length; i++) {
+							if(i==0) continue;
+							if(uids[i] == item.uid)
+								return true;
+						}
+					});
+				}
+
+			}
+
+			// Pending, Lottery, Winner
+			remove('Pending');
+			remove('Lottery');
+			remove('Winner');
+
 
 		//		// 2] Если статус не Winner, Lottery, Created
 		//		if(['Winner', 'Lottery', 'Created'].indexOf(newstatus) == -1) {
