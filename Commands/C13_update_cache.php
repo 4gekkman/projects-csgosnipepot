@@ -495,7 +495,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                 //    • m8_bots
                 //    • rounds.bets.m8_bots
                 //    • rounds.key
-                //    • rounds.bets.m5_users.adminnote
+                //    • rounds.bets.m5_users
                 //
                 $rooms->transform(function($value, $key){
 
@@ -538,7 +538,19 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
 
                       // Обрезать m5_users
                       foreach($bet['m5_users'] as &$user) {
-                        $user['adminnote'] = "";
+                        unset($user['adminnote']);
+                        unset($user['password_hash']);
+                        unset($user['birthday']);
+                        unset($user['created_at']);
+                        unset($user['deleted_at']);
+                        unset($user['updated_at']);
+                        unset($user['email']);
+                        unset($user['gender']);
+                        unset($user['is_blocked']);
+                        unset($user['phone']);
+                        unset($user['usernote']);
+                        unset($user['is_email_approved']);
+                        unset($user['is_phone_approved']);
                       }
 
                     }

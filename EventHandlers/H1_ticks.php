@@ -189,7 +189,7 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
       // 1. Трансляция серверного время всем клиентам
       Event::fire(new \R2\Broadcast([
         'channels' => ['m9:servertime'],
-        'queue'    => 'broadcastworkers',
+        'queue'    => 'server_timestamp_broadcast',
         'data'     => [
           'secs' => \Carbon\Carbon::now()->toDateTimeString()
         ]

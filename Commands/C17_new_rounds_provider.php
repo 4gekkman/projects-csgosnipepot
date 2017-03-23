@@ -184,7 +184,7 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
             $key = random_int(1,pow(10,18))/pow(10,18);
 
             // 3.4] Получить sha512-хэш для $key
-            $key_hash = md5(hash('sha512', $key));
+            $key_hash = hash('sha512', $key);
 
             // 3.5] Записать $key и $key_hash в $newround
             $newround->key        = $key;
