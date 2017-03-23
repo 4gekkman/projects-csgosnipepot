@@ -112,15 +112,23 @@
       <!-- Интерфейсы для аутентифицированных пользователей -->
       <!--------------------------------------------------*/ ?>
 
+        <?php /*-------------------->
+        <!-- 1] Управление звуком -->
+        <!----------------------*/ ?>
+        <div style="display: none" class="soundcontrol_authuser" data-bind="visible: m.s0.is_logged_in">
+          <img data-bind="visible: m.s4.is_global_volume_on, click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_on.svg') !!}" title="Выключить звук">
+          <img data-bind="visible: !m.s4.is_global_volume_on(), click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_off.svg') !!}" title="Включить звук">
+        </div>
+
         <?php /*--------->
-        <!-- 1] Баланс -->
+        <!-- 2] Баланс -->
         <!-----------*/ ?>
         <div style="display: none" class="balance" data-bind="visible: m.s0.is_logged_in, click: function(){ layoutmodel.m.s7.ison(true); }" title="Внести депозит">
 
           <?php /*------------------------>
           <!-- 1] Надпись "Ваши монеты" -->
           <!--------------------------*/ ?>
-          <span class="youcoins_span">Ваши монеты:</span>
+          <span class="youcoins_note">Баланс:</span>
 
           <?php /*------------------------------------------->
           <!-- 2] Баланс аутентифицированного пользователя -->
@@ -130,16 +138,8 @@
           <?php /*-------------------->
           <!-- 3] Иконка с монетами -->
           <!----------------------*/ ?>
-          <img src="{!! asset('public/L10003/assets/icons/coins/coins_v3_plus.png') !!}">
+          <i class="mdi mdi-plus-circle-outline"></i>
 
-        </div>
-
-        <?php /*-------------------->
-        <!-- 2] Управление звуком -->
-        <!----------------------*/ ?>
-        <div style="display: none" class="soundcontrol_authuser" data-bind="visible: m.s0.is_logged_in">
-          <img data-bind="visible: m.s4.is_global_volume_on, click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_on.svg') !!}" title="Выключить звук">
-          <img data-bind="visible: !m.s4.is_global_volume_on(), click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_off.svg') !!}" title="Включить звук">
         </div>
 
         <?php /*----------------------------------------------------------->
@@ -202,7 +202,7 @@
           <?php /*------------------------------------------->
           <!-- 1.1] Контент пункта меню для "Classic game" -->
           <!---------------------------------------------*/ ?>
-          <div style="display: none" data-bind="visible: uri() == '/', click: $root.f.s1.choose_subdoc.bind($data, {uri: uri()})">
+          <div style="display: none" data-bind="visible: uri() == '/', click: $root.f.s1.choose_subdoc.bind($data, {uri: uri(), redirect: ext_redir()})">
 
             <?php /*------------------------->
             <!-- 1.1.1] Иконка пункта меню -->
@@ -271,7 +271,7 @@
           <?php /*---------------------------------------->
           <!-- 1.n] Стандартный контент пункта меню для -->
           <!------------------------------------------*/ ?>
-          <div style="display: none" data-bind="visible: ['/', '/support'].indexOf(uri()) == -1, click: $root.f.s1.choose_subdoc.bind($data, {uri: uri()})">
+          <div style="display: none" data-bind="visible: ['/', '/support'].indexOf(uri()) == -1, click: $root.f.s1.choose_subdoc.bind($data, {uri: uri(), redirect: ext_redir(), not_clckbl: not_clckbl()})">
 
             <?php /*------------------------->
             <!-- 1.n.1] Иконка пункта меню -->
@@ -283,7 +283,7 @@
             <?php /*-------------------------->
             <!-- 1.n.2] Контент пункта меню -->
             <!----------------------------*/ ?>
-            <span data-bind="text: title"></span>
+            <span data-bind="text: title, css: {soon: soon}"></span>
 
           </div>
 

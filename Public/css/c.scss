@@ -422,7 +422,7 @@
   .site-header {
     position: fixed; top: 0; left: 0;
     height: $sizes_header_height; width: 100%;
-    min-width: 500px;
+    min-width: 920px;
     background: $color_header_bg;
     opacity: $color_header_opacity;
     z-index: 9999;
@@ -507,7 +507,7 @@
         padding-right: 15px;
         padding-left: 15px;
         color: #ccc;
-        border-left: 1px solid #444;
+        //border-left: 1px solid #444;
         background: transparent;
         transition: all .2s ease;
       }
@@ -531,7 +531,7 @@
         height: $sizes_header_height;
         max-width: 300px;
         font-size: 13px;
-        border-left: 1px solid #444;
+        //border-left: 1px solid #444;
       }
 
       // Аватар
@@ -549,7 +549,7 @@
       .site-header .area2 .account .nickname_logout {
         height: $sizes_header_height;
         margin-right: $sizes_header_height + 20px + 5px;
-        padding-left: 20px;
+        //padding-left: 20px;
       }
       .site-header .area2 .account .nickname {
         height: $sizes_header_height*0.55;
@@ -581,42 +581,40 @@
       // Общие стили
       .site-header .area2 .balance {
         display: inline-block; vertical-align: middle;
-        height: $sizes_header_height;
-        line-height: $sizes_header_height;
+        height: $sizes_header_height*.6;
+        line-height: $sizes_header_height*.6;
+        margin-top: $sizes_header_height*.2;
+        margin-bottom: $sizes_header_height*.2;
         padding-right: 15px;
         padding-left: 15px;
         color: #ccc;
-        font-size: 16px;
+        font-size: 13px;
         cursor: pointer;
         background: transparent;
+        border-left: 1px solid #444;
         user-select: none;
         transition: all .2s ease;
       }
-      .site-header .area2 .balance:hover {
-        background: #2e6234;
+      .site-header .area2 .balance i {
+        font-size: 1.8em;
+        vertical-align: middle;
       }
 
       // Надпись "Ваши монеты"
-      .site-header .area2 .balance .youcoins_span {
+      .site-header .area2 .balance .youcoins_note {
         vertical-align: middle;
         font-size: 1.3em;
-        padding-right: 10px;
+        padding-right: 5px;
         transition: all .2s ease;
-      }
-      .site-header .area2 .balance:hover .youcoins_span {
-        color: #fff;
       }
 
       // Баланс пользователя
       .site-header .area2 .balance .yourcoins_balance {
         vertical-align: middle;
         font-size: 1.3em;
-        padding-right: 10px;
+        padding-right: 5px;
         color: #f59c1a;
         transition: all .2s ease;
-      }
-      .site-header .area2 .balance:hover .yourcoins_balance {
-        color: #ff9700;
       }
 
       // Иконка с монетами
@@ -735,6 +733,24 @@
       line-height: $sizes_mainmenu_itemh;
       overflow: hidden;
       white-space: nowrap;
+      user-select: none;
+    }
+    .menu .items .item .item-content span {
+      position: relative;
+    }
+    .menu .items .item .item-content span.soon:after {
+      content: 'Скоро';
+      position: absolute;
+      background-color: #f6e444;
+      color: #222;
+      margin-left: 10px;
+      padding: 0 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 16px;
+      top: 0px;
     }
 
     // Контент пунктов меню игр
@@ -750,7 +766,7 @@
       line-height: 17px;
       border-radius: 5px;
       padding: 2px 4px;
-      background-color: #f6e444;
+      background-color: #59b0db;
       color: #212f35;
       transition: all 1s ease;
     }

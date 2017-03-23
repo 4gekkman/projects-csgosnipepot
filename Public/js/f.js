@@ -371,6 +371,18 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 		//--------------------------------------//
 		f.s1.choose_subdoc = function(parameters, data, event) {
 
+			// a] Если в parameters есть параметр redirect, и пользователь анонимный, то:
+			// - Переадресовать по указанному адресу, и завершить
+			if(parameters.redirect && self.m.s0.is_logged_in() == false) {
+
+				window.location = parameters.redirect;
+				return;
+
+			}
+
+			// б] Если в parameters есть not_clckbl == true, просто завершить
+			if(parameters.not_clckbl) return;
+
 			// 1] Сформировать целевой URI из parameters
 			var uri = (function(){
 
@@ -475,8 +487,17 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 									recur();
 								}, 10);
 							}
-							else
-								model.f.s5.get_faq(true);
+							else {
+
+								// Если callback не передан
+								if(!parameters.callback)
+									model.f.s5.get_faq({is_initial: true, group: ""});
+
+								// Если callback передан
+								if(parameters.callback)
+									model.f.s5.get_faq({is_initial: true, group: "", callback: parameters.callback});
+
+							}
 						};
 
 						// Запросить TOP игроков с сервера, если он ещё не получен

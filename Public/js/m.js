@@ -32,6 +32,7 @@
  *    s0.11. Текущий хост (включая http/https)
  *    s0.12. Текущий хост (включая http/https, порт и базовый URI)
  *    s0.13. Баланс аутентифицированного пользователя
+ *    s0.14. URL для аутентификации
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -469,6 +470,13 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//-------------------------------------------------//
 	self.m.s0.balance = ko.observable(layout_data.data.balance);
 
+	//-------------------------------//
+	// s0.14. URL для аутентификации //
+	//-------------------------------//
+	self.m.s0.auth_url = ko.observable((function(){
+		return self.m.s0.full_host() + "/authwith?provider=steam&authmode=redirect&url_redirect=" + window.location.href;
+	})());
+
 
 	//-----------------------------------------------------------//
 	// 			        		 	                                       //
@@ -494,7 +502,24 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  '#2f5463',
 			visible:    true,
 			vis4anon:   true,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
+		},
+		{
+			uri:        '/matchbets',
+			icon_mdi:   'mdi-dice-5',
+			icon_url:   '',
+			title:      'Match bets',
+			bg_color:   '#284351',
+			brd_color:  '#2f5463',
+			visible:    true,
+			vis4anon:   true,
+			anon_redir: '/',
+			ext_redir:  self.m.s0.auth_url(),
+			soon:       true,
+			not_clckbl: true
 		},
 		{
 			uri:        '/double',
@@ -505,7 +530,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  '#2f5463',
 			visible:    false,
 			vis4anon:   true,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/coinflip',
@@ -516,7 +544,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  '#2f5463',
 			visible:    false,
 			vis4anon:   true,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/shop',
@@ -526,8 +557,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			bg_color:   '#223340',
 			brd_color:  'transparent',
 			visible:    true,
-			vis4anon:   false,
-			anon_redir: '/'
+			vis4anon:   true,
+			anon_redir: '/',
+			ext_redir:  self.m.s0.auth_url(),
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/profile',
@@ -537,8 +571,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			bg_color:   '#223340',
 			brd_color:  'transparent',
 			visible:    true,
-			vis4anon:   false,
-			anon_redir: '/'
+			vis4anon:   true,
+			anon_redir: '/',
+			ext_redir:  self.m.s0.auth_url(),
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/ref',
@@ -549,7 +586,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  'transparent',
 			visible:    false,
 			vis4anon:   false,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/top',
@@ -560,7 +600,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  'transparent',
 			visible:    true,
 			vis4anon:   true,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/faq',
@@ -571,7 +614,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  'transparent',
 			visible:    true,
 			vis4anon:   true,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/support',
@@ -582,7 +628,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			brd_color:  'transparent',
 			visible:    true,
 			vis4anon:   true,
-			anon_redir: '/'
+			anon_redir: '/',
+			ext_redir:  '',
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/free',
@@ -592,8 +641,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			bg_color:   '#223340',
 			brd_color:  'transparent',
 			visible:    true,
-			vis4anon:   false,
-			anon_redir: '/'
+			vis4anon:   true,
+			anon_redir: '/',
+			ext_redir:  self.m.s0.auth_url(),
+			soon:       false,
+			not_clckbl: false
 		},
 		{
 			uri:        '/deposit',
@@ -603,8 +655,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			bg_color:   '#223340',
 			brd_color:  'transparent',
 			visible:    false,
-			vis4anon:   false,
-			anon_redir: '/'
+			vis4anon:   true,
+			anon_redir: '/',
+			ext_redir:  self.m.s0.auth_url(),
+			soon:       false,
+			not_clckbl: false
 		}
 	]);
 
