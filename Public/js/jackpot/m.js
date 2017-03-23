@@ -132,7 +132,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 2] Записать имя статуса текущего раунда текущей комнаты в choosen_status
 			return self.m.s1.game.curprev().current().rounds_statuses()[self.m.s1.game.curprev().current().rounds_statuses().length-1].status();
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// 9] Палитра цветов для игроков текущего раунда //
 		//-----------------------------------------------//
@@ -152,7 +152,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			self.m.s1.game.bezier.cssvalue = ko.computed(function(){
 				var p = self.m.s1.game.bezier.params;
 				return "cubic-bezier("+p[0]+","+p[1]+","+p[2]+","+p[3]+")";
-			});
+			}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 			// 10.3] Параметры кривой Безье //
 			//------------------------------//
@@ -380,7 +380,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 4.n] Вернуть результаты
 			return winnerpos_final;
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// 5] Текущая позиция полосы с учётом avatar_winner_stop_percents
 		self.m.s1.game.strip.currentpos = ko.observable(self.m.s1.game.strip.start_px());
@@ -463,7 +463,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})());
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 
 	//--------------------------------------------------------------------------//
@@ -503,36 +503,40 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.time.ts = ko.observable(layoutmodel.m.s0.servertime.timestamp_s());
 		ko.computed(function(){
 
-			// 3.1] Пусть оно срабатывает каждые 100 мс
-			self.m.s1.game.time.gone_ms();
+				// 3.1] Пусть оно срабатывает каждые 100 мс
+				self.m.s1.game.time.gone_ms();
 
-			// 3.2] Получить текущий timestamp в UTC в мс и с
-			var current_ts_ms = new Date().getTime();
-			var current_ts_s = Math.floor(current_ts_ms/1000);
+			setTimeout(function(){
 
-			// 3.3] Получить дельту в секундах между m.s1.game.time.ts и current_ts_s
-			var delta_s = +layoutmodel.m.s0.servertime.timestamp_s() - +Math.floor(current_ts_ms/1000);
+				// 3.2] Получить текущий timestamp в UTC в мс и с
+				var current_ts_ms = new Date().getTime();
+				var current_ts_s = Math.floor(current_ts_ms/1000);
 
-			// 3.4] Сформировать текущий timestamp в UTC в с (с учётом delta)
-			var current_ts_with_delta_s = Math.floor(+current_ts_s+delta_s);
+				// 3.3] Получить дельту в секундах между m.s1.game.time.ts и current_ts_s
+				var delta_s = +layoutmodel.m.s0.servertime.timestamp_s() - +Math.floor(current_ts_ms/1000);
 
-			// 3.5] Получить разницу между current_ts_with_delta_s и m.s1.game.time.ts
-			var delta2_s = current_ts_with_delta_s - self.m.s1.game.time.ts();
+				// 3.4] Сформировать текущий timestamp в UTC в с (с учётом delta)
+				var current_ts_with_delta_s = Math.floor(+current_ts_s+delta_s);
 
-			// 3.6] Если time.ts отличается от current_ts_s, записать current_ts_s
-			if(current_ts_with_delta_s > self.m.s1.game.time.ts()) {
+				// 3.5] Получить разницу между current_ts_with_delta_s и m.s1.game.time.ts
+				var delta2_s = current_ts_with_delta_s - self.m.s1.game.time.ts();
 
-				// 3.6.1] Если delta2_s <= 1
-				if(delta2_s <= 1 || !self.m.s1.game.time.ts())
-					return self.m.s1.game.time.ts(current_ts_with_delta_s);
+				// 3.6] Если time.ts отличается от current_ts_s, записать current_ts_s
+				if(current_ts_with_delta_s > self.m.s1.game.time.ts()) {
 
-				// 3.6.2] Иначе, увеличить time.ts лишь на 1 секунду
-				else
-					self.m.s1.game.time.ts(+self.m.s1.game.time.ts() + 1)
+					// 3.6.1] Если delta2_s <= 1
+					if(delta2_s <= 1 || !self.m.s1.game.time.ts())
+						return self.m.s1.game.time.ts(current_ts_with_delta_s);
 
-			}
+					// 3.6.2] Иначе, увеличить time.ts лишь на 1 секунду
+					else
+						self.m.s1.game.time.ts(+self.m.s1.game.time.ts() + 1)
 
-		});
+				}
+
+			}, 1);
+
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 	//--------------------------------------------//
 	// s1.10. Счётчики раундов для каждой комнаты //
@@ -654,7 +658,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			else
 				return '0s';
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// 7] Список комнат, в которых сейчас работает функция f.m1.lottery
 		// - То есть, повторно запускать её в этих комнатах не следует.
@@ -1476,7 +1480,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			//else
 			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// s1.n.5. Добавление в текущий набор плавных ставок новых ставок //
 		//----------------------------------------------------------------//
@@ -1533,7 +1537,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			// 2] Имя текущего статуса текущего раунда выбранной комнаты
 			layoutmodel.m.s6.status.name(self.m.s1.game.choosen_status());
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// s1.n.7. Проигрывать звук тиков игры //
 		//-------------------------------------//
@@ -1562,7 +1566,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			//else if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() < 5)
 			//	self.f.s1.playsound('timer-tick-quiet'); //timer-tick-last-5-seconds');
 
-		});
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 
 	//------------------------------//
