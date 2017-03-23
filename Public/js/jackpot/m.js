@@ -506,7 +506,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				// 3.1] Пусть оно срабатывает каждые 100 мс
 				self.m.s1.game.time.gone_ms();
 
-			setTimeout(function(){
+			setImmediate(function(){
 
 				// 3.2] Получить текущий timestamp в UTC в мс и с
 				var current_ts_ms = new Date().getTime();
@@ -534,7 +534,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				}
 
-			}, 1);
+			});
 
 		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
