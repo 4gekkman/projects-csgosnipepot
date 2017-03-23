@@ -172,7 +172,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	f.s1.fresh_game_data = function(jsondata) {
 
 		// a] Вкл/Выкл логгирование
-		var is_logs_on = true;
+		var is_logs_on = false;
 
 		// 1. Подготовить функцию для парсинга json
 		// - Если передан не валидный json, она вернёт jsonString
@@ -245,7 +245,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 						var is_same_rounds = (function(){
 							return room2update[key]()[0].id() == data[key][0].id && room2update[key]()[1].id() == data[key][1].id
 						})();
-console.log('is_same_rounds = '+is_same_rounds);
+
 						// 2) Если разные, обновить раунды полностью
 						if(!is_same_rounds) {
 
@@ -263,13 +263,11 @@ console.log('is_same_rounds = '+is_same_rounds);
 							// 3.1) Получить ссылку на раунд, который надо обновить
 							var round2update = room2update[key]()[0];
 							var round2update_data = data[key][0];
-console.log('round2update = '+round2update);
-console.log('round2update_data = '+round2update_data);
+
 							// 3.2) Получить старый и новый статусы статусы
 							var status_new = round2update_data.rounds_statuses[0].status;
 							var status_old = round2update.rounds_statuses()[0].status();
-console.log('status_old = '+status_old);
-console.log('status_new = '+status_new);
+
 							// 3.3) Если status_new == status_old == 'Created'
 							// - Ничего не обновлять.
 							if(status_new == status_old && status_old == 'Created')
@@ -290,10 +288,6 @@ console.log('status_new = '+status_new);
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
 									}
 								}
-
-								console.log('round2update.started_at() = '+round2update.started_at());
-								console.log('round2update_data.started_at = '+round2update_data.started_at);
-								console.log('round2update.started_at() != round2update_data.started_at = '+round2update.started_at() != round2update_data.started_at);
 
 								// 3.4.3) Обновить started_at, если он отличается от старого
 								if(round2update.started_at() != round2update_data.started_at)
@@ -411,30 +405,6 @@ console.log('status_new = '+status_new);
 
 					// 3.2.n] Обновить св-во key в room2update данными из data
 					room2update[key](ko.mapping.fromJS(data[key])());
-
-
-
-					//setTimeout(function(key, room2update){
-					//
-					//	// 3.2.3] Если key != 'bets', обновить св-во key в room2update данными из data
-					//	if(key != 'bets')
-					//		room2update[key](ko.mapping.fromJS(data[key])());
-					//
-					//	// 3.2.4] Если key == 'bets'
-					//	else {
-					//
-					//		for(var key_in_bets in room2update[key]) {
-					//
-					//			if(!room2update[key].hasOwnProperty(key_in_bets)) continue;
-					//			setTimeout(function(key, key_in_bets, room2update){
-					//				room2update[key][key_in_bets](ko.mapping.fromJS(data[key][key_in_bets])());
-					//			}, 1, key, key_in_bets, room2update);
-					//
-					//		}
-					//
-					//	}
-					//
-					//}, 1, key, room2update);
 
 				}
 
