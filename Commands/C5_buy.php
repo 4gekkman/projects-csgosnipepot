@@ -145,7 +145,7 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
      *  7. Сгенерировать случайный код безопасности
      *  8. Получить из $uac все items2buy, и из $ordercache все items2order
      *  9. Получить индекс вещей из $items2buy_from_uac, доступных по ID бота
-     *  10. Получить игрока, который хочет совершить покупку, и проверить валидность его Trade URL
+     *  10. Получить игрока, который хочет совершить покупку, и проверить валидность его Trade URL, и есть ли у него хоть 1 ставка
      *  11. Подсчитать общую стоимость покупки в монетах
      *  12. Проверить, есть ли у $user в кошельке достаточно монет для покупки
      *  13. Записать в БД информацию о покупке
@@ -432,7 +432,7 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
 
       });
 
-      // 10. Получить игрока, который хочет совершить покупку, и проверить валидность его Trade URL
+      // 10. Получить игрока, который хочет совершить покупку, и проверить валидность его Trade URL, и есть ли у него хоть 1 ставка
 
         // 10.1. Получить игрока
         $user = \M5\Models\MD1_users::where('ha_provider_uid', $this->data['players_steamid'])->first();
@@ -472,6 +472,14 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
         // 10.4. Если Trade URL не валиден, создать ошибку и сообщить об этом
         if($is_users_tradeurl_valid == false)
           throw new \Exception('Вероятно, указанный Вами в профиле торговый URL не валиден. Пожалуйста, перейдите в профиль и укажите валидный торговый URL.');
+
+        // 10.5. Есть ли у $user хотя бы 1 ставка в Classic Game
+        $is_any_bet = \M9\Models\MD3_bets::whereHas('m5_users', function($queue) USE ($user) {
+          $queue->where('id', $user['id']);
+        })->first();
+        if(empty($is_any_bet))
+          throw new \Exception("5");
+
 
       // 11. Подсчитать общую стоимость покупки в монетах
       $purchase_sum_coins = call_user_func(function() USE ($items2buy_from_uac, $items2order_from_ordercache) {
