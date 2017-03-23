@@ -1183,6 +1183,7 @@
         color: #cefeea;
         text-shadow: 0 2px 1px rgba(25, 67, 49, 0.26);
         cursor: pointer;
+        vertical-align: middle;
         user-select: none;
       }
       .content .classic-game .cg-container .infopanel .fair-button-and-hash .fair-button i {
@@ -1195,9 +1196,14 @@
       // Хэш раунда
       .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash {
         color: #000;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
       }
       .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash span:nth-child(2) {
         border-bottom: 1px solid #222;
+        cursor: pointer;
       }
 
   //---------------------------------------------------------------------------//

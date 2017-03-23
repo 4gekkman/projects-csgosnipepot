@@ -14,6 +14,7 @@
  *    f.s5.get_faq      					| s5.1. Запросить данные FAQа с сервера
  *    f.s5.switch_article					| s5.2. Свернуть/Развернуть статью, добавить новое состояние в history
  *    f.s5.close_all_articles			| s5.3. Свернуть все статьи
+ *    f.s5.open_faq_article       | s5.4. Открыть в указанной группе указанную статью FAQ без перезагрузки страницы
  *
  *
  */
@@ -43,10 +44,16 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 	// - Если group не пуста
 	//   • То is_initial игрогируется, и возвращаются только статьи для group.
 	//   • При этом, если статьи для group уже есть в m.s5.articles, то запрос не производится, функция завершается.
-	f.s5.get_faq = function(is_initial, group, context, event) {
+	// - Возможное содержимое config:
+	//
+	// 		• is_initial 	| [Обязательно в отсутствии group] Требуют ли группы загрузки
+	// 		• group 			| [Обязательно в отсутствии is_initial] На какую группу переключиться
+	// 		• callback 		| [Не обязательно] Функция, исполняющаяся после выбора группы
+	//
+	f.s5.get_faq = function(config, context, event) {
 
 		// 1] Если is_initial == true
-		if(is_initial && !group && is_initial == true) {
+		if(config.is_initial && !config.group && config.is_initial == true) {
 
 			// 1.1] Если группы уже загружены
 			if(self.m.s5.groups().length) {
@@ -57,6 +64,10 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 
 				// Свернуть все развернутые статьи
 				self.f.s5.close_all_articles();
+
+				// Вызвать callback, если он передан
+				if(config.callback)
+					config.callback();
 
 				// Завершить
 				return;
@@ -69,16 +80,16 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 		}
 
 		// 2] Если group не пуста
-		if(group && !is_initial) {
+		if(config.group && !config.is_initial) {
 
 			// 2.1] Если статьи для group есть в m.s5.articles
-			if(self.m.s5.articles()[group] && self.m.s5.articles()[group]() && self.m.s5.articles()[group]().length) {
+			if(self.m.s5.articles()[config.group] && self.m.s5.articles()[config.group]() && self.m.s5.articles()[config.group]().length) {
 
 				// 2.1.1] Выбрать группу group среди m.s5.groups
 				self.m.s5.choosen_group((function(){
 					var choosen_group = "";
 					for(var i=0; i<self.m.s5.groups().length; i++) {
-						if(self.m.s5.groups()[i].name_folder() == group)
+						if(self.m.s5.groups()[i].name_folder() == config.group)
 							choosen_group = self.m.s5.groups()[i];
 					}
 					return choosen_group;
@@ -90,6 +101,10 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 
 				// 2.1.3] Свернуть все статьи
 				self.f.s5.close_all_articles();
+
+				// 2.1.4] Вызвать callback, если он передан
+				if(config.callback)
+					config.callback();
 
 				// 2.1.n] Завершить
 				return;
@@ -135,17 +150,17 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 		var group2request = (function(){
 
 			// 4.1] Если qs_params пуст, или в нём нет group, то вернуть group
-			if(!qs_params || !qs_params['group']) return group;
+			if(!qs_params || !qs_params['group']) return config.group;
 
 			// 4.2] Если what2return == 1
 			if(what2return == 1) return qs_params['group'];
 
 			// 4.3] Если what2return == 3
-			if(what2return == 3) return group;
+			if(what2return == 3) return config.group;
 
 		})();
 
-		// 4] Отправить AJAX-запрос и получить данные FAQа
+		// 5] Отправить AJAX-запрос и получить данные FAQа
 		ajaxko(self, {
 			key: 	    		"D10009:5",
 			from: 		    "ajaxko",
@@ -170,7 +185,8 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 			ajax_params:  {
 				what2return: 	what2return,
 				context: 			context,
-				qs_params:    qs_params
+				qs_params:    qs_params,
+				callback:     config.callback
 			},
 			ok_0:         function(data, params){
 
@@ -269,6 +285,10 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 						History.replaceState({state: subdoc.uri()}, document.title, layout_data.data.request.baseuri + ((subdoc.uri() != '/') ? subdoc.uri() : '') + '?' + (false ? 'article=' + expanded_article : "") + (false ? '&' : '') + (group ? 'group=' + group : ""));
 					}
 
+				// 9] Вызвать callback, если он передан
+				if(params.callback)
+					params.callback();
+
 				// n] Скрыть все спиннеры
 				if(params.what2return == 1) self.m.s5.is_initial_shield_visible(false);
 				if(params.what2return == 3) params.context.is_spinner_visible(false);
@@ -324,6 +344,76 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 		}
 
 	};
+
+
+	//---------------------------------------------------------------------------------//
+	// s5.4. Открыть в указанной группе указанную статью FAQ без перезагрузки страницы //
+	//---------------------------------------------------------------------------------//
+	// - Параметры в config: faq_url, group, article
+	f.s5.open_faq_article = function(config, data, event) {
+
+		// 1] Переключиться на раздел FAQ в главном меню
+		layoutmodel.f.s1.choose_subdoc({uri: config.faq_url, callback: function(config){
+
+			// 3.1] Попробовать найти статью config.article
+			var article = (function(){
+
+				// 3.1.1] Если группы статей config.group нет, вернуть пустую строку
+				var articles = self.m.s5.articles()[config.group];
+				if(!articles || !articles())
+					return "";
+
+				// 3.1.2] Попробовать найти статью config.article в articles
+				for(var i=0; i<articles().length; i++) {
+					if(articles()[i].name_folder() == config.article)
+						return articles()[i];
+				}
+
+				// 3.1.n] Если ничего не найдено, вернуть пустую строку
+				return "";
+
+			})();
+
+			// 3.2] Открыть статью config.article
+			self.f.s5.switch_article(article, null);
+
+		}.bind(data, config)});
+
+		// 2] Прокрутить окно в самый верх
+		window.scrollTo(window.scrollX, 0);
+
+		// 3] Переключить FAQ на группу group, и открыть статью article
+//		model.f.s5.get_faq({is_initial: false, group: "", callback: function(config){
+//
+//			// 3.1] Попробовать найти статью config.article
+//			var article = (function(){
+//
+//				// 3.1.1] Если группы статей config.group нет, вернуть пустую строку
+//				var articles = self.m.s5.articles()[config.group];
+//				if(!articles || !articles())
+//					return "";
+//
+//				// 3.1.2] Попробовать найти статью config.article в articles
+//				for(var i=0; i<articles().length; i++) {
+//					if(articles()[i].name_folder() == config.article)
+//						return articles()[i];
+//				}
+//
+//				// 3.1.n] Если ничего не найдено, вернуть пустую строку
+//				return "";
+//
+//			})();
+//
+//			// 3.2] Открыть статью config.article
+//			self.f.s5.switch_article(article, null);
+//
+//		}.bind(data, config)});
+
+	};
+
+
+
+
 
 
 

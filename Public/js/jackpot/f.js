@@ -171,6 +171,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------//
 	f.s1.fresh_game_data = function(jsondata) {
 
+		// a] Вкл/Выкл логгирование
+		var is_logs_on = false;
+
 		// 1. Подготовить функцию для парсинга json
 		// - Если передан не валидный json, она вернёт jsonString
 		var tryParseJSON = function(jsonString){
@@ -339,7 +342,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
 					// Когда надо переключить в Winner
-					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 1);
+					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
 
 					// Когда надо переключить в Created
 					st.created = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner);
@@ -352,8 +355,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// 5] Получить название нового статуса комнаты
 			var newstatus = data[i]['rounds'][0]['rounds_statuses'][0]['status'];
 
-			if(data[i].id == 2) console.log('---');
-			if(data[i].id == 2) console.log('newstatus = '+newstatus);
+			if(data[i].id == 2 && is_logs_on) console.log('---');
+			if(data[i].id == 2 && is_logs_on) console.log('newstatus = '+newstatus);
 
 			// 6] В зависимости от условия, выполнить или запланировать выполнение функции update
 
@@ -363,8 +366,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.1.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
-					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
-					if(data[i].id == 2) console.log('switchtimes.created = '+switchtimes.created);
+					if(data[i].id == 2 && is_logs_on) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2 && is_logs_on) console.log('switchtimes.created = '+switchtimes.created);
 
 					// 6.1.2] Если timestamp_s >= switchtimes.created
 					// - Выполнить update прямо сейчас.
@@ -377,7 +380,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// - На момент времени switchtimes.created.
 					//else {
 					if(newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
-						if(data[i].id == 2) console.log('Delayed update');
+						if(data[i].id == 2 && is_logs_on) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.created, update, room2update_id, newstatus, 'Created fresh data delayed update in room #'+data[i].id);
 					}
 					//}
@@ -403,7 +406,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.2.4] В ином случае, запланировать выполнение update
 					//else {
 					if(['Started', 'Pending', 'Lottery', 'Winner', 'Finished'].indexOf(room2update.rounds()[0].rounds_statuses()[0].status()) == -1) {
- 						if(data[i].id == 2) console.log('Delayed update');
+ 						if(data[i].id == 2 && is_logs_on) console.log('Delayed update');
 						self.f.s1.queue_add(0, update, room2update_id, newstatus, 'First bet fresh data delayed update in room #'+data[i].id, true, false);
 					}
 					//}
@@ -429,7 +432,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.3.4] В ином случае, запланировать выполнение update
 					//else {
 					if(['Pending', 'Lottery', 'Winner', 'Finished'].indexOf(room2update.rounds()[0].rounds_statuses()[0].status()) == -1) {
- 						if(data[i].id == 2) console.log('Delayed update');
+ 						if(data[i].id == 2 && is_logs_on) console.log('Delayed update');
 						self.f.s1.queue_add(0, update, room2update_id, newstatus, 'Started fresh data delayed update in room #'+data[i].id, false, true);
 					}
 					//}
@@ -455,7 +458,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.3.4] В ином случае, запланировать выполнение update
 					//else {
 					if(switchtimes.pending && !isNaN(switchtimes.pending) && newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
- 						if(data[i].id == 2) console.log('Delayed update');
+ 						if(data[i].id == 2 && is_logs_on) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.pending, update, room2update_id, newstatus, 'Pending fresh data delayed update in room #'+data[i].id, false, false);
 					}
 					//}
@@ -468,8 +471,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.5.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
 
-					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
-					if(data[i].id == 2) console.log('switchtimes.lottery = '+switchtimes.lottery);
+					if(data[i].id == 2 && is_logs_on) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2 && is_logs_on) console.log('switchtimes.lottery = '+switchtimes.lottery);
 
 					// 6.5.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
@@ -482,7 +485,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// - На момент времени switchtimes.lottery.
 					//else {
 					if(switchtimes.lottery && !isNaN(switchtimes.lottery) && newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
-						if(data[i].id == 2) console.log('Delayed update');
+						if(data[i].id == 2 && is_logs_on) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.lottery, update, room2update_id, newstatus, 'Lottery fresh data delayed update in room #'+data[i].id);
 					}
 					//}
@@ -495,8 +498,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 6.6.1] Текущее серверное время, unix timestamp в секундах
 					var timestamp_s = self.m.s1.game.time.ts();//layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();
 
-					if(data[i].id == 2) console.log('timestamp_s = '+timestamp_s);
-					if(data[i].id == 2) console.log('switchtimes.winner = '+switchtimes.winner);
+					if(data[i].id == 2 && is_logs_on) console.log('timestamp_s = '+timestamp_s);
+					if(data[i].id == 2 && is_logs_on) console.log('switchtimes.winner = '+switchtimes.winner);
 
 					// 6.6.2] Если timestamp_s >= switchtimes.lottery
 					// - Выполнить update прямо сейчас.
@@ -509,7 +512,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// - На момент времени switchtimes.winner.
 					//else {
 					if(switchtimes.winner && !isNaN(switchtimes.winner) && newstatus != room2update.rounds()[0].rounds_statuses()[0].status()) {
-						if(data[i].id == 2) console.log('Delayed update');
+						if(data[i].id == 2 && is_logs_on) console.log('Delayed update');
 						self.f.s1.queue_add(switchtimes.winner, update, room2update_id, newstatus, 'Winner fresh data delayed update in room #'+data[i].id);
 					}
 					//}
@@ -523,7 +526,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				// 6.n] Выполнить функцию update
 				else {
-					if(data[i].id == 2) console.log('Update now');
+					if(data[i].id == 2 && is_logs_on) console.log('Update now');
 					update();
 				}
 

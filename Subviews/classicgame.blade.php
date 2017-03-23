@@ -60,7 +60,7 @@
         <!-- 2.1] Название выбранной комнаты -->
         <!---------------------------------*/ ?>
         <div class="choosen-name">
-          <span data-bind="text: m.s1.game.choosen_room().name() + ' ROOM'"></span>
+          <span data-bind="text: m.s1.game.choosen_room().name()"></span>
           <i class="mdi mdi-chevron-down"></i>
         </div>
 
@@ -78,7 +78,7 @@
             <!-- Название -->
             <!----------*/ ?>
             <div class="title">
-              <span data-bind="text: name() + ' ROOM'"></span>
+              <span data-bind="text: name()"></span>
             </div>
 
             <?php /*-------->
@@ -561,7 +561,7 @@
           <?php /*-------------------------->
           <!-- 2.1] Кнопка "Честная игра" -->
           <!----------------------------*/ ?>
-          <div class="fair-button">
+          <div class="fair-button" data-bind="click: f.s5.open_faq_article.bind($data, {faq_url: '/faq', group: 'generalissues', article: 'fairgame'})">
             <i></i>
             <span>ЧЕСТНАЯ ИГРА</span>
           </div>
@@ -571,7 +571,7 @@
           <!----------------------------*/ ?>
           <div class="hash">
             <span data-bind="text: 'Хэш раунда: '"></span>
-            <span data-bind="text: m.s1.game.curprev().current().key_hash"></span>
+            <span class="hash-itself" data-bind="text: m.s1.game.curprev().current().key_hash, click: function(){ toastr.info(m.s1.game.curprev().current().key_hash(), 'Хэш раунда'); }"></span>
           </div>
 
         </div>

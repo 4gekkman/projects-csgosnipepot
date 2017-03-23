@@ -398,55 +398,73 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 	self.m.s1.game.lwpanel = {};
 
 		// 1] Победный билет
-		self.m.s1.game.lwpanel.ticket = ko.computed(function(){
-
-			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
-			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-				return '#' + self.m.s1.game.choosen_room().rounds()[0].ticket_winner_number();
-			}
-
-			// 1.2] В противном случае
-			else {
-				return '???';
-			}
-
-		});
+		self.m.s1.game.lwpanel.ticket = ko.observable('???');
 
 		// 2] Имя победителя раунда
-		self.m.s1.game.lwpanel.winner = ko.computed(function(){
-
-			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
-			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-				if(self.m.s1.game.choosen_room_curround_winner())
-					return self.m.s1.game.choosen_room_curround_winner().nickname();
-				else
-					return '???';
-			}
-
-			// 1.2] В противном случае
-			else {
-				return '???';
-			}
-
-		});
+		self.m.s1.game.lwpanel.winner = ko.observable('???');
 
 		// 3] Число текущего раунда
-		self.m.s1.game.lwpanel.number = ko.computed(function(){
+		self.m.s1.game.lwpanel.number = ko.observable('???');
 
-			// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
-			if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-				if(self.m.s1.game.choosen_room().rounds()[0].key())
-					return self.m.s1.game.choosen_room().rounds()[0].key();
-				else
+		// n] Вычисления
+		ko.computed(function(){
+
+			// n.1] Победный билет
+			self.m.s1.game.lwpanel.ticket((function(){
+
+				// Если состояние текущего раунда в выбранной комнате: Winner
+				if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+					if(self.m.s1.game.choosen_room().rounds()[0].key() && self.m.s1.game.choosen_room_curround_winner())
+						return '#' + self.m.s1.game.choosen_room().rounds()[0].ticket_winner_number();
+					else
+						return '???';
+				}
+
+				// В противном случае
+				else {
 					return '???';
-			}
+				}
 
-			// 1.2] В противном случае
-			else {
-				return '???';
-			}
+			})());
+
+			// n.2] Имя победителя раунда
+			self.m.s1.game.lwpanel.winner((function(){
+
+				// 1.1] Если состояние текущего раунда в выбранной комнате: Winner
+				if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+					if(self.m.s1.game.choosen_room().rounds()[0].key() && self.m.s1.game.choosen_room_curround_winner())
+						return self.m.s1.game.choosen_room_curround_winner().nickname();
+					else
+						return '???';
+				}
+
+				// 1.2] В противном случае
+				else {
+					return '???';
+				}
+
+			})());
+
+			// n.3] Число текущего раунда
+			self.m.s1.game.lwpanel.number((function(){
+
+				// Если состояние текущего раунда в выбранной комнате: Winner
+				if(['Winner'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+					if(self.m.s1.game.choosen_room().rounds()[0].key() && self.m.s1.game.choosen_room_curround_winner())
+						return self.m.s1.game.choosen_room().rounds()[0].key();
+					else
+						return '???';
+				}
+
+				// В противном случае
+				else {
+					return '???';
+				}
+
+			})());
 
 		});
+
 
 	//--------------------------------------------------------------------------//
 	// s1.8. Очередь задач для исполнения при достижении указанных timestamp'ов //
@@ -470,23 +488,31 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 1] Сколько секунд прошло с момента загрузки документа
 		self.m.s1.game.time.gone_s = ko.observable(0);
 
-		// 2] Расчёт текущего серверного unix timestamp
-		self.m.s1.game.time.ts = ko.computed(function(){
+		// 2] Получить смещение часовой зоны клиента в секундах относ. UTC
+		self.m.s1.game.time.utc_offset_s = ko.observable((function(){
 
-			// 2.1] Получить результирующее время
-			var result = +layout_data.data.servertime_s + +self.m.s1.game.time.gone_s();
+			var d = new Date();
+			return d.getTimezoneOffset()*60;
 
-			// 2.2] Получить TS, который приходит с сервера
-			var server_ts = layoutmodel.m.s0.servertime.timestamp_s();
+		})());
 
-			// 2.3] Если result отстал, подвести
-			if(server_ts - result >= 0.5) { // && ['Lottery', 'Winner'].indexOf(self.m.s1.game.choosen_status()) == -1) {
-				self.m.s1.game.time.gone_s(+server_ts - +layout_data.data.servertime_s);
-				result = server_ts;
-			}
+		// 3] Клиентский timestamp в секундах в UTC на момент загрузки документа
+		self.m.s1.game.time.client_ts_utc_s = ko.observable(Math.floor(Date.now()/1000) + self.m.s1.game.time.utc_offset_s());
 
-			// 2.4] Вернуть result
-			return result;
+		// 4] Расчёт текущего серверного unix timestamp
+		self.m.s1.game.time.ts = ko.observable(layoutmodel.m.s0.servertime.timestamp_s());
+		ko.computed(function(){
+
+			// 3.1] Пусть оно срабатывает каждые 200 мс
+			self.m.s1.game.time.gone_s();
+
+			// 3.2] Получить текущий timestamp в UTC в мс и с
+			var current_ts_ms = new Date().getTime();
+			var current_ts_s = Math.floor(current_ts_ms/1000);
+
+			// 3.3] Если time.ts отличается от current_ts_s, записать current_ts_s
+			if(self.m.s1.game.time.ts() != current_ts_s)
+				return m.s1.game.time.ts(current_ts_s);
 
 		});
 
@@ -1496,20 +1522,24 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){
 
 			// 1] Если текущий статус текущего раунда выбранной комнаты не "Started", завершить
-			if(!self.m.s1.game.choosen_status() || ['Started', 'Pending'].indexOf(self.m.s1.game.choosen_status()) == -1)
+			if(!self.m.s1.game.choosen_status() || ['Started'].indexOf(self.m.s1.game.choosen_status()) == -1)
 				return;
 
+			// 2] Выполнять при каждом изменении в
+			self.m.s1.game.counters.lottery.seconds();
+
+			// 3] Проиграть звук тиков игры
+			self.f.s1.playsound('timer-tick-quiet');
+
 			// 2] Если до начала розыгрыша более 5 секунд
-			if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() >= 5)
-				self.f.s1.playsound('timer-tick-quiet');
+			//if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() >= 5)
+			//	self.f.s1.playsound('timer-tick-quiet');
 
 			// 3] Если до начала розыгрыша менее 5 секунд
-			if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() < 5)
-				self.f.s1.playsound('timer-tick-quiet'); //timer-tick-last-5-seconds');
+			//else if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() < 5)
+			//	self.f.s1.playsound('timer-tick-quiet'); //timer-tick-last-5-seconds');
 
 		});
-
-
 
 
 	//------------------------------//

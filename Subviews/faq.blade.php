@@ -112,7 +112,7 @@
           <?php /*------>
           <!-- Группа -->
           <!--------*/ ?>
-          <div class="group" data-bind="css: {choosen: $data == $root.m.s5.choosen_group()}, click: $root.f.s5.get_faq.bind($data, false, name_folder())">
+          <div class="group" data-bind="css: {choosen: $data == $root.m.s5.choosen_group()}, click: $root.f.s5.get_faq.bind($data, {is_initial: false, group: name_folder()})">
 
             <?php /*--------->
             <!-- Заголовок -->
