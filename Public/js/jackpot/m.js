@@ -510,9 +510,15 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			var current_ts_ms = new Date().getTime();
 			var current_ts_s = Math.floor(current_ts_ms/1000);
 
-			// 3.3] Если time.ts отличается от current_ts_s, записать current_ts_s
-			if(self.m.s1.game.time.ts() != current_ts_s)
-				return m.s1.game.time.ts(current_ts_s);
+			// 3.3] Получить дельту в секундах между m.s1.game.time.ts и current_ts_s
+			var delta_s = +layoutmodel.m.s0.servertime.timestamp_s() - +Math.floor(current_ts_ms/1000);
+
+			// 3.4] Сформировать текущий timestamp в UTC в с (с учётом delta)
+			var current_ts_with_delta_s = Math.floor(+current_ts_s+delta_s);
+
+			// 3.5] Если time.ts отличается от current_ts_s, записать current_ts_s
+			if(current_ts_with_delta_s > self.m.s1.game.time.ts())
+				return m.s1.game.time.ts(current_ts_with_delta_s);
 
 		});
 

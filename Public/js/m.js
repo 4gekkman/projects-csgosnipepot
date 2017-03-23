@@ -579,15 +579,15 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			var f = function f(self) {
 
 				// 1.1. Прибавить единицу к m.s1.game.time.left_s
-				self.m.s1.game.time.gone_s(+self.m.s1.game.time.gone_s() + 200);
+				self.m.s1.game.time.gone_s(+self.m.s1.game.time.gone_s() + 100);
 
 				// 1.2. Рекурсивно запустить f
-				setTimeout(f, 200, self);
+				setTimeout(f, 100, self);
 
 			}.bind(null, self);
 
 			// 2. Запустить f, чтобы срабатывала ежесекундно
-			setTimeout(f, 200, self);
+			setTimeout(f, 100, self);
 
 		})();
 

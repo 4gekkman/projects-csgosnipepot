@@ -1241,7 +1241,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				interval: interval
 			});
 
-	}, 500); };
+	}, 100); };
 
 	//---------------------------------------------------//
 	// s1.14. Обработка клика по кнопке "Внести депозит" //
