@@ -127,12 +127,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 				// 2] В зависимости от task выполнить соотв.метод
 				switch(task) {
-					case "fresh_game_data": 							self.f.s1.fresh_game_data(data.data.data.data); break;
 					case "reload_page": 		  						self.f.s1.reload_page(data.data.data.data); break;
-					case "classicgame_statistics_update": self.f.s1.update_statistics(data.data.data.data); break;
-
-					case "classicgame_history_new": 			self.f.s1.add_new_history(data.data.data.data); break;
-
 					case "m14:update:goods": 							self.f.s7.update_goods_add_subtract(data.data.data.data); break;
 					case "m14:update:goods:order": 				self.f.s7.update_goods_order_add_sub(data.data.data.data); break;
 				}
@@ -151,12 +146,8 @@ var ModelProto = { constructor: function(ModelFunctions) {
 					// 2] В зависимости от task выполнить соотв.метод
 					switch(task) {
 						//case "tradeoffer_expire_secs": 	self.f.s6.tradeoffer_expire_secs(data.data.data.data); break;
-						case "tradeoffer_cancel": 			self.f.s1.tradeoffer_cancel(data.data.data.data); break;
-						case "tradeoffer_accepted": 		self.f.s1.tradeoffer_accepted(data.data.data.data); break;
-						case "tradeoffer_processing": 	self.f.s1.tradeoffer_processing(data.data.data.data); break;
 						//case "active_offers_update": 		self.f.s6.active_offers_update(data.data.data.data); break;
 						//case "update_inventory": 				self.f.s0.update_inventory_data(data.data.data.data.inventory.data.rgDescriptions); break;
-
 						//case "tradeoffer_wins_cancel": 	self.f.s8.tradeoffer_cancel(data.data.data.data); break;
 
 						case "m13:balance:inventory:subtract:update": self.f.s6.update_inventory_data(data.data.data.data.inventory_cache.rgDescriptions, true); break;
@@ -519,6 +510,9 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			if(server.data.choosen_room_id != 0)
 				self.m.s1.game.choosen_room(self.m.s1.indexes.rooms[server.data.choosen_room_id]);
 
+			// 3] Инициировать статистику последнего победителя
+			self.f.s1.stats_init_lastwinner();
+
 		})();
 		
 		//----------------------------------------------------------------//
@@ -646,6 +640,11 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			});
 
 		})();
+
+
+
+
+
 
 	});
 

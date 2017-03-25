@@ -37,6 +37,11 @@
  *      s1.n.6. Передавать в модель шаблона кое-какие данные
  *      s1.n.7. Проигрывать звук тиков игры
  *
+ *  W. Обработка websocket-сообщений
+ *
+ * 		w8.1. Обработка сообщений через публичный канал
+ * 		w8.2. Обработка сообщений через частный канал
+ *
  * 	X. Подготовка к завершению
  *
  *    X1. Вернуть ссылку self на объект-модель
@@ -120,7 +125,6 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			self.m.s1.game.timeleft.seconds = ko.observable("");
 			self.m.s1.game.timeleft.minutes = ko.observable("");
 			self.m.s1.game.timeleft.hours = ko.observable("");
-
 
 		// 8] Состояние текущего раунда //
 		//------------------------------//
@@ -321,10 +325,69 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		// 2] Данные для текущего аутентифицированного игрока
 		self.m.s1.game.wheel.currentuser = ko.observable();
 
+		// 3] Индекс распределения шансов по пользователям текущего раунда
+		self.m.s1.game.wheel.user_bet_index = ko.mapping.fromJS({});
+
 	//-------------------------------------------//
 	// s1.5. Модель статистики классической игры //
 	//-------------------------------------------//
-	self.m.s1.game.statistics = ko.mapping.fromJS(server.data.classicgame_statistics.data);
+	self.m.s1.game.stats = {};
+
+		//-----------------------//
+		// s1.5.a. Старая модель //
+		//-----------------------//
+		self.m.s1.game.statistics = ko.mapping.fromJS(server.data.classicgame_statistics.data);
+
+		//-----------------------------------------------------------------------------//
+		// s1.5.1. Модель общеигровой статистики "Наибольшая ставка" (the biggest bet) //
+		//-----------------------------------------------------------------------------//
+		self.m.s1.game.stats.thebiggestbet = {};
+
+			// 1] Актуальные статистические данные
+			self.m.s1.game.stats.thebiggestbet.data = ko.mapping.fromJS(server.data.classicgame_stats.classicgame_stats_thebiggestbet.data.thebiggestbet);
+
+			// 2] Перевернута ли карта
+			self.m.s1.game.stats.thebiggestbet.is_card_flipped = ko.observable(false);
+
+			// 3] Модель front-стороны карты
+			self.m.s1.game.stats.thebiggestbet.front = ko.mapping.fromJS(server.data.classicgame_stats.classicgame_stats_thebiggestbet.data.thebiggestbet);
+
+			// 4] Модель back-стороны карты
+			self.m.s1.game.stats.thebiggestbet.back = ko.mapping.fromJS(server.data.classicgame_stats.classicgame_stats_thebiggestbet.data.thebiggestbet);
+
+		//----------------------------------------------------------------------------//
+		// s1.5.2. Модель общеигровой статистики "Счастливчик дня" (lucky of the day) //
+		//----------------------------------------------------------------------------//
+		self.m.s1.game.stats.luckyoftheday = {};
+
+			// 1] Актуальные статистические данные
+			self.m.s1.game.stats.luckyoftheday.data = ko.mapping.fromJS(server.data.classicgame_stats.classicgame_stats_luckyoftheday.data.luckyoftheday);
+
+			// 2] Перевернута ли карта
+			self.m.s1.game.stats.luckyoftheday.is_card_flipped = ko.observable(false);
+
+			// 3] Модель front-стороны карты
+			self.m.s1.game.stats.luckyoftheday.front = ko.mapping.fromJS(server.data.classicgame_stats.classicgame_stats_luckyoftheday.data.luckyoftheday);
+
+			// 4] Модель back-стороны карты
+			self.m.s1.game.stats.luckyoftheday.back = ko.mapping.fromJS(server.data.classicgame_stats.classicgame_stats_luckyoftheday.data.luckyoftheday);
+
+		//--------------------------------------------------------------------------------------------------------//
+		// s1.5.3. Модель статистики последнего раунда выбранной комнаты "Последний победитель" (the last winner) //
+		//--------------------------------------------------------------------------------------------------------//
+		self.m.s1.game.stats.thelastwinner = {};
+
+			// 1] Перевернута ли карта
+			self.m.s1.game.stats.thelastwinner.is_card_flipped = ko.observable(false);
+
+			// 2] Модель front-стороны карты
+			self.m.s1.game.stats.thelastwinner.front = ko.mapping.fromJS({});
+
+			// 3] Модель back-стороны карты
+			self.m.s1.game.stats.thelastwinner.back = ko.mapping.fromJS({});
+
+
+
 
 	//----------------------------------------------------------------//
 	// s1.6. Модель полосы аватаров текущего раунда выбранной комнаты //
@@ -846,6 +909,26 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			}());
 
+			//-----------------------------------------------------//
+			// 7] Индекс игроков текущего раунда выбранной комнаты //
+			//-----------------------------------------------------//
+			// - По ID игрока можно получить ссылку на него в m.s1.game
+			// - Обновляет m.s1.game.wheel.user_bet_index
+			(function(){
+
+				// 1. Подготовить объект для результатов
+				var results = {};
+
+				// 2. Заполнить results
+				for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
+					results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i];
+				}
+
+				// 3. Обновить m.s1.indexes.users
+				ko.mapping.fromJS(results, self.m.s1.game.wheel.user_bet_index);
+
+			})();
+
 		});
 
 		// s1.n.1. Общие вычисления: комнаты, раунды, состояния, джекпот ... //
@@ -1024,10 +1107,10 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();
 
-			//-----------------------------------------------------//
-			// 7] Индекс игроков текущего раунда выбранной комнаты //
-			//-----------------------------------------------------//
-			// - По ID игрока можно получить ссылку на него в m.s1.game
+			//--------------------------------------------------------------//
+			// 7] Индекс аватаров игроков текущего раунда выбранной комнаты //
+			//--------------------------------------------------------------//
+			// - По ID игрока можно получить его аватар.
 			self.m.s1.indexes.users_avatars = (function(){
 
 				// 1. Подготовить объект для результатов
@@ -1182,6 +1265,48 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// n] Записать trade_url current_bot в current_bot
 				self.m.s1.game.current_bot(current_bot.trade_url());
+
+			})();
+
+			//-----------------------------------------------------------------------------------//
+			// 12] Обновить значения odds_player у всех ставок текущего раунда выбранной комнаты //
+			//-----------------------------------------------------------------------------------//
+			(function(){
+
+				// 12.1] Если ставки отсутствуют, завершить
+				if(!self.m.s1.game.curprev().current().bets || !self.m.s1.smoothbets.bets().length) return;
+
+				// 12.2] Получить ставки текущего раунда выбранной комнаты в короткую переменную
+				var bets = self.m.s1.smoothbets.bets();
+
+				// 12.3] Обновить odds_player всех ставок
+				for(var i=0; i<bets.length; i++) {
+
+					// 12.3.1] Получить шансы владейльца i-й ставки
+					var odds = (function(){
+
+						// 1) Получить ID игрока-владельца ставки
+						var id = bets[i].m5_users()[0].id();
+
+						// 2) Найти информацию о ставках этого игрока в индексе
+						var info = self.m.s1.game.wheel.user_bet_index[bets[i].m5_users()[0].id()];
+
+						// 3) Если id, info или odds пусты, вернуть 0
+						if(!id || !info || !info.odds || !info.odds())
+							return 0;
+
+						// 4) Получить шансы пользователя на победу
+						var odds = info.odds();
+
+						// n) Вернуть odds
+						return odds;
+
+					})();
+
+					// 12.3.2] Записать odds в odds_player
+					bets[i].odds_player(odds);
+
+				}
 
 			})();
 
@@ -1563,6 +1688,62 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			//	self.f.s1.playsound('timer-tick-quiet'); //timer-tick-last-5-seconds');
 
 		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+
+
+	//------------------------------------//
+	// 			        		 	                //
+	// 	W. Обработка websocket-сообщений  //
+	// 			         			                //
+	//------------------------------------//
+
+	//-------------------------------------------------//
+	// w8.1. Обработка сообщений через публичный канал //
+	//-------------------------------------------------//
+	self.websocket.ws1.on('m9:public', function(data) {
+
+		// 1] Получить имя задачи
+		var task = data.data.data.task;
+
+		// 2] В зависимости от task выполнить соотв.метод
+		switch(task) {
+
+			case "fresh_game_data": 							self.f.s1.fresh_game_data(data.data.data.data); break;
+			case "classicgame_statistics_update": self.f.s1.update_statistics(data.data.data.data); break;
+			case "classicgame_history_new": 			self.f.s1.add_new_history(data.data.data.data); break;
+			case "m9:stats:update:thebiggestbet": self.f.s1.stats_update_thebiggestbet(data.data.data.data); break;
+			case "m9:stats:update:luckyoftheday": self.f.s1.stats_update_luckyoftheday(data.data.data.data); break;
+
+		}
+
+	});
+
+	//-----------------------------------------------//
+	// w8.2. Обработка сообщений через частный канал //
+	//-----------------------------------------------//
+	if(JSON.parse(layout_data.data.auth).is_anon == 0) {
+		self.websocket.ws1.on('m9:private:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
+
+			// 1] Получить имя задачи
+			var task = data.data.data.task;
+
+			// 2] В зависимости от task выполнить соотв.метод
+			switch(task) {
+
+				case "tradeoffer_cancel": 			self.f.s1.tradeoffer_cancel(data.data.data.data); break;
+				case "tradeoffer_accepted": 		self.f.s1.tradeoffer_accepted(data.data.data.data); break;
+				case "tradeoffer_processing": 	self.f.s1.tradeoffer_processing(data.data.data.data); break;
+
+			}
+
+		});
+	}
+
+
+
+
+
+
+
 
 
 	//------------------------------//

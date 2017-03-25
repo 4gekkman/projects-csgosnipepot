@@ -487,8 +487,8 @@
               <!--------------*/ ?>
               <div class="sum-odds-tickets">
 
-                <!-- Сумма ставки и шансы выигрыша -->
-                <span class="odds" data-bind="text: (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 100 * 10) / 10) + '%'" title="Шансы на победу ставки"></span>
+                <!-- Сумма ставки и шансы выигрыша $root.m.s1.game.wheel.user_bet_index[m5_users()[0].id()].odds() -->
+                <span class="odds" data-bind="text: (Math.round(odds_player() * 100 * 10) / 10) + '%'" title="Шанс на победу игрока"></span> <!-- (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 100 * 10) / 10) -->
                 <span>/</span>
                 <span class="sum" data-bind="text: Math.ceil((Math.round(total_bet_amount())/100)*server.data.usdrub_rate) + ' руб.'" title="Сумма ставки"></span>
 
@@ -775,53 +775,123 @@
     <?php /*--------------------------->
     <!-- 1.3.1. Последний победитель -->
     <!-----------------------------*/ ?>
-    <div class="lastwinner" data-bind="visible: (m.s1.game.statistics['m9:statistics:lastwinners'] && m.s1.game.choosen_room() && m.s1.game.choosen_room().id() && m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].id())">
+    <div class="lastwinner" data-bind="visible: (m.s1.game.choosen_room() && m.s1.game.choosen_room().id() && m.s1.game.stats.thelastwinner.front.nickname)">
 
-      <?php /*------------>
-      <!-- 1] Заголовок -->
-      <!--------------*/ ?>
-      <div class="header">
-        <span>Последний победитель</span>
-      </div>
+      <?php /*--------------->
+      <!-- Контейнер карты -->
+      <!-----------------*/ ?>
+      <div class="card" data-bind="css: {flipped: m.s1.game.stats.thelastwinner.is_card_flipped}">
 
-      <?php /*---------->
-      <!-- 2] Контент -->
-      <!------------*/ ?>
-      <div class="contentpart">
+        <?php /*------------------->
+        <!-- Фронтальная сторона -->
+        <!---------------------*/ ?>
+        <div class="front">
 
-        <?php /*----------->
-        <!-- 2.1] Аватар -->
-        <!-------------*/ ?>
-        <img data-bind="attr: {src: m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].avatar_steam}">
+          <?php /*------------>
+          <!-- 1] Заголовок -->
+          <!--------------*/ ?>
+          <div class="header">
+            <span>Последний победитель</span>
+          </div>
 
-        <?php /*------------>
-        <!-- 2.2] Никнэйм -->
-        <!--------------*/ ?>
-        <div class="nickname">
-          <span data-bind="text: m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].nickname"></span>
+          <?php /*---------->
+          <!-- 2] Контент -->
+          <!------------*/ ?>
+          <div class="contentpart">
+
+            <?php /*----------->
+            <!-- 2.1] Аватар -->
+            <!-------------*/ ?>
+            <img data-bind="attr: {src: m.s1.game.stats.thelastwinner.front.avatar_steam}">
+
+            <?php /*------------>
+            <!-- 2.2] Никнэйм -->
+            <!--------------*/ ?>
+            <div class="nickname">
+              <span data-bind="text: m.s1.game.stats.thelastwinner.front.nickname"></span>
+            </div>
+
+          </div>
+
+          <?php /*--------->
+          <!-- 3] Подвал -->
+          <!-----------*/ ?>
+          <div class="footer">
+
+            <?php /*------------>
+            <!-- 3.1] Выигрыш -->
+            <!--------------*/ ?>
+            <div class="row">
+              <div class="span50">Выигрыш:</div>
+              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thelastwinner.front.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+            </div>
+
+            <?php /*--------->
+            <!-- 3.2] Шанс -->
+            <!-----------*/ ?>
+            <div class="row">
+              <div class="span50">Шанс:</div>
+              <div class="span50 odds" data-bind="text: Math.round(m.s1.game.stats.thelastwinner.front.odds()*10)/10 + '%'"></div>
+            </div>
+
+          </div>
+
         </div>
 
-      </div>
+        <?php /*---------------->
+        <!-- Обратная сторона -->
+        <!------------------*/ ?>
+        <div class="back">
 
-      <?php /*--------->
-      <!-- 3] Подвал -->
-      <!-----------*/ ?>
-      <div class="footer">
+          <?php /*------------>
+          <!-- 1] Заголовок -->
+          <!--------------*/ ?>
+          <div class="header">
+            <span>Последний победитель</span>
+          </div>
 
-        <?php /*------------>
-        <!-- 3.1] Выигрыш -->
-        <!--------------*/ ?>
-        <div class="row">
-          <div class="span50">Выигрыш:</div>
-          <div class="span50" data-bind="text: Math.ceil((m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
-        </div>
+          <?php /*---------->
+          <!-- 2] Контент -->
+          <!------------*/ ?>
+          <div class="contentpart">
 
-        <?php /*--------->
-        <!-- 3.2] Шанс -->
-        <!-----------*/ ?>
-        <div class="row">
-          <div class="span50">Шанс:</div>
-          <div class="span50 odds" data-bind="text: Math.round(m.s1.game.statistics['m9:statistics:lastwinners'][m.s1.game.choosen_room().id()].odds()*10)/10 + '%'"></div>
+            <?php /*----------->
+            <!-- 2.1] Аватар -->
+            <!-------------*/ ?>
+            <img data-bind="attr: {src: m.s1.game.stats.thelastwinner.back.avatar_steam}">
+
+            <?php /*------------>
+            <!-- 2.2] Никнэйм -->
+            <!--------------*/ ?>
+            <div class="nickname">
+              <span data-bind="text: m.s1.game.stats.thelastwinner.back.nickname"></span>
+            </div>
+
+          </div>
+
+          <?php /*--------->
+          <!-- 3] Подвал -->
+          <!-----------*/ ?>
+          <div class="footer">
+
+            <?php /*------------>
+            <!-- 3.1] Выигрыш -->
+            <!--------------*/ ?>
+            <div class="row">
+              <div class="span50">Выигрыш:</div>
+              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thelastwinner.back.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+            </div>
+
+            <?php /*--------->
+            <!-- 3.2] Шанс -->
+            <!-----------*/ ?>
+            <div class="row">
+              <div class="span50">Шанс:</div>
+              <div class="span50 odds" data-bind="text: Math.round(m.s1.game.stats.thelastwinner.back.odds()*10)/10 + '%'"></div>
+            </div>
+
+          </div>
+
         </div>
 
       </div>
@@ -831,53 +901,123 @@
     <?php /*---------------------->
     <!-- 1.3.2. Счастливчик дня -->
     <!------------------------*/ ?>
-    <div class="luckyoftheday" data-bind="visible: (m.s1.game.statistics['m9:statistics:luckyoftheday'] && m.s1.game.statistics['m9:statistics:luckyoftheday'].id())">
+    <div class="luckyoftheday" data-bind="visible: m.s1.game.stats.luckyoftheday.data.nickname">
 
-      <?php /*------------>
-      <!-- 1] Заголовок -->
-      <!--------------*/ ?>
-      <div class="header">
-        <span>Счастливчик дня</span>
-      </div>
+      <?php /*--------------->
+      <!-- Контейнер карты -->
+      <!-----------------*/ ?>
+      <div class="card" data-bind="css: {flipped: m.s1.game.stats.luckyoftheday.is_card_flipped}">
 
-      <?php /*---------->
-      <!-- 2] Контент -->
-      <!------------*/ ?>
-      <div class="contentpart">
+        <?php /*------------------->
+        <!-- Фронтальная сторона -->
+        <!---------------------*/ ?>
+        <div class="front">
 
-        <?php /*----------->
-        <!-- 2.1] Аватар -->
-        <!-------------*/ ?>
-        <img data-bind="attr: {src: m.s1.game.statistics['m9:statistics:luckyoftheday'].avatar_steam}">
+          <?php /*------------>
+          <!-- 1] Заголовок -->
+          <!--------------*/ ?>
+          <div class="header">
+            <span>Счастливчик дня</span>
+          </div>
 
-        <?php /*------------>
-        <!-- 2.2] Никнэйм -->
-        <!--------------*/ ?>
-        <div class="nickname">
-          <span data-bind="text: m.s1.game.statistics['m9:statistics:luckyoftheday'].nickname"></span>
+          <?php /*---------->
+          <!-- 2] Контент -->
+          <!------------*/ ?>
+          <div class="contentpart">
+
+            <?php /*----------->
+            <!-- 2.1] Аватар -->
+            <!-------------*/ ?>
+            <img data-bind="attr: {src: m.s1.game.stats.luckyoftheday.front.avatar_steam}">
+
+            <?php /*------------>
+            <!-- 2.2] Никнэйм -->
+            <!--------------*/ ?>
+            <div class="nickname">
+              <span data-bind="text: m.s1.game.stats.luckyoftheday.front.nickname"></span>
+            </div>
+
+          </div>
+
+          <?php /*--------->
+          <!-- 3] Подвал -->
+          <!-----------*/ ?>
+          <div class="footer">
+
+            <?php /*------------>
+            <!-- 3.1] Выигрыш -->
+            <!--------------*/ ?>
+            <div class="row">
+              <div class="span50">Выигрыш:</div>
+              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.luckyoftheday.front.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+            </div>
+
+            <?php /*--------->
+            <!-- 3.2] Шанс -->
+            <!-----------*/ ?>
+            <div class="row odds">
+              <div class="span50">Шанс:</div>
+              <div class="span50 odds" data-bind="text: m.s1.game.stats.luckyoftheday.front.odds() + '%'"></div>
+            </div>
+
+          </div>
+
         </div>
 
-      </div>
+        <?php /*---------------->
+        <!-- Обратная сторона -->
+        <!------------------*/ ?>
+        <div class="back">
 
-      <?php /*--------->
-      <!-- 3] Подвал -->
-      <!-----------*/ ?>
-      <div class="footer">
+          <?php /*------------>
+          <!-- 1] Заголовок -->
+          <!--------------*/ ?>
+          <div class="header">
+            <span>Счастливчик дня</span>
+          </div>
 
-        <?php /*------------>
-        <!-- 3.1] Выигрыш -->
-        <!--------------*/ ?>
-        <div class="row">
-          <div class="span50">Выигрыш:</div>
-          <div class="span50" data-bind="text: Math.ceil((m.s1.game.statistics['m9:statistics:luckyoftheday'].jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
-        </div>
+          <?php /*---------->
+          <!-- 2] Контент -->
+          <!------------*/ ?>
+          <div class="contentpart">
 
-        <?php /*--------->
-        <!-- 3.2] Шанс -->
-        <!-----------*/ ?>
-        <div class="row odds">
-          <div class="span50">Шанс:</div>
-          <div class="span50 odds" data-bind="text: m.s1.game.statistics['m9:statistics:luckyoftheday'].odds() + '%'"></div>
+            <?php /*----------->
+            <!-- 2.1] Аватар -->
+            <!-------------*/ ?>
+            <img data-bind="attr: {src: m.s1.game.stats.luckyoftheday.back.avatar_steam}">
+
+            <?php /*------------>
+            <!-- 2.2] Никнэйм -->
+            <!--------------*/ ?>
+            <div class="nickname">
+              <span data-bind="text: m.s1.game.stats.luckyoftheday.back.nickname"></span>
+            </div>
+
+          </div>
+
+          <?php /*--------->
+          <!-- 3] Подвал -->
+          <!-----------*/ ?>
+          <div class="footer">
+
+            <?php /*------------>
+            <!-- 3.1] Выигрыш -->
+            <!--------------*/ ?>
+            <div class="row">
+              <div class="span50">Выигрыш:</div>
+              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.luckyoftheday.back.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+            </div>
+
+            <?php /*--------->
+            <!-- 3.2] Шанс -->
+            <!-----------*/ ?>
+            <div class="row odds">
+              <div class="span50">Шанс:</div>
+              <div class="span50 odds" data-bind="text: m.s1.game.stats.luckyoftheday.back.odds() + '%'"></div>
+            </div>
+
+          </div>
+
         </div>
 
       </div>
@@ -887,45 +1027,107 @@
     <?php /*------------------------>
     <!-- 1.3.3. Наибольшая ставка -->
     <!--------------------------*/ ?>
-    <div class="thebiggetsbet" data-bind="visible: (m.s1.game.statistics['m9:statistics:thebiggetsbet'] && m.s1.game.statistics['m9:statistics:thebiggetsbet'].id())">
+    <div class="thebiggestbet" data-bind="visible: m.s1.game.stats.thebiggestbet.data.nickname">
 
-      <?php /*------------>
-      <!-- 1] Заголовок -->
-      <!--------------*/ ?>
-      <div class="header">
-        <span>Наибольшая ставка</span>
-      </div>
+      <?php /*--------------->
+      <!-- Контейнер карты -->
+      <!-----------------*/ ?>
+      <div class="card" data-bind="css: {flipped: m.s1.game.stats.thebiggestbet.is_card_flipped}">
 
-      <?php /*---------->
-      <!-- 2] Контент -->
-      <!------------*/ ?>
-      <div class="contentpart">
+        <?php /*------------------->
+        <!-- Фронтальная сторона -->
+        <!---------------------*/ ?>
+        <div class="front">
 
-        <?php /*----------->
-        <!-- 2.1] Аватар -->
-        <!-------------*/ ?>
-        <img data-bind="attr: {src: m.s1.game.statistics['m9:statistics:thebiggetsbet'].avatar_steam}">
+          <?php /*------------>
+          <!-- 1] Заголовок -->
+          <!--------------*/ ?>
+          <div class="header">
+            <span>Наибольшая ставка</span>
+          </div>
 
-        <?php /*------------>
-        <!-- 2.2] Никнэйм -->
-        <!--------------*/ ?>
-        <div class="nickname">
-          <span data-bind="text: m.s1.game.statistics['m9:statistics:thebiggetsbet'].nickname"></span>
+          <?php /*---------->
+          <!-- 2] Контент -->
+          <!------------*/ ?>
+          <div class="contentpart">
+
+            <?php /*----------->
+            <!-- 2.1] Аватар -->
+            <!-------------*/ ?>
+            <img data-bind="attr: {src: m.s1.game.stats.thebiggestbet.front.avatar_steam}">
+
+            <?php /*------------>
+            <!-- 2.2] Никнэйм -->
+            <!--------------*/ ?>
+            <div class="nickname">
+              <span data-bind="text: m.s1.game.stats.thebiggestbet.front.nickname"></span>
+            </div>
+
+          </div>
+
+          <?php /*--------->
+          <!-- 3] Подвал -->
+          <!-----------*/ ?>
+          <div class="footer">
+
+            <?php /*---------------------->
+            <!-- 3.1] Наибольшая ставка -->
+            <!------------------------*/ ?>
+            <div class="row">
+              <div class="span50">Ставка:</div>
+              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thebiggestbet.front.sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+            </div>
+
+          </div>
+
         </div>
 
-      </div>
+        <?php /*---------------->
+        <!-- Обратная сторона -->
+        <!------------------*/ ?>
+        <div class="back">
 
-      <?php /*--------->
-      <!-- 3] Подвал -->
-      <!-----------*/ ?>
-      <div class="footer">
+          <?php /*------------>
+          <!-- 1] Заголовок -->
+          <!--------------*/ ?>
+          <div class="header">
+            <span>Наибольшая ставка</span>
+          </div>
 
-        <?php /*---------------------->
-        <!-- 3.1] Наибольшая ставка -->
-        <!------------------------*/ ?>
-        <div class="row">
-          <div class="span50">Ставка:</div>
-          <div class="span50" data-bind="text: Math.ceil((m.s1.game.statistics['m9:statistics:thebiggetsbet'].sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+          <?php /*---------->
+          <!-- 2] Контент -->
+          <!------------*/ ?>
+          <div class="contentpart">
+
+            <?php /*----------->
+            <!-- 2.1] Аватар -->
+            <!-------------*/ ?>
+            <img data-bind="attr: {src: m.s1.game.stats.thebiggestbet.back.avatar_steam}">
+
+            <?php /*------------>
+            <!-- 2.2] Никнэйм -->
+            <!--------------*/ ?>
+            <div class="nickname">
+              <span data-bind="text: m.s1.game.stats.thebiggestbet.back.nickname"></span>
+            </div>
+
+          </div>
+
+          <?php /*--------->
+          <!-- 3] Подвал -->
+          <!-----------*/ ?>
+          <div class="footer">
+
+            <?php /*---------------------->
+            <!-- 3.1] Наибольшая ставка -->
+            <!------------------------*/ ?>
+            <div class="row">
+              <div class="span50">Ставка:</div>
+              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thebiggestbet.back.sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+            </div>
+
+          </div>
+
         </div>
 
       </div>

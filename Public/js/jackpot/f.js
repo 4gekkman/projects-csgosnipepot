@@ -35,6 +35,10 @@
  *    f.s1.get_more_history               | s1.22. Получить ещё 10 позиций истории для выбранной комнаты
  *    f.s1.add_new_history                | s1.23. Добавить в историю комнаты новую единицу истории
  *    f.s1.queue_remove                   | s1.24. Удалить из очереди все состояния с указанным статусом, и опубликовать итоговую очередь состояний
+ *    f.s1.stats_update_thebiggestbet     | s1.25. Обновить статистику "Наибольшая ставка"
+ *    f.s1.stats_update_luckyoftheday     | s1.26. Обновить статистику "Счастливчик дня"
+ *    f.s1.stats_init_lastwinner     			| s1.27. Инициировать статистику "Последний победитель" при 1-й загрузке документа, или при переключении между комнатами
+ *    f.s1.stats_update_lastwinner        | s1.28. Обновить статистику "Последний победитель" при переключении текущего раунда выбранной комнаты в состояние Winner
  *
  */
 
@@ -129,40 +133,47 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Если data пуста, ничего не делать
 		if(!data) return;
 
-		// 2] Если статус комнаты data - Lottery - выключить css-анимацию
+		// 2] Если эта комната уже выбрана, то ничего не делать
+		if(self.m.s1.game.choosen_room() && self.m.s1.game.choosen_room().id() == data.id())
+			return;
+
+		// 3] Если статус комнаты data - Lottery - выключить css-анимацию
 		if(['Lottery', 'Winner', 'Finished'].indexOf(data.rounds()[0].rounds_statuses()[0].status() == 'Lottery') != -1)
 			self.m.s1.game.strip.is_css_animation_on(false);
 
-		// 3] Выбрать кликнутую комнату
+		// 4] Выбрать кликнутую комнату
 		self.m.s1.game.choosen_room(data);
 
-		// 4] Наполнить модель m.s1.animation.circumstances
+		// 5] Наполнить модель m.s1.animation.circumstances
 		// - Если m.s1.game.choosen_room() не пуста.
 		if(self.m.s1.game.choosen_room()) {
 
-			// 4.1] Номер раунда
+			// 5.1] Номер раунда
 			self.m.s1.animation.circumstances.round_number(self.m.s1.game.choosen_room().rounds()[0].id());
 
-			// 4.2] Какой был серверный unix timestamp в секундах
+			// 5.2] Какой был серверный unix timestamp в секундах
 			self.m.s1.animation.circumstances.timestamp_s(self.m.s1.game.time.ts());
 
-			// 4.3] Какой был статус того раунда, чей номер указан
+			// 5.3] Какой был статус того раунда, чей номер указан
 			self.m.s1.animation.circumstances.round_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status());
 
 		}
 
-		// 5] Наполнить smoothbets.bets
+		// 6] Наполнить smoothbets.bets
 		setTimeout(function(){
 			self.f.s1.smootbets_update();
 		}, 100);
 
-		// 6] Если функция вызывна пользователем
+		// 7] Если функция вызывна пользователем
 		if(event && event.which) {
 
-			// 6.1] Подтянуть первые 10 пунктов истории (если ещё не) для выбранной комнаты
+			// 7.1] Подтянуть первые 10 пунктов истории (если ещё не) для выбранной комнаты
 			self.f.s1.get_initial_history();
 
 		}
+
+		// 8] Инициировать статистику "Последний победитель"
+		self.f.s1.stats_init_lastwinner();
 
 	};
 	
@@ -225,19 +236,33 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				//console.log(room2update);
 				//console.log('---');
 
-				// 3.2] Обновить свежими данными комнату room2update
+				// 3.2] В индивидуальном порядке обновить lastwinner и penultwinner
+
+					// 3.2.1] Обновить lastwinner
+					for(var room_key in room2update["lastwinner"]) {
+						if(!room2update["lastwinner"].hasOwnProperty(room_key)) continue;
+						room2update["lastwinner"][room_key](data['lastwinner'][room_key]);
+					}
+
+					// 3.2.2] Обновить penultwinner
+					for(var room_key in room2update["penultwinner"]) {
+						if(!room2update["penultwinner"].hasOwnProperty(room_key)) continue;
+						room2update["penultwinner"][room_key](data['penultwinner'][room_key]);
+					}
+
+				// 3.3] Обновить свежими данными комнату room2update
 				for(var key in room2update) {
 
-					// 3.2.1] Если свойство не своё, пропускаем
+					// 3.3.1] Если свойство не своё, пропускаем
 					if(!room2update.hasOwnProperty(key)) continue;
 
-					// 3.2.2] Если св-ва key нет в data, пропускаем
+					// 3.3.2] Если св-ва key нет в data, пропускаем
 					if(!data[key]) continue;
 
-					// 3.2.3] Если key не ['m8_bots', 'rounds'], пропускаем
+					// 3.3.3] Если key не ['m8_bots', 'rounds', 'lastwinner', 'penultwinner'], пропускаем
 					if(['m8_bots', 'rounds'].indexOf(key) == -1) continue;
 
-					// 3.2.4] Если key == "rounds"
+					// 3.3.4] Если key == "rounds"
 					// - Обновить каждый раунд индивидуально, если это требуется.
 					if(key == "rounds") {
 
@@ -391,6 +416,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 								}
 
+								// 3.9.2) Если статус 'Winner', обновить статистику "Последний победитель"
+								if(status_new == 'Winner')
+									self.f.s1.stats_update_lastwinner();
+
 								// 3.9.n) Перейти к след.итерации
 								continue;
 
@@ -403,7 +432,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					}
 
-					// 3.2.n] Обновить св-во key в room2update данными из data
+					// 3.3.n] Обновить св-во key в room2update данными из data
 					room2update[key](ko.mapping.fromJS(data[key])());
 
 				}
@@ -1538,12 +1567,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Очистить smoothbets.bets
 		self.m.s1.smoothbets.bets.removeAll();
 
-		// 2] Наполнить smoothbets.bets
-		for(var i=0; i<self.m.s1.game.curprev().current().bets.slice(0).reverse().length; i++) {
+		// 2] Получить reverse-версию bets текущего раунда выбранной комнаты
+		var bets_reverse = self.m.s1.game.curprev().current().bets.slice(0).reverse();
 
+		// 3] Наполнить smoothbets.bets
+		for(var i=0; i<bets_reverse.length; i++) {
+
+			// 3.1] Записать i-ю cnfdre в m.s1.smoothbets.bets
 			self.m.s1.smoothbets.bets.push(
 				ko.mapping.fromJS(
-					ko.mapping.toJS(self.m.s1.game.curprev().current().bets.slice(0).reverse()[i])
+					ko.mapping.toJS(bets_reverse[i])
 				)
 			);
 
@@ -1556,7 +1589,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------//
 	f.s1.smootbets_add = function(bet, room_id, round_id) {
 
-		// 1] Добавить в bet свойство is_expanded == false
+		// 1] Добавить в bet доп.свойства
 		bet.is_expanded(0);
 
 		// 2] Добавить bet в smoothbets
@@ -1861,6 +1894,203 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		return queue;
 
 	};
+
+	//------------------------------------------------//
+	// s1.25. Обновить статистику "Наибольшая ставка" //
+	//------------------------------------------------//
+	f.s1.stats_update_thebiggestbet = function(data) {
+
+		// 1] Выяснить, перевернута ли карта (back или front)
+		var card_side = (function(){
+
+			if(!self.m.s1.game.stats.thebiggestbet.is_card_flipped())
+				return "front";
+			else
+				return "back";
+
+		})();
+
+		// 2] Выяснить, необходимо ли обновление
+		var is_need_update = (function(){
+
+			// Если сумма больше предыдущей, то обновлять надо
+			if(+data.thebiggestbet.sum_cents_at_bet_moment > +self.m.s1.game.stats.thebiggestbet[card_side].sum_cents_at_bet_moment())
+				return true;
+
+			// Если даты разные, то обновлять надо
+			if(data.thebiggestbet.date != self.m.s1.game.stats.thebiggestbet[card_side].date())
+				return true;
+
+			// Иначе, не надо
+			return false;
+
+		})();
+
+		// 3] Обновить обратную сторону карты, и перевернуть её
+		if(is_need_update) {
+
+			// 3.1] Обновить обратную сторону
+			ko.mapping.fromJS(data.thebiggestbet, self.m.s1.game.stats.thebiggestbet[(card_side == "front" ? "back" : "front")]);
+
+			// 3.2] Если front или data пусты, и их обновить
+			if(!self.m.s1.game.stats.thebiggestbet.data.nickname())
+				ko.mapping.fromJS(data.thebiggestbet, self.m.s1.game.stats.thebiggestbet.data);
+			if(!self.m.s1.game.stats.thebiggestbet[(card_side == "front" ? "front" : "back")].nickname())
+				ko.mapping.fromJS(data.thebiggestbet, self.m.s1.game.stats.thebiggestbet[(card_side == "front" ? "front" : "back")]);
+
+			// 3.3] Перевернуть карту
+			self.m.s1.game.stats.thebiggestbet.is_card_flipped(!self.m.s1.game.stats.thebiggestbet.is_card_flipped());
+
+		}
+
+	};
+
+	//----------------------------------------------//
+	// s1.26. Обновить статистику "Счастливчик дня" //
+	//----------------------------------------------//
+	f.s1.stats_update_luckyoftheday = function(data) {
+
+		// 1] Выяснить, перевернута ли карта (back или front)
+		var card_side = (function(){
+
+			if(!self.m.s1.game.stats.luckyoftheday.is_card_flipped())
+				return "front";
+			else
+				return "back";
+
+		})();
+
+		// 2] Выяснить, необходимо ли обновление
+		var is_need_update = (function(){
+
+			// Если отличается ник, сумма или шансы, то обновлять надо
+			if(	+data.luckyoftheday.jackpot_total_sum_cents != +self.m.s1.game.stats.luckyoftheday[card_side].jackpot_total_sum_cents() ||
+					data.luckyoftheday.nickname != self.m.s1.game.stats.luckyoftheday[card_side].nickname() ||
+					data.luckyoftheday.odds != self.m.s1.game.stats.luckyoftheday[card_side].odds()
+					)
+				return true;
+
+			// Иначе, не надо
+			return false;
+
+		})();
+
+		// 3] Обновить обратную сторону карты, и перевернуть её
+		if(is_need_update) {
+
+			// 3.1] Обновить обратную сторону
+			ko.mapping.fromJS(data.luckyoftheday, self.m.s1.game.stats.luckyoftheday[(card_side == "front" ? "back" : "front")]);
+
+			// 3.2] Если front или data пусты, и их обновить
+			if(!self.m.s1.game.stats.luckyoftheday.data.nickname())
+				ko.mapping.fromJS(data.luckyoftheday, self.m.s1.game.stats.luckyoftheday.data);
+			if(!self.m.s1.game.stats.luckyoftheday[(card_side == "front" ? "front" : "back")].nickname())
+				ko.mapping.fromJS(data.luckyoftheday, self.m.s1.game.stats.luckyoftheday[(card_side == "front" ? "front" : "back")]);
+
+			// 3.3] Перевернуть карту
+			self.m.s1.game.stats.luckyoftheday.is_card_flipped(!self.m.s1.game.stats.luckyoftheday.is_card_flipped());
+
+		}
+
+	};
+
+	//------------------------------------------------------------------------------------------------------------------------//
+	// s1.27. Инициировать статистику "Последний победитель" при 1-й загрузке документа, или при переключении между комнатами //
+	//------------------------------------------------------------------------------------------------------------------------//
+	f.s1.stats_init_lastwinner = function(data) {
+
+		// 1] Является ли фактический статус текущего раунда равным Winner/Finished
+		var is_status_winner = (function(){
+
+			// 1.1] Получить статус
+			var status = self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status();
+
+			// 1.2] Если status = ['Winner', 'Finished'], вернуть true
+			if(['Winner', 'Finished'].indexOf(status) != -1)
+				return true;
+
+			// 1.n] Иначе вернуть false
+			else
+				return false;
+
+		})();
+
+		// 2] Если статус текущего раунда уже winner или старше
+		// - Загрузить lastwinner в front, а penultwinner в back.
+		if(is_status_winner) {
+			ko.mapping.fromJS(ko.mapping.toJS(self.m.s1.game.choosen_room().lastwinner), self.m.s1.game.stats.thelastwinner.front);
+			ko.mapping.fromJS(ko.mapping.toJS(self.m.s1.game.choosen_room().penultwinner), self.m.s1.game.stats.thelastwinner.back);
+		}
+
+		// 3] Если статус текущего раунда ещё не winner или старше
+		// - Загрузить во front/back победителя предыдущего раунда.
+		else {
+
+			// 3.1] Найти победителя предыдущего раунда
+			var penult_round_winner = (function(){
+
+				// Если lastwinner относится к текущему раунду, то penultwinner - тот, кто нам нужен
+				if(self.m.s1.game.choosen_room().lastwinner.id_round() == self.m.s1.game.choosen_room().rounds()[0].id())
+					return self.m.s1.game.choosen_room().penultwinner;
+
+				// Иначе, нам нужен lastwinner
+				else
+					return self.m.s1.game.choosen_room().lastwinner;
+
+			})();
+
+			// 3.2] Записать penult_round_winner во front/back
+			ko.mapping.fromJS(ko.mapping.toJS(penult_round_winner), self.m.s1.game.stats.thelastwinner.front);
+			ko.mapping.fromJS(ko.mapping.toJS(penult_round_winner), self.m.s1.game.stats.thelastwinner.back);
+
+		}
+
+		// 4] Сделать карту не перевёрнутой
+		self.m.s1.game.stats.thelastwinner.is_card_flipped(false);
+
+	};
+
+	//-------------------------------------------------------------------------------------------------------------------------//
+	// s1.28. Обновить статистику "Последний победитель" при переключении текущего раунда выбранной комнаты в состояние Winner //
+	//-------------------------------------------------------------------------------------------------------------------------//
+	f.s1.stats_update_lastwinner = function(data) {
+
+		// 1] Выяснить, перевернута ли карта (back или front)
+		var card_side = (function(){
+
+			if(!self.m.s1.game.stats.thelastwinner.is_card_flipped())
+				return "front";
+			else
+				return "back";
+
+		})();
+
+		// 2] Выяснить, необходимо ли обновление
+		var is_need_update = (function(){
+
+			// 2.1] Если id_round отличается, то необходимо
+			if(self.m.s1.game.stats.thelastwinner[card_side].id_round() != self.m.s1.game.choosen_room().lastwinner.id_round())
+				return true;
+
+			// 2.2] Иначе, не необходимо
+			else
+				return false;
+
+		})();
+
+		// 3] Обновить обратную сторону карты, и перевернуть её
+		if(is_need_update) {
+			ko.mapping.fromJS(ko.mapping.toJS(self.m.s1.game.choosen_room().lastwinner), self.m.s1.game.stats.thelastwinner[(card_side == "front" ? "back" : "front")]);
+			self.m.s1.game.stats.thelastwinner.is_card_flipped(!self.m.s1.game.stats.thelastwinner.is_card_flipped());
+		}
+
+	};
+
+
+
+
+
+
 
 
 

@@ -189,11 +189,30 @@ class Controller extends BaseController {
       $palette = config('M9.palette');
 
       // 6. Получить статистическую информацию по классической игре
-      $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
-        "force" => false
-      ]);
-      if($classicgame_statistics['status'] != 0)
-        throw new \Exception($classicgame_statistics['data']['errormsg']);
+
+        // 6.1. Старая версия статистики
+        $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
+          "force" => false
+        ]);
+        if($classicgame_statistics['status'] != 0)
+          throw new \Exception($classicgame_statistics['data']['errormsg']);
+
+        // 6.2. Статистика "Наибольшая ставка"
+        $classicgame_stats_thebiggestbet = runcommand('\M9\Commands\C55_get_stats_thebiggestbet', [
+          "force"     => false,
+          "broadcast" => false
+        ]);
+        if($classicgame_stats_thebiggestbet['status'] != 0)
+          throw new \Exception($classicgame_stats_thebiggestbet['data']['errormsg']);
+
+        // 6.3. Статистика "Счастливчик дня"
+        $classicgame_stats_luckyoftheday = runcommand('\M9\Commands\C56_get_stats_luckyoftheday', [
+          "force"     => false,
+          "broadcast" => false
+        ]);
+        if($classicgame_stats_luckyoftheday['status'] != 0)
+          throw new \Exception($classicgame_stats_luckyoftheday['data']['errormsg']);
+
 
       // 7. Получить значение USD/RUB
       $rate = runcommand('\M9\Commands\C50_get_rate', [
@@ -294,7 +313,11 @@ class Controller extends BaseController {
         "usdrub_rate"             => $rate,
         "public_faq_folder"       => config('M12.public_faq_folder'),
         "deposit_configs"         => $deposit_configs,
-        "reward"                  => $reward
+        "reward"                  => $reward,
+        "classicgame_stats"       => [
+          "classicgame_stats_thebiggestbet" => $classicgame_stats_thebiggestbet,
+          "classicgame_stats_luckyoftheday" => $classicgame_stats_luckyoftheday,
+        ]
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
