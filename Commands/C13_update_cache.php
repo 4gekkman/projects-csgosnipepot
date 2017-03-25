@@ -463,20 +463,126 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
               // 3] Обновить полную (не safe) версию кэша
               call_user_func(function() USE (&$rooms) {
 
-                // 3.1] Добавить для каждой комнаты в $rooms текущий размер очереди ставок
+                // 3.1] Добавить для каждой комнаты в $rooms доп.свойства
                 call_user_func(function() USE (&$rooms) {
                   foreach($rooms as &$room) {
 
-                    // 3.1.1] Подсчитать кол-во офферов в очереди
-                    $count = \M9\Models\MD3_bets::whereHas('rooms', function($query) USE ($room) {
-                      $query->where('id',$room->id);
-                    })->whereHas('bets_statuses', function($query){
-                      $query->where('status', 'Accepted');
-                    })->doesntHave('rounds')
-                      ->count();
+                    // 1) Текущий размер очереди ставок
 
-                    // 3.1.2] Записать в $room
-                    $room->queue_offers_count = $count;
+                      // 1.1) Подсчитать кол-во офферов в очереди
+                      $count = \M9\Models\MD3_bets::whereHas('rooms', function($query) USE ($room) {
+                        $query->where('id',$room->id);
+                      })->whereHas('bets_statuses', function($query){
+                        $query->where('status', 'Accepted');
+                      })->doesntHave('rounds')
+                        ->count();
+
+                      // 1.2) Записать в $room
+                      $room->queue_offers_count = $count;
+
+                    // 2) Последний победитель в комнате $room
+                    $room->lastwinner = call_user_func(function() USE ($room) {
+
+                      // 2.1) Получить последний раунд комнаты $room, связанный с победой
+                      // - Добавить его в $result
+                      $last = \M9\Models\MD2_rounds::with(['wins.m5_users', 'wins.m8_items'])
+                      ->whereHas('rooms', function($queue) USE ($room) {
+                        $queue->where('id', $room['id']);
+                      })->whereHas('wins')->orderBy('id', 'desc')->first();
+
+                      // 2.2) Если $last не пуст
+                      // - Добавить инфу из $last в $result
+                      if(!empty($last)) {
+
+                        // 1) Получить выигрыш
+                        $win = $last->wins[0];
+
+                        // 2) Получить пользователя
+                        $user = $win->m5_users[0];
+
+                        // 3) Подсчитать шансы победителя
+                        $odds = round(($win['winner_bets_items_cents']/$win['jackpot_total_sum_cents'])*100*100)/100;
+
+                        // 4) Вернуть результаты
+                        return [
+                          'id'                      => $user['id'],
+                          'nickname'                => $user['nickname'],
+                          'avatar_steam'            => $user['avatar_steam'],
+                          'jackpot_total_sum_cents' => $win['jackpot_total_sum_cents'],
+                          'odds'                    => $odds,
+                          'id_round'                => $last['id']
+                        ];
+
+                      }
+
+                      // 2.3) Если $last пуст, вернуть пустые результаты
+                      else {
+
+                        // 1) Записать пустые значения
+                        return [
+                          'id'                      => '',
+                          'nickname'                => '',
+                          'avatar_steam'            => '',
+                          'jackpot_total_sum_cents' => '',
+                          'odds'                    => '',
+                          'id_round'                => ''
+                        ];
+
+                      }
+
+                    });
+
+                    // 3) Предпоследний победитель в комнате $room
+                    $room->penultwinner = call_user_func(function() USE ($room) {
+
+                      // 3.1) Получить последний раунд комнаты $room, связанный с победой
+                      // - Добавить его в $result
+                      $penult = \M9\Models\MD2_rounds::with(['wins.m5_users', 'wins.m8_items'])
+                      ->whereHas('rooms', function($queue) USE ($room) {
+                        $queue->where('id', $room['id']);
+                      })->whereHas('wins')->orderBy('id', 'desc')->skip(1)->first();
+
+                      // 3.2) Если $penult не пуст
+                      // - Добавить инфу из $penult в $result
+                      if(!empty($penult)) {
+
+                        // 1) Получить выигрыш
+                        $win = $penult->wins[0];
+
+                        // 2) Получить пользователя
+                        $user = $win->m5_users[0];
+
+                        // 3) Подсчитать шансы победителя
+                        $odds = round(($win['winner_bets_items_cents']/$win['jackpot_total_sum_cents'])*100*100)/100;
+
+                        // 4) Вернуть результаты
+                        return [
+                          'id'                      => $user['id'],
+                          'nickname'                => $user['nickname'],
+                          'avatar_steam'            => $user['avatar_steam'],
+                          'jackpot_total_sum_cents' => $win['jackpot_total_sum_cents'],
+                          'odds'                    => $odds,
+                          'id_round'                => $penult['id']
+                        ];
+
+                      }
+
+                      // 3.3) Если $penult пуст, вернуть пустые результаты
+                      else {
+
+                        // 1) Записать пустые значения
+                        return [
+                          'id'                      => '',
+                          'nickname'                => '',
+                          'avatar_steam'            => '',
+                          'jackpot_total_sum_cents' => '',
+                          'odds'                    => '',
+                          'id_round'                => ''
+                        ];
+
+                      }
+
+                    });
 
                   }
                 });

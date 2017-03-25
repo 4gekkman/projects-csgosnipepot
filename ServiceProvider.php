@@ -107,6 +107,7 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
+          '$schedule->command("m9:get_stats_luckyoftheday")->cron("*/5 * * * * *");'
         ];
 
       //----------------------------------------------------//
@@ -138,7 +139,9 @@
           '\M9\Console\T20_update_history_cache',
           '\M9\Console\T21_get_history_by_room_and_page',
           '\M9\Console\T22_update_top_cache',
-          '\M9\Console\T23_get_top'
+          '\M9\Console\T23_get_top',
+          '\M9\Console\T24_get_stats_thebiggestbet',
+          '\M9\Console\T25_get_stats_luckyoftheday'
         ];
 
         // Регистрация команд в методе register
