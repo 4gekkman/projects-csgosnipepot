@@ -247,14 +247,14 @@ class C23_check_escrow_hold_days extends Job { // TODO: добавить "implem
       // 2] Если текст ошибки содержит g_daysMyEscrow или "401 Unauthorized", переавторизовать бота id_bot
       if(preg_match("/g_daysMyEscrow/ui", $e->getMessage()) != 0 || preg_match("/401 Unauthorized/ui", $e->getMessage()) != 0) {
 
-        $result = runcommand('\M8\Commands\C8_bot_login', [
-          "id_bot"          => $this->data['id_bot'],
-          "relogin"         => "1",
-          "captchagid"      => "0",
-          "captcha_text"    => "0",
-          "method"          => "GET",
-          "cookies_domain"  => "steamcommunity.com"
-        ]);
+        //$result = runcommand('\M8\Commands\C8_bot_login', [
+        //  "id_bot"          => $this->data['id_bot'],
+        //  "relogin"         => "1",
+        //  "captchagid"      => "0",
+        //  "captcha_text"    => "0",
+        //  "method"          => "GET",
+        //  "cookies_domain"  => "steamcommunity.com"
+        //]);
 
       }
 
