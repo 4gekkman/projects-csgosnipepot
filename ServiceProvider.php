@@ -107,7 +107,7 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m9:get_stats_luckyoftheday")->cron("*/5 * * * * *");'
+          '$schedule->command("m9:get_stats_luckyoftheday")->cron("*/5*****");'
         ];
 
       //----------------------------------------------------//
@@ -134,7 +134,6 @@
           '\M9\Console\T15_assetid_bots_tracking',
           '\M9\Console\T16_assetid_wins_tracking',
           '\M9\Console\T17_wins_autopayouts',
-          '\M9\Console\T18_update_and_translate_stats',
           '\M9\Console\T19_get_rate',
           '\M9\Console\T20_update_history_cache',
           '\M9\Console\T21_get_history_by_room_and_page',

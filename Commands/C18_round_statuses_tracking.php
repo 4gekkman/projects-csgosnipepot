@@ -538,15 +538,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           // 10] Если новый статус - Created
           if($suitable_room_status['name'] == "Created") {
 
-            // 10.1] Обновить статистику классической игры, и транслировать её
-            call_user_func(function() USE ($room) {
 
-              runcommand('\M9\Commands\C49_update_and_translate_stats', [
-                "id_room" => $room['id']
-              ],
-              0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
-
-            });
 
           }
 

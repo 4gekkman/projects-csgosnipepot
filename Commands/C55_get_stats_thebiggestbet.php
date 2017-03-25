@@ -184,8 +184,10 @@ class C55_get_stats_thebiggestbet extends Job { // TODO: добавить "imple
 
           // 1.2] Среди всех ставок найти наибольшую по сумме
           // - За текущий день.
+          // - Среди всех найденных, брать последнюю по времени.
           $bet = \M9\Models\MD3_bets::with(['m5_users'])
               ->whereRaw('sum_cents_at_bet_moment = (SELECT MAX(CAST(`sum_cents_at_bet_moment` as SIGNED)) FROM m9.md3_bets WHERE Date(`created_at`) = CURDATE())')
+              ->orderBy('created_at', 'desc')
               ->first();
 
           // 1.3] Если $bet не пуста
