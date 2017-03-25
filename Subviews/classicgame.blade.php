@@ -126,7 +126,7 @@
         <!---------*/ ?>
         <div class="bank">
           <span>БАНК:</span>
-          <span data-bind="text: Math.round(m.s1.game.curjackpot.ru())"></span>
+          <span data-bind="text: Math.round((m.s1.game.curjackpot()/100)*server.data.usdrub_rate)"></span>
           <span>руб</span>
         </div>
 
@@ -346,7 +346,7 @@
           <!-- 3] Текущий банк игры -->
           <!----------------------*/ ?>
           <div class="bank">
-            <span data-bind="text: Math.round(m.s1.game.curjackpot.ru()) + ' руб.'"></span>
+            <span data-bind="text: Math.round((m.s1.game.curjackpot()/100)*server.data.usdrub_rate) + ' руб.'"></span>
           </div>
 
           <?php /*---------------------------------------------->
@@ -529,7 +529,7 @@
               <!-- Цена -->
               <!------*/ ?>
               <div class="price">
-                <span data-bind="text: Math.ceil(price()*server.data.usdrub_rate)"></span>
+                <span data-bind="text: Math.round(price()*server.data.usdrub_rate)"></span>
                 <span class="rub" data-bind="text: 'руб'"></span>
               </div>
 
@@ -633,7 +633,7 @@
                 <!-- Выигрыш -->
                 <!---------*/ ?>
                 <div class="jackpot">
-                  <span data-bind="text: 'Выигрыш: ' + Math.ceil((win_fact_cents()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+                  <span data-bind="text: 'Выигрыш: ' + Math.round((win_fact_cents()/100)*server.data.usdrub_rate) + ' руб.'"></span>
                 </div>
 
               </div>
@@ -690,7 +690,7 @@
                 <!-- Цена -->
                 <!------*/ ?>
                 <div class="price">
-                  <span data-bind="text: Math.ceil((price()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+                  <span data-bind="text: Math.round((price()/100)*server.data.usdrub_rate) + ' руб.'"></span>
                 </div>
 
               </div>
@@ -823,7 +823,7 @@
             <!--------------*/ ?>
             <div class="row">
               <div class="span50">Выигрыш:</div>
-              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thelastwinner.front.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+              <div class="span50" data-bind="text: Math.round((m.s1.game.stats.thelastwinner.front.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
             </div>
 
             <?php /*--------->
@@ -879,7 +879,7 @@
             <!--------------*/ ?>
             <div class="row">
               <div class="span50">Выигрыш:</div>
-              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thelastwinner.back.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+              <div class="span50" data-bind="text: Math.round((m.s1.game.stats.thelastwinner.back.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
             </div>
 
             <?php /*--------->
@@ -949,7 +949,7 @@
             <!--------------*/ ?>
             <div class="row">
               <div class="span50">Выигрыш:</div>
-              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.luckyoftheday.front.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+              <div class="span50" data-bind="text: Math.round((m.s1.game.stats.luckyoftheday.front.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
             </div>
 
             <?php /*--------->
@@ -1005,7 +1005,7 @@
             <!--------------*/ ?>
             <div class="row">
               <div class="span50">Выигрыш:</div>
-              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.luckyoftheday.back.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+              <div class="span50" data-bind="text: Math.round((m.s1.game.stats.luckyoftheday.back.jackpot_total_sum_cents()/100)*server.data.usdrub_rate) + ' руб.'"></div>
             </div>
 
             <?php /*--------->
@@ -1075,7 +1075,7 @@
             <!------------------------*/ ?>
             <div class="row">
               <div class="span50">Ставка:</div>
-              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thebiggestbet.front.sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+              <div class="span50" data-bind="text: Math.round((m.s1.game.stats.thebiggestbet.front.sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
             </div>
 
           </div>
@@ -1123,7 +1123,7 @@
             <!------------------------*/ ?>
             <div class="row">
               <div class="span50">Ставка:</div>
-              <div class="span50" data-bind="text: Math.ceil((m.s1.game.stats.thebiggestbet.back.sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
+              <div class="span50" data-bind="text: Math.round((m.s1.game.stats.thebiggestbet.back.sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.'"></div>
             </div>
 
           </div>
