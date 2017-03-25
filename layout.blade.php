@@ -243,7 +243,7 @@
               <?php /*------->
               <!-- На кону -->
               <!---------*/ ?>
-              <span class="game-prize" data-bind="text: Math.ceil(($root.m.s6.curjackpot()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+              <span class="game-prize" data-bind="text: Math.round(($root.m.s6.curjackpot()/100)*server.data.usdrub_rate) + ' руб.'"></span>
 
             </div>
 
