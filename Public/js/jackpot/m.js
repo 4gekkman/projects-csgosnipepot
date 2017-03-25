@@ -101,7 +101,13 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 		// 6] Текущий джекпот текущего раунда //
 		//------------------------------------//
-		self.m.s1.game.curjackpot = ko.observable(0);
+		self.m.s1.game.curjackpot = {};
+
+			// 6.1] В центах США
+			self.m.s1.game.curjackpot.en = ko.observable(0);
+
+			// 6.2] В рублях РФ
+			self.m.s1.game.curjackpot.ru = ko.observable(0);
 
 		// 7] Оставшееся до конца текущего раунда время, для choosen_room //
 		//----------------------------------------------------------------//
@@ -333,11 +339,6 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 	//-------------------------------------------//
 	self.m.s1.game.stats = {};
 
-		//-----------------------//
-		// s1.5.a. Старая модель //
-		//-----------------------//
-		self.m.s1.game.statistics = ko.mapping.fromJS(server.data.classicgame_statistics.data);
-
 		//-----------------------------------------------------------------------------//
 		// s1.5.1. Модель общеигровой статистики "Наибольшая ставка" (the biggest bet) //
 		//-----------------------------------------------------------------------------//
@@ -385,8 +386,6 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 3] Модель back-стороны карты
 			self.m.s1.game.stats.thelastwinner.back = ko.mapping.fromJS({});
-
-
 
 
 	//----------------------------------------------------------------//
@@ -946,19 +945,47 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				// 2. Получить короткую ссылку на bets текущего раунда выбранной комнаты
 				var bets = self.m.s1.game.choosen_room().rounds()[0].bets();
 
-				// 3. Подсчитать общую суммарную стоимость вещей на кону
-				var bank_sum = (function(){
-					var result = 0;
-					for(var i=0; i<bets.length; i++) {
-						for(var j=0; j<bets[i]['m8_items']().length; j++) {
-							result = +result + Math.round(+bets[i]['m8_items']()[j].price()*100);
-						}
-					}
-					return result;
-				})();
+				// 3. Подсчитать и записать m.s1.game.curjackpot
 
-				// 4. Записать bank_sum в наблюдаемую
-				self.m.s1.game.curjackpot(bank_sum);
+					// 3.1. В центах США
+					(function(){
+
+						// Подсчитать общую суммарную стоимость вещей на кону
+						var bank_sum = (function(){
+							var result = 0;
+							for(var i=0; i<bets.length; i++) {
+								for(var j=0; j<bets[i]['m8_items']().length; j++) {
+									result = +result + Math.round(+bets[i]['m8_items']()[j].price()*100);
+								}
+							}
+							return result;
+						})();
+
+						// Записать bank_sum в наблюдаемую
+						self.m.s1.game.curjackpot.en(bank_sum);
+
+					})();
+
+					// 3.2. В рублях РФ
+					(function(){
+
+						// Подсчитать общую суммарную стоимость вещей на кону
+						var bank_sum = (function(){
+							var result = 0;
+							for(var i=0; i<bets.length; i++) {
+								for(var j=0; j<bets[i]['m8_items']().length; j++) {
+									//result = +result + Math.round(+bets[i]['m8_items']()[j].price()*100);
+									result = +result + Math.round((+bets[i]['m8_items']()[j].price())*server.data.usdrub_rate);
+								}
+							}
+							return result;
+						})();
+
+						// Записать bank_sum в наблюдаемую
+						self.m.s1.game.curjackpot.ru(bank_sum);
+
+					})();
+
 
 			})();
 
@@ -1486,7 +1513,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					// 1) Вычислить шансы пользователя на победу в текущем раунде, в выбранной комнате
 					// - Пока что записать 0.
 					var odds = (function(){
-						return (+bets[i].total_bet_amount() / +self.m.s1.game.curjackpot());
+						return (+bets[i].total_bet_amount() / +self.m.s1.game.curjackpot.en());
 					})();
 
 					// 2) Вычислить URL для аватара
@@ -1559,7 +1586,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 						return prev_user_wheel_data.sum() + +bets[i].total_bet_amount();
 					})());
 					prev_user_wheel_data.odds((function(){
-						return prev_user_wheel_data.odds() + ((+bets[i].total_bet_amount() / +self.m.s1.game.curjackpot()));
+						return prev_user_wheel_data.odds() + ((+bets[i].total_bet_amount() / +self.m.s1.game.curjackpot.en()));
 					})());
 					prev_user_wheel_data.itemscount((function(){
 						return prev_user_wheel_data.itemscount() + +itemscount;
@@ -1653,7 +1680,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){
 
 			// 1] Текущий jackpot текущего раунда выбранной комнаты
-			layoutmodel.m.s6.curjackpot(self.m.s1.game.curjackpot());
+			layoutmodel.m.s6.curjackpot(self.m.s1.game.curjackpot.en());
 
 			// 2] Имя текущего статуса текущего раунда выбранной комнаты
 			layoutmodel.m.s6.status.name(self.m.s1.game.choosen_status());
@@ -1708,7 +1735,6 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		switch(task) {
 
 			case "fresh_game_data": 							self.f.s1.fresh_game_data(data.data.data.data); break;
-			case "classicgame_statistics_update": self.f.s1.update_statistics(data.data.data.data); break;
 			case "classicgame_history_new": 			self.f.s1.add_new_history(data.data.data.data); break;
 			case "m9:stats:update:thebiggestbet": self.f.s1.stats_update_thebiggestbet(data.data.data.data); break;
 			case "m9:stats:update:luckyoftheday": self.f.s1.stats_update_luckyoftheday(data.data.data.data); break;

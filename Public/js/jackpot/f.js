@@ -19,7 +19,6 @@
  *    f.s1.reload_page 										| s1.6. Перезагрузить страницу
  *    f.s1.get_steam_img_with_size        | s1.7. Получить URL на изображение скина в стим заданных размеров
  *   	f.s1.get_cat_quality_item_color     | s1.8. Вычислить цвет для вещи в ставке (зависящий от категории и качетва)
- *    f.s1.update_statistics              | s1.9. Обновить модель статистики свежими данными с сервера
  *    f.s1.queue_add                      | s1.10. Добавить задачу в очередь
  *    f.s1.queue_processor                | s1.11. Выполняется ежесекундно, выполнить все задачи из очереди, чьё время пришло
  * 		f.s1.bezier 												| s1.12. Порт кривой Безье на JS
@@ -795,59 +794,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			// 3.7] Прочие качества
 			return 'transparent';
-
-	};
-
-	//------------------------------------------------------------//
-	// s1.9. Обновить модель статистики свежими данными с сервера //
-	//------------------------------------------------------------//
-	f.s1.update_statistics = function(data){
-
-		// 1] Получить свежие данные
-		var id_room = data.id_room;
-		var classicgame_statistics = data.classicgame_statistics.data;
-
-		// 2] Если id_room пуста, обновить всю статистику
-		if(!id_room) ko.mapping.fromJS(classicgame_statistics, self.m.s1.game.statistics);
-
-		// 3] Если id_room не пуста:
-		// - Обновить универсальную статистику.
-		// - Обновить имеющую отношение к комнате id_room статистику.
-		else {
-			for(var key in self.m.s1.game.statistics) {
-
-				// 3.1] Если свойство не своё, пропускаем
-				if(!self.m.s1.game.statistics.hasOwnProperty(key)) continue;
-
-				// 3.2] Если св-ва key нет в classicgame_statistics, пропускаем
-				if(!classicgame_statistics[key]) continue;
-
-				// 3.3] Если key == "m9:statistics:lastwinners"
-				// - Обновить только данные по комнате id_room
-				if(key == "m9:statistics:lastwinners") {
-
-					// 3.3.1] Если данных по комнате id_room нет, перейти к следующей итерации
-					if(!self.m.s1.game.statistics[key][id_room] || !classicgame_statistics[key][id_room]) continue;
-
-					// 3.3.2] А если есть
-					else {
-
-						for(var k in self.m.s1.game.statistics[key][id_room]) {
-							if(!self.m.s1.game.statistics[key][id_room].hasOwnProperty(k)) continue;
-							if(!classicgame_statistics[key][id_room][k]) continue;
-							self.m.s1.game.statistics[key][id_room][k](ko.mapping.fromJS(classicgame_statistics[key][id_room][k])());
-						}
-						continue;
-
-					}
-
-				}
-
-				// 3.n] Обновить св-во key в self.m.s1.game.statistics данными из classicgame_statistics
-				ko.mapping.fromJS(data, self.m.s1.game.statistics);
-
-			}
-		}
 
 	};
 

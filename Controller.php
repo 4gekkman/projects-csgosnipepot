@@ -190,14 +190,7 @@ class Controller extends BaseController {
 
       // 6. Получить статистическую информацию по классической игре
 
-        // 6.1. Старая версия статистики
-        $classicgame_statistics = runcommand('\M9\Commands\C40_get_statistics', [
-          "force" => false
-        ]);
-        if($classicgame_statistics['status'] != 0)
-          throw new \Exception($classicgame_statistics['data']['errormsg']);
-
-        // 6.2. Статистика "Наибольшая ставка"
+        // 6.1. Статистика "Наибольшая ставка"
         $classicgame_stats_thebiggestbet = runcommand('\M9\Commands\C55_get_stats_thebiggestbet', [
           "force"     => false,
           "broadcast" => false
@@ -205,7 +198,7 @@ class Controller extends BaseController {
         if($classicgame_stats_thebiggestbet['status'] != 0)
           throw new \Exception($classicgame_stats_thebiggestbet['data']['errormsg']);
 
-        // 6.3. Статистика "Счастливчик дня"
+        // 6.2. Статистика "Счастливчик дня"
         $classicgame_stats_luckyoftheday = runcommand('\M9\Commands\C56_get_stats_luckyoftheday', [
           "force"     => false,
           "broadcast" => false
@@ -309,7 +302,6 @@ class Controller extends BaseController {
         'lottery_game_statuses'   => $lottery_game_statuses_db,
         'palette'                 => $palette,
         "servertime_s"            => \Carbon\Carbon::now()->timestamp,
-        "classicgame_statistics"  => $classicgame_statistics,
         "usdrub_rate"             => $rate,
         "public_faq_folder"       => config('M12.public_faq_folder'),
         "deposit_configs"         => $deposit_configs,

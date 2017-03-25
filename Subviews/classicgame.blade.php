@@ -126,7 +126,7 @@
         <!---------*/ ?>
         <div class="bank">
           <span>БАНК:</span>
-          <span data-bind="text: Math.ceil((m.s1.game.curjackpot()/100)*server.data.usdrub_rate)"></span>
+          <span data-bind="text: Math.round(m.s1.game.curjackpot.ru())"></span>
           <span>руб</span>
         </div>
 
@@ -346,7 +346,7 @@
           <!-- 3] Текущий банк игры -->
           <!----------------------*/ ?>
           <div class="bank">
-            <span data-bind="text: Math.ceil((m.s1.game.curjackpot()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+            <span data-bind="text: Math.round(m.s1.game.curjackpot.ru()) + ' руб.'"></span>
           </div>
 
           <?php /*---------------------------------------------->
@@ -488,9 +488,9 @@
               <div class="sum-odds-tickets">
 
                 <!-- Сумма ставки и шансы выигрыша $root.m.s1.game.wheel.user_bet_index[m5_users()[0].id()].odds() -->
-                <span class="odds" data-bind="text: (Math.round(odds_player() * 100 * 10) / 10) + '%'" title="Шанс на победу игрока"></span> <!-- (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot())) * 100 * 10) / 10) -->
+                <span class="odds" data-bind="text: (Math.round(odds_player() * 100 * 10) / 10) + '%'" title="Шанс на победу игрока"></span> <!-- (Math.round(((+total_bet_amount() / +$root.m.s1.game.curjackpot.en())) * 100 * 10) / 10) -->
                 <span>/</span>
-                <span class="sum" data-bind="text: Math.ceil((Math.round(total_bet_amount())/100)*server.data.usdrub_rate) + ' руб.'" title="Сумма ставки"></span>
+                <span class="sum" data-bind="text: Math.round((total_bet_amount()/100)*server.data.usdrub_rate) + ' руб.'" title="Сумма ставки"></span>
 
                 <!-- Номера билетов -->
                 <!--<div class="tickets" style="display: inline-block; padding-left: 15px;" title="Диапазон билетов ставки">-->
