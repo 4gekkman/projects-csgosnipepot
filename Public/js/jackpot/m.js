@@ -1470,8 +1470,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 							bets[i].m5_users()[0].id() == bets[j].m5_users()[0].id() &&
 							i != j &&
 							(bets[j].bet_color_hex && bets[j].bet_color_hex()) &&
-						  self.m.s1.game.wheel.data().length
-							//bets[i].id() > bets[j].id()
+						  self.m.s1.game.wheel.data().length &&
+							bets[i].m5_users()[0].pivot.tickets_to() > bets[j].m5_users()[0].pivot.tickets_to()
 						)
 							return bets[j];
 					}

@@ -1538,10 +1538,39 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		// 1] Добавить в bet доп.свойства
 		bet.is_expanded(0);
 
-		// 2] Добавить bet в smoothbets
-		self.m.s1.smoothbets.bets.unshift(bet);
+		// 2] Проверить, не бежит ли эта ставка вперёд паровоза
+		// - Не добавлять ставку, если:
+		// 	• Если tickets_from этой ставки не 0.
+		// 	• Если в smootbets нет ставок с tickets_from меньше, чем у этой.
+		var should_add = (function(){
 
-		// 3] Изменить значение свойства is_expanded ставки bet на true через 500мс
+			// 2.1] Если tickets_from ставки bet == 0, вернуть true
+			if(bet.m5_users()[0].pivot.tickets_from() == 0)
+				return true;
+
+			// 2.2] Если в smootbets нет ставок с tickets_from меньше, чем у этой, вернуть false
+			var is_any_bets_with_less_tickets_from = false;
+			for(var i=0; i<self.m.s1.smoothbets.bets().length; i++) {
+
+				if(self.m.s1.smoothbets.bets()[i].m5_users()[0].pivot.tickets_from() < bet.m5_users()[0].pivot.tickets_from()) {
+					is_any_bets_with_less_tickets_from = true;
+					break;
+				}
+
+			}
+			if(!is_any_bets_with_less_tickets_from)
+				return false;
+
+			// 2.n] В общем случае, вернуть true
+			return true;
+
+		})();
+
+		// 3] Добавить bet в smoothbets, если should_add
+		if(should_add)
+			self.m.s1.smoothbets.bets.unshift(bet);
+
+		// 4] Изменить значение свойства is_expanded ставки bet на true через 500мс
 		setTimeout(function(is_expanded) {
 			is_expanded(1);
 		}, 500, bet.is_expanded);
