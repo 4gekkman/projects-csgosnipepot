@@ -184,6 +184,7 @@
       position: absolute; top: 0;
       left: 0; right: 0;
       margin: 5.5px auto;
+      padding: 0 5px;
       width: 300px;
       overflow: hidden;
       //margin-top: $cg_color_header_height*0.15;
@@ -215,7 +216,7 @@
       line-height: 37px;
     }
     .content .classic-game .cg-container .header .choose-room i {
-      position: absolute; top: 0; right: 0;
+      position: absolute; top: 0; right: 3px;
       width: $cg_color_header_height;
       height: $cg_color_header_height*0.7;
       line-height: $cg_color_header_height*0.7;
@@ -1234,13 +1235,13 @@
   //-----------------------------//
 
     // Общие стили
-    .content .classic-game .statistics {
+    .content .aside-blocks {
       position: relative;
       margin-top: 50px;
       margin-bottom: 50px;
       text-align: center;
     }
-    .content .classic-game .statistics>div {
+    .content .aside-blocks>div {
       position: relative;
       display: inline-block;
       width: $cg_sizes_stats_width; height: $cg_sizes_stats_height;
@@ -1251,8 +1252,24 @@
       perspective: 1000;
     }
 
+    // Стили для отображения слева от контентного столбца
+    .content .aside-blocks.aside {
+      position: absolute;
+      top: 0;
+      left: -230px;
+      width: 200px;
+      margin-top: 20px;
+    }
+    .content .aside-blocks.aside>div {
+      margin-bottom: 30px;
+    }
+    .content-column.aside {
+      margin-left: 230px;
+      position: relative;
+    }
+
     // Стили 3D-эффекта переворачивания карты
-    .content .classic-game .statistics>div .card {
+    .content .aside-blocks>div .card {
       width: 100%;
       height: 100%;
       position: absolute;
@@ -1260,51 +1277,51 @@
       transform-style: preserve-3d;
       transition: all 1s ease;
     }
-    .content .classic-game .statistics>div .card .front, .content .classic-game .statistics>div .card .back {
+    .content .aside-blocks>div .card .front, .content .aside-blocks>div .card .back {
       position: absolute;
       top: 0;
       left: 0;
       backface-visibility: hidden;
     }
-    .content .classic-game .statistics>div .card .front {
+    .content .aside-blocks>div .card .front {
       width: 100%; height: 100%;
       z-index: 5;
     }
-    .content .classic-game .statistics>div .card .back {
+    .content .aside-blocks>div .card .back {
       width: 100%; height: 100%;
       z-index: 0;
       transform: rotateY(180deg);
     }
-    .content .classic-game .statistics>div .card.flipped {
+    .content .aside-blocks>div .card.flipped {
       transform: translateX(-100%) rotateY(-180deg);
     }
-    .content .classic-game .statistics>div .card.flipped .front {
+    .content .aside-blocks>div .card.flipped .front {
       z-index: 5;
     }
-    .content .classic-game .statistics>div .card.flipped .back {
+    .content .aside-blocks>div .card.flipped .back {
       z-index: 10;
     }
 
     // Стили для ширины окна бравзера более 1400px
-    @media screen and (min-width: 1680px) {
-      .content .classic-game .statistics {
-        position: absolute;
-        top: 0;
-        left: -230px;
-        width: 200px;
-        margin-top: 20px;
-      }
-      .content .classic-game .statistics>div {
-        margin-bottom: 30px;
-      }
-      .content-column {
-        margin-left: 230px;
-        position: relative;
-      }
-    }
+    //@media screen and (min-width: 1680px) {
+    //  .content .aside-blocks {
+    //    position: absolute;
+    //    top: 0;
+    //    left: -230px;
+    //    width: 200px;
+    //    margin-top: 20px;
+    //  }
+    //  .content .aside-blocks>div {
+    //    margin-bottom: 30px;
+    //  }
+    //  .content-column {
+    //    margin-left: 230px;
+    //    position: relative;
+    //  }
+    //}
 
     // Заголовочная часть
-    .content .classic-game .statistics>div .header {
+    .content .aside-blocks>div .header {
       position: absolute; top: 0; left: 0;
       width: 100%; height: $cg_sizes_stats_height/6;
       line-height: $cg_sizes_stats_height/6;
@@ -1314,20 +1331,20 @@
     }
 
     // Контентная часть
-    .content .classic-game .statistics>div .contentpart {
+    .content .aside-blocks>div .contentpart {
       position: relative;
       height: 198.75px;
       padding-top: 44.16667px;
       background: #284351;
       text-align: center;
     }
-    .content .classic-game .statistics>div .contentpart img {
+    .content .aside-blocks>div .contentpart img {
       display: inline-block;
       margin-top: 12.92857px;
       width: 80px;
       height: 80px;
     }
-    .content .classic-game .statistics>div .contentpart .nickname {
+    .content .aside-blocks>div .contentpart .nickname {
       position: absolute;
       bottom: 0; left: 0; width: 100%;
       text-align: center;
@@ -1340,7 +1357,7 @@
     }
 
     // Подвальная часть
-    .content .classic-game .statistics>div .footer {
+    .content .aside-blocks>div .footer {
       position: absolute;
       bottom: 0;
       left: 0;
@@ -1351,89 +1368,89 @@
     }
 
     // Последний победитель
-    .content .classic-game .statistics .lastwinner {
+    .content .aside-blocks .lastwinner {
       background: transparent;
     }
-    .content .classic-game .statistics .lastwinner .footer>div {
+    .content .aside-blocks .lastwinner .footer>div {
       height: $cg_sizes_stats_height*0.1;
       line-height: $cg_sizes_stats_height*0.1;
       text-align: left;
     }
-    .content .classic-game .statistics .lastwinner .footer .row {
+    .content .aside-blocks .lastwinner .footer .row {
       margin: 0;
     }
-    .content .classic-game .statistics .lastwinner .footer .row>div {
+    .content .aside-blocks .lastwinner .footer .row>div {
       overflow: hidden;
     }
-    .content .classic-game .statistics .lastwinner .footer .row>div:nth-child(1) {
+    .content .aside-blocks .lastwinner .footer .row>div:nth-child(1) {
       padding-left: 15px;
       color: #ccc;
     }
-    .content .classic-game .statistics .lastwinner .footer .row>div:nth-child(2) {
+    .content .aside-blocks .lastwinner .footer .row>div:nth-child(2) {
       padding-right: 15px;
       font-weight: bold;
       font-size: 1.1em;
     }
-    .content .classic-game .statistics .lastwinner .footer .odds {
+    .content .aside-blocks .lastwinner .footer .odds {
       color: $cg_colog_highlight !important;
     }
 
 
     // Счастливчик дня
-    .content .classic-game .statistics .luckyoftheday {
+    .content .aside-blocks .luckyoftheday {
       background: transparent;
     }
-    .content .classic-game .statistics .luckyoftheday .contentpart {
+    .content .aside-blocks .luckyoftheday .contentpart {
       background: url('/public/D10009/assets/images/lucky-bg-v1.png') no-repeat -19px 0px
     }
-    .content .classic-game .statistics .luckyoftheday .footer>div {
+    .content .aside-blocks .luckyoftheday .footer>div {
       height: $cg_sizes_stats_height*0.1;
       line-height: $cg_sizes_stats_height*0.1;
       text-align: left;
     }
-    .content .classic-game .statistics .luckyoftheday .footer .row {
+    .content .aside-blocks .luckyoftheday .footer .row {
       margin: 0;
     }
-    .content .classic-game .statistics .luckyoftheday .footer .row>div {
+    .content .aside-blocks .luckyoftheday .footer .row>div {
       overflow: hidden;
     }
-    .content .classic-game .statistics .luckyoftheday .footer .row>div:nth-child(1) {
+    .content .aside-blocks .luckyoftheday .footer .row>div:nth-child(1) {
       padding-left: 15px;
       color: #ccc;
     }
-    .content .classic-game .statistics .luckyoftheday .footer .row>div:nth-child(2) {
+    .content .aside-blocks .luckyoftheday .footer .row>div:nth-child(2) {
       padding-right: 15px;
       font-weight: bold;
       font-size: 1.1em;
     }
-    .content .classic-game .statistics .luckyoftheday .footer .odds {
+    .content .aside-blocks .luckyoftheday .footer .odds {
       color: $cg_colog_highlight !important;
     }
 
     // Наибольшая ставка
-    .content .classic-game .statistics .thebiggestbet {
+    .content .aside-blocks .thebiggestbet {
       background: transparent;
     }
-    .content .classic-game .statistics .thebiggestbet .contentpart {
+    .content .aside-blocks .thebiggestbet .contentpart {
       //background: url('/public/D10009/assets/images/dollars-bg-v1.jpg');
     }
-    .content .classic-game .statistics .thebiggestbet .footer>div {
+    .content .aside-blocks .thebiggestbet .footer>div {
       height: $cg_sizes_stats_height*0.1;
       line-height: $cg_sizes_stats_height*0.1;
       text-align: left;
     }
-    .content .classic-game .statistics .thebiggestbet .footer .row {
+    .content .aside-blocks .thebiggestbet .footer .row {
       margin: 0;
       margin-top: $cg_sizes_stats_height*0.05;
     }
-    .content .classic-game .statistics .thebiggestbet .footer .row>div {
+    .content .aside-blocks .thebiggestbet .footer .row>div {
       overflow: hidden;
     }
-    .content .classic-game .statistics .thebiggestbet .footer .row>div:nth-child(1) {
+    .content .aside-blocks .thebiggestbet .footer .row>div:nth-child(1) {
       padding-left: 15px;
       color: #ccc;
     }
-    .content .classic-game .statistics .thebiggestbet .footer .row>div:nth-child(2) {
+    .content .aside-blocks .thebiggestbet .footer .row>div:nth-child(2) {
       padding-right: 15px;
       font-weight: bold;
       font-size: 1.1em;

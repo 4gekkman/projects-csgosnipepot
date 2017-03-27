@@ -291,7 +291,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// 3.2) Получить старый и новый статусы статусы
 							var status_new = round2update_data.rounds_statuses[0].status;
 							var status_old = round2update.rounds_statuses()[0].status();
-						console.log('status_new = '+status_new);
+
 							// 3.3) Если status_new == status_old == 'Created'
 							// - Ничего не обновлять.
 							if(status_new == status_old && status_old == 'Created')
@@ -324,8 +324,19 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 							// 3.5) Если status_new == status_old == 'Pending'
 							// - Ничего не обновлять.
-							if(status_new == status_old && status_old == 'Pending')
+							if(status_new == status_old && status_old == 'Pending') {
+
+								// 3.5.1) Если есть новые ставки, добавить их
+								if(round2update.bets().length != round2update_data.bets.length) {
+									for(var i=round2update.bets().length; i<round2update_data.bets.length; i++) {
+										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
+									}
+								}
+
+								// 3.5.n) Перейти к след.итерации
 								continue;
+
+							}
 
 							// 3.6) Если status_new == 'Pending' != status_old
 							// - Обновить только rounds_statuses, avatars_strip и avatar_winner_stop_percents
@@ -341,6 +352,13 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 								// 3.6.3) Обновить avatar_winner_stop_percents
 								if(round2update.avatar_winner_stop_percents() != round2update_data.avatar_winner_stop_percents)
 									round2update.avatar_winner_stop_percents(ko.mapping.fromJS(round2update_data.avatar_winner_stop_percents)());
+
+								// 3.6.4) Если есть новые ставки, добавить их
+								if(round2update.bets().length != round2update_data.bets.length) {
+									for(var i=round2update.bets().length; i<round2update_data.bets.length; i++) {
+										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
+									}
+								}
 
 								// 3.6.n) Перейти к след.итерации
 								continue;
