@@ -441,16 +441,60 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
           // 2.6. Если вердикт положительный, принять оффер
           if($offer_final_verdict['verdict'] == true) {
 
-            $result = runcommand('\M9\Commands\C44_accept_offer_type2', [
+            // 2.6.1. Определить, в какую очередь послать команду приёма оффера C44
+            $queue_for_c44 = call_user_func(function(){
+
+              // 1] Получить из конфига все очереди для обработки приёма ставок
+              $m9_acceptbet_queues = config("M9.m9_acceptbet_queues");
+
+              // 2] Получить из кэша имя очереди, в которую послали прошлую команду C44
+              $prev_queue = Cache::get("m9:acceptbet_queues:lastqueue");
+
+              // 3] Если $prev_queue пуста, вернуть первую из $m9_acceptbet_queues
+              if(empty($prev_queue))
+                return $m9_acceptbet_queues[0];
+
+              // 4] Если $prev_queue не пуста
+              else {
+
+                // 4.1] Найти позицию $prev_queue в $m9_acceptbet_queues
+                $pos = array_search($prev_queue, $m9_acceptbet_queues);
+
+                // 4.2] Если $pos, это последнее значение в $m9_acceptbet_queues, вернуть первое
+                if($pos == (+count($m9_acceptbet_queues)-1))
+                  return $m9_acceptbet_queues[0];
+
+                // 4.3] Если же не последнее, вернуть значение $pos+1
+                else
+                  return $m9_acceptbet_queues[+$pos+1];
+
+              }
+
+            });
+
+            // 2.6.2. Записать $queue_for_c44 в кэш
+            Cache::put("m9:acceptbet_queues:lastqueue", $queue_for_c44, 60);
+
+            // 2.6.3. Послать C44 в очередь $queue_for_c44
+            runcommand('\M9\Commands\C44_accept_offer_type2', [
               "betid"             => $offer['id'],
               "botid"             => $offer['m8_bots'][0]['id'],
               "partnerid"         => $offer['m5_users'][0]['ha_provider_uid'] - 76561197960265728,
               "tradeofferid"      => $offer['tradeofferid'],
               "id_user"           => $offer['m5_users'][0]['id'],
               "id_room"           => $offer['rooms'][0]['id'],
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
+            ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => $queue_for_c44]);
+
+            //$result = runcommand('\M9\Commands\C44_accept_offer_type2', [
+            //  "betid"             => $offer['id'],
+            //  "botid"             => $offer['m8_bots'][0]['id'],
+            //  "partnerid"         => $offer['m5_users'][0]['ha_provider_uid'] - 76561197960265728,
+            //  "tradeofferid"      => $offer['tradeofferid'],
+            //  "id_user"           => $offer['m5_users'][0]['id'],
+            //  "id_room"           => $offer['rooms'][0]['id'],
+            //]);
+            //if($result['status'] != 0)
+            //  throw new \Exception($result['data']['errormsg']);
 
           }
 

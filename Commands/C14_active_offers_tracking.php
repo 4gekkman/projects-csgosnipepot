@@ -359,14 +359,12 @@ class C14_active_offers_tracking extends Job { // TODO: добавить "implem
           // 2] Если статус оффера изменился на Accepted
           if($id_status_new == 3) {
 
-            $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+            runcommand('\M9\Commands\C16_active_to_accepted', [
               "betid"             => $betid,
               "tradeofferid"      => $tradeofferid,
               "id_user"           => $id_user,
               "id_room"           => $id_room,
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
+            ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
 
           }
 

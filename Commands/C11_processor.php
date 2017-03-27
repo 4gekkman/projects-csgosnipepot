@@ -233,8 +233,22 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
 
         // 7. Отслеживать судьбу всех перенесённых на следующий раунд ставок
-        runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
+        // - Выполнять не чаще, чем раз в 5 секунд.
+
+          // 7.1. Получить из кэша дату и время последней попытки
+          $last_try_deffered_bets_tracking = Cache::get('m9:proc:deffered_bets_tracking:datetime');
+
+          // 7.2. Если $last_try_deffered_bets_tracking пуста, или прошло более 5 секунд, принять
+          if(empty($last_try_deffered_bets_tracking) || +(\Carbon\Carbon::parse($last_try_deffered_bets_tracking)->diffInSeconds(\Carbon\Carbon::now())) >= 5) {
+
+            // Обновить кэш
+            Cache::put('m9:proc:deffered_bets_tracking:datetime', \Carbon\Carbon::now()->toDateTimeString(), 60);
+
+            // Отслеживать
+            runcommand('\M9\Commands\C21_deffered_bets_tracking', [],
+                0, ['on'=>true, 'name'=>'m9_c16']);
+
+          }
 
 
         // 8. Отслеживать изменение статусов текущих раундов всех вкл.комнат

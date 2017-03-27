@@ -200,37 +200,7 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
         else
           $bets_accepted_filtered = [];
 
-        // 3.4. Вычислить диапазоны билетов для каждой ставки в $bets_accepted_filtered
-        for($i=0; $i<count($bets_accepted_filtered); $i++) {
-
-          // 1] Вычислить сумму $i-й ставки в центах
-          $bet_sum_cents = call_user_func(function() USE ($bets_accepted_filtered, $i) {
-
-            $result = 0;
-            foreach($bets_accepted_filtered[$i]['m8_items'] as $item) {
-              $result = +$result + +$item['price'];
-            }
-            return round($result*100);
-
-          });
-
-          // 2] Если $i = 0, то:
-          // - tickets_from == 0
-          // - tickets_to == +$bet_sum_cents - 1
-          if($i == 0) {
-            $bets_accepted_filtered[$i]['tickets_from'] = 0;
-            $bets_accepted_filtered[$i]['tickets_to'] = (int)(+$bet_sum_cents - 1);
-          }
-
-          // 3] Если $i > 0, то
-          if($i > 0) {
-            $bets_accepted_filtered[$i]['tickets_from'] = (int)(+$bets_accepted_filtered[+$i-1]['tickets_to'] + 1);
-            $bets_accepted_filtered[$i]['tickets_to'] = (int)(+$bets_accepted_filtered[$i]['tickets_from'] + +$bet_sum_cents - 1);
-          }
-
-        }
-
-        // 3.5. Если это возможно, добавить в раунд отложенную ставку одного из пользователей
+        // 3.4. Если это возможно, добавить в раунд отложенную ставку одного из пользователей
         if(count($bets_accepted_filtered) > 0) {
           foreach($bets_accepted_filtered as $bet2attach) {
 
@@ -258,16 +228,121 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
               if(empty($bet))
                 throw new \Error('Не удалось найти ставку с ID = '.$bet2attach['id'].' в БД.');
 
-              // 2.3] Связать $bet с $lastround
+              // 2.3] Добавить tickets_from / tickets_to в md2000
+              // - Добавлять билеты:
+              //  • Исходя из того, что 1 цент == 1 билет.
+              //  • И исходя из уже связанных с раундом ставок.
+              call_user_func(function() USE ($lastround, $bet, $bet2attach) {
+
+                // 1] Вычислить число первого билета для новой ставки
+                // - Это последний билет последней ставки раунда $lastround комнате id_room + 1
+                $first_ticket_number = call_user_func(function() USE ($lastround) {
+
+                  // 1.1] Получить последнюю ставку, связанную с раундом $lastround
+                  $lastround_last_bet = call_user_func(function() USE ($lastround) {
+
+                    // 1) Получить все связанные с раундом $lastround ставки
+                    $lastround_bets = \M9\Models\MD3_bets::with(['m5_users'])
+                      ->whereHas('rounds', function($query) USE ($lastround) {
+                        $query->where('id', $lastround['id']);
+                      })->get();
+
+                    // 2) Получить массив массивов с tickets_to и ID ставки
+                    // - Такого вида:
+                    //
+                    //  [
+                    //    [
+                    //      "id_bet"      => "",
+                    //      "tickets_to"  => "",
+                    //    ]
+                    //  ]
+                    //
+                    $directory = call_user_func(function() USE ($lastround_bets) {
+
+                      $results = [];
+                      foreach($lastround_bets as $bet) {
+                        array_push($results, [
+                          "id_bet"      => $bet['id'],
+                          "tickets_to"  => $bet['m5_users'][0]['pivot']['tickets_to']
+                        ]);
+                      }
+                      return $results;
+
+                    });
+
+                    // 3) Получить ID ставки с максимальным tickets_to
+                    if(count($directory) != 0)
+                      $id_bet_max_tickets_to = collect($directory)->sortByDesc("tickets_to")->first();
+                    else
+                      return "";
+
+                    // 4) Если $id_bet_max_tickets_to пуст, вернуть пустую строку
+                    // - А если нет, перезаписать в него ID.
+                    if(empty($id_bet_max_tickets_to))
+                      return "";
+                    else
+                      $id_bet_max_tickets_to = $id_bet_max_tickets_to['id_bet'];
+
+                    // 5) Попробовать найти нужную ставку
+                    $bet = $lastround_bets->where('id', $id_bet_max_tickets_to)->first();
+                    if(empty($bet))
+                      return "";
+
+                    // n) Вернуть результат
+                    return $bet;
+
+                  });
+
+                  //$lastround_last_bet = \M9\Models\MD3_bets::with(['m5_users'])
+                  //    ->whereHas('rounds', function($query) USE ($lastround) {
+                  //      $query->where('id', $lastround['id']);
+                  //    })
+                  //    ->orderBy('id', 'desc')
+                  //    ->first();
+
+                  // 1.2] Если $lastround_last_bet не найден, вернуть 0
+                  if(empty($lastround_last_bet)) return 0;
+
+                  // 1.3] Если найден, вернуть его tickets_to
+                  return +$lastround_last_bet['m5_users'][0]['pivot']['tickets_to']+1;
+
+                });
+
+                // 2] Вычислить сумму ставки $bet в центах
+                $bet_sum_cents = call_user_func(function() USE ($bet) {
+
+                  $result = 0;
+                  foreach($bet['m8_items'] as $item) {
+                    $result = +$result + +$item['price'];
+                  }
+                  return round($result*100);
+
+                });
+
+                // 3] Вычислить tickets_from и tickets_to для $bet
+                $tickets = call_user_func(function() USE ($first_ticket_number, $bet_sum_cents){
+
+                  return [
+                    "tickets_from"  => $first_ticket_number,
+                    "tickets_to"    => +$first_ticket_number + +$bet_sum_cents - 1
+                  ];
+
+                });
+
+                // 4] Добавить tickets_from / tickets_to в md2000
+                // - Если они ещё пусты.
+                if(empty($bet['m5_users'][0]['pivot']['tickets_to']))
+                  $bet->m5_users()->updateExistingPivot($bet2attach['m5_users'][0]['id'], ["tickets_from" => $tickets["tickets_from"], "tickets_to" => $tickets["tickets_to"]]);
+
+              });
+
+              // 2.4] Связать $bet с $lastround
               if(!$bet->rounds->contains($lastround['id']))
                 $bet->rounds()->attach($lastround['id']);
 
-              // 2.4] Отвязать $bet от $room
+              // 2.5] Отвязать $bet от $room
               if($bet->rooms->contains($room['id']))
                 $bet->rooms()->detach($room['id']);
-
-              // 2.5] Добавить tickets_from / tickets_to в md2000
-              $bet->m5_users()->updateExistingPivot($bet2attach['m5_users'][0]['id'], ["tickets_from" => $bet2attach["tickets_from"], "tickets_to" => $bet2attach["tickets_to"]]);
 
               // 2.6] Завершить цикл (т.к. мы работаем только с 1-й ставкой)
               break;

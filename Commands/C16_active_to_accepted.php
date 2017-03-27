@@ -174,12 +174,21 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
       }
 
       // 2. Получить ставку с betid и tradeofferid
-      $bet = \M9\Models\MD3_bets::with(['bets_statuses', 'm8_items', 'm8_bots'])
-          ->where('id', $this->data['betid'])
-          ->where('tradeofferid', $this->data['tradeofferid'])
-          ->first();
-      if(empty($bet))
-        throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);
+
+        // 2.1. Получить
+        $bet = \M9\Models\MD3_bets::with(['bets_statuses', 'm8_items', 'm8_bots'])
+            ->where('id', $this->data['betid'])
+            ->where('tradeofferid', $this->data['tradeofferid'])
+            ->first();
+        if(empty($bet))
+          throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);
+
+        // 2.2. Если статус $bet уже Accepted, посто по-тихому завершить команду
+        if($bet['bets_statuses'][0]['status'] == 'Accepted')
+          return [
+            "status"  => 0,
+            "data"    => ""
+          ];
 
       // 3. Получить статусы Active и Accepted
       $status_active = \M9\Models\MD8_bets_statuses::where('status', 'Active')->first();
@@ -391,12 +400,66 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
           $first_ticket_number = call_user_func(function() USE ($lastround) {
 
             // 1.1] Получить последнюю ставку, связанную с раундом $lastround
-            $lastround_last_bet = \M9\Models\MD3_bets::with(['m5_users'])
+            $lastround_last_bet = call_user_func(function() USE ($lastround) {
+
+              // 1) Получить все связанные с раундом $lastround ставки
+              $lastround_bets = \M9\Models\MD3_bets::with(['m5_users'])
                 ->whereHas('rounds', function($query) USE ($lastround) {
                   $query->where('id', $lastround['id']);
-                })
-                ->orderBy('id', 'desc')
-                ->first();
+                })->get();
+
+              // 2) Получить массив массивов с tickets_to и ID ставки
+              // - Такого вида:
+              //
+              //  [
+              //    [
+              //      "id_bet"      => "",
+              //      "tickets_to"  => "",
+              //    ]
+              //  ]
+              //
+              $directory = call_user_func(function() USE ($lastround_bets) {
+
+                $results = [];
+                foreach($lastround_bets as $bet) {
+                  array_push($results, [
+                    "id_bet"      => $bet['id'],
+                    "tickets_to"  => $bet['m5_users'][0]['pivot']['tickets_to']
+                  ]);
+                }
+                return $results;
+
+              });
+
+              // 3) Получить ID ставки с максимальным tickets_to
+              if(count($directory) != 0)
+                $id_bet_max_tickets_to = collect($directory)->sortByDesc("tickets_to")->first();
+              else
+                return "";
+
+              // 4) Если $id_bet_max_tickets_to пуст, вернуть пустую строку
+              // - А если нет, перезаписать в него ID.
+              if(empty($id_bet_max_tickets_to))
+                return "";
+              else
+                $id_bet_max_tickets_to = $id_bet_max_tickets_to['id_bet'];
+
+              // 5) Попробовать найти нужную ставку
+              $bet = $lastround_bets->where('id', $id_bet_max_tickets_to)->first();
+              if(empty($bet))
+                return "";
+
+              // n) Вернуть результат
+              return $bet;
+
+            });
+
+            //$lastround_last_bet = \M9\Models\MD3_bets::with(['m5_users'])
+            //    ->whereHas('rounds', function($query) USE ($lastround) {
+            //      $query->where('id', $lastround['id']);
+            //    })
+            //    ->orderBy('id', 'desc')
+            //    ->first();
 
             // 1.2] Если $lastround_last_bet не найден, вернуть 0
             if(empty($lastround_last_bet)) return 0;

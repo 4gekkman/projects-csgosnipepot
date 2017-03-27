@@ -377,14 +377,12 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
         // 4.4. Если оффер не активен, и принят, применяем C16
         if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] == 3) {
 
-          $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+          runcommand('\M9\Commands\C16_active_to_accepted', [
             "betid"             => $this->data['betid'],
             "tradeofferid"      => $this->data['tradeofferid'],
             "id_user"           => $this->data['id_user'],
             "id_room"           => $this->data['id_room'],
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
+          ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
 
         }
 

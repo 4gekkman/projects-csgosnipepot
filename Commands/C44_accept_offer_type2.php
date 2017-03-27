@@ -171,11 +171,32 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
       }
 
       // 2. Принять оффер tradeofferid
-      $accept_result = runcommand('\M8\Commands\C28_accept_trade_offer', [
-        "id_bot"        => $this->data['botid'],
-        "id_tradeoffer" => $this->data['tradeofferid'],
-        "id_partner"    => $this->data['partnerid'],
-      ]);
+      // - Но делать попытки принять этот оффер не чаще 1 раза в 5 секунд.
+
+        // 2.1. Получить из кэша дату и время последней попытки
+        $last_try_datetime = Cache::get('m9:c44:accept_offer:lasttry:datetime:'.$this->data['botid'].':'.$this->data['tradeofferid'].':'.$this->data['partnerid']);
+
+        // 2.n. Если $last_try_datetime пуста, или прошло более 5 секунд, принять
+        if(empty($last_try_datetime) || +(\Carbon\Carbon::parse($last_try_datetime)->diffInSeconds(\Carbon\Carbon::now())) >= 5) {
+
+          // Обновить кэш
+          Cache::put('m9:c44:accept_offer:lasttry:datetime:'.$this->data['botid'].':'.$this->data['tradeofferid'].':'.$this->data['partnerid'], \Carbon\Carbon::now()->toDateTimeString(), 60);
+
+          // Попытаться принять
+          $accept_result = runcommand('\M8\Commands\C28_accept_trade_offer', [
+            "id_bot"        => $this->data['botid'],
+            "id_tradeoffer" => $this->data['tradeofferid'],
+            "id_partner"    => $this->data['partnerid'],
+          ]);
+
+        }
+
+        // 2.m. В противном случае, по-тихому завершить команду
+        else
+          return [
+            "status"  => 0,
+            "data"    => ""
+          ];
 
       // 3. В случае успешного принятия, внести изменения в БД
       // - Успешное, это когда: нет ошибки и вернулся не пустой $result['data']['tradeofferid'].
@@ -189,14 +210,22 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
       ) {
 
         // Внести изменения
-        $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+        runcommand('\M9\Commands\C16_active_to_accepted', [
           "betid"             => $this->data['betid'],
           "tradeofferid"      => $this->data['tradeofferid'],
           "id_user"           => $this->data['id_user'],
           "id_room"           => $this->data['id_room'],
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
+
+        // Внести изменения
+        //$result = runcommand('\M9\Commands\C16_active_to_accepted', [
+        //  "betid"             => $this->data['betid'],
+        //  "tradeofferid"      => $this->data['tradeofferid'],
+        //  "id_user"           => $this->data['id_user'],
+        //  "id_room"           => $this->data['id_room'],
+        //]);
+        //if($result['status'] != 0)
+        //  throw new \Exception($result['data']['errormsg']);
 
       }
 
@@ -381,14 +410,22 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] == 3) {
 
           // Внести изменения
-          $result = runcommand('\M9\Commands\C16_active_to_accepted', [
+          runcommand('\M9\Commands\C16_active_to_accepted', [
             "betid"             => $this->data['betid'],
             "tradeofferid"      => $this->data['tradeofferid'],
             "id_user"           => $this->data['id_user'],
             "id_room"           => $this->data['id_room'],
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
+          ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
+
+          // Внести изменения
+          //$result = runcommand('\M9\Commands\C16_active_to_accepted', [
+          //  "betid"             => $this->data['betid'],
+          //  "tradeofferid"      => $this->data['tradeofferid'],
+          //  "id_user"           => $this->data['id_user'],
+          //  "id_room"           => $this->data['id_room'],
+          //]);
+          //if($result['status'] != 0)
+          //  throw new \Exception($result['data']['errormsg']);
 
         }
 
