@@ -190,6 +190,8 @@ class C53_update_top_cache extends Job { // TODO: добавить "implements S
             ->groupBy('id')->orderByRaw("CAST(win_fact_cents as SIGNED) DESC")
             ->take(20)
             ->pluck('totalsum', 'id')
+            ->sort()
+            ->reverse()
             ->toArray();
 
         // 2] Получить массив ID ТОП20 пользователей
