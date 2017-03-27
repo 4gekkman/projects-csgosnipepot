@@ -93,7 +93,8 @@
  *  	s8.1. Объект-контейнер для всех свойств модели
  *    s8.2. Исходные данные модели
  *    s8.3. Текущая ширина окна браузера
- *    s8.4. Поместится ли ДКК сбоку от ЦКС
+ *    s8.4. Список блоков, и условия видимости
+ *    s8.5. Поместится ли ДКК сбоку от ЦКС
  *  	s8.n. Индексы и вычисляемые значения
  *
  *  sN. Данные, которым доступны все прочие данные
@@ -1080,10 +1081,39 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//------------------------------------//
 	self.m.s8.browser_curwidth = ko.observable(getBrowserWindowMetrics().width);
 
+	//------------------------------------------//
+	// s8.4. Список блоков, и условия видимости //
+	//------------------------------------------//
+	self.m.s8.blocks = {};
+
+		// 1] Сколько блоков видимы при выбранном поддокументе
+		self.m.s8.blocks.visible_count = ko.computed(function(){
+
+			// 1.1] Обновлять инфу при каждом выборе поддокумента
+			self.m.s1.selected_subdoc();
+
+			// 1.2] Получить список всех блоков
+			var blocks = $(".aside-blocks .aside-block");
+
+			// 1.3] Подсчитать, сколько из них видимы, и вернуть результат
+			var result = 0;
+			for(var i=0; i<blocks.length; i++) {
+				console.log($(blocks[i]).css('display'));
+				if($(blocks[i]).css('display') != 'none')
+					result = +result + 1;
+			}
+			return result;
+
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+
 	//--------------------------------------//
-	// s8.4. Поместится ли ДКК сбоку от ЦКС //
+	// s8.5. Поместится ли ДКК сбоку от ЦКС //
 	//--------------------------------------//
 	self.m.s8.is_aside = ko.computed(function(){
+
+		// a] Если для выбранного поддокумента видимых блоков нет, вернуть false
+		if(self.m.s8.blocks.visible_count() == 0)
+			return false;
 
 		// 1] Какая ширина у контентной колонки (ЦКС + ДКК).
 		var content_width = +self.m.s8.source.maincontcol.width() + +self.m.s8.source.leftcontcol.width();
@@ -1104,7 +1134,10 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			// 2.2] Вычислить текущую ширину правого сайдбара
 			var sidebar_right_width = (function(){
 
-				if(!self.m.s3.expanded())
+				if(self.m.s3.hidden())
+					return 0;
+
+				else if(!self.m.s3.expanded())
 					return self.m.s8.source.rightchat.closed();
 
 				else if(self.m.s3.expanded() && self.m.s8.browser_curwidth() < self.m.s8.source.rightchat.wide_starts_from())
