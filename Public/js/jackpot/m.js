@@ -1593,7 +1593,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){
 
 			if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1)
-				setImmediate(self.f.s1.lottery, 100);
+				setImmediate(self.f.s1.lottery, 500);
 			//else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')
 			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 			//else

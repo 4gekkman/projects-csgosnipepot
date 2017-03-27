@@ -181,6 +181,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------//
 	f.s1.fresh_game_data = function(jsondata) {
 
+		//console.log("fresh_game_data");
+
 		// a] Вкл/Выкл логгирование
 		var is_logs_on = false;
 
@@ -436,74 +438,72 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				}
 
-				setTimeout(function(data, self, room2update_id, room2update){
+				// 3.3] Обновить ссылку на choosen_room
+				self.m.s1.game.choosen_room((function(){
 
-					// 3.3] Обновить ссылку на choosen_room
-					self.m.s1.game.choosen_room((function(){
+					// Получить имя текущей выбранной комнаты
+					var name = self.m.s1.game.choosen_room().name();
 
-						// Получить имя текущей выбранной комнаты
-						var name = self.m.s1.game.choosen_room().name();
+					// Сделать выбранной комнату с name из game.rooms
+					for(var i=0; i<self.m.s1.game.rooms().length; i++) {
+						if(self.m.s1.game.rooms()[i].name() == name)
+							return self.m.s1.game.rooms()[i];
+					}
 
-						// Сделать выбранной комнату с name из game.rooms
-						for(var i=0; i<self.m.s1.game.rooms().length; i++) {
-							if(self.m.s1.game.rooms()[i].name() == name)
-								return self.m.s1.game.rooms()[i];
-						}
+				})());
 
-					})());
+				// 3.4] Запустить lottery (если новый статус lottery), или обновить значение currentpos
+				var newstatus = self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status();
+				if(newstatus == 'Lottery') {
+					//self.f.s1.lottery();
+				}
+				else if(['Winner', 'Finished', 'Created'].indexOf(newstatus) != -1 && newstatus != 'Lottery')
+					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+				else
+					self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
 
-					// 3.4] Запустить lottery (если новый статус lottery), или обновить значение currentpos
-					var newstatus = self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status();
+				// 3.5] Если новый статус Created
+				if(newstatus == 'Created') {
+
+					// Очистить smoothbets
+					self.f.s1.smootbets_update();
+
+				}
+
+				// 3.6] Проиграть соответствующий звук, если требуется
+				(function(){
+
+					// Started
+					if(newstatus == 'Created')
+						self.f.s1.playsound('game-start');
+
+					// Lottery
 					if(newstatus == 'Lottery')
-						setImmediate(self.f.s1.lottery, 100);
-					else if(['Winner', 'Finished', 'Created'].indexOf(newstatus) != -1 && newstatus != 'Lottery')
-						self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
-					else
-						self.m.s1.game.strip.currentpos(self.m.s1.game.strip.start_px());
+						self.f.s1.playsound('lottery');
 
-					// 3.5] Если новый статус Created
-					if(newstatus == 'Created') {
+					// Winner
+					if(newstatus == 'Winner') {
 
-						// Очистить smoothbets
-						self.f.s1.smootbets_update();
+						setTimeout(function(){
+
+							// 1] Если пользователь анонимный, завершить
+							if(self.m.s0.auth.is_anon()) return;
+
+							// 2] Если победил не этот пользователь, завершить
+							if(!model.m.s1.game.choosen_room_curround_winner() || model.m.s0.auth.user().id() != model.m.s1.game.choosen_room_curround_winner().id()) return;
+
+							// 3] Проиграть звук победы
+							self.f.s1.playsound('win');
+
+						}, 1000);
 
 					}
 
-					// 3.6] Проиграть соответствующий звук, если требуется
-					(function(){
+				})();
 
-						// Started
-						if(newstatus == 'Created')
-							self.f.s1.playsound('game-start');
+				// 3.n] Обновить значение m.s1.game.choosen_status
+				// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
 
-						// Lottery
-						if(newstatus == 'Lottery')
-							self.f.s1.playsound('lottery');
-
-						// Winner
-						if(newstatus == 'Winner') {
-
-							setTimeout(function(){
-
-								// 1] Если пользователь анонимный, завершить
-								if(self.m.s0.auth.is_anon()) return;
-
-								// 2] Если победил не этот пользователь, завершить
-								if(!model.m.s1.game.choosen_room_curround_winner() || model.m.s0.auth.user().id() != model.m.s1.game.choosen_room_curround_winner().id()) return;
-
-								// 3] Проиграть звук победы
-								self.f.s1.playsound('win');
-
-							}, 1000);
-
-						}
-
-					})();
-
-					// 3.n] Обновить значение m.s1.game.choosen_status
-					// self.m.s1.game.choosen_status(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length-1].status());
-
-				}, 1, data, self, room2update_id, room2update);
 
 			}.bind(null, data[i], self, room2update_id);
 
