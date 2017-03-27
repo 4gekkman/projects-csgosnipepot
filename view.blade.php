@@ -199,12 +199,12 @@
   Б3. Наибольшая ставка (Classic Game)
 
 -------------------*/ ?>
-<div style="display: none" class="aside-blocks" data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/', if: m.s1.game.choosen_room, css: {aside: layoutmodel.m.s8.is_aside}">
+<div class="aside-blocks" data-bind="if: m.s1.game.choosen_room, css: {aside: layoutmodel.m.s8.is_aside}">
 
   <?php /*--------------------------------------->
   <!-- Б1. Последний победитель (Classic Game) -->
   <!-----------------------------------------*/ ?>
-  <div class="lastwinner" data-bind="visible: (m.s1.game.choosen_room() && m.s1.game.choosen_room().id() && m.s1.game.stats.thelastwinner.front.nickname)">
+  <div style="display: none" class="aside-block lastwinner" data-bind="visible: (m.s1.game.choosen_room() && m.s1.game.choosen_room().id() && m.s1.game.stats.thelastwinner.front.nickname() && layoutmodel.m.s1.selected_subdoc().uri() == '/')">
 
     <?php /*--------------->
     <!-- Контейнер карты -->
@@ -330,7 +330,7 @@
   <?php /*---------------------------------->
   <!-- Б2. Счастливчик дня (Classic Game) -->
   <!------------------------------------*/ ?>
-  <div style="display: none" class="luckyoftheday" data-bind="visible: (m.s1.game.stats.luckyoftheday.data.nickname() && layoutmodel.m.s1.selected_subdoc().uri() == '/')">
+  <div style="display: none" class="aside-block luckyoftheday" data-bind="visible: (m.s1.game.stats.luckyoftheday.data.nickname() && layoutmodel.m.s1.selected_subdoc().uri() == '/')">
 
     <?php /*--------------->
     <!-- Контейнер карты -->
@@ -456,7 +456,7 @@
   <?php /*------------------------------------>
   <!-- Б3. Наибольшая ставка (Classic Game) -->
   <!--------------------------------------*/ ?>
-  <div style="display: none" class="thebiggestbet" data-bind="visible: (m.s1.game.stats.thebiggestbet.data.nickname() && layoutmodel.m.s1.selected_subdoc().uri() == '/')">
+  <div style="display: none" class="aside-block thebiggestbet" data-bind="visible: (m.s1.game.stats.thebiggestbet.data.nickname() && layoutmodel.m.s1.selected_subdoc().uri() == '/')">
 
     <?php /*--------------->
     <!-- Контейнер карты -->
