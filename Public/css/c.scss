@@ -716,12 +716,15 @@
       line-height: $sizes_mainmenu_itemh;
       font-size: 34px;
     }
+    .menu .items .item .item-content .icon.image-instead {
+      font-size: 0;
+    }
     .menu .items .item .item-content .icon i {}
     .menu .items .item .item-content .icon img {
       max-height: 34px;
       max-width: 34px;
       display: inline-block;
-      vertical-align: baseline;
+      vertical-align: middle;
     }
 
     // Стиль выбранного пункта меню
