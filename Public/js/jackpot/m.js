@@ -1592,8 +1592,16 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//--------------------------------------------------------//
 		ko.computed(function(){
 
-			if(['Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1)
+			// Если статус Lottery
+			if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 				setImmediate(self.f.s1.lottery, 500);
+			}
+
+			// Если статус Winner или Finished
+			if(['Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+				setTimeout(self.f.s1.lottery, 2000);
+			}
+
 			//else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')
 			//	self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 			//else
