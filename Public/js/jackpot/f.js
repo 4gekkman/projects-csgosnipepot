@@ -181,8 +181,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------//
 	f.s1.fresh_game_data = function(jsondata) {
 
-		//console.log("fresh_game_data");
-
 		// a] Вкл/Выкл логгирование
 		var is_logs_on = false;
 
@@ -293,7 +291,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// 3.2) Получить старый и новый статусы статусы
 							var status_new = round2update_data.rounds_statuses[0].status;
 							var status_old = round2update.rounds_statuses()[0].status();
-
+						console.log('status_new = '+status_new);
 							// 3.3) Если status_new == status_old == 'Created'
 							// - Ничего не обновлять.
 							if(status_new == status_old && status_old == 'Created')
@@ -863,7 +861,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					});
 				}
 
-			}
+			};
 
 			// Pending, Lottery, Winner
 			remove('Pending');
@@ -944,6 +942,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					if(['Pending', 'Lottery', 'Winner'].indexOf(self.m.s1.game.queue()[i].newstatus) != -1) {
 
 						// 1.1.1) Если newstatus == Pending, а status == Pending, Lottery, Winner, Finished
+						// - Просто удалить i-ю задачу из очереди, не выполняя её.
 						if(self.m.s1.game.queue()[i].newstatus == "Pending" && ['Pending', 'Lottery', 'Winner', 'Finished'].indexOf(status) != -1) {
 							var uid = self.m.s1.game.queue()[i].uid;
 							self.m.s1.game.queue.remove(function(item){
@@ -952,7 +951,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							});
 						}
 
-						// 1.1.2) Если newstatus == Pending, а status == Pending, Lottery, Winner, Finished
+						// 1.1.2) Если newstatus == Lottery, а status == Lottery, Winner, Finished
+						// - Просто удалить i-ю задачу из очереди, не выполняя её.
 						else if(self.m.s1.game.queue()[i].newstatus == "Lottery" && ['Lottery', 'Winner', 'Finished'].indexOf(status) != -1) {
 							var uid = self.m.s1.game.queue()[i].uid;
 							self.m.s1.game.queue.remove(function(item){
@@ -961,7 +961,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							});
 						}
 
-						// 1.1.3) Если newstatus == Pending, а status == Pending, Lottery, Winner, Finished
+						// 1.1.3) Если newstatus == Winner, а status == Winner, Finished
+						// - Просто удалить i-ю задачу из очереди, не выполняя её.
 						else if(self.m.s1.game.queue()[i].newstatus == "Winner" && ['Winner', 'Finished'].indexOf(status) != -1) {
 							var uid = self.m.s1.game.queue()[i].uid;
 							self.m.s1.game.queue.remove(function(item){
@@ -970,7 +971,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							});
 						}
 
-						// 1.1.n) Иначе, всже выполнить func перед удалением из очереди
+						// 1.1.n) Иначе, всё же выполнить func перед удалением из очереди
 						else {
 							self.m.s1.game.queue()[i].func();
 							var uid = self.m.s1.game.queue()[i].uid;
@@ -1394,7 +1395,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			if(((Date.now() > futuretime) && interval)) {
 
 				// n.1) Установить currentpos на финальную позицию
-				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+				//self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 
 				// n.2) Удалить интервал
 				clearInterval(interval);
@@ -1571,9 +1572,12 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			self.m.s1.smoothbets.bets.unshift(bet);
 
 		// 4] Изменить значение свойства is_expanded ставки bet на true через 500мс
-		setTimeout(function(is_expanded) {
+		setImmediate(function(is_expanded) {
 			is_expanded(1);
-		}, 500, bet.is_expanded);
+		}.bind(null, bet.is_expanded));
+		//setTimeout(function(is_expanded) {
+		//	is_expanded(1);
+		//}, 500, bet.is_expanded);
 
 	};
 

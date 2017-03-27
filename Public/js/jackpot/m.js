@@ -1599,7 +1599,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// Если статус Winner или Finished
 			if(['Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1) {
-				setTimeout(self.f.s1.lottery, 2000);
+				setTimeout(self.f.s1.lottery, 2500);
 			}
 
 			//else if(['Winner', 'Finished', 'Created'].indexOf(self.m.s1.game.choosen_status()) != -1 && self.m.s1.game.choosen_status() != 'Lottery')

@@ -597,12 +597,12 @@ var ModelProto = { constructor: function(ModelFunctions) {
 				self.f.s1.queue_processor();
 
 				// Рекурсивно запустить f
-				setTimeout(f, 1000, self);
+				setTimeout(f, 250, self);
 
 			}.bind(null, self);
 
 			// 2. Запустить f, чтобы срабатывала ежесекундно
-			setTimeout(f, 1000, self);
+			setTimeout(f, 250, self);
 
 		})();
 
