@@ -177,6 +177,7 @@ View::composer('L10003::layout', function($view) {
     'm9_sound_global_ison'  => $m9_sound_global_ison,
     'balance'               => $balance,
     'usdrub_rate'           => $rate,
+    'asset_url'             => asset('')
   ], JSON_UNESCAPED_UNICODE));
 
 

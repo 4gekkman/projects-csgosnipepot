@@ -33,6 +33,7 @@
  *    s0.12. Текущий хост (включая http/https, порт и базовый URI)
  *    s0.13. Баланс аутентифицированного пользователя
  *    s0.14. URL для аутентификации
+ *    s0.15. Базовый URL для asset-ресурсов шаблона
  *
  *  s1. Модель управления поддокументами приложения
  *
@@ -86,6 +87,14 @@
  *  	s7.1. Объект-контейнер для всех свойств модели
  *    s7.2. Показаны ли модальный щит и модальное окно интерфейса
  *  	s7.n. Индексы и вычисляемые значения
+ *
+ *  s8. Модель механики столбца с баннерами/статистикой
+ *
+ *  	s8.1. Объект-контейнер для всех свойств модели
+ *    s8.2. Исходные данные модели
+ *    s8.3. Текущая ширина окна браузера
+ *    s8.4. Поместится ли ДКК сбоку от ЦКС
+ *  	s8.n. Индексы и вычисляемые значения
  *
  *  sN. Данные, которым доступны все прочие данные
  *
@@ -477,6 +486,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		return self.m.s0.full_host() + "/authwith?provider=steam&authmode=redirect&url_redirect=" + window.location.href;
 	})());
 
+	//-----------------------------------------------//
+	// s0.15. Базовый URL для asset-ресурсов шаблона //
+	//-----------------------------------------------//
+	self.m.s0.asset_url = ko.observable(layout_data.data.asset_url);
+
 
 	//-----------------------------------------------------------//
 	// 			        		 	                                       //
@@ -509,8 +523,8 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		},
 		{
 			uri:        '/matchbets',
-			icon_mdi:   'mdi-dice-5',
-			icon_url:   '',
+			icon_mdi:   '',
+			icon_url:   self.m.s0.asset_url() + 'public/L10003/assets/icons/vs.png',
 			title:      'Match bets',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
@@ -1016,8 +1030,119 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 	});
 
+	//------------------------------------------------------------------//
+	// 			        		 	                                              //
+	// 			 s8. Модель механики столбца с баннерами/статистикой  			//
+	// 			         			                                              //
+	//------------------------------------------------------------------//
+
+	//------------------------------------------------//
+	// s8.1. Объект-контейнер для всех свойств модели //
+	//------------------------------------------------//
+	self.m.s8 = {};
+
+	//------------------------------//
+	// s8.2. Исходные данные модели //
+	//------------------------------//
+  self.m.s8.source = {};
+
+		// 1] Ширина левого сайдбара в скрытом/раскрытом состояниях, в px
+		self.m.s8.source.leftsidebar = {};
+		self.m.s8.source.leftsidebar.opened = ko.observable(240);
+		self.m.s8.source.leftsidebar.closed = ko.observable(55);
+
+		// 2] Ширина правого сайдбара с чатом в скрытом/раскрытом/раскрытом широком состояниях, в px
+		self.m.s8.source.rightchat = {};
+
+			// 2.1] Ширина правого сайдбара в разных состояниях
+			self.m.s8.source.rightchat.opened 			= ko.observable(240);
+			self.m.s8.source.rightchat.opened_wide 	= ko.observable(310);
+			self.m.s8.source.rightchat.closed 			= ko.observable(35);
+
+			// 2.2] Начиная с какой ширины правый сайдбар становитсся wide
+			self.m.s8.source.rightchat.wide_starts_from = ko.observable(1400);
 
 
+		// 3] Ширина центрального контентного столбца (ЦКС), px
+		self.m.s8.source.maincontcol = {};
+		self.m.s8.source.maincontcol.width = ko.observable(860);
+
+		// 4] Ширина доп.контентной колонки (ДКК), которая слева от ЦКС (статистика, баннеры), px
+		self.m.s8.source.leftcontcol = {};
+		self.m.s8.source.leftcontcol.width = ko.observable(230);
+
+		// 5] Требуемая щирина левого/правого зазора между контентом и сайдбарами, px
+		self.m.s8.source.gaps = {};
+		self.m.s8.source.gaps.gap = ko.observable(16);
+
+	//------------------------------------//
+	// s8.3. Текущая ширина окна браузера //
+	//------------------------------------//
+	self.m.s8.browser_curwidth = ko.observable(getBrowserWindowMetrics().width);
+
+	//--------------------------------------//
+	// s8.4. Поместится ли ДКК сбоку от ЦКС //
+	//--------------------------------------//
+	self.m.s8.is_aside = ko.computed(function(){
+
+		// 1] Какая ширина у контентной колонки (ЦКС + ДКК).
+		var content_width = +self.m.s8.source.maincontcol.width() + +self.m.s8.source.leftcontcol.width();
+
+		// 2] Какая ширина у прочих элементов, кроме content_width
+		var not_content_width = (function(){
+
+			// 2.1] Вычислить текущую ширину левого сайдбара
+			var sidebar_left_width = (function(){
+
+				if(self.m.s2.expanded())
+					return self.m.s8.source.leftsidebar.opened();
+				else
+					return self.m.s8.source.leftsidebar.closed();
+
+			})();
+
+			// 2.2] Вычислить текущую ширину правого сайдбара
+			var sidebar_right_width = (function(){
+
+				if(!self.m.s3.expanded())
+					return self.m.s8.source.rightchat.closed();
+
+				else if(self.m.s3.expanded() && self.m.s8.browser_curwidth() < self.m.s8.source.rightchat.wide_starts_from())
+					return self.m.s8.source.rightchat.opened();
+
+				else
+					return self.m.s8.source.rightchat.opened_wide();
+
+			})();
+
+			// 2.n] Вернуть результат
+			return (+sidebar_left_width + +sidebar_right_width + 2*self.m.s8.source.gaps.gap());
+
+		})();
+
+		// 3] Если content_width + not_content_width умещаются по ширине в окно браузера, вернуть true
+		if((+content_width + +not_content_width) <= self.m.s8.browser_curwidth())
+			return true;
+
+		// 4] Иначе, вернуть false
+		else
+			return false;
+
+	});
+
+	//--------------------------------------//
+	// s8.n. Индексы и вычисляемые значения //
+	//--------------------------------------//
+	ko.computed(function(){
+
+		//--------------------------------------------------------------//
+		// s8.n.1. Объект-контейнер для индексов и вычисляемых значений //
+		//--------------------------------------------------------------//
+		self.m.s8.indexes = {};
+
+
+
+	});
 
 
 
@@ -1240,6 +1365,16 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 		}, 10); })();
 
+		//----------------------------------------------//
+		// X1.10. Обновить текущую ширину окна браузера //
+		//----------------------------------------------//
+		(function(){
+			addEvent(window, 'resize', function(event, params) {
+
+				self.m.s8.browser_curwidth(getBrowserWindowMetrics().width);
+
+			}, {self: self});
+		})();
 
 	});
 

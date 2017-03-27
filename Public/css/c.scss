@@ -717,6 +717,12 @@
       font-size: 34px;
     }
     .menu .items .item .item-content .icon i {}
+    .menu .items .item .item-content .icon img {
+      max-height: 34px;
+      max-width: 34px;
+      display: inline-block;
+      vertical-align: baseline;
+    }
 
     // Стиль выбранного пункта меню
     .menu .items .item.choosen {

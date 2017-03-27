@@ -277,7 +277,8 @@
             <!-- 1.n.1] Иконка пункта меню -->
             <!---------------------------*/ ?>
             <div class="icon">
-              <i class="mdi" data-bind="css: icon_mdi"></i>
+              <i style="display: none" class="mdi" data-bind="visible: icon_mdi, css: icon_mdi"></i>
+              <img style="display: none" data-bind="visible: icon_url, attr: {src: icon_url}">
             </div>
 
             <?php /*-------------------------->
