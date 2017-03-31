@@ -35,7 +35,7 @@
         <?php /*------------------------------>
         <!-- 2] Баланс и кнопка "Пополнить" -->
         <!--------------------------------*/ ?>
-        <div class="balance" data-bind="click: function(){ layoutmodel.m.s7.ison(true); }" title="Пополнить баланс">
+        <div style="display: none" class="balance" data-bind="click: function(){ layoutmodel.m.s7.ison(true); }" title="Пополнить баланс">
           <i class="mdi mdi-plus-circle-outline"></i>
           <span data-bind="text: 'Баланс: '+layoutmodel.m.s0.balance()"></span>
         </div>

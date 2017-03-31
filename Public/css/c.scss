@@ -1198,13 +1198,14 @@
       .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash {
         color: #000;
         max-width: 300px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        vertical-align: middle;
+        //overflow: hidden;
+        //text-overflow: ellipsis;
+        //vertical-align: middle;
       }
       .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash span:nth-child(2) {
         border-bottom: 1px solid #222;
         cursor: pointer;
+        font-size: 11px;
       }
 
   //---------------------------------------------------------------------------//

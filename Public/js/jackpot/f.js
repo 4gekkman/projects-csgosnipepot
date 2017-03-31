@@ -1602,6 +1602,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------------------//
 	f.s1.tradeoffer_accepted = function(data) {
 
+		// 1] Если ID пользователя не совпадает с ID аутентиф.пользователя, завершить
+		if(!layoutmodel.m.s0.is_logged_in() || data.id_user != layoutmodel.m.s0.auth.user().id())
+			return;
+
 		// 1] Вычислить время для отсрочки сообщения
 		$delay_s = ((self.m.s1.game.choosen_room().rounds()[0]['is_skins_limit_reached']()) ? +self.m.s1.game.choosen_room().lottery_client_delta_items_limit_s() : 0);
 

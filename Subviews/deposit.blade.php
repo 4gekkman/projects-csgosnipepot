@@ -27,7 +27,7 @@
       <div class="logo_and_name">
         <i class="mdi mdi-plus-circle-outline"></i>
         <span>Пополнить баланс скинами</span>
-        <span class="balance" data-bind="text: 'Баланс: '+layoutmodel.m.s0.balance()"></span>
+        <span style="display: none" class="balance" data-bind="text: 'Баланс: '+layoutmodel.m.s0.balance()"></span>
       </div>
 
     </div>
