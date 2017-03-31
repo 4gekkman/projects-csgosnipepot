@@ -198,7 +198,7 @@
       vertical-align: middle;
       cursor: pointer;
       background: #1b2934;
-      z-index: 2;
+      z-index: 100 !important;
       -o-transition-delay: 0.2s;
       -webkit-transition-delay: 0.2s;
       -moz-transition-delay: 0.2s;

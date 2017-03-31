@@ -267,7 +267,7 @@
             <!-- 1.3] Кнопка "Внести депозит" -->
             <!------------------------------*/ ?>
             <div class="make-a-bet">
-              <div class="button" onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")>
+              <div class="button" onclick="window.location = '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam&authmode=redirect&url_redirect='+window.location.href"> <!--onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")> -->
                 <i class="fa fa-fw fa-steam"></i>
                 <span>Войти, чтобы играть</span>
               </div>
@@ -710,7 +710,7 @@
       <?php /*--------------------------->
       <!-- 3] Кнопка "Показать ещё 10" -->
       <!-----------------------------*/ ?>
-      <div style="display: none" class="button_more" data-bind="if: m.s1.history.is_in_choosen_room, visible: (m.s1.history.is_in_choosen_room() && m.s1.history.all()[m.s1.game.choosen_room().id()]().length < 50 && m.s1.history.totalcount()[m.s1.game.choosen_room().id()]() >= m.s1.history.all()[m.s1.game.choosen_room().id()]().length && m.s1.history.pagenums()[m.s1.game.choosen_room().id()]() < 5)">
+      <div style="display: none" class="button_more" data-bind="if: m.s1.history.is_in_choosen_room, visible: (m.s1.history.is_in_choosen_room() && m.s1.history.all()[m.s1.game.choosen_room().id()] && m.s1.history.all()[m.s1.game.choosen_room().id()]().length < 50 && m.s1.history.totalcount()[m.s1.game.choosen_room().id()]() >= m.s1.history.all()[m.s1.game.choosen_room().id()]().length && m.s1.history.pagenums()[m.s1.game.choosen_room().id()]() < 5)">
 
         <?php /*------>
         <!-- Кнопка -->

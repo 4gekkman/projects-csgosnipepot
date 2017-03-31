@@ -1327,10 +1327,20 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			var durations = {};
 
 				// Started
-				durations.started = +self.m.s1.game.choosen_room().room_round_duration_sec() + +self.m.s1.game.choosen_room().started_client_delta_s();
+				durations.started = (function(){
+
+					// Если лимит по предметам достигнут
+					if(self.m.s1.game.choosen_room().rounds()[0]['is_skins_limit_reached']())
+						return self.m.s1.game.choosen_room().rounds()[0]['started_duration_fact_s']();
+
+					// Если нет
+					else
+						return +self.m.s1.game.choosen_room().room_round_duration_sec() + +self.m.s1.game.choosen_room().started_client_delta_s();
+
+				})();
 
 				// Pending
-				durations.pending = +self.m.s1.game.choosen_room().pending_duration_s() + +self.m.s1.game.choosen_room().pending_client_delta_s();
+				durations.pending = +self.m.s1.game.choosen_room().pending_duration_s() + +self.m.s1.game.choosen_room().pending_client_delta_s() + ((self.m.s1.game.choosen_room().rounds()[0]['is_skins_limit_reached']()) ? +self.m.s1.game.choosen_room().lottery_client_delta_items_limit_s() : 0);
 
 				// Lottery
 				durations.lottery = +self.m.s1.game.choosen_room().lottery_duration_ms()/1000 + +self.m.s1.game.choosen_room().lottery_client_delta_ms()/1000;
@@ -1355,7 +1365,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 4] Если статус текущего раунда в выбранной комнате:
 			// - Created или First Bet.
-			if(['Created', 'First bet'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+			if(['Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status()) != -1) {
 
 				// Установить значения единого счётчика
 				self.m.s1.game.counters.main.sec(start.main);
@@ -1364,6 +1374,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				self.m.s1.game.counters.main.hours(moment.utc(start.main*1000).format("HH"));
 
 				// Установить значения для счётчика начала розыгрыша
+				if(self.m.s1.game.choosen_room().rounds()[0]['is_skins_limit_reached']())
+					start.lottery = 0;
 				self.m.s1.game.counters.lottery.sec(start.main);
 				self.m.s1.game.counters.lottery.seconds(moment.utc(start.lottery*1000).format("ss"));
 				self.m.s1.game.counters.lottery.minutes(moment.utc(start.lottery*1000).format("mm"));
@@ -1379,7 +1391,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 5] Если статус текущего раунда в выбранной комнате:
 			// - Started, Pending, Lottery, Winner, Finished
-			if(['Started', 'Pending', 'Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+			if(['Started', 'Pending', 'Lottery', 'Winner', 'Finished'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status()) != -1) {
 
 				// 4.1] Текущее серверное время, unix timestamp в секундах
 				var timestamp_s = self.m.s1.game.time.ts(); //layoutmodel.m.s0.servertime.timestamp_s();//self.m.s1.game.time.ts();;
@@ -1428,7 +1440,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					self.m.s1.game.counters.lottery.minutes(moment.utc(value_lottery*1000).format("mm"));
 					self.m.s1.game.counters.lottery.hours(moment.utc(value_lottery*1000).format("HH"));
 
-				// 4.7] На основании значения счётчика до начала розыгрыша
+				// 4.7] На основании значения счётчика до начала новой игры
 
 					// Значение
 					var value_newgame = self.m.s1.game.counters.main.sec();
@@ -1592,6 +1604,9 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		//--------------------------------------------------------//
 		ko.computed(function(){
 
+			// Пусть оно срабатывает также при смене комнаты
+			self.m.s1.game.choosen_room();
+
 			// Если статус Lottery
 			if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) != -1) {
 				setImmediate(self.f.s1.lottery, 500);
@@ -1643,12 +1658,6 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				layoutmodel.m.s6.notify.text((function(){
  					return '+ '+Math.ceil((newbets[i].sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.';
 				})());
-
-				// 3.3] Показать уведомление в пункте "Classic game" главного меню
-				layoutmodel.f.s6.notify_animate();
-
-				// 3.4] Воспроизвести рандумно 1 из 3 звуков добавления ставки
- 				self.f.s1.playsound('bet');
 
 			}
 
