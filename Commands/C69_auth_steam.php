@@ -179,7 +179,26 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         if(!class_exists("Hybrid_Auth")) throw new \Exception("Hybrid_Auth class is not available");
 
         // 3.2. Получить API-ключ от Steam из конфига M5
-        $apikey = config("M5.steam_api_key");
+        $apikey = call_user_func(function(){
+
+          // 1] Получить параметры
+          $params = config("M5.hybridauth_env_params");
+
+          // 2] Получить название текущей среды
+          $env = env('APP_ENV', 'dev');
+
+          // 3] Получить параметр для этой среды
+          $env_params = array_key_exists($env, $params) ? $params[$env] : false;
+          if($env_params == false)
+            throw new \Exception("Не удалось получить параметры аутентификации для среды ".$env);
+
+          // 4] Получить API-ключ
+          $apikey = $env_params['steam_api_key'];
+
+          // n] Вернуть хост
+          return $apikey;
+
+        });
         if(!$apikey || !is_string($apikey)) throw new \Exception("Steam api key is absent.");
 
         // 3.3. Создать объект класса Hybrid_Auth
