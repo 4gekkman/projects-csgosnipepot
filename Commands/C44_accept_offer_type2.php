@@ -189,11 +189,14 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
             "id_partner"    => $this->data['partnerid'],
           ]);
 
-          // Узнать, принят ли уже оффер
-          if($accept_result['status'] != 0)
-            $is_already_accepted = preg_match("/Please try again later. \(11\)/ui", array_key_exists('errormsg', $accept_result['data']) ? $accept_result['data']['errormsg'] : (array_key_exists('response', $accept_result['data']) ? $accept_result['data']['response']['strError'] : ""));
-          else
-            $is_already_accepted = 0;
+          // Log::info($this->data['botid'] . '/' . $this->data['tradeofferid']);
+          // Log::info($accept_result);
+
+          //// Узнать, принят ли уже оффер
+          //if($accept_result['status'] != 0)
+          //  $is_already_accepted = preg_match("/Please try again later. \(11\)/ui", array_key_exists('errormsg', $accept_result['data']) ? $accept_result['data']['errormsg'] : (array_key_exists('response', $accept_result['data']) ? $accept_result['data']['response']['strError'] : ""));
+          //else
+          //  $is_already_accepted = 0;
 
         }
 

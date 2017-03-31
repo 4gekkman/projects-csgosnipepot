@@ -588,6 +588,7 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
             'task' => 'tradeoffer_accepted',
             'data' => [
               'id_room'           => $this->data['id_room'],
+              'id_user'           => $this->data['id_user'],
               'in_current_round'  => false,
               'bets_active'       => []
               //'bets_active'       => json_decode(Cache::tags(['processing:bets:active:personal:safe'])->get('processing:bets:active:safe:'.$this->data['id_user']), true) ?: [],
