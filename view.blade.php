@@ -604,9 +604,18 @@
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.pending_client_delta_s">
               </div>
             </div>
+
+            <?php /* 5] lottery_client_delta_items_limit_s -->
+            <!-------------------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">Клиентская дельта состояния Pending (лимит вещей), с</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.lottery_client_delta_items_limit_s">
+              </div>
+            </div>
             <hr>
 
-            <?php /* 5] lottery_duration_ms -->
+            <?php /* 6] lottery_duration_ms -->
             <!----------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Время жизни состояния Lottery, мс</div>
@@ -615,7 +624,7 @@
               </div>
             </div>
 
-            <?php /* 6] lottery_client_delta_ms -->
+            <?php /* 7] lottery_client_delta_ms -->
             <!--------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Клиентская дельта состояния Lottery, мс</div>
@@ -625,7 +634,7 @@
             </div>
             <hr>
 
-            <?php /* 7] winner_duration_s -->
+            <?php /* 8] winner_duration_s -->
             <!--------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Время жизни состояния Winner, с</div>
@@ -634,7 +643,7 @@
               </div>
             </div>
 
-            <?php /* 8] winner_client_delta_s -->
+            <?php /* 9] winner_client_delta_s -->
             <!-------------------------------*/ ?>
             <div class="form-group">
               <div class="col-sm-5 control-label">Клиентская дельта состояния Winner, с</div>
@@ -854,6 +863,15 @@
               <div class="col-sm-5 control-label">MAX кол-во предметов в раунде</div>
               <div class="col-sm-7">
                 <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_per_round">
+              </div>
+            </div>
+
+            <?php /* 8] max_items_peruser_perround | MAX вещей в ставках 1-го игрока за раунд  -->
+            <!-------------------------------------------------------------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-5 control-label">MAX вещей в ставках 1-го игрока за раунд</div>
+              <div class="col-sm-7">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit.max_items_peruser_perround">
               </div>
             </div>
 

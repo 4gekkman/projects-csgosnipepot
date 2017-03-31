@@ -646,6 +646,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.payout_limit_min 						= ko.observable("");
 		self.m.s2.edit.revolutions_per_lottery 			= ko.observable("");
 		self.m.s2.edit.lottery_duration_ms 					= ko.observable("");
+		self.m.s2.edit.lottery_client_delta_items_limit_s = ko.observable("");
 		self.m.s2.edit.pending_duration_s 					= ko.observable("");
 		self.m.s2.edit.winner_duration_s 					  = ko.observable("");
 		self.m.s2.edit.offers_timeout_sec 					= ko.observable("");
@@ -658,6 +659,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 		self.m.s2.edit.pending_client_delta_s 			= ko.observable("");
 		self.m.s2.edit.lottery_client_delta_ms 			= ko.observable("");
 		self.m.s2.edit.winner_client_delta_s 				= ko.observable("");
+		self.m.s2.edit.max_items_peruser_perround 	= ko.observable("");
 
 		// 2] Поле allow_only_types в виде json-строки //
 		//---------------------------------------------//
