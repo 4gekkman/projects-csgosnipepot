@@ -1089,6 +1089,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		// 1] Сколько блоков видимы при выбранном поддокументе
 		self.m.s8.blocks.visible_count = ko.computed(function(){
 
+			// 1.a] Перевычислять при изменении ширины браузера
+			self.m.s8.browser_curwidth();
+
 			// 1.1] Обновлять инфу при каждом выборе поддокумента
 			self.m.s1.selected_subdoc();
 
@@ -1098,7 +1101,6 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			// 1.3] Подсчитать, сколько из них видимы, и вернуть результат
 			var result = 0;
 			for(var i=0; i<blocks.length; i++) {
-				console.log($(blocks[i]).css('display'));
 				if($(blocks[i]).css('display') != 'none')
 					result = +result + 1;
 			}
@@ -1407,6 +1409,27 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				self.m.s8.browser_curwidth(getBrowserWindowMetrics().width);
 
 			}, {self: self});
+		})();
+
+		//----------------------------------------------------------------//
+		// X1.11. Перерасчитывать текущую ширину браузера каждые 5 секунд //
+		//----------------------------------------------------------------//
+		(function(){
+
+			// 1. Подготовить рекурсивную функцию
+			var f = function f(self) {
+
+				// Перерасчитать ширину браузера
+				self.m.s8.browser_curwidth(getBrowserWindowMetrics().width);
+
+				// Рекурсивно запустить f
+				setTimeout(f, 5000, self);
+
+			}.bind(null, self);
+
+			// 2. Запустить f, чтобы срабатывала ежесекундно
+			setTimeout(f, 5000, self);
+
 		})();
 
 	});
