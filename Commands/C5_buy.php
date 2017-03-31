@@ -440,22 +440,42 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
           throw new \Exception("Не удалось найти в базе данных запись о твоём профиле.");
 
         // 10.2. Получить первого бота из $bot_items_index
-        $bot = \M8\Models\MD1_bots::where('id', array_keys($bot_items_index)[0])->first();
+
+          // 1] Получить 1-го бота из группы ботов, обслуживающих магазин
+          if(empty($bot_items_index) || count($bot_items_index) == 0) {
+            $bot = call_user_func(function(){
+
+              $group = config("M14.bot_group_name_to_accept_deposits");
+              $bot = \M8\Models\MD1_bots::whereHas('groups', function($queue) USE ($group) {
+                $queue->where('name', $group);
+              })->first();
+              return $bot;
+
+            });
+          }
+
+          // 2] Иначе, получить первого бота из $bot_items_index
+          else
+            $bot = \M8\Models\MD1_bots::where('id', array_keys($bot_items_index)[0])->first();
 
         // 10.3. Проверить валидность его Trade URL
         $is_users_tradeurl_valid = call_user_func(function() USE ($user, $bot) {
 
-          // 1] Получить steam_tradeurl пользователя $user
+          // 1] Если $bot пуст, вернуть true
+          if(empty($bot))
+            return true;
+
+          // 2] Получить steam_tradeurl пользователя $user
           $steam_tradeurl = $user['steam_tradeurl'];
 
-          // 2] Получить "Partner ID" и "Token" из торгового URL
+          // 3] Получить "Partner ID" и "Token" из торгового URL
           $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
             "trade_url" => $steam_tradeurl
           ]);
           if($partner_and_token['status'] != 0)
             return false;
 
-          // 3] Получить steamname и steamid по торговому URL
+          // 4] Получить steamname и steamid по торговому URL
           $result = runcommand('\M8\Commands\C30_get_steamname_and_steamid_by_tradeurl', [
             "id_bot"  => $bot['id'],
             "partner" => $partner_and_token['data']['partner'],
