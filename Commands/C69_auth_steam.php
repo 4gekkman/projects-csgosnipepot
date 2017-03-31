@@ -169,7 +169,6 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         "websockets_channel"    => ["required"],
         "provider"              => ["required"],
         "hybridauth_config"     => ["required", "array"],
-
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
