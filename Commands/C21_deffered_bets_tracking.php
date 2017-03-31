@@ -175,7 +175,11 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
           if($lastround_status_id > 3) continue;
 
         // 3.2. Получить все accepted-ставки
-        $bets_accepted = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+        $bets_accepted_filtered = \M9\Models\MD3_bets::with(["m8_bots", "m8_items", "m5_users", "safecodes", "rooms", "rounds", "bets_statuses"])
+          ->whereDoesntHave('rounds')
+          ->whereHas('rooms', function($queue) USE($room) {
+            $queue->where('id', $room['id']);
+          })
           ->whereHas('bets_statuses', function($query){
             $query->where('status', 'Accepted');
           })
@@ -184,21 +188,21 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
         // 3.3. Отфильтровать из $bets_accepted неподходящие ставки
         // - Которые уже связаны с любым другим раундом
         // - Которые не связаны с комнатой $room
-        if(!empty($bets_accepted) && is_array($bets_accepted))
-          $bets_accepted_filtered = array_values(array_filter($bets_accepted, function($value, $key) USE ($room) {
-
-            // 1) Если ставка связана с любым другим раундом, вернуть false
-            if(count($value['rounds']) > 0) return false;
-
-            // 2) Если ставка не связана с комнатой $room, вернуть false
-            if(count($value['rooms']) == 0 || $value['rooms'][0]['id'] != $room['id']) return false;
-
-            // n) Иначе, вернуть true
-            return true;
-
-          }, ARRAY_FILTER_USE_BOTH));
-        else
-          $bets_accepted_filtered = [];
+        //if(!empty($bets_accepted) && is_array($bets_accepted))
+        //  $bets_accepted_filtered = array_values(array_filter($bets_accepted, function($value, $key) USE ($room) {
+        //
+        //    // 1) Если ставка связана с любым другим раундом, вернуть false
+        //    if(count($value['rounds']) > 0) return false;
+        //
+        //    // 2) Если ставка не связана с комнатой $room, вернуть false
+        //    if(count($value['rooms']) == 0 || $value['rooms'][0]['id'] != $room['id']) return false;
+        //
+        //    // n) Иначе, вернуть true
+        //    return true;
+        //
+        //  }, ARRAY_FILTER_USE_BOTH));
+        //else
+        //  $bets_accepted_filtered = [];
 
         // 3.4. Если это возможно, добавить в раунд отложенную ставку одного из пользователей
         if(count($bets_accepted_filtered) > 0) {

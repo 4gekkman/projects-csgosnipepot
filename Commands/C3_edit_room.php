@@ -180,6 +180,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "lottery_duration_ms" 			=> ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "winner_duration_s" 			  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "pending_duration_s" 			  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "lottery_client_delta_items_limit_s" => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "offers_timeout_sec" 			  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "bonus_domain" 			        => ["required", "min:0", "max:100"],
         "bonus_domain_name"         => ["required", "string"],
@@ -191,6 +192,7 @@ class C3_edit_room extends Job { // TODO: добавить "implements ShouldQue
         "pending_client_delta_s"   => ["required", "regex:/^[0-9]+$/ui"],
         "lottery_client_delta_ms"  => ["required", "regex:/^[0-9]+$/ui"],
         "winner_client_delta_s"    => ["required", "regex:/^[0-9]+$/ui"],
+        "max_items_peruser_perround"=> ["required", "regex:/^[0-9]+$/ui"],
 
       ]); if($validator['status'] == -1) {
 

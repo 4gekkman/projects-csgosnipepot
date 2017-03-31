@@ -179,6 +179,9 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
         $bet = \M9\Models\MD3_bets::with(['bets_statuses', 'm8_items', 'm8_bots'])
             ->where('id', $this->data['betid'])
             ->where('tradeofferid', $this->data['tradeofferid'])
+            ->whereHas('bets_statuses', function($queue){
+              $queue->where('status', 'Active');
+            })
             ->first();
         if(empty($bet))
           throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);

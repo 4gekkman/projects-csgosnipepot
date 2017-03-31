@@ -221,8 +221,17 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
             $penult_bot_id = $rooms_penultimate_round_bot_ids[$room['id']];
 
             // 2.3.2] Если $penult_bot_id пуст, добавить в $ids первого из $room_bot_ids
-            if(empty($penult_bot_id))
-              $ids[$room['id']] = $room_bot_ids[0];
+            if(empty($penult_bot_id)) {
+
+              // Если таковой есть
+              if(!empty($room_bot_ids[0]))
+                $ids[$room['id']] = $room_bot_ids[0];
+
+              // А если нет, перейти к следующей итерации
+              else
+                continue;
+
+            }
 
             // 2.3.3] В противном случае
             else {
@@ -231,15 +240,33 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
               $pos = array_search($penult_bot_id, $room_bot_ids);
 
               // 2.3.3.2] Если $pos не найдена, добавить в $ids первого из $room_bot_ids
-              if(empty($pos))
-                $ids[$room['id']] = $room_bot_ids[0];
+              if(empty($pos)) {
+
+                // Если таковой есть
+                if(!empty($room_bot_ids[0]))
+                  $ids[$room['id']] = $room_bot_ids[0];
+
+                // А если нет, перейти к следующей итерации
+                else
+                  continue;
+
+              }
 
               // 2.3.3.3] В противном случае
               else {
 
                 // 2.3.3.3.1] Если $pos последняя, добавить в $ids первого из $room_bot_ids
-                if((count($room_bot_ids))-1 == $pos)
-                  $ids[$room['id']] = $room_bot_ids[0];
+                if((count($room_bot_ids))-1 == $pos) {
+
+                  // Если таковой есть
+                  if(!empty($room_bot_ids[0]))
+                    $ids[$room['id']] = $room_bot_ids[0];
+
+                  // А если нет, перейти к следующей итерации
+                  else
+                    continue;
+
+                }
 
                 // 2.3.3.3.1] Если же не последняя, добавить следующую
                 else
@@ -260,6 +287,10 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
 
       // 4. Каждым ботом из (3) запросить через API и обработать свежие данные по активным входящим офферам
       foreach($bot_ids as $id_room => $id_bot) {
+
+        // 4.a. Если бота нет, перейти к следующей итерации
+        if(empty($id_bot))
+          continue;
 
         // 4.1. Получить все активные входящие офферы для бота $id_bot
         $active_incoming_offers = runcommand('\M8\Commands\C19_get_tradeoffers_via_api', [
@@ -516,9 +547,39 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
 
             // 6] Если $items_missed пуст, связать с $newbet все вещи из $items
             else {
-              foreach($items as $item) {
 
-                if(!$newbet->m8_items->contains($item->id)) $newbet->m8_items()->attach($item->id, ['item_price_at_bet_time' => round($item['price'] * 100), 'assetid_users' => $assetid_users_index[$item->name]]);
+              // 6.1] Подготовить массив данных, который позволит связать $newbet со всеми вещами из items_to_receive
+              // - Формат:
+              //
+              //  [
+              //    <assetid>:  [
+              //                  market_name,    // Название вещи
+              //                  id,             // ID вещи у нас в БД в M8
+              //                  price,          // Цена вещи у нас в БД в M8
+              //                ]
+              //  ]
+              //
+              $items2attach = call_user_func(function() USE ($offer, $items) {
+
+                $results = [];
+                if(array_key_exists('items_to_receive', $offer)) {
+                  foreach($offer['items_to_receive'] as $item) {
+                    array_push($results, [
+                      "assetid"     => $item['assetid'],
+                      "market_name" => $item['market_name'],
+                      "id"          => $items->where('name', $item['market_name'])->first()['id'],
+                      "price"       => $items->where('name', $item['market_name'])->first()['price'],
+                    ]);
+                  }
+                }
+                return $results;
+
+              });
+
+              // 6.2] Связать $items2attach с $newbet
+              foreach($items2attach as $item) {
+
+                $newbet->m8_items()->attach($item['id'], ['item_price_at_bet_time' => round($item['price'] * 100), 'assetid_users' => $item['assetid']]);
 
               }
             }
@@ -526,11 +587,11 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
           // 4.6.8. Подсчитать и записать общую сумму ставки в центах
 
             // 1] Подсчитать
-            $sum_cents_at_bet_moment = call_user_func(function() USE ($items) {
+            $sum_cents_at_bet_moment = call_user_func(function() USE ($items2attach) {
 
               $result = 0;
-              foreach($items as $item) {
-                $result = +$result + +$item->price;
+              foreach($items2attach as $item) {
+                $result = +$result + +$item['price'];
               }
               return round($result*100);
 

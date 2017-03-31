@@ -189,6 +189,12 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
             "id_partner"    => $this->data['partnerid'],
           ]);
 
+          // Узнать, принят ли уже оффер
+          if($accept_result['status'] != 0)
+            $is_already_accepted = preg_match("/Please try again later. \(11\)/ui", array_key_exists('errormsg', $accept_result['data']) ? $accept_result['data']['errormsg'] : (array_key_exists('response', $accept_result['data']) ? $accept_result['data']['response']['strError'] : ""));
+          else
+            $is_already_accepted = 0;
+
         }
 
         // 2.m. В противном случае, по-тихому завершить команду
@@ -202,11 +208,19 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
       // - Успешное, это когда: нет ошибки и вернулся не пустой $result['data']['tradeofferid'].
       // - Команда также обновит весь кэш, и пошлёт по частному каналу уведомление игроку.
       if (
-        $accept_result['status'] == 0 &&
-        !empty($accept_result) &&
-        array_key_exists('data', $accept_result) &&
-        array_key_exists('tradeid', $accept_result['data']) &&
-        !empty($accept_result['data']['tradeid'])
+
+        (
+          $accept_result['status'] == 0 &&
+          !empty($accept_result) &&
+          array_key_exists('data', $accept_result) &&
+          array_key_exists('tradeid', $accept_result['data']) &&
+          !empty($accept_result['data']['tradeid'])
+        ) ||
+        (
+          $accept_result['status'] != 0 &&
+          !empty($is_already_accepted)
+        )
+
       ) {
 
         // Внести изменения
@@ -432,16 +446,14 @@ class C44_accept_offer_type2 extends Job { // TODO: добавить "implements
         // 4.5. Если оффер не активен, и статус отличается от 3, применяем C15
         if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] != 3) {
 
-          $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
+          runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
             "betid"             => $this->data['betid'],
             "tradeofferid"      => $this->data['tradeofferid'],
             "another_status_id" => 7,
             "id_user"           => $this->data['id_user'],
             "id_room"           => $this->data['id_room'],
             "codes_and_errors"  => "",
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
+          ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
 
         }
 

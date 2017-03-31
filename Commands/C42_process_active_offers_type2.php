@@ -234,6 +234,8 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
               'desc'    => 'Сумма ставки слишком велика. Максимум: '
             ],
 
+
+
           ];
 
           // 2.2. Вычислить кол-во предметов в ставке, и её сумму в центах
@@ -350,8 +352,8 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
             // Проверяем №6 в $checklist: слишком много предметов для ставки
             call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
 
-              // 1] Если слишком много предметов для ставки
-              if($count_and_sum['count'] > $room_limits['max_items_per_bet']) {
+              // 1] Если слишком много предметов для ставки, и кол-во предметов в ставке ограничено
+              if($room_limits['max_items_per_bet'] != 0 && $count_and_sum['count'] > $room_limits['max_items_per_bet']) {
 
                 // 1.1] Установить verdict равным true
                 $checklist['max_items_per_bet']['verdict'] = true;
@@ -382,8 +384,8 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
             // Проверяем №8 в $checklist: сумма ставки слишком велика
             call_user_func(function() USE (&$checklist, $offer, $count_and_sum, $room_limits) {
 
-              // 1] Если сумма ставки слишком велика
-              if($count_and_sum['sum'] > $room_limits['max_bet']) {
+              // 1] Если сумма ставки слишком велика, и ограничена
+              if($room_limits['max_bet'] != 0 && $count_and_sum['sum'] > $room_limits['max_bet']) {
 
                 // 1.1] Установить verdict равным true
                 $checklist['max_bet']['verdict'] = true;

@@ -959,7 +959,7 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
 
         });
 
-        // 2] Составить индекс игроков раунда, их шансов и кол-ва аватарок в ленте
+        // 2] Составить индекс ставок раунда, их шансов и кол-ва аватарок в ленте
         // - Он должен выглядеть так:
         //
         //  [
@@ -1012,7 +1012,8 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           $result = [];
 
           // 3.2] Наполнить $result
-          // - В $result не должно войти более $avatars_num записей
+          // - В $result не должно войти более $avatars_num записей;
+          // - При этом, в $result должно быть ровно 110 элементов.
           foreach($users_odds_index as $data) {
             for($i=0; $i<$data['num']; $i++) {
               if(count($result) < $avatars_num)
@@ -1042,11 +1043,9 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
       DB::commit();
 
       // x2. Обновить весь кэш процессинга выигрышей
-      $result = runcommand('\M9\Commands\C25_update_wins_cache', [
+      runcommand('\M9\Commands\C25_update_wins_cache', [
         "all"   => true
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception($result['data']['errormsg']);
+      ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'processor_wins_hard']);
 
       // x3. Обновить данные о выигрышах у победителя
       // - Через websocket, по частному каналу

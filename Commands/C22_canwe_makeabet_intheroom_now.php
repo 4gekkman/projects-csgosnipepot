@@ -244,9 +244,10 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
       $room_limits = call_user_func(function() USE ($room) {
 
         return [
-          "max_items_per_round" => $room['max_items_per_round'],  // MAX кол-во предметов в раунде
-          "max_round_jackpot"   => $room['max_round_jackpot'],    // MAX банк раунда в центах
-          "max_bets_per_round"  => $room['max_bets_per_round'],   // MAX кол-во ставок игроком за раунд
+          "max_items_per_round"         => $room['max_items_per_round'],        // MAX кол-во предметов в раунде
+          "max_round_jackpot"           => $room['max_round_jackpot'],          // MAX банк раунда в центах
+          "max_bets_per_round"          => $room['max_bets_per_round'],         // MAX кол-во ставок игроком за раунд
+          "max_items_peruser_perround"  => $room['max_items_peruser_perround'], // MAX кол-во вещей, который игрок может поставить за раунд
         ];
 
       });
@@ -279,12 +280,24 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
           return $result;
         });
 
-        // 4] Вычислить кол-во ставок пользователя id_user в банке
+        // 4] Вычислить кол-во принятых ставок пользователя id_user в банке
         $results['user_bets_count'] = call_user_func(function() USE ($lastround) {
           $result = 0;
           foreach($lastround['bets'] as $bet) {
-            if($bet['m5_users'][0]['id'] == $this->data['id_user'])
+            if($bet['m5_users'][0]['id'] == $this->data['id_user'] && in_array($bet['bets_statuses'][0]['status'], ['Accepted']))
               $result = +$result + 1;
+          }
+          return $result;
+        });
+
+        // 5] Вычислить кол-во поставленных пользователем id_user вещей в банке
+        $results['user_items_count'] = call_user_func(function() USE ($lastround) {
+          $result = 0;
+          foreach($lastround['bets'] as $bet) {
+            if($bet['m5_users'][0]['id'] == $this->data['id_user'] && in_array($bet['bets_statuses'][0]['status'], ['Accepted'])) {
+              foreach($bet['m8_items'] as $item)
+                $result = +$result + 1;
+            }
           }
           return $result;
         });
@@ -294,7 +307,7 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
 
       });
 
-      // 8. Определить, не превышены ли уже лимиты в этом раунде
+      // 9. Определить, не превышены ли уже лимиты в этом раунде
       $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
 
         // 1] Подготовить массив для результатов
@@ -348,12 +361,28 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
 
         });
 
+        // 5] Достенгут ли лимит по кол-ву поставленных вещей для пользователя id_user
+        $results['by_items_count'] = call_user_func(function() USE ($room_limits, $bank) {
+
+          // Если ограничений нет (значение 0), вернуть false
+          if($room_limits['max_items_peruser_perround'] <= 0)
+            return false;
+
+          // Если лимит превышен, вернуть true
+          if(intval($bank['user_items_count']) >= intval($room_limits['max_items_peruser_perround']))
+            return true;
+
+          // Вернуть false (по умолчанию)
+          return false;
+
+        });
+
         // n] Вернуть результаты
         return $results;
 
       });
 
-      // 9. Сформулировать итоговый вердикт, можем ли мы в этом раунде принять ставку от этого пользователя
+      // 10. Сформулировать итоговый вердикт, можем ли мы в этом раунде принять ставку от этого пользователя
       $verdict = call_user_func(function() USE ($is_limits_exceeded) {
         foreach($is_limits_exceeded as $is_exceeded) {
           if($is_exceeded == true) return false;

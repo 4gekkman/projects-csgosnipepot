@@ -250,10 +250,9 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
 
           }
 
-
         // 8. Отслеживать изменение статусов текущих раундов всех вкл.комнат
         runcommand('\M9\Commands\C18_round_statuses_tracking', [],
-            0, ['on'=>true, 'name'=>$queue]);
+            0, ['on'=>true, 'name'=>'m9_processor_statuses']);
 
 
         // 9. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате

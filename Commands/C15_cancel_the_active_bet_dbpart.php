@@ -177,9 +177,12 @@ class C15_cancel_the_active_bet_dbpart extends Job { // TODO: добавить "
       $bet = \M9\Models\MD3_bets::with(['bets_statuses'])
           ->where('id', $this->data['betid'])
           ->where('tradeofferid', $this->data['tradeofferid'])
+          ->whereHas('bets_statuses', function($queue){
+            $queue->where('status', 'Active');
+          })
           ->first();
       if(empty($bet))
-        throw new \Exception('Не удалось найти ставку в m9.md3_bets по id = '.$this->data['betid']);
+        throw new \Exception('Не удалось найти активную ставку в m9.md3_bets по id = '.$this->data['betid']);
 
       // 3. Получить статусы Active и статус для another_status_id
       $status_active = \M9\Models\MD8_bets_statuses::where('status', 'Active')->first();

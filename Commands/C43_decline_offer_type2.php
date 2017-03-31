@@ -192,16 +192,14 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
         $decline_result['data']['tradeofferid'] == $this->data['tradeofferid']
       ) {
 
-        $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
+        runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
           "betid"             => $this->data['betid'],
           "tradeofferid"      => $this->data['tradeofferid'],
           "another_status_id" => $status_declined->id,
           "id_user"           => $this->data['id_user'],
           "id_room"           => $this->data['id_room'],
           "codes_and_errors"  => $this->data['codes_and_errors'],
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
 
       }
 
@@ -389,16 +387,14 @@ class C43_decline_offer_type2 extends Job { // TODO: добавить "implement
         // 4.5. Если оффер не активен, и статус отличается от 3, применяем C15
         if($is_offer_not_active['verdict'] == true && $is_offer_not_active['trade_offer_state'] != 3) {
 
-          $result = runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
+          runcommand('\M9\Commands\C15_cancel_the_active_bet_dbpart', [
             "betid"             => $this->data['betid'],
             "tradeofferid"      => $this->data['tradeofferid'],
             "another_status_id" => 7,
             "id_user"           => $this->data['id_user'],
             "id_room"           => $this->data['id_room'],
             "codes_and_errors"  => "",
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
+          ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm9_c16']);
 
         }
 

@@ -176,8 +176,8 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           $result = [];
 
           // 2] Получить из $room последний раунд
-          //$result['lastround'] = $room['rounds'][count($room['rounds']) - 1];
           $result['lastround'] = $room['rounds'][0];
+          $result['lastround_db'] = \M9\Models\MD2_rounds::with(['bets', 'bets.m8_items'])->where('id', $room['rounds'][0]['id'])->first()->toArray();
 
           // 3] Получить массив-текущий-статус для lastround
           $result['lastround_status'] = $result['lastround']['rounds_statuses'][count($result['lastround']['rounds_statuses']) - 1];
@@ -209,7 +209,7 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             $count = 0;
 
             // 10.2] Пробежатсья по ставкам последнего раунда
-            foreach($result['lastround']['bets'] as $bet) {
+            foreach($result['lastround_db']['bets'] as $bet) {
               $count = +$count + +count($bet['m8_items']);
             }
 
@@ -345,8 +345,9 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
           });
           if($is_started == true) return [
-            "id"    => "3",
-            "name"  => "Started"
+            "id"                      => "3",
+            "name"                    => "Started",
+            "is_skins_limit_reached"  => !$params['is_skins_amount_limit_is_not_reached']
           ];
 
           // 4] Pending
@@ -365,8 +366,9 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
           });
           if($is_pending == true) return [
-            "id"    => "4",
-            "name"  => "Pending"
+            "id"                      => "4",
+            "name"                    => "Pending",
+            "is_skins_limit_reached"  => !$params['is_skins_amount_limit_is_not_reached']
           ];
 
           // 5] Lottery
@@ -385,8 +387,9 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
 
           });
           if($is_lottery == true) return [
-            "id"    => "5",
-            "name"  => "Lottery"
+            "id"                      => "5",
+            "name"                    => "Lottery",
+            "is_skins_limit_reached"  => !$params['is_skins_amount_limit_is_not_reached']
           ];
 
           // 6] Winner
@@ -485,14 +488,23 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
             "comment"    => "Автоматическое изменение статуса раунда командой m9.C18"
           ]);
 
-          // 7] Если новый статус - Lottery - то вычислить победителя
+          // 7] Если новый статус - Lottery
           if($suitable_room_status['name'] == "Lottery") {
+
+            // Наполнить значение is_skins_limit_reached раунда $lastround
+            if($lastround->is_skins_limit_reached != 1) {
+              $lastround->is_skins_limit_reached = $suitable_room_status['is_skins_limit_reached'] ? 1 : 0;
+              $lastround->save();
+            }
+
+            // Вычислить победителя
             $result = runcommand('\M9\Commands\C23_who_are_you_mr_winner', [
               "id_round" => $lastround['id'],
               "id_room"  => $room['id']
             ]);
             if($result['status'] != 0)
               throw new \Exception($result['data']['errormsg']);
+
           }
 
           // 8] Если новый статус - Winner
@@ -529,8 +541,13 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           // 9] Если новый статус - Started
           if($suitable_room_status['name'] == "Started") {
 
-            // Наполнить поле started_at у раунда
+            // Записать started_at в БД
             $lastround->started_at = $params['current_server_time']->toDateTimeString();
+
+            // Записать is_skins_limit_reached в БД
+            $lastround->is_skins_limit_reached = $suitable_room_status['is_skins_limit_reached'] ? 1 : 0;
+
+            // Сохранить
             $lastround->save();
 
           }
@@ -539,6 +556,31 @@ class C18_round_statuses_tracking extends Job { // TODO: добавить "imple
           if($suitable_room_status['name'] == "Created") {
 
 
+
+          }
+
+          // 11] Если новый статус - Pending
+          if($suitable_room_status['name'] == "Pending") {
+
+            // 11.1] Если раунд закончился досрочно (по достижению лимита вещей)
+            if($lastround->is_skins_limit_reached != 1 && $suitable_room_status['is_skins_limit_reached']) {
+
+              // Записать is_skins_limit_reached в БД
+              $lastround->is_skins_limit_reached = $suitable_room_status['is_skins_limit_reached'] ? 1 : 0;
+
+              // Сохранить
+              $lastround->save();
+
+            }
+
+            // 11.1] Записать stated_duration_fact_s
+            if($suitable_room_status['is_skins_limit_reached']) {
+
+              // Записать started_duration_fact_s в БД
+              $lastround->started_duration_fact_s = \Carbon\Carbon::parse($lastround->started_at)->diffInSeconds((\Carbon\Carbon::now()));
+              $lastround->save();
+
+            }
 
           }
 

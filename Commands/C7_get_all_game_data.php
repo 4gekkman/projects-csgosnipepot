@@ -182,27 +182,27 @@ class C7_get_all_game_data extends Job { // TODO: добавить "implements S
           $rooms = json_decode(Cache::get('processing:rooms:safe'), true);
 
         // 2.2. Если комнат у игры вообще нет, синхронизировать их с конфигом
-        if(count($rooms) == 0) {
-
-          // 1] Синхронизировать
-          $result = runcommand('\M9\Commands\C8_sync_rooms', []);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 2] Обновить весь кэш
-          $result = runcommand('\M9\Commands\C13_update_cache', [
-            "all"   => true
-          ]);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 3] Извлечь коллекцию всех игровых данных из кэша
-          if($this->data['safe'] == false)
-            $rooms = json_decode(Cache::get('processing:rooms'), true);
-          else
-            $rooms = json_decode(Cache::get('processing:rooms:safe'), true);
-
-        }
+        //if(count($rooms) == 0) {
+        //
+        //  // 1] Синхронизировать
+        //  $result = runcommand('\M9\Commands\C8_sync_rooms', []);
+        //  if($result['status'] != 0)
+        //    throw new \Exception($result['data']['errormsg']);
+        //
+        //  // 2] Обновить весь кэш
+        //  $result = runcommand('\M9\Commands\C13_update_cache', [
+        //    "all"   => true
+        //  ]);
+        //  if($result['status'] != 0)
+        //    throw new \Exception($result['data']['errormsg']);
+        //
+        //  // 3] Извлечь коллекцию всех игровых данных из кэша
+        //  if($this->data['safe'] == false)
+        //    $rooms = json_decode(Cache::get('processing:rooms'), true);
+        //  else
+        //    $rooms = json_decode(Cache::get('processing:rooms:safe'), true);
+        //
+        //}
 
       // 3. Получить куку пользователя с ID включенной комнаты
       $choosen_room_id = call_user_func(function() USE ($rooms) {
