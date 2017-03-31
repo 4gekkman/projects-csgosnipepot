@@ -512,6 +512,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/',
 			icon_mdi:   'mdi-crown',
 			icon_url:   '',
+			icon_svg:   '',
 			title:      'Classic game',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
@@ -526,6 +527,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/matchbets',
 			icon_mdi:   '',
 			icon_url:   self.m.s0.asset_url() + 'public/L10003/assets/icons/vs.png',
+			icon_svg:   '',
 			title:      'Match bets',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
@@ -540,6 +542,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/double',
 			icon_mdi:   'mdi-adjust',
 			icon_url:   '',
+			icon_svg:   '',
 			title:      'Double game',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
@@ -554,6 +557,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/coinflip',
 			icon_mdi:   'mdi-checkbox-multiple-blank-circle-outline',
 			icon_url:   '',
+			icon_svg:   '',
 			title:      'Coinflip',
 			bg_color:   '#284351',
 			brd_color:  '#2f5463',
@@ -568,6 +572,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/shop',
 			icon_mdi:   'mdi-shopping',
 			icon_url:   '',
+			icon_svg:   '',
 			title:      'Магазин',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -580,8 +585,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		},
 		{
 			uri:        '/profile',
-			icon_mdi:   'mdi-account',
+			icon_mdi:   '',
 			icon_url:   '',
+			icon_svg:   self.m.s0.asset_url() + 'public/L10003/assets/icons2/person-3.svg',
 			title:      'Профиль',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -596,6 +602,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/ref',
 			icon_mdi:   'mdi-account-multiple',
 			icon_url:   '',
+			icon_svg:   '',
 			title:      'Партнёрка',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -608,8 +615,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		},
 		{
 			uri:        '/top',
-			icon_mdi:   'mdi-star-outline',
+			icon_mdi:   '',
 			icon_url:   '',
+			icon_svg:   self.m.s0.asset_url() + 'public/L10003/assets/icons2/star.svg',
 			title:      'ТОП игроков',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -622,8 +630,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		},
 		{
 			uri:        '/faq',
-			icon_mdi:   'mdi-information-outline',
+			icon_mdi:   '',
 			icon_url:   '',
+			icon_svg:   self.m.s0.asset_url() + 'public/L10003/assets/icons2/info.svg',
 			title:      'F.A.Q.',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -636,8 +645,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		},
 		{
 			uri:        '/support',
-			icon_mdi:   'mdi-help-circle-outline',
+			icon_mdi:   '',
 			icon_url:   '',
+			icon_svg:   self.m.s0.asset_url() + 'public/L10003/assets/icons2/tool.svg',
 			title:      'Тех.поддержка',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -650,8 +660,9 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 		},
 		{
 			uri:        '/free',
-			icon_mdi:   'mdi-coin',
+			icon_mdi:   '',
 			icon_url:   '',
+			icon_svg:   self.m.s0.asset_url() + 'public/L10003/assets/icons2/box-1.svg',
 			title:      'Free coins',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -666,6 +677,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			uri:        '/deposit',
 			icon_mdi:   'mdi-plus-circle-outline',
 			icon_url:   '',
+			icon_svg:   '',
 			title:      'Deposit',
 			bg_color:   '#223340',
 			brd_color:  'transparent',
@@ -1429,6 +1441,47 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 			// 2. Запустить f, чтобы срабатывала ежесекундно
 			setTimeout(f, 5000, self);
+
+		})();
+
+		//---------------------------------------------------------------//
+		// X1.12. Превратить все img svg в главном меню в инлайновые svg //
+		//---------------------------------------------------------------//
+		(function(){
+
+			$(document).ready(function() {
+
+				$('.items .item .item-content img.svg').each(function(){
+					var $img = $(this);
+					var imgID = $img.attr('id');
+					var imgClass = $img.attr('class');
+					var imgURL = $img.attr('src');
+
+					$.get(imgURL, function(data) {
+
+						// Get the SVG tag, ignore the rest
+						var $svg = $(data).find('svg');
+
+						// Add replaced image's ID to the new SVG
+						if (typeof imgID !== 'undefined') {
+							$svg = $svg.attr('id', imgID);
+						}
+
+						// Add replaced image's classes to the new SVG
+						if (typeof imgClass !== 'undefined') {
+							$svg = $svg.attr('class', imgClass+' replaced-svg');
+						}
+
+						// Remove any invalid XML tags as per http:validator.w3.org
+						$svg = $svg.removeAttr('xmlns:a');
+
+						// Replace image with new SVG
+						$img.replaceWith($svg);
+
+					});
+				});
+
+			});
 
 		})();
 

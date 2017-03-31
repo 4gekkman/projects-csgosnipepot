@@ -73,7 +73,7 @@
     padding: 10px 15px 13px 15px !important;
   }
   #toast-container .toast {
-    background-color: #444b51;
+    background-color: #172125;
     border: 0;
     border-top: 3px solid rgba(255, 255, 255, 0.9);
     box-shadow: 0 0 1px 1px RGBA(0,0,0,0);
@@ -587,7 +587,6 @@
         margin-bottom: $sizes_header_height*.2;
         padding-right: 15px;
         padding-left: 15px;
-        color: #ccc;
         font-size: 13px;
         cursor: pointer;
         background: transparent;
@@ -696,7 +695,7 @@
       height: $sizes_mainmenu_itemh; width: 100%;
       border-bottom: 1px solid #161f24;
       cursor: pointer;
-      transition: all .2s ease;
+      //transition: all .2s ease;
       font-size: 34px;
     }
     .menu:not(.menu-hidden) .items .item:hover {
@@ -726,11 +725,26 @@
       display: inline-block;
       vertical-align: middle;
     }
+    .menu .items .item .item-content .icon object {
+      max-height: 34px;
+      max-width: 34px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .menu .items .item .item-content .icon svg {
+      max-height: 34px;
+      max-width: 34px;
+      display: inline-block;
+      vertical-align: middle;
+    }
 
     // Стиль выбранного пункта меню
     .menu .items .item.choosen {
       color: #59b0db;
       background: #172125 !important;
+    }
+    .menu .items .item.choosen .icon svg path {
+      fill: #59b0db;
     }
 
     // Стандартный контент пункта меню
