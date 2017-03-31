@@ -138,7 +138,7 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Попробовать найти бота с id_bot
+     *  2. Попробовать найти бота с id_bot, если частота попыток его аутентифицировать превышена, завершить
      *  3. Проверить, вошёл ли уже $bot в Steam, или нет
      *  4. Если $bot уже вошёл в Steam, завершить
      *  5. Запросить публичный RSA-ключ для бота
@@ -164,14 +164,41 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         throw new \Exception($validator['data']);
       }
 
-      // 2. Попробовать найти бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception("Can't find bot with ID = ".$this->data['id_bot']);
-      if(empty($bot->login))
-        throw new \Exception("Login of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
-      if(empty($bot->steamid))
-        throw new \Exception("Steam ID of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
+      // 2. Попробовать найти бота с id_bot, если частота попыток его аутентифицировать превышена, завершить
+
+        // 2.1. Попробовать найти бота с id_bot
+        $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+        if(empty($bot))
+          throw new \Exception("Can't find bot with ID = ".$this->data['id_bot']);
+        if(empty($bot->login))
+          throw new \Exception("Login of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
+        if(empty($bot->steamid))
+          throw new \Exception("Steam ID of the bot with ID = ".$this->data['id_bot']." is empty, but required.");
+
+        // 2.2. Если частота попыток его аутентифицировать превышена, завершить
+        // - Пытаться аутентифицировать бота не чаще, чем раз в 55 секунд.
+
+          // 1] Получить из кэша дату и время последней попытки
+          $last_try_datetime = Cache::get('m8:c8:bot_login:lasttry:datetime:'.$this->data['id_bot']);
+
+          // 2] Если $last_try_datetime не пуста, и прошло менее 55 секунд, завершить по-тихому
+          if(!empty($last_try_datetime) && +(\Carbon\Carbon::parse($last_try_datetime)->diffInSeconds(\Carbon\Carbon::now())) < 55) {
+
+            return [
+              "status"  => 0,
+              "data"    => [
+                'was_bot_authorized'  => false,
+                'id_bot'              => $this->data['id_bot'],
+                'relogin'             => $this->data['relogin'],
+                'sessionid'           => "",
+                'too_many_tries'      => true
+              ]
+            ];
+
+          }
+
+          // 3] Обновить кэш
+          Cache::put('m8:c8:bot_login:lasttry:datetime:'.$this->data['id_bot'], \Carbon\Carbon::now()->toDateTimeString(), 300);
 
       // 3. Проверить, вошёл ли уже $bot в Steam, или нет
       $is_bot_authorized = call_user_func(function() USE ($bot) {
@@ -211,7 +238,8 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
             'was_bot_authorized'  => $is_bot_authorized['is_bot_authenticated'],
             'id_bot'              => $this->data['id_bot'],
             'relogin'             => $this->data['relogin'],
-            'sessionid'           => $is_bot_authorized['sessionid']
+            'sessionid'           => $is_bot_authorized['sessionid'],
+            'too_many_tries'      => false
           ]
         ];
 
@@ -408,7 +436,8 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
               'was_bot_authorized'  => $is_bot_authorized['is_bot_authenticated'],
               'id_bot'              => $this->data['id_bot'],
               'relogin'             => $this->data['relogin'],
-              'sessionid'           => $is_bot_authorized_new['sessionid']
+              'sessionid'           => $is_bot_authorized_new['sessionid'],
+              'too_many_tries'      => false
             ]
           ];
 

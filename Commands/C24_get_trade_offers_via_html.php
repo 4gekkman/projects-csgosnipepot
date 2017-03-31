@@ -896,14 +896,14 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
       // 2] Если текст ошибки содержит waitforauth, переавторизовать бота id_bot
       if(preg_match("/waitforauth/ui", $e->getMessage()) != 0) {
 
-        //runcommand('\M8\Commands\C8_bot_login', [
-        //  "id_bot"          => $this->data['id_bot'],
-        //  "relogin"         => "1",
-        //  "captchagid"      => "0",
-        //  "captcha_text"    => "0",
-        //  "method"          => "GET",
-        //  "cookies_domain"  => "steamcommunity.com"
-        //]);
+        runcommand('\M8\Commands\C8_bot_login', [
+          "id_bot"          => $this->data['id_bot'],
+          "relogin"         => "1",
+          "captchagid"      => "0",
+          "captcha_text"    => "0",
+          "method"          => "GET",
+          "cookies_domain"  => "steamcommunity.com"
+        ]);
 
       }
 

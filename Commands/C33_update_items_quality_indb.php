@@ -301,7 +301,19 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
 
           });
 
-          // 1.3. Определить качество
+          // 4.5. Извлечь URL изображения
+          $steammarket_image = call_user_func(function() USE ($html) {
+
+            libxml_use_internal_errors(true);
+            $doc = new \DOMDocument();
+            $doc->loadHTML($html);
+            $xpath = new \DOMXPath($doc);
+            $img = $xpath->query('.//div[contains(@class, "market_listing_largeimage")]/img/@src')->item(0)->nodeValue;
+            return $img;
+
+          });
+
+          // 4.6. Определить качество
           $quality = call_user_func(function() USE ($quality_info) {
 
             // 0] Если $quality_info пуст
@@ -349,13 +361,12 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
           Log::info('Quality: '.$quality);
           Log::info('-------');
 
-          // 1.4. Записать тип в БД, если его удалось определить
-          if(!empty($quality)) {
-            DB::beginTransaction();
-            $item->quality = $quality;
-            $item->save();
-            DB::commit();
-          }
+          // 1.4. Записать тип и изображение в БД, если их удалось определить
+          DB::beginTransaction();
+          if(!empty($quality)) $item->quality = $quality;
+          if(!empty($steammarket_image)) $item->steammarket_image = $steammarket_image;
+          $item->save();
+          DB::commit();
 
         }
         return;

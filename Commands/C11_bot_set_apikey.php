@@ -183,8 +183,22 @@ class C11_bot_set_apikey extends Job { // TODO: добавить "implements Sho
         return $result['data'];
 
       });
-      if(!$is_bot_authorized['is_bot_authenticated'])
+      if(!$is_bot_authorized['is_bot_authenticated']) {
+
+        // 1] Попробовать авторизовать бота
+        $result = runcommand('\M8\Commands\C8_bot_login', [
+          "id_bot"          => $this->data['id_bot'],
+          "relogin"         => "1",
+          "captchagid"      => "0",
+          "captcha_text"    => "0",
+          "method"          => "GET",
+          "cookies_domain"  => "steamcommunity.com"
+        ]);
+
+        // 2] Вызвать ошибку
         throw new \Exception("The bot with ID = ".$this->data['id_bot']." not logged in Steam.");
+
+      }
 
       // 4. Если domain бота пуст, назначить ему domain из параметров
       if(empty($bot->apikey_domain)) {
@@ -265,6 +279,12 @@ class C11_bot_set_apikey extends Job { // TODO: добавить "implements Sho
 
           // 5.1.5. Если доступ есть, но API-ключ не получен, или домен не совпадает с доменом бота
           else if ($recursionLevel < 3 || empty($key) || empty($domain) || $domain != $bot->apikey_domain) {
+
+            Log::info('$recursionLevel = '.$recursionLevel);
+            Log::info('$key = '.$key);
+            Log::info('$domain = '.$domain);
+            Log::info('$bot->apikey_domain = '.$bot->apikey_domain);
+            Log::info('-');
 
             // 1] Зарегистрировать для $bot новый API-ключ
             $result = runcommand('\M8\Commands\C6_bot_request_steam', [
