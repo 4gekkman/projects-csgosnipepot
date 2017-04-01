@@ -1700,24 +1700,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		})();
 
 		// 3] Добавить bet в smoothbets, если should_add
-		// - И проиграть соотв.звук.
 		if(should_add) {
-
-			// 3.1] Добавить
 			self.m.s1.smoothbets.bets.unshift(bet);
-
-			// 3.2] Воспроизвести рандумно 1 из 3 звуков добавления ставки
- 			// self.f.s1.playsound('bet');
-
+			bet.is_expanded(1);
 		}
-
-		// 4] Изменить значение свойства is_expanded ставки bet на true через 500мс
-		setImmediate(function(is_expanded) {
-			is_expanded(1);
-		}.bind(null, bet.is_expanded));
-		//setTimeout(function(is_expanded) {
-		//	is_expanded(1);
-		//}, 500, bet.is_expanded);
 
 	};
 
@@ -1811,8 +1797,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	// s1.21. Получить стартовый набор с историей (10 шт.) для выбранной комнаты //
 	//---------------------------------------------------------------------------//
 	f.s1.get_initial_history = function(data, event) {
-
-		console.log('f.s1.get_initial_history');
 
 		// 1] Если нет необходимых ресурсов, ничего не делать
 		if(!self.m.s1.game.choosen_room()) return;

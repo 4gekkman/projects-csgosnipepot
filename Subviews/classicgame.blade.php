@@ -232,7 +232,7 @@
             <!---------------------------*/ ?>
             <div class="limits">
               <span data-bind="text: 'Минимальная сумма депозита '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.ceil((Math.round(m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)  + ' руб.') : ' не ограничена.')"></span>
-              <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' предметов.') : ' не ограничен.')"></span>
+              <span data-bind="text: 'Максимальный депозит '+(m.s1.game.choosen_room().max_items_peruser_perround() != 0 ? (m.s1.game.choosen_room().max_items_peruser_perround() + ' предметов.') : ' не ограничен.')"></span>
             </div>
 
           </div>
@@ -258,7 +258,7 @@
               <span class="arrows-left"></span>
               <div>
                 <span data-bind="text: 'МИНИМАЛЬНАЯ СУММА ДЕПОЗИТА '+(m.s1.game.choosen_room().min_bet() != 0 ? (Math.ceil((Math.round(m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)  + ' РУБ.') : ' не ограничена.')"></span>
-                <span data-bind="text: 'МАКСИМАЛЬНЫЙ ДЕПОЗИТ '+(m.s1.game.choosen_room().max_items_per_bet() != 0 ? (m.s1.game.choosen_room().max_items_per_bet() + ' ПРЕДМЕТОВ.') : ' НЕ ОГРАНИЧЕН.')"></span>
+                <span data-bind="text: 'МАКСИМАЛЬНЫЙ ДЕПОЗИТ '+(m.s1.game.choosen_room().max_items_peruser_perround() != 0 ? (m.s1.game.choosen_room().max_items_peruser_perround() + ' ПРЕДМЕТОВ.') : ' НЕ ОГРАНИЧЕН.')"></span>
               </div>
               <span class="arrows-right"></span>
             </div>
@@ -434,7 +434,7 @@
       <?php /*---------------------->
       <!-- 1.1.2.5. Ставки раунда -->
       <!------------------------*/ ?>
-      <div class="bets" data-bind="foreach: m.s1.smoothbets.bets"> <!-- m.s1.game.curprev().current().bets.slice(0).reverse()"> -->
+      <div class="bets" data-bind="foreach: m.s1.smoothbets.bets">
 
         <?php /*------>
         <!-- Ставка -->
@@ -524,7 +524,7 @@
               <!-- Цена -->
               <!------*/ ?>
               <div class="price">
-                <span data-bind="text: Math.round(price()*server.data.usdrub_rate)"></span>
+                <span data-bind="text: '~'+Math.round(price()*server.data.usdrub_rate)"></span>
                 <span class="rub" data-bind="text: 'руб'"></span>
               </div>
 
@@ -732,7 +732,7 @@
       <!-- 4] Модальный щит загрузки со спинером -->
       <!---------------------------------------*/ ?>
       <div class="loader">
-        <div style="display: none" class="modal_shield loader-inner ball-clip-rotate" data-bind="visible: m.s0.is_load_shield_on">
+        <div style="display: none;z-index:1;" class="modal_shield loader-inner ball-clip-rotate" data-bind="visible: m.s0.is_load_shield_on">
           <div></div>
         </div>
       </div>

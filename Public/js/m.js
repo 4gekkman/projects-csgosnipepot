@@ -643,9 +643,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 
 
-
-
-
 	});
 
 	//------------------------------------------//

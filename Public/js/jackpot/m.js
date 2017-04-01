@@ -1579,10 +1579,17 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			}
 
-			// 5] Обновить данные для текущего аутентифицированного игрока
+			// 5] Отсортировать wheel.data по шансам, от больших к меньшим
+			self.m.s1.game.wheel.data.sort(function(a,b){
+				if(a.odds() < b.odds()) return 1;
+				if(a.odds() > b.odds()) return -1;
+				return 0;
+			});
+
+			// 6] Обновить данные для текущего аутентифицированного игрока
 			(function(){
 
-				// 5.1] Попробовать найти данные для текущего аутентифицированного пользователя
+				// 6.1] Попробовать найти данные для текущего аутентифицированного пользователя
 				for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
 					if(self.m.s1.game.wheel.data()[i].user().id() == layoutmodel.m.s0.auth.user().id()) {
 						self.m.s1.game.wheel.currentuser(self.m.s1.game.wheel.data()[i]);
@@ -1590,12 +1597,12 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					}
 				}
 
-				// 5.2] Если данных нет, записать пустую строку
+				// 6.2] Если данных нет, записать пустую строку
 				self.m.s1.game.wheel.currentuser("");
 
 			})();
 
-			// 6] Переинициировать tooltipster
+			// 7] Переинициировать tooltipster
 			self.f.s0.tooltipster_init();
 
 		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
@@ -1648,13 +1655,20 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();
 
-			// 3] Добавить newbets в smoothbets
+			// 3] Отсортировать newbets по tickets_from
+			newbets.sort(function(a,b){
+				if(a.m5_users()[0].pivot.tickets_from() < b.m5_users()[0].pivot.tickets_from()) return 1;
+				if(a.m5_users()[0].pivot.tickets_from() > b.m5_users()[0].pivot.tickets_from()) return -1;
+				return 0;
+			});
+
+			// 4] Добавить newbets в smoothbets
 			for(var i=0; i<newbets.length; i++) {
 
-				// 3.1] Добавить
+				// 4.1] Добавить
 				self.f.s1.smootbets_add(newbets[i], self.m.s1.game.choosen_room().id(), self.m.s1.game.curprev().current().id());
 
-				// 3.2] Добавить текст для уведомления в пункте "Classic game" главного меню
+				// 4.2] Добавить текст для уведомления в пункте "Classic game" главного меню
 				layoutmodel.m.s6.notify.text((function(){
  					return '+ '+Math.ceil((newbets[i].sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.';
 				})());
