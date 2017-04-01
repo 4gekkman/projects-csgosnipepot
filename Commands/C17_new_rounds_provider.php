@@ -181,10 +181,10 @@ class C17_new_rounds_provider extends Job { // TODO: добавить "implement
 
             // 3.3] Подготовить случайное число от 0 до 1
             // - Обеспечив квинтильен вариантов (10^18)
-            $key = random_int(1,pow(10,18))/pow(10,18);
+            $key = number_format(random_int(1,pow(10,18))/pow(10,18), 16, '.', '' );
 
             // 3.4] Получить sha224-хэш для $key
-            $key_hash = hash('sha224', $key);
+            $key_hash = hash('sha224', ''.$key);
 
             // 3.5] Записать $key и $key_hash в $newround
             $newround->key        = $key;
