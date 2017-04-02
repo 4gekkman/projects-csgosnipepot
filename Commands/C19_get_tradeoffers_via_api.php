@@ -165,7 +165,7 @@ class C19_get_tradeoffers_via_api extends Job { // TODO: добавить "imple
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
-//Log::info(runcommand('\M8\Commands\C19_get_tradeoffers_via_api', ['id_bot' => 8, 'active_only' => 1, 'get_received_offers' => 1]));
+
       // 2. Назначить значения по умолчанию
 
         // active_only

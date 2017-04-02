@@ -185,15 +185,15 @@ class C11_bot_set_apikey extends Job { // TODO: добавить "implements Sho
       });
       if(!$is_bot_authorized['is_bot_authenticated']) {
 
-        // 1] Попробовать авторизовать бота
-        $result = runcommand('\M8\Commands\C8_bot_login', [
-          "id_bot"          => $this->data['id_bot'],
-          "relogin"         => "1",
-          "captchagid"      => "0",
-          "captcha_text"    => "0",
-          "method"          => "GET",
-          "cookies_domain"  => "steamcommunity.com"
-        ]);
+        //// 1] Попробовать авторизовать бота
+        //$result = runcommand('\M8\Commands\C8_bot_login', [
+        //  "id_bot"          => $this->data['id_bot'],
+        //  "relogin"         => "1",
+        //  "captchagid"      => "0",
+        //  "captcha_text"    => "0",
+        //  "method"          => "GET",
+        //  "cookies_domain"  => "steamcommunity.com"
+        //]);
 
         // 2] Вызвать ошибку
         throw new \Exception("The bot with ID = ".$this->data['id_bot']." not logged in Steam.");

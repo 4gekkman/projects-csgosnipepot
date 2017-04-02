@@ -143,7 +143,10 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
      *  1. Провести валидацию входящих параметров
      *  2. Попробовать найти бота с id_bot
      *  3. Определить, куда сохранять файл с куками для этого бота
-     *  4. Отправить запрос от имени бота с id_bot
+     *  4. Подготовить функцию, осуществляющую запрос
+     *  5. Попробовать осуществить запрос
+     *  6. Если статус не 200, или $body содержит намёки на проблемы с аутентификацией
+     *
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -217,7 +220,8 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
 
       });
 
-      // 4. Отправить запрос от имени бота с id_bot
+      // 4. Подготовить функцию, осуществляющую запрос
+      $m8_c6_make_response = function() USE ($cookie_file_path, $bot) {
 
         // 4.1. Подготовить массив с куками для отправки в Steam
         $cookies2send = call_user_func(function() USE ($cookie_file_path) {
@@ -305,48 +309,52 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
           if(!empty($this->data['ref']))
             $request_headers['Referer'] = $this->data['ref'];
 
-        // 4.3. Осуществить запрос
-        try {
-          $response = (new \GuzzleHttp\Client())->send($request, [
-            'connect_timeout' => 50.00,
-            'headers'         => $request_headers,
-            'cookies'         => $cookies,
-            'query'           => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "GET") ? $this->data['data'] : [],
-            'form_params'     => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "POST") ? $this->data['data'] : [],
-          ]);
-        } catch (RequestException $e) {
+        // 4.5. Осуществить запрос
+        $response = (new \GuzzleHttp\Client())->send($request, [
+          'connect_timeout' => 50.00,
+          'headers'         => $request_headers,
+          'cookies'         => $cookies,
+          'query'           => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "GET") ? $this->data['data'] : [],
+          'form_params'     => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "POST") ? $this->data['data'] : [],
+          'http_errors'     => false
+        ]);
 
-          // 1] Получить текст ошибки
-          $response = $e->getResponse();
-          $errortext = 'Invoking of command C6_bot_request_steam from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        // 4.6. Вернуть результаты
+        return [
+          'response'  => $response,
+          'status'    => $response->getStatusCode(),
+          'body'      => $response->getBody()
+        ];
 
-          // 2] Если там есть фраза "403 Forbidden", перелогинить бота
-          if(preg_match("/403 Forbidden/ui", $errortext) != 0) {
+      };
 
-            Artisan::queue('m8:bot_login', [
-              'id_bot' => $this->data['id_bot']
-            ]);
+      // 5. Попробовать осуществить запрос
+      $response = $m8_c6_make_response();
 
-          }
+      // 6. Если статус не 200, или $body содержит намёки на проблемы с аутентификацией
+      // - Попробовать перелогинить бота, и снова осуществить запрос.
+      if($response['status'] != 200 || (preg_match("/g_steamID = false/ui", $response['body']) != 0 && preg_match("/waitforauth/ui", $response['body']))) {
 
-          // 3] Сообщить и завершить
-          Log::info($errortext);
-          write2log($errortext, ['M8', 'C6_bot_request_steam']);
-          return [
-            "status"  => -2,
-            "data"    => [
-              "errortext"   => $errortext,
-              "errormsg"    => $e->getMessage(),
-              "response"    => $response
-            ]
-          ];
-        }
+        // 1] Перелогинить бота
+        runcommand('\M8\Commands\C8_bot_login', [
+          'id_bot'          => $this->data['id_bot'],
+          'relogin'         => 1,
+          'captchagid'      => "0",
+          'captcha_text'    => "0",
+          'method'          => "GET",
+          'cookies_domain'  => "steamcommunity.com"
+        ]);
+
+        // 2] Повторно запросить
+        $response = $m8_c6_make_response();
+
+      }
 
       // n. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [
-          "response" => $response
+          "response" => $response['response']
         ]
       ];
 

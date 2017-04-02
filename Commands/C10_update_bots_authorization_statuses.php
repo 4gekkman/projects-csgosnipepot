@@ -211,23 +211,24 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
           if(gmp_cmp($bot->authorization_used_attempts, $max_attempts) <= 0) {
 
             // 3.1] Осуществить попытку авторизации
-            $result = runcommand('\M8\Commands\C8_bot_login', [
-              "id_bot"          => $bot->id,
-              "relogin"         => "0",
-              "captchagid"      => "0",
-              "captcha_text"    => "0",
-              "method"          => "GET",
-              "cookies_domain"  => "steamcommunity.com"
-            ]);
+            //$result = runcommand('\M8\Commands\C8_bot_login', [
+            //  "id_bot"          => $bot->id,
+            //  "relogin"         => "0",
+            //  "captchagid"      => "0",
+            //  "captcha_text"    => "0",
+            //  "method"          => "GET",
+            //  "cookies_domain"  => "steamcommunity.com"
+            //]);
+            //
+            //// 3.2] Если авторизация не удалась
+            //if($result['status'] != 0)
+            //  continue;
+            //
+            //// 3.3] Если авторизация удалась
+            //else
+            //  continue;
 
-            // 3.2] Если авторизация не удалась
-            if($result['status'] != 0)
-              continue;
-
-            // 3.3] Если авторизация удалась
-            else
-              continue;
-
+            continue;
           }
 
         }
