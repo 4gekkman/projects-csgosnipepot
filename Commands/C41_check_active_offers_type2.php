@@ -436,7 +436,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
             // 4] Если пользователя найти не удалось, сообщить и завершить
             if(empty($user)) {
               \Log::info('В команде M9.C41, для извлечённого с помощью API Steam активного оффера '.$offer['tradeofferid'].', не удалось найти в БД пользователя по steamid = '.$steamid);
-              DB::rollback();
+
               continue;
             }
 
