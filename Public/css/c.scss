@@ -2231,10 +2231,11 @@
       text-overflow: ellipsis;
       height: 32px;
       line-height: 31px;
-      padding: 0 5px 0 20px;
+      padding: 0 13px 0 20px;
       user-select: none;
       cursor: pointer;
       transition: all .2s ease;
+      font-size: 15px;
     }
     .content .faq .faq-container .faq-content .faq-table .faq-groups .group:hover {
       background: darken(#284351, 2%);
@@ -2285,6 +2286,7 @@
         background: #284351;
         border-bottom: 2px solid darken(#284351, 2%);
         transition: background .3s ease;
+        font-size: 16px;
       }
       .content .faq .faq-container .faq-content .faq-table .faq-articles .article:last-child {
         border: 0;

@@ -1521,7 +1521,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime) && interval)) {
 
 				// n.1) Установить currentpos на финальную позицию
-				//self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 
 				// n.2) Удалить интервал
 				clearInterval(interval);
