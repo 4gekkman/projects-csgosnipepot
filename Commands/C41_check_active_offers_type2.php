@@ -418,7 +418,29 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
           // 4.6.1. Начать транзакцию
           DB::beginTransaction();
 
-          // 4.6.2. Создать новый экземпляр ставки
+          // 4.6.2. Попробовать найти пользователя в БД по accountid_other
+
+            // 1] Если accountid_other пуст, сообщить и перейти к следующей итерации
+            if(!array_key_exists('accountid_other', $offer) || empty($offer['accountid_other'])) {
+              \Log::info('В команде M9.C41, в извлечённом с помощью API Steam активном оффере '.$offer['tradeofferid'].' не найдено поле accountid_other, или оно пустое.');
+              DB::rollback();
+              continue;
+            }
+
+            // 2] Получить steamid приславшего оффер пользователя
+            $steamid = 76561197960265728 + +$offer['accountid_other'];
+
+            // 3] Получить пользователя, приславшего ставку
+            $user = \M5\Models\MD1_users::where('ha_provider_uid', $steamid)->first();
+
+            // 4] Если пользователя найти не удалось, сообщить и завершить
+            if(empty($user)) {
+              \Log::info('В команде M9.C41, для извлечённого с помощью API Steam активного оффера '.$offer['tradeofferid'].', не удалось найти в БД пользователя по steamid = '.$steamid);
+              DB::rollback();
+              continue;
+            }
+
+          // 4.6.3. Создать новый экземпляр ставки
           $newbet = new \M9\Models\MD3_bets();
           $newbet->type = 2;
           $newbet->tradeofferid = $offer['tradeofferid'];
@@ -443,7 +465,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
           });
           $newbet->save();
 
-          // 4.6.3. Назначить ставке $newbet статус Active
+          // 4.6.4. Назначить ставке $newbet статус Active
 
             // 1] Получить статус "Active" из md8_bets_statuses
             $status = \M9\Models\MD8_bets_statuses::find(2);
@@ -452,27 +474,19 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
             // - Не забыв указать expired_at
             if(!$newbet->bets_statuses->contains($status->id)) $newbet->bets_statuses()->attach($status->id);
 
-          // 4.6.4. Связать $newbet с $room
+          // 4.6.5. Связать $newbet с $room
           if(!$newbet->rooms->contains($id_room)) $newbet->rooms()->attach($id_room);
 
-          // 4.6.5. Связать $newbet с пользователем
+          // 4.6.6. Связать $newbet с пользователем
           // - Но номера билетов пока не указывать.
 
-            // 1] Получить steamid приславшего оффер пользователя
-            $steamid = 76561197960265728 + $offer['accountid_other'];
+            // 1] Связать $user с $newbet
+            if(!$newbet->m5_users->contains($user->id)) $newbet->m5_users()->attach($user->id);
 
-            // 2] Получить пользователя, приславшего ставку
-            $user = \M5\Models\MD1_users::where('ha_provider_uid', $steamid)->first();
-
-            // 3] Если $user найден, связать его с $newbet
-            if(!empty($user)) {
-              if(!$newbet->m5_users->contains($user->id)) $newbet->m5_users()->attach($user->id);
-            }
-
-          // 4.6.6. Связать $newbet с ботом
+          // 4.6.7. Связать $newbet с ботом
           if(!$newbet->m8_bots->contains($id_bot)) $newbet->m8_bots()->attach($id_bot);
 
-          // 4.6.7. Связать $newbet с вещами из ставки
+          // 4.6.8. Связать $newbet с вещами из ставки
 
             // 1] Получить массив market names вещей, с которыми надо связать
             $items2bet_market_names = call_user_func(function() USE ($offer) {
@@ -584,7 +598,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
               }
             }
 
-          // 4.6.8. Подсчитать и записать общую сумму ставки в центах
+          // 4.6.9. Подсчитать и записать общую сумму ставки в центах
 
             // 1] Подсчитать
             $sum_cents_at_bet_moment = call_user_func(function() USE ($items2attach) {
@@ -600,20 +614,20 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
             // 2] Записать
             $newbet->sum_cents_at_bet_moment = $sum_cents_at_bet_moment;
 
-          // 4.6.9. Сохранить $newbet
+          // 4.6.10. Сохранить $newbet
           $newbet->save();
 
-          // 4.6.10. Подтвердить транзакцию
+          // 4.6.11. Подтвердить транзакцию
           DB::commit();
 
-          // 4.6.11. Обновить весь кэш
+          // 4.6.12. Обновить весь кэш
           $result = runcommand('\M9\Commands\C13_update_cache', [
             "cache2update" => ["processing:bets_type2:active"]
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 4.6.12. Уведомить пользователя $user по частному каналу, что его оффер в обработке
+          // 4.6.13. Уведомить пользователя $user по частному каналу, что его оффер в обработке
           if(!empty($user)) {
 
             Event::fire(new \R2\Broadcast([
