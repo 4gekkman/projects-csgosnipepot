@@ -311,7 +311,7 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
 
         // 4.5. Осуществить запрос
         $response = (new \GuzzleHttp\Client())->send($request, [
-          'connect_timeout' => 50.00,
+          'connect_timeout' => 15.00,
           'headers'         => $request_headers,
           'cookies'         => $cookies,
           'query'           => (array_key_exists('data', $this->data) && is_array($this->data['data']) && $this->data['method'] == "GET") ? $this->data['data'] : [],
