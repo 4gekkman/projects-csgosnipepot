@@ -170,10 +170,10 @@ class C53_update_top_cache extends Job { // TODO: добавить "implements S
       if(!empty($cache))
         $updated_at = \Carbon\Carbon::parse($cache['updated_at']);
 
-      // 5. Обновить кэш ТОПа игроков, если он пуст, или старше 24 часов
+      // 5. Обновить кэш ТОПа игроков, если он пуст, или старше 1 часа
       if(
         empty($cache) ||
-        (!empty($updated_at) && $updated_at->diffInHours(\Carbon\Carbon::now()) >= 24)
+        (!empty($updated_at) && $updated_at->diffInMinutes(\Carbon\Carbon::now()) >= 60)
       ) {
 
         // 1] Получить массив ТОП20 пользователей по сумме win_fact_cents за всю историю побед

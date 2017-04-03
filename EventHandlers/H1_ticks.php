@@ -256,12 +256,6 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
 
       }));
 
-      // 5. Обновить кэш ТОПа игроков
-      runcommand('\M9\Commands\C53_update_top_cache', [
-        "force" => false
-      ], 0, ['on'=>true, 'name' => 'default']);
-
-
     } catch(\Exception $e) {
         DB::rollback();
         $errortext = 'Invoking of event handler H1_ticks of M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

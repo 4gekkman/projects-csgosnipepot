@@ -135,7 +135,8 @@ class C54_get_top extends Job { // TODO: добавить "implements ShouldQueu
     /**
      * Оглавление
      *
-     *  1. Получить кэш с ТОПом игроков
+     *  1. Обновить кэш ТОПа игроков, если это требуется
+     *  2. Получить кэш с ТОПом игроков
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -147,7 +148,14 @@ class C54_get_top extends Job { // TODO: добавить "implements ShouldQueu
     //---------------//
     $res = call_user_func(function() { try {
 
-      // 1. Получить кэш с ТОПом игроков
+      // 1. Обновить кэш ТОПа игроков, если это требуется
+      $result = runcommand('\M9\Commands\C53_update_top_cache', [
+        "force" => false
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+
+      // 2. Получить кэш с ТОПом игроков
       $top = json_decode(Cache::get('m9:top_players'), true);
       if(empty($top))
         $top = [];

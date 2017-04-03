@@ -255,6 +255,23 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
             0, ['on'=>true, 'name'=>'m9_processor_statuses']);
 
 
+        Log::info('Задач в m9_processor_statuses: '.count(Queue::getRedis()->command('LRANGE',['queues:m9_processor_statuses', '0', '-1'])));
+        //$tasks = call_user_func(function() USE ($queue) {
+        //
+        //  $tasks = Queue::getRedis()->command('LRANGE',['queues:m9_processor_statuses', '0', '-1']);
+        //  $results = [];
+        //  foreach($tasks as $task) {
+        //    $arr = json_decode($task, true);
+        //    array_push($results, $arr['data']['commandName']);
+        //  }
+        //  return $results;
+        //
+        //});
+        //Log::info(implode(' ----- ', $tasks));
+        //Log::info('-------');
+
+
+
         // 9. Обеспечивать наличие свежего-не-finished раунда в каждой вкл.комнате
         runcommand('\M9\Commands\C17_new_rounds_provider', [],
             0, ['on'=>true, 'name'=>$queue]);

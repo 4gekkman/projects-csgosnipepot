@@ -242,6 +242,8 @@ class C56_get_stats_luckyoftheday extends Job { // TODO: добавить "imple
 
             // 3) Подсчитать шансы победителя
             $odds = round(($win['winner_bets_items_cents']/$win['jackpot_total_sum_cents'])*100*100)/100;
+            if($odds == 0)
+              $odds = '0.01';
 
             // 4) Записать данные в $result
             return [
