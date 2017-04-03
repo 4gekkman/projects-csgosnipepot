@@ -253,7 +253,7 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
                       'id'                => $item['id'],
                       'name'              => $item['name'],
                       'price'             => (int)($item['pivot']['price']*100),
-                      'steammarket_image' => $item['steammarket_image']
+                      'steammarket_image' => preg_replace("/360fx360f/ui", "320fx320f", $item['steammarket_image']),
                     ]);
                   }
                   return $result;
