@@ -1587,8 +1587,8 @@
           height: 65px;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .avatar {
-          max-width: 65px;
-          max-height: 65px;
+          max-width: 75px;
+          max-height: 75px;
           margin: 5px 0 0 5px;
         }
 
@@ -1599,21 +1599,23 @@
           top: 0;
           width: calc(50% - 70px);
           height: 65px;
-          margin: 5px 0 0 10px;
+          margin: 4px 0 0 17px;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick {
-          height: 40%;
-          font-size: 1.2em;
+          height: 52%;
+          font-size: 1.4em;
           overflow: hidden;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick a {
           color: #fff;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .odds {
-          height: 25%;
+          color: #59b0db;
+          font-size: 1.2em;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .jackpot {
-          height: 25%;
+          font-size: 1.2em;
+          color: #f7b454;
         }
 
         // Игра, хэш, число раунда
@@ -1624,9 +1626,10 @@
           margin: 5px 5px 0 0;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game {
-          height: 40%;
+          height: 52%;
           font-size: 1.2em;
           overflow: hidden;
+          margin-bottom: 15px;
         }
         .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game .num {
           float: right;
@@ -1645,21 +1648,22 @@
       }
       .content .classic-game .cg-container .cg_history .history .items .item {
         display: inline-block;
-        width: 65px;
+        width: 80px;
         height: 65px;
         cursor: help;
-        margin: 15px 13px 0 5px;
+        margin: 17px 5px 0 3px;
       }
       .content .classic-game .cg-container .cg_history .history .items .item .img_cont {
-        width: 50px; height: 50px;
+        width: 80px;
+        height: 50px;
         line-height: 50px;
         text-align: center;
-        margin-bottom: 5px;
+        margin-bottom: 25px;
       }
       .content .classic-game .cg-container .cg_history .history .items .item .img_cont img {
         display: inline-block;
-        max-width: 65px;
-        max-height: 50px;
+        max-width: 80px;
+        max-height: 80px;
         vertical-align: middle;
       }
       .content .classic-game .cg-container .cg_history .history .items .item .price {

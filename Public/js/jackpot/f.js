@@ -332,12 +332,14 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 										// 2] Иначе - добавить
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
-										self.f.s1.playsound('bet', room2update.id());
+										self.f.s1.playsound('bet', room2update.id(), '1');
 										layoutmodel.f.s6.notify_animate();
 										self.f.s1.tradeoffer_accepted({
 											id_room: 					room2update.id(),
+											id_user:          round2update.bets()[i].m5_users()[0].id(),
 											in_current_round:	true,
-											bets_active: 		 	[]
+											bets_active: 		 	[],
+											not_push:         true
 										});
 
 									}
@@ -366,12 +368,14 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 										// 2] Иначе - добавить
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
-										self.f.s1.playsound('bet', room2update.id());
+										self.f.s1.playsound('bet', room2update.id(), '2');
 										layoutmodel.f.s6.notify_animate();
 										self.f.s1.tradeoffer_accepted({
 											id_room: 					room2update.id(),
+											id_user:          round2update.bets()[i].m5_users()[0].id(),
 											in_current_round:	true,
-											bets_active: 		 	[]
+											bets_active: 		 	[],
+											not_push:         true
 										});
 
 									}
@@ -407,12 +411,14 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 										// 2] Иначе - добавить
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
- 										self.f.s1.playsound('bet', room2update.id());
+ 										self.f.s1.playsound('bet', room2update.id(), '3');
 										layoutmodel.f.s6.notify_animate();
 										self.f.s1.tradeoffer_accepted({
 											id_room: 					room2update.id(),
+											id_user:          round2update.bets()[i].m5_users()[0].id(),
 											in_current_round:	true,
-											bets_active: 		 	[]
+											bets_active: 		 	[],
+											not_push:         true
 										});
 
 									}
@@ -449,10 +455,11 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 										for(var i=round2update.bets().length; i<round2update_data.bets.length; i++) {
 											round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
-											self.f.s1.playsound('bet', room2update.id());
+											self.f.s1.playsound('bet', room2update.id(), '4');
 											layoutmodel.f.s6.notify_animate();
 											self.f.s1.tradeoffer_accepted({
 												id_room: 					room2update.id(),
+												id_user:          round2update.bets()[i].m5_users()[0].id(),
 												in_current_round:	true,
 												bets_active: 		 	[],
 												not_push:         true
@@ -463,12 +470,12 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 									else if(round_key == 'rounds_statuses') {
 
-										setTimeout(function(round2update, round2update_data, oldstatus){
- 											round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
-											if(oldstatus != 5) {
-												self.f.s1.playsound('lottery');
+										setTimeout(function(round2update, round2update_data, oldstatus, room2update){
+											if(oldstatus != 5 && self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].pivot.id_status() != 5) {
+												self.f.s1.playsound('lottery', room2update.id(), '5');
 											}
-										}, 1000, round2update, round2update_data, oldstatus);
+											round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
+										}, 1000, round2update, round2update_data, oldstatus, room2update);
 
 									}
 
@@ -565,12 +572,12 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// Started
 					// - Если новый статус 'Created', а старый нет.
 					if(newstatus == 'Created' && oldstatus != 1)
-						self.f.s1.playsound('game-start');
+						self.f.s1.playsound('game-start', room2update_id, '6');
 
 					// Lottery
 					// - Если новый статус 'Lottery', а старый нет.
 					if(newstatus == 'Lottery' && oldstatus != 5) {
-						self.f.s1.playsound('lottery');
+						self.f.s1.playsound('lottery', room2update_id, '7');
 					}
 
 					// Winner
@@ -586,7 +593,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							if(!model.m.s1.game.choosen_room_curround_winner() || model.m.s0.auth.user().id() != model.m.s1.game.choosen_room_curround_winner().id()) return;
 
 							// 3] Проиграть звук победы
-							self.f.s1.playsound('win');
+							self.f.s1.playsound('win', room2update_id, '8');
 
 						}, 1000);
 
@@ -1513,7 +1520,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// - Если avatar_arrow_num отличается от avatar_arrow_num_prev.
 			// - Если выбрана Classic Game и соотв.комната.
 			if(avatar_arrow_num != self.m.s1.game.strip.avatar_arrow_num_prev()) {
-				self.f.s1.playsound('click', id_room);
+				self.f.s1.playsound('click', id_room, '9');
 				self.m.s1.game.strip.avatar_arrow_num_prev(avatar_arrow_num);
 			}
 
@@ -1607,7 +1614,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			return;
 
 		// 1] Вычислить время для отсрочки сообщения
-		$delay_s = ((self.m.s1.game.choosen_room().rounds()[0]['is_skins_limit_reached']()) ? +self.m.s1.game.choosen_room().lottery_client_delta_items_limit_s() : 0);
+		var delay_s = ((self.m.s1.game.choosen_room().rounds()[0]['is_skins_limit_reached']()) ? +self.m.s1.game.choosen_room().lottery_client_delta_items_limit_s() : 0);
 
 		// 2] Попало ли торговое предложение в текущий раунд
 		var in_current_round = data['in_current_round'];
@@ -1712,7 +1719,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//---------------------------------------------------------//
 	// - Если cg_id_room не указан, то проигрывать звук везде.
 	//   А если указан, то только, если выбрана комната с id_room.
-	f.s1.playsound = function(id_sound, id_room) {
+	f.s1.playsound = function(id_sound, id_room, tag) {
+
+		//if(id_sound != 'click') console.log(id_sound + ' / ' + tag);
+		//else console.log(id_sound);
 
 		// 1] Получить случайное число от 0 до 1
 		var random = Math.random();
@@ -1726,7 +1736,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			(!layoutmodel.m.s4.is_global_volume_on() ||
 			layoutmodel.m.s1.selected_subdoc().uri() != '/' ||
 			(id_room && id_room != self.m.s1.game.choosen_room().id())) &&
-			['click', 'game-start', 'win', 'timer-tick-quiet', 'timer-tick-last-5-seconds', 'lottery'].indexOf(id_sound) != -1
+			['click', 'game-start', 'win', 'timer-tick-quiet', 'timer-tick-last-5-seconds', 'lottery', 'bet'].indexOf(id_sound) != -1
 		)
 			return;
 

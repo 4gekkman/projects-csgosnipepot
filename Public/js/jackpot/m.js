@@ -1455,7 +1455,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			}
 
-		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});;
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 	
 		// s1.n.3. Перерасчитать модель для отрисовки кольца //
 		//---------------------------------------------------//
@@ -1657,8 +1657,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			// 3] Отсортировать newbets по tickets_from
 			newbets.sort(function(a,b){
-				if(a.m5_users()[0].pivot.tickets_from() < b.m5_users()[0].pivot.tickets_from()) return 1;
-				if(a.m5_users()[0].pivot.tickets_from() > b.m5_users()[0].pivot.tickets_from()) return -1;
+				if(a.m5_users()[0].pivot.tickets_from() > b.m5_users()[0].pivot.tickets_from()) return 1;
+				if(a.m5_users()[0].pivot.tickets_from() < b.m5_users()[0].pivot.tickets_from()) return -1;
 				return 0;
 			});
 
@@ -1716,7 +1716,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			//else if((self.m.s1.game.counters.lottery.sec() || self.m.s1.game.counters.lottery.sec() === 0 || self.m.s1.game.counters.lottery.sec() === '0') && self.m.s1.game.counters.lottery.sec() < 5)
 			//	self.f.s1.playsound('timer-tick-quiet'); //timer-tick-last-5-seconds');
 
-		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+		}); //.extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 
 	//------------------------------------//

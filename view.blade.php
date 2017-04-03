@@ -260,7 +260,7 @@
           <!-----------*/ ?>
           <div class="row">
             <div class="span50">Шанс:</div>
-            <div class="span50 odds" data-bind="text: Math.round(m.s1.game.stats.thelastwinner.front.odds()*10)/10 + '%'"></div>
+            <div class="span50 odds" data-bind="text: Math.round(m.s1.game.stats.thelastwinner.front.odds()*100)/100 + '%'"></div>
           </div>
 
         </div>
@@ -316,7 +316,7 @@
           <!-----------*/ ?>
           <div class="row">
             <div class="span50">Шанс:</div>
-            <div class="span50 odds" data-bind="text: Math.round(m.s1.game.stats.thelastwinner.back.odds()*10)/10 + '%'"></div>
+            <div class="span50 odds" data-bind="text: Math.round(m.s1.game.stats.thelastwinner.back.odds()*100)/100 + '%'"></div>
           </div>
 
         </div>
