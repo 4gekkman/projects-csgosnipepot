@@ -280,11 +280,11 @@ class C11_bot_set_apikey extends Job { // TODO: добавить "implements Sho
           // 5.1.5. Если доступ есть, но API-ключ не получен, или домен не совпадает с доменом бота
           else if ($recursionLevel < 3 || empty($key) || empty($domain) || $domain != $bot->apikey_domain) {
 
-            Log::info('$recursionLevel = '.$recursionLevel);
-            Log::info('$key = '.$key);
-            Log::info('$domain = '.$domain);
-            Log::info('$bot->apikey_domain = '.$bot->apikey_domain);
-            Log::info('-');
+            //Log::info('$recursionLevel = '.$recursionLevel);
+            //Log::info('$key = '.$key);
+            //Log::info('$domain = '.$domain);
+            //Log::info('$bot->apikey_domain = '.$bot->apikey_domain);
+            //Log::info('-');
 
             // 1] Зарегистрировать для $bot новый API-ключ
             $result = runcommand('\M8\Commands\C6_bot_request_steam', [

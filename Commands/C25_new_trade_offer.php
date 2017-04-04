@@ -359,7 +359,7 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
 
         // 7.2. Если код ответа не 200, сообщить и завершить
         if($response->getStatusCode() != 200)
-          throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode());
+          throw new \Exception('Unexpected response from Steam: code '.$response->getStatusCode().'; body: '.$response->getBody());
 
         // 7.3. Провести валидацию $response->getBody()
         $validator = r4_validate(['body'=>$response->getBody()], [
@@ -398,7 +398,7 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
       $errortext = 'Invoking of command C25_new_trade_offer from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
 
       // 2] Отправить сообщения в логи
-      //Log::info($errortext);
+      Log::info($errortext);
       //write2log($errortext, ['M8', 'C25_new_trade_offer']);
 
       // 3] Вернуть результат с ошибкой
