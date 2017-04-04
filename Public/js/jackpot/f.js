@@ -1527,13 +1527,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// n] Если дошли до конца
 			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime) && interval)) {
 
-				console.log('strip.width = '+self.m.s1.game.strip.width());
-				console.log('final_px = '+self.m.s1.game.strip.final_px());
-				console.log('avatar_arrow_num = '+avatar_arrow_num);
-				if(self.m.s1.game.choosen_room().rounds()[0].avatars_strip()) console.log('avatars_strip 0 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[0].avatars_strip()).length);
-				if(self.m.s1.game.choosen_room().rounds()[1].avatars_strip()) console.log('avatars_strip 1 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[1].avatars_strip()).length);
-				console.log('---');
-
 				// n.1) Установить currentpos на финальную позицию
 				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 
@@ -1541,7 +1534,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				// - И остановить анимацию.
 				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
 					if(item.id_room == self.m.s1.game.choosen_room().id()) {
-						console.log('item.interval = '+item.interval);
 						clearInterval(item.interval);
 						return true;
 					}
@@ -1551,25 +1543,20 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		};
 
-		// 8. Остановить все предыдущие анимации в этой комнате
-		//self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
-		//	console.log('item.id_room = '+item.id_room);
-		//	console.log('id_room = '+self.m.s1.game.choosen_room().id());
-		//	if(item.id_room == self.m.s1.game.choosen_room().id()) {
-		//		clearInterval(item.interval);
-		//		return true;
-		//	}
-		//});
+		// 8. Остановить все предыдущие анимации
+		self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
+			clearInterval(item.interval);
+			return true;
+		});
 
 		// n. Запустить розыгрыш
 
-			// n.1. Подсчитать кол-во запущенных анимаций в этой комнате
+			// n.1. Подсчитать кол-во запущенных анимаций
 			var intervals_count = (function(){
 
 				var count = 0;
 				for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
-					if(self.m.s1.game.strip.rooms_with_working_animation()[i].id_room == self.m.s1.game.choosen_room().id())
-						count = +count + 1;
+					count = +count + 1;
 				}
 				return count;
 
@@ -1580,8 +1567,6 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 				// Запустить
 				var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms, self.m.s1.game.choosen_room().id());
-
-				console.log('New interval = '+interval);
 
 				// Добавить в реестр
 				self.m.s1.game.strip.rooms_with_working_animation.push({
