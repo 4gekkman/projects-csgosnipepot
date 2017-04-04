@@ -1530,8 +1530,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				console.log('strip.width = '+self.m.s1.game.strip.width());
 				console.log('final_px = '+self.m.s1.game.strip.final_px());
 				console.log('avatar_arrow_num = '+avatar_arrow_num);
-				console.log('avatars_strip 0 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[0].avatars_strip()).length);
-				console.log('avatars_strip 1 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[1].avatars_strip()).length);
+				if(self.m.s1.game.choosen_room().rounds()[0].avatars_strip()) console.log('avatars_strip 0 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[0].avatars_strip()).length);
+				if(self.m.s1.game.choosen_room().rounds()[1].avatars_strip()) console.log('avatars_strip 1 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[1].avatars_strip()).length);
 				console.log('---');
 
 				// n.1) Установить currentpos на финальную позицию
