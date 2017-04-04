@@ -300,7 +300,7 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
               continue;
 
             // Если размер $bot_items2payout не равен $items, перейти к следующей итерации
-            if(count($bot_items2payout) != count($items))
+            if(count($bot_items2payout['items']) != count($items))
               continue;
 
           // 2.5.4. Получить steam_tradeurl пользователя $user
