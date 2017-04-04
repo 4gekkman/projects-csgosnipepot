@@ -1028,13 +1028,12 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           // 3.4] На 100-е место (индекс 99) разместить ID победителя
           $result[99] = $winner_and_ticket['user_winner']['id'];
 
-          // 3.5] Если длина $result меньше $avatars_num
-          // - Дополнить $result предыдущими значениями.
-          $diff = +$avatars_num - count($result);
-          if($diff < 0)
-            $diff = 0;
-          for($i=0; $i<count($diff); $i++) {
-            array_push($result, $result[count($result) - 1]);
+          // 3.5] Если длина $result не равна $avatars_num
+          if(count($result) != $avatars_num) {
+            for($i=0; $i<$avatars_num; $i++) {
+              if(!array_key_exists($i, $result))
+                $result[$i] = $result[$i-1];
+            }
           }
 
           // 3.n] Вернуть результат
