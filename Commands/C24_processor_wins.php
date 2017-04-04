@@ -172,7 +172,6 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
       // Б. Если $queue не пуста, завершить
       // - Это будет предотвращать "забивание" очереди при недостаточной производительности сервера.
       $queue_count = count(Queue::getRedis()->command('LRANGE',['queues:'.$queue, '0', '-1']));
-      Log::info("Wins queue count: ".$queue_count);
       if($queue_count == 0) {
 
         // 1. Обновить весь кэш, но для каждого, только если он отсутствует
