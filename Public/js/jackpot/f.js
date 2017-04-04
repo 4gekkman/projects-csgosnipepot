@@ -1489,7 +1489,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			var path_px = Math.abs(self.m.s1.game.strip.final_px() - self.m.s1.game.strip.start_px());
 
 			// 4] Получить позицию в px, которую надо установить
-			var position2set_px = self.m.s1.game.strip.start_px() - path_px * progress;
+			var position2set_px = self.m.s1.game.strip.start_px() - +path_px * +progress;
 
 			// 5] Установить позицию position2set_px
 			self.m.s1.game.strip.currentpos(position2set_px);
@@ -1530,39 +1530,66 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				console.log('strip.width = '+self.m.s1.game.strip.width());
 				console.log('final_px = '+self.m.s1.game.strip.final_px());
 				console.log('avatar_arrow_num = '+avatar_arrow_num);
+				console.log('avatars_strip 0 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[0].avatars_strip()).length);
+				console.log('avatars_strip 1 count = '+JSON.parse(self.m.s1.game.choosen_room().rounds()[1].avatars_strip()).length);
 				console.log('---');
 
 				// n.1) Установить currentpos на финальную позицию
 				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 
-				// n.2) Удалить интервал
-				clearInterval(interval);
-
-				// n.3) Удалить комнату из реестра комнат с работающими анимациями
+				// n.2) Удалить комнату из реестра комнат с работающими анимациями
+				// - И остановить анимацию.
 				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
-					return item == self.m.s1.game.choosen_room().id();
+					if(item.id_room == self.m.s1.game.choosen_room().id()) {
+						console.log('item.interval = '+item.interval);
+						clearInterval(item.interval);
+						return true;
+					}
 				});
 
 			}
 
 		};
 
-		// 8. Остановить все предыдущие анимации
-		for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
-			clearInterval(self.m.s1.game.strip.rooms_with_working_animation()[i].interval);
-		}
-		self.m.s1.game.strip.rooms_with_working_animation.removeAll();
+		// 8. Остановить все предыдущие анимации в этой комнате
+		//self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
+		//	console.log('item.id_room = '+item.id_room);
+		//	console.log('id_room = '+self.m.s1.game.choosen_room().id());
+		//	if(item.id_room == self.m.s1.game.choosen_room().id()) {
+		//		clearInterval(item.interval);
+		//		return true;
+		//	}
+		//});
 
 		// n. Запустить розыгрыш
 
-			// n.1. Запустить
-			var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms, self.m.s1.game.choosen_room().id());
+			// n.1. Подсчитать кол-во запущенных анимаций в этой комнате
+			var intervals_count = (function(){
 
-			// n.2. Добавить в реестр
-			self.m.s1.game.strip.rooms_with_working_animation.push({
-				id_room: self.m.s1.game.choosen_room().id(),
-				interval: interval
-			});
+				var count = 0;
+				for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
+					if(self.m.s1.game.strip.rooms_with_working_animation()[i].id_room == self.m.s1.game.choosen_room().id())
+						count = +count + 1;
+				}
+				return count;
+
+			})();
+
+			// n.2. Запустить, только если в этой комнате ещё нет запущенных анимаций
+			if(intervals_count == 0) {
+
+				// Запустить
+				var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms, self.m.s1.game.choosen_room().id());
+
+				console.log('New interval = '+interval);
+
+				// Добавить в реестр
+				self.m.s1.game.strip.rooms_with_working_animation.push({
+					id_room: self.m.s1.game.choosen_room().id(),
+					interval: interval
+				});
+
+			}
 
 	}, 100); };
 
