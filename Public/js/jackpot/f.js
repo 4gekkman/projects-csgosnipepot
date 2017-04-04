@@ -266,7 +266,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					// 3.3.2] Если св-ва key нет в data, пропускаем
 					if(!data[key]) continue;
 
-					// 3.3.3] Если key не ['m8_bots', 'rounds', 'lastwinner', 'penultwinner'], пропускаем
+					// 3.3.3] Если key не ['m8_bots', 'rounds'], пропускаем
 					if(['m8_bots', 'rounds'].indexOf(key) == -1) continue;
 
 					// 3.3.4] Если key == "rounds"
@@ -303,7 +303,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							var round2update = room2update[key]()[0];
 							var round2update_data = data[key][0];
 
-							// 3.2) Получить старый и новый статусы статусы
+							// 3.2) Получить старый и новый статусы
 							var status_new = round2update_data.rounds_statuses[0].status;
 							var status_old = round2update.rounds_statuses()[0].status();
 
@@ -318,8 +318,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// - И обновить started_at.
 							if((status_new == 'First bet') || (status_new == 'Started')) {
 
- 								// 3.4.1) Обновить rounds_statuses
-								if(round2update_data['is_skins_limit_reached'] != 1)
+ 								// 3.4.1) Обновить rounds_statuses, если новый статус отличается
+								if(round2update_data['is_skins_limit_reached'] != 1 && status_new != status_old)
 									round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
 
 								// 3.4.2) Если есть новые ставки, добавить их
@@ -390,8 +390,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 							// - Обновить только rounds_statuses, avatars_strip и avatar_winner_stop_percents
 							if(status_new == 'Pending' && status_new != status_old) {
 
- 								// 3.6.1) Обновить rounds_statuses
-								round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
+ 								// 3.6.1) Обновить rounds_statuses, если новый статус отличается
+								if(status_new != status_old)
+									round2update.rounds_statuses(ko.mapping.fromJS(round2update_data.rounds_statuses)());
 
 								// 3.6.2) Обновить avatars_strip
 								if(round2update.avatars_strip() != round2update_data.avatars_strip)
@@ -535,18 +536,18 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				}
 
 				// 3.3] Обновить ссылку на choosen_room
-				self.m.s1.game.choosen_room((function(){
-
-					// Получить имя текущей выбранной комнаты
-					var name = self.m.s1.game.choosen_room().name();
-
-					// Сделать выбранной комнату с name из game.rooms
-					for(var i=0; i<self.m.s1.game.rooms().length; i++) {
-						if(self.m.s1.game.rooms()[i].name() == name)
-							return self.m.s1.game.rooms()[i];
-					}
-
-				})());
+				//self.m.s1.game.choosen_room((function(){
+        //
+				//	// Получить имя текущей выбранной комнаты
+				//	var name = self.m.s1.game.choosen_room().name();
+        //
+				//	// Сделать выбранной комнату с name из game.rooms
+				//	for(var i=0; i<self.m.s1.game.rooms().length; i++) {
+				//		if(self.m.s1.game.rooms()[i].name() == name)
+				//			return self.m.s1.game.rooms()[i];
+				//	}
+        //
+				//})());
 
 				// 3.4] Запустить lottery (если новый статус lottery), или обновить значение currentpos
 				var newstatus = self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status();
@@ -1361,6 +1362,36 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//---------------------------------------------//
 	f.s1.lottery = function(){ setTimeout(function(){
 
+		// a] Если есть запущенные анимации, завершить
+
+			// a.1] Подсчитать кол-во запущенны анимаций в текущей комнате
+			var intervals_count = (function(){
+
+				var count = 0;
+				for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
+					if(self.m.s1.game.strip.rooms_with_working_animation()[i].id_room == self.m.s1.game.choosen_room().id()) {
+						count = +count + 1;
+					}
+				}
+				return count;
+
+			})();
+
+			// a.2] Ели intervals_count > 0, завершить
+			if(intervals_count > 0)
+				return;
+
+			// a.3] Иначе, очистить все предыдущие анимации
+			else {
+
+				// Остановить все предыдущие анимации анимации
+				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
+					clearInterval(item.interval);
+					return true;
+				});
+
+			}
+
 		// 1. Если установлен тип анимации не 'js', завершить
 		if(self.m.s1.animation.choosen_type().name() != 'js') return;
 
@@ -1524,8 +1555,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				self.m.s1.game.strip.avatar_arrow_num_prev(avatar_arrow_num);
 			}
 
-			// n] Если дошли до конца
-			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime) && interval)) {
+			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime))) {
 
 				// n.1) Установить currentpos на финальную позицию
 				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
@@ -1543,38 +1573,16 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 		};
 
-		// 8. Остановить все предыдущие анимации
-		self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
-			clearInterval(item.interval);
-			return true;
-		});
-
 		// n. Запустить розыгрыш
 
-			// n.1. Подсчитать кол-во запущенных анимаций
-			var intervals_count = (function(){
+			// Запустить
+			var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms, self.m.s1.game.choosen_room().id());
 
-				var count = 0;
-				for(var i=0; i<self.m.s1.game.strip.rooms_with_working_animation().length; i++) {
-					count = +count + 1;
-				}
-				return count;
-
-			})();
-
-			// n.2. Запустить, только если в этой комнате ещё нет запущенных анимаций
-			if(intervals_count == 0) {
-
-				// Запустить
-				var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms, self.m.s1.game.choosen_room().id());
-
-				// Добавить в реестр
-				self.m.s1.game.strip.rooms_with_working_animation.push({
-					id_room: self.m.s1.game.choosen_room().id(),
-					interval: interval
-				});
-
-			}
+			// Добавить в реестр
+			self.m.s1.game.strip.rooms_with_working_animation.push({
+				id_room: self.m.s1.game.choosen_room().id(),
+				interval: interval
+			});
 
 	}, 100); };
 

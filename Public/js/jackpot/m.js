@@ -397,48 +397,46 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		self.m.s1.game.strip.start_px = ko.observable(880); // 880
 
 		// 4] Финальная позиция полосы аватаров
-		self.m.s1.game.strip.final_px = ko.observable(0);
+		self.m.s1.game.strip.final_px = ko.computed(function(){
 
-		//		ko.computed(function(){
-		//
-		//			// 4.1] Если отсутствуют необходимые ресурсы, вернуть 0
-		//			if(!self.m.s1.game.choosen_room())
-		//				return 0;
-		//
-		//			// 4.2] Ширина аватара в px с учётом отступа справа
-		//			var avatarwidth_origin = 80;
-		//			var avatarrightmargin = 2;
-		//			var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
-		//
-		//			// 4.3] Получить ширину всей ленты
-		//			var width = self.m.s1.game.strip.width();
-		//
-		//			// 4.4] Получить поправку для установки позиции в конец ленты
-		//			var endfix = (6*avatarwidth)-62;
-		//
-		//			// 4.5] Вычислить позицию в начале 100-го аватара (победителя)
-		//			var winnerpos = width - endfix - (11*avatarwidth);
-		//
-		//			// 4.6] Получить значение
-		//			var avatar_winner_stop_percents = (function(){
-		//
-		//				// 4.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
-		//				if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Finished', 'Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length - 1].status()) != -1)
-		// 					return self.m.s1.game.choosen_room().rounds()[1].avatar_winner_stop_percents();
-		//
-		//				// 4.6.2] Иначе, берём смещение из текущего раунда
-		//				else
-		//					return self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
-		//
-		//			})();
-		//
-		//			// 4.7] Вычислить позицию с учётом avatar_winner_stop_percents
-		//			var winnerpos_final = -(winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100));
-		//
-		//			// 4.n] Вернуть результаты
-		//			return winnerpos_final;
-		//
-		//		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
+			// 4.1] Если отсутствуют необходимые ресурсы, вернуть 0
+			if(!self.m.s1.game.choosen_room())
+				return 0;
+
+			// 4.2] Ширина аватара в px с учётом отступа справа
+			var avatarwidth_origin = 80;
+			var avatarrightmargin = 2;
+			var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
+
+			// 4.3] Получить ширину всей ленты
+			var width = self.m.s1.game.strip.width();
+
+			// 4.4] Получить поправку для установки позиции в конец ленты
+			var endfix = (6*avatarwidth)-62;
+
+			// 4.5] Вычислить позицию в начале 100-го аватара (победителя)
+			var winnerpos = width - endfix - (11*avatarwidth);
+
+			// 4.6] Получить значение
+			var avatar_winner_stop_percents = (function(){
+
+				// 4.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
+				if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Finished', 'Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length - 1].status()) != -1)
+					return self.m.s1.game.choosen_room().rounds()[1].avatar_winner_stop_percents();
+
+				// 4.6.2] Иначе, берём смещение из текущего раунда
+				else
+					return self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
+
+			})();
+
+			// 4.7] Вычислить позицию с учётом avatar_winner_stop_percents
+			var winnerpos_final = -(winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100));
+
+			// 4.n] Вернуть результаты
+			return winnerpos_final;
+
+		}).extend({rateLimit: 10, method: "notifyWhenChangesStop"});
 
 		// 5] Текущая позиция полосы с учётом avatar_winner_stop_percents
 		self.m.s1.game.strip.currentpos = ko.observable(self.m.s1.game.strip.start_px());
@@ -1159,46 +1157,46 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			//-----------------------------------------------------------------------------------//
 			// 10] Расчитать финальную позицию полосы аватаров текущего раунда выбранной комнаты //
 			//-----------------------------------------------------------------------------------//
-			(function(){
-
-				// 10.1] Если отсутствуют необходимые ресурсы, вернуть 0
-				if(!self.m.s1.game.choosen_room())
-					return 0;
-
-				// 10.2] Ширина аватара в px с учётом отступа справа
-				var avatarwidth_origin = 80;
-				var avatarrightmargin = 2;
-				var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
-
-				// 10.3] Получить ширину всей ленты
-				var width = self.m.s1.game.strip.width();
-
-				// 10.4] Получить поправку для установки позиции в конец ленты
-				var endfix = (6*avatarwidth)-62;
-
-				// 10.5] Вычислить позицию в начале 100-го аватара (победителя)
-				var winnerpos = width - endfix - (11*avatarwidth);
-
-				// 10.6] Получить значение
-				var avatar_winner_stop_percents = (function(){
-
-					// 10.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
-					if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Finished', 'Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length - 1].status()) != -1)
-						return self.m.s1.game.choosen_room().rounds()[1].avatar_winner_stop_percents();
-
-					// 10.6.2] Иначе, берём смещение из текущего раунда
-					else
-						return self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
-
-				})();
-
-				// 10.7] Вычислить позицию с учётом avatar_winner_stop_percents
-				var winnerpos_final = -(winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100));
-
-				// 10.n] Вернуть результаты
-				self.m.s1.game.strip.final_px(winnerpos_final);
-
-			})();
+//			(function(){
+//
+//				// 10.1] Если отсутствуют необходимые ресурсы, вернуть 0
+//				if(!self.m.s1.game.choosen_room())
+//					return 0;
+//
+//				// 10.2] Ширина аватара в px с учётом отступа справа
+//				var avatarwidth_origin = 80;
+//				var avatarrightmargin = 2;
+//				var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
+//
+//				// 10.3] Получить ширину всей ленты
+//				var width = self.m.s1.game.strip.width();
+//
+//				// 10.4] Получить поправку для установки позиции в конец ленты
+//				var endfix = (6*avatarwidth)-62;
+//
+//				// 10.5] Вычислить позицию в начале 100-го аватара (победителя)
+//				var winnerpos = width - endfix - (11*avatarwidth);
+//
+//				// 10.6] Получить значение
+//				var avatar_winner_stop_percents = (function(){
+//
+//					// 10.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
+//					if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Finished', 'Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length - 1].status()) != -1)
+//						return self.m.s1.game.choosen_room().rounds()[1].avatar_winner_stop_percents();
+//
+//					// 10.6.2] Иначе, берём смещение из текущего раунда
+//					else
+//						return self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
+//
+//				})();
+//
+//				// 10.7] Вычислить позицию с учётом avatar_winner_stop_percents
+//				var winnerpos_final = -(winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100));
+//
+//				// 10.n] Вернуть результаты
+//				self.m.s1.game.strip.final_px(winnerpos_final);
+//
+//			})();
 
 			//--------------------------------------------------------------------------------------------//
 			// 11] Расчитать кол-во внесенных вещей и шансы игрока в в текущем раунде в выбранной комнате //
@@ -1658,15 +1656,20 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 		ko.computed(function(){
 
 			// Пусть оно срабатывает также при смене комнаты
-			self.m.s1.game.choosen_room();
+			// - Заодно получить ссылку на неё.
+			var room  =self.m.s1.game.choosen_room();
+
+			// Если комната не выбрана, завершить
+			if(!room)
+				return;
 
 			// Если статус Lottery
-			if(['Lottery'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+			if(['Lottery'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status()) != -1) {
 				setImmediate(self.f.s1.lottery, 500);
 			}
 
 			// Если статус Winner или Finished
-			if(['Winner', 'Finished'].indexOf(self.m.s1.game.choosen_status()) != -1) {
+			if(['Winner', 'Finished'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[0].status()) != -1) {
 				setTimeout(self.f.s1.lottery, 2500);
 			}
 
