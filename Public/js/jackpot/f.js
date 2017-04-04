@@ -1527,6 +1527,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// n] Если дошли до конца
 			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime) && interval)) {
 
+				console.log('End');
+				console.log('final_px = '+self.m.s1.game.strip.final_px());
+
 				// n.1) Установить currentpos на финальную позицию
 				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
 
@@ -1575,18 +1578,23 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	//--------------------------------------------------------------------//
 	f.s1.tradeoffer_cancel = function(data) {
 
-		// 1] Получить информацию об ошибках и их кодах
-		var codes_and_errors = JSON.parse(data['codes_and_errors']);
+		// 1] Если данных нет, просто вернуть сообщение о том, что торговое предложение отклонено
 
-		// 2] Если codes_and_errors пуст, вернуть простое сообщение об ошибке
-		if(!codes_and_errors) {
-			toastr.error("Возникла неизвестная ошибка.", "Торговое предложение отклонено");
-		}
+			// Если codes_and_errors нет или пуст
+			if(!data['codes_and_errors']) {
+				toastr.error("Возникла неизвестная ошибка.", "Торговое предложение отклонено");
+				return;
+			}
 
-		// 3] В ином случае, вернуть развернутое сообщение об ошибке
-		else {
+			// Если не удалось оплучить информацию об ошибках и их кодах
+			var codes_and_errors = JSON.parse(data['codes_and_errors']);
+			if(!codes_and_errors) {
+				toastr.error("Возникла неизвестная ошибка.", "Торговое предложение отклонено");
+			}
 
-			// 3.1] Подготовить сообщение об ошибке
+		// 2] В ином случае, вернуть развернутое сообщение об ошибке
+
+			// 2.1] Подготовить сообщение об ошибке
 			var msg = (function(){
 				var result  = "";
 				for(var i=0; i<codes_and_errors.length; i++) {
@@ -1597,10 +1605,9 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 				return result;
 			})();
 
-			// 3.2] Показать сообщение об ошибке
+			// 2.2] Показать сообщение об ошибке
 			toastr.error(msg, "Торговое предложение отклонено");
 
-		}
 
 	};
 
