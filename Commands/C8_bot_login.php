@@ -184,6 +184,10 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           // 2] Если $last_try_datetime не пуста, и прошло менее 55 секунд, завершить по-тихому
           if(!empty($last_try_datetime) && +(\Carbon\Carbon::parse($last_try_datetime)->diffInSeconds(\Carbon\Carbon::now())) < 55) {
 
+            // Отменить транзакцию
+            DB::rollback();
+
+            // Завершить
             return [
               "status"  => 0,
               "data"    => [
