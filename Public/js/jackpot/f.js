@@ -1527,8 +1527,10 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			// n] Если дошли до конца
 			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime) && interval)) {
 
-				console.log('End');
+				console.log('strip.width = '+self.m.s1.game.strip.width());
 				console.log('final_px = '+self.m.s1.game.strip.final_px());
+				console.log('avatar_arrow_num = '+avatar_arrow_num);
+				console.log('---');
 
 				// n.1) Установить currentpos на финальную позицию
 				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
