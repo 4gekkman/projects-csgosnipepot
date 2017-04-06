@@ -324,6 +324,10 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
 
                 }
 
+                // 4.1.4] Если размер $bet_items не равен размеру $results, вернуть пустую строку
+                if(count($bet_items) != count($results))
+                  return [];
+
                 // 4.1.n] Вернуть результаты
                 return $results;
 
