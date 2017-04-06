@@ -343,12 +343,12 @@ class C26_active_offers_wins_tracking extends Job { // TODO: добавить "i
 
           // 1] Получить нужные данные в короткие переменные
           $win            = $ex_active_offers[$i]['win'];
-            $winid          = $win['id'];
-            $tradeofferid   = $ex_active_offers[$i]['tradeofferid'];
-            $id_status_new  = $ex_active_offers[$i]['id_status_new'];
-            $id_user        = $win['m5_users'][0]['id'];
-            $id_room        = $win['rounds'][0]['rooms']['id'];
-            $id_bot         = $ex_active_offers[$i]['id_bot'];
+          $winid          = $win['id'];
+          $tradeofferid   = $ex_active_offers[$i]['tradeofferid'];
+          $id_status_new  = $ex_active_offers[$i]['id_status_new'];
+          $id_user        = $win['m5_users'][0]['id'];
+          $id_room        = $win['rounds'][0]['rooms']['id'];
+          $id_bot         = $ex_active_offers[$i]['id_bot'];
 
           // 2] Если статус оффера изменился на Accepted
           if($id_status_new == 3) {

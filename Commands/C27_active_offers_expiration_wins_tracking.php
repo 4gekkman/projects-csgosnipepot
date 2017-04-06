@@ -162,23 +162,29 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
           // 1] Получить дату и время истечения оффера для $bot
           $offer_expired_at = $bot['pivot']['offer_expired_at'];
 
-          // 2] Определить, истёк ли срок годности оффера
+          // 2] Если $offer_expired_at пуст, перейти к следующей итерации
+          if(empty($offer_expired_at))
+            continue;
+
+          // 3] Определить, истёк ли срок годности оффера
           $is_expired = call_user_func(function() USE ($offer_expired_at) {
 
             return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($offer_expired_at));
 
           });
 
-          // 3] Если оффер истёк, отменить его
+          // 4] Если оффер истёк, отменить его
           if($is_expired == true) {
 
-            runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+            $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
               "winid"        => $win['id'],
               "tradeofferid" => $bot['pivot']['tradeofferid'],
               "id_bot"       => $bot['id'],
               "id_user"      => $win['m5_users'][0]['id'],
               "id_room"      => $win['rounds'][0]['rooms']['id'],
-            ], 0, ['on'=>true, 'name'=>'processor_wins_hard']); // 'smallbroadcast']);
+            ]); // 'smallbroadcast']);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
 
           }
 

@@ -390,6 +390,8 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
           $result = runcommand('\M9\Commands\C25_update_wins_cache', [
             "all"   => true
           ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
 
         }
 
