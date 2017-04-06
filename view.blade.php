@@ -67,6 +67,12 @@
     Б2. Счастливчик дня (Classic Game)
     Б3. Наибольшая ставка (Classic Game)
 
+  В. Получение данных с сервера и подключение JS этого документа
+    В1. Получение данных с сервера
+    В2. Подключение JS этого документа
+    В3. Yandex.Metrika counter
+    В4. Google Analitics counter
+
 -------------------------*/ ?>
 @section('content')
 <?php /*-------------------------->
@@ -571,13 +577,13 @@
 
 
 <?php /*--------------------------------------------------------------->
-<!-- 4. Получение данных с сервера и подключение JS этого документа  -->
+<!-- В. Получение данных с сервера и подключение JS этого документа  -->
 <!-----------------------------------------------------------------*/ ?>
 @section('js')
 
-  <?php /*-------------------------------->
-  <!-- 4.1. Получение данных с сервера  -->
-  <!----------------------------------*/ ?>
+  <?php /*------------------------------>
+  <!-- В1. Получение данных с сервера -->
+  <!--------------------------------*/ ?>
   <script>
 
     // 1. Подготовить объект, в который будут записаны данные
@@ -594,9 +600,9 @@
   </script>
 
 
-  <?php /*------------------------------------>
-  <!-- 4.2. Подключение JS этого документа  -->
-  <!--------------------------------------*/ ?>
+  <?php /*---------------------------------->
+  <!-- В2. Подключение JS этого документа -->
+  <!------------------------------------*/ ?>
 
   <!-- document js: start -->
   <script src="{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/public/bower/jquery/jquery.min.js?rand={!! mt_rand(1000,9999); !!}"></script>
@@ -620,9 +626,9 @@
   <!-- document js: stop -->
 
 
-  <?php /*---------------------------->
-  <!-- 4.3. Yandex.Metrika counter  -->
-  <!------------------------------*/ ?>
+  <?php /*-------------------------->
+  <!-- В3. Yandex.Metrika counter -->
+  <!----------------------------*/ ?>
   <script type="text/javascript">
       (function (d, w, c) {
           (w[c] = w[c] || []).push(function() {
@@ -650,6 +656,21 @@
       })(document, window, "yandex_metrika_callbacks");
   </script>
   <noscript><div><img src="https://mc.yandex.ru/watch/31732306" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+
+
+  <?php /*---------------------------->
+  <!-- В4. Google Analitics counter -->
+  <!------------------------------*/ ?>
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-58933893-3', 'auto');
+  ga('send', 'pageview');
+
+  </script>
 
 
 @stop
