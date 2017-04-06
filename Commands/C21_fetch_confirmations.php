@@ -194,10 +194,29 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
         throw new \Exception($validator['data']);
       }
 
-      // 2. Попробовать найти модель бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+      // 2. Попробовать найти модель бота с id_bot, если частота попыток подтвердить офферы для него превышена, завершить
+
+        // 2.1. Попробовать найти
+        $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+        if(empty($bot))
+          throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+
+        // 2.2. Если частота попыток подтвердить офферы для него превышена превышена, завершить
+        // - Не чаще, чем раз в 5 секунд.
+
+          // 1] Получить из кэша дату и время последней попытки
+          $last_try_datetime = Cache::get('m8:c21:confirmations:lasttry:datetime:'.$this->data['id_bot']);
+
+          // 2] Если $last_try_datetime не пуста, и прошло менее 55 секунд, завершить по-тихому
+          if(!empty($last_try_datetime) && +(\Carbon\Carbon::parse($last_try_datetime)->diffInSeconds(\Carbon\Carbon::now())) < 5) {
+
+            // Завершить
+            throw new \Exception('Слишком частые попытки вызвать команду. Должно быть не чаще, чем раз в 5 секунд');
+
+          }
+
+          // 3] Обновить кэш
+          Cache::put('m8:c21:confirmations:lasttry:datetime:'.$this->data['id_bot'], \Carbon\Carbon::now()->toDateTimeString(), 300);
 
       // 3. Проверить наличие у бота непустых device_id, steamid и identity_secret
 
