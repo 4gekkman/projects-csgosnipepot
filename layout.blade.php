@@ -334,7 +334,7 @@
     <?php /*---------->
     <!-- Правый чат -->
     <!------------*/ ?>
-    <div class="chat" data-bind="css: {'hidden-chat': !m.s3.expanded(), minimized: m.s3.hidden, 'min-chat-not-expanded': !m.s3.expanded()}">
+    <div class="chat" data-bind="css: {'hidden-chat': !m.s3.expanded(), minimized: m.s3.hidden, 'min-chat-not-expanded': !m.s3.expanded()}"><noindex>
 
       <?php /*-------------------------------------------->
       <!-- 3.1. Панель управления чатом в верхней части -->
@@ -444,8 +444,7 @@
 
       </div>
 
-    </div>
-
+    </noindex></div>
 
   </div>
 
