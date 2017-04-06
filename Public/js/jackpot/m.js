@@ -1116,7 +1116,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 2. Заполнить results
 				for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
-					results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i].avatar();
+					results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i].user().avatar_steam(); //self.m.s1.game.wheel.data()[i].avatar();
 				}
 
 				// 3. Вернуть results
@@ -1140,7 +1140,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 4] Наполнить m.s1.game.strip.avatars
 				for(var i=0; i<avatars_strip_ids.length; i++) {
-					self.m.s1.game.strip.avatars.push(self.m.s1.indexes.users_avatars[avatars_strip_ids[i]]);
+					//self.m.s1.game.strip.avatars.push(self.m.s1.indexes.users_avatars[avatars_strip_ids[i]]);
+					self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?' + m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20));
 				}
 
 			})();
