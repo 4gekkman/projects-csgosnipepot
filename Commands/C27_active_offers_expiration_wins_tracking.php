@@ -150,7 +150,7 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
       // 1. Получить активные выигрыши из кэша
       $wins_active = json_decode(Cache::get('processing:wins:active'), true);
 
-      // 2. Отменить истёкшие офферы, перевести соотв.выигрыши в состояние Ready
+      // 2. Отменить истёкшие офферы, перевести соотв.выигрыши в состояние Expired
       foreach($wins_active as $win) {
 
         // 2.1. Получить всех ботов, связанных с $win
@@ -163,7 +163,7 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
           $offer_expired_at = $bot['pivot']['offer_expired_at'];
 
           // 2] Если $offer_expired_at пуст, перейти к следующей итерации
-          if(empty($offer_expired_at))
+          if(empty($offer_expired_at) || \Carbon\Carbon::parse($offer_expired_at)->timestamp <= 0)
             continue;
 
           // 3] Определить, истёк ли срок годности оффера
@@ -182,6 +182,7 @@ class C27_active_offers_expiration_wins_tracking extends Job { // TODO: доба
               "id_bot"       => $bot['id'],
               "id_user"      => $win['m5_users'][0]['id'],
               "id_room"      => $win['rounds'][0]['rooms']['id'],
+              "is_expired"   => 1
             ]); // 'smallbroadcast']);
             if($result['status'] != 0)
               throw new \Exception($result['data']['errormsg']);

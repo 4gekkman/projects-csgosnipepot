@@ -154,17 +154,26 @@ class C31_cancel_the_active_win_offer extends Job { // TODO: добавить "i
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Принять и проверить входящие данные
-      $validator = r4_validate($this->data, [
 
-        "winid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_bot"        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_room"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"]
+        // 1.1. Принять
+        $validator = r4_validate($this->data, [
 
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
+          "winid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "tradeofferid"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "id_bot"        => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "id_user"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "id_room"       => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "is_expired"    => ["regex:/^[01]{1}$/ui"]
+
+        ]); if($validator['status'] == -1) {
+          throw new \Exception($validator['data']);
+        }
+
+        // 1.2. Назначить значения по умолчанию для некоторых параметров
+
+          // 1] is_expired
+          if(!array_key_exists('is_expired', $this->data))
+            $this->data['is_expired'] = 0;
 
       // 2. Попробовать получить оффер с tradeofferid из Steam через HTTP
       // - Что означают коды:
@@ -232,6 +241,7 @@ class C31_cancel_the_active_win_offer extends Job { // TODO: добавить "i
           "tradeofferid"      => $this->data['tradeofferid'],
           "id_user"           => $this->data['id_user'],
           "id_room"           => $this->data['id_room'],
+          "is_expired"        => $this->data['is_expired'],
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);

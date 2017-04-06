@@ -219,6 +219,7 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
                 "id_bot"       => $bot['id'],
                 "id_user"      => $win['m5_users'][0]['id'],
                 "id_room"      => $expired_win['rounds'][0]['rooms']['id'],
+                "is_expired"   => 1
               ]);
               if($result['status'] != 0)
                 throw new \Exception($result['data']['errormsg']);
@@ -230,23 +231,23 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
         });
 
         // 6.2. Сменить статус $expired_win на Expired
-        call_user_func(function() USE ($expired_win, $status_expired) {
-
-          // 1] Получить модель выигрыша $expired_win['id']
-          $win = \M9\Models\MD4_wins::find($expired_win['id']);
-          if(empty($win))
-            throw new \Exception('Не удалось найти в БД истёкший выигрыш №'.$expired_win['id']);
-
-          // 2] Отвязать $win от всех статусов
-          $win->wins_statuses()->detach();
-
-          // 3] Привязать $win к статусу $status_expired
-          if(!$win->wins_statuses->contains($status_expired->id)) $win->wins_statuses()->attach($status_expired->id);
-
-          // 4] Добавить started_at в pivot-таблицу
-          $win->wins_statuses()->updateExistingPivot($status_expired->id, ["started_at" => \Carbon\Carbon::now()->toDateTimeString()]);
-
-        });
+        //call_user_func(function() USE ($expired_win, $status_expired) {
+        //
+        //  // 1] Получить модель выигрыша $expired_win['id']
+        //  $win = \M9\Models\MD4_wins::find($expired_win['id']);
+        //  if(empty($win))
+        //    throw new \Exception('Не удалось найти в БД истёкший выигрыш №'.$expired_win['id']);
+        //
+        //  // 2] Отвязать $win от всех статусов
+        //  $win->wins_statuses()->detach();
+        //
+        //  // 3] Привязать $win к статусу $status_expired
+        //  if(!$win->wins_statuses->contains($status_expired->id)) $win->wins_statuses()->attach($status_expired->id);
+        //
+        //  // 4] Добавить started_at в pivot-таблицу
+        //  $win->wins_statuses()->updateExistingPivot($status_expired->id, ["started_at" => \Carbon\Carbon::now()->toDateTimeString()]);
+        //
+        //});
 
         // 6.3. Сделать commit
         DB::commit();

@@ -187,13 +187,13 @@ class C24_processor_wins extends Job { // TODO: добавить "implements Sho
 
 
         // 3. Отслеживать срок годности активных офферов по выплате выигрышей
-        //runcommand('\M9\Commands\C27_active_offers_expiration_wins_tracking', [],
-        //    0, ['on'=>true, 'name'=>$queue]);
+        runcommand('\M9\Commands\C27_active_offers_expiration_wins_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
         // 4. Отслеживать срок годности выигрышей
-        //runcommand('\M9\Commands\C28_wins_expiration_tracking', [],
-        //    0, ['on'=>true, 'name'=>$queue]);
+        runcommand('\M9\Commands\C28_wins_expiration_tracking', [],
+            0, ['on'=>true, 'name'=>$queue]);
 
 
         // 5. Отслеживание и наполнение assetid_bots ставок

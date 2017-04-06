@@ -365,7 +365,12 @@ class C26_active_offers_wins_tracking extends Job { // TODO: добавить "i
 
           }
 
-          // 3] Если статус оффера изменился НЕ на Accepted
+          // 3] Если статус оффера изменился на NeedsConfirmation (9), ничего не делать
+          else if($id_status_new == 9) {
+
+          }
+
+          // 4] Если статус оффера изменился НЕ на Accepted или NeedsConfirmation
           else {
 
             $result = runcommand('\M9\Commands\C32_cancel_the_active_win_offer_dbpart', [

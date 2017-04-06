@@ -144,6 +144,7 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
      *    3.2. processing:wins:not_paid_expired + processing:wins:not_paid_expired:<id пользователя>
      *    3.3. processing:wins:paid + processing:wins:paid:<id пользователя>
      *    3.4. processing:wins:expired + processing:wins:expired:<id пользователя>
+     *    3.5. processing:wins:ready + processing:wins:ready:<id пользователя>
      *
      *  N. Вернуть статус 0
      *
@@ -630,6 +631,46 @@ class C25_update_wins_cache extends Job { // TODO: добавить "implements 
 //            }
 //
 //          }
+
+
+        // 3.5. processing:wins:ready + processing:wins:ready:<id пользователя>
+
+          // 3.5.1. Получить кэш
+          $cache = json_decode(Cache::get('processing:wins:ready'), true);
+
+          // 3.5.2. Обновить кэш
+          // - Если он отсутствует, или если параметро force == true
+          if(
+            (!Cache::has('processing:wins:ready') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("processing:wins:ready", $this->data['cache2update']) == true || $this->data['all'] == true) {
+
+              // 1] Получить все выигрыши со статусом Ready
+              // - Включая все их связи.
+              $ready_wins = \M9\Models\MD4_wins::with(["debts","rounds","rounds.rooms","wins_statuses","m5_users","m8_items","m8_bots","safecodes"])
+                ->whereHas('wins_statuses', function($query){
+                  $query->where('status', 'Ready');
+                })
+                ->get();
+
+              // 2] Обновить полную (не safe) версию кэша
+              call_user_func(function() USE (&$ready_wins){
+
+                // 2.1] Записать JSON с $ready_wins в кэш
+                Cache::put('processing:wins:ready', json_encode($ready_wins->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+              });
+
+            }
+
+          }
+
+
+
+
 
 
     DB::commit(); } catch(\Exception $e) {

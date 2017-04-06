@@ -142,7 +142,7 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
      *  2. Получить выигрыш с winid и tradeofferid
      *  3. Получить статусы Active и статус для another_status_id
      *  4. Отвязать ставку от статуса $status_active
-     *  5. Привязать ставку к статусу $another_status
+     *  5. Привязать ставку к другому статусу
      *  6. Обновить весь кэш
      *  7. Сделать commit
      *  8. Сообщить игроку $this->data['id_user'], что его ставка истекла
@@ -157,25 +157,34 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Получить и проверить входящие данные
-      $validator = r4_validate($this->data, [
 
-        "winid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        // 1.1. Принять
+        $validator = r4_validate($this->data, [
 
-      ]); if($validator['status'] == -1) {
+          "winid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+          "is_expired"        => ["regex:/^[01]{1}$/ui"]
 
-        throw new \Exception($validator['data']);
+        ]); if($validator['status'] == -1) {
 
-      }
+          throw new \Exception($validator['data']);
+
+        }
+
+        // 1.2. Назначить значения по умолчанию для некоторых параметров
+
+          // 1] is_expired
+          if(!array_key_exists('is_expired', $this->data))
+            $this->data['is_expired'] = 0;
 
       // 2. Получить выигрыш с winid и tradeofferid
       // - Заодно удалить значение tradeofferid из pivot-таблицы.
       $win = call_user_func(function(){
 
         // 1] Получить выигрыш с winid
-        $win =  \M9\Models\MD4_wins::with(['wins_statuses', 'm8_bots'])
+        $win = \M9\Models\MD4_wins::with(['wins_statuses', 'm8_bots'])
             ->where('id', $this->data['winid'])
             ->first();
 
@@ -206,17 +215,25 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
       if(empty($win))
         throw new \Exception('Не удалось найти выигрыш в m9.md4_wins по id = '.$this->data['winid']);
 
-      // 3. Получить статусы Active и Ready
+      // 3. Получить статусы Active, Ready и Expired
       $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
       $status_ready = \M9\Models\MD9_wins_statuses::where('status', 'Ready')->first();
-      if(empty($status_active) || empty($status_ready))
-        throw new \Exception('Не удалось найти статусы Active или Ready в m9.md9_wins_statuses');
+      $status_expired = \M9\Models\MD9_wins_statuses::where('status', 'Expired')->first();
+      if(empty($status_active) || empty($status_ready) || empty($status_expired))
+        throw new \Exception('Не удалось найти статусы Active, Ready или Expired в m9.md9_wins_statuses');
 
       // 4. Отвязать выигрыш от статуса $status_active
       $win->wins_statuses()->detach($status_active->id);
 
-      // 5. Привязать ставку к статусу $status_ready
-      $win->wins_statuses()->attach($status_ready->id);
+      // 5. Привязать ставку к другому статусу
+
+        // Привязать ставку к статусу $status_expired, если is_expired == 1
+        if($this->data['is_expired'] == 1)
+          $win->wins_statuses()->attach($status_expired->id);
+
+        // В ином случае, привязать ставку к статусу $status_ready
+        else
+          $win->wins_statuses()->attach($status_ready->id);
 
       // 6. Обновить весь кэш
       $result = runcommand('\M9\Commands\C25_update_wins_cache', [
