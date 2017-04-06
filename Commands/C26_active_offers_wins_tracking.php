@@ -368,15 +368,24 @@ class C26_active_offers_wins_tracking extends Job { // TODO: добавить "i
           // 3] Если статус оффера изменился НЕ на Accepted
           else {
 
-            $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+            $result = runcommand('\M9\Commands\C32_cancel_the_active_win_offer_dbpart', [
               "winid"             => $winid,
               "tradeofferid"      => $tradeofferid,
               "id_user"           => $id_user,
               "id_room"           => $id_room,
-              "id_bot"            => $id_bot,
             ]);
             if($result['status'] != 0)
               throw new \Exception($result['data']['errormsg']);
+
+            //$result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+            //  "winid"             => $winid,
+            //  "tradeofferid"      => $tradeofferid,
+            //  "id_user"           => $id_user,
+            //  "id_room"           => $id_room,
+            //  "id_bot"            => $id_bot,
+            //]);
+            //if($result['status'] != 0)
+            //  throw new \Exception($result['data']['errormsg']);
 
           }
 

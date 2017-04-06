@@ -373,11 +373,14 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
           $win2pay_model->wins_statuses()->detach();
           if(!$win2pay_model->wins_statuses->contains($status_active['id'])) $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
 
-          // 2.5.12. Обновить pivot-таблицу между $win и $bot
+          // 2.5.12. Получить offer_expired_at
+          $offer_expired_at = \Carbon\Carbon::now()->addSeconds((int)round($win2pay_model['rounds'][0]['rooms']['offers_timeout_sec']))->toDateTimeString();
+
+          // 2.5.13. Обновить pivot-таблицу между $win и $bot
           $win2pay_model->m8_bots()->updateExistingPivot($bot['id'], [
             "is_free"           => 0,
             "tradeofferid"      => $tradeoffer['data']['tradeofferid'],
-            "offer_expired_at"  => \Carbon\Carbon::now()->addSeconds((int)round($win2pay_model['rounds'][0]['rooms']['offers_timeout_sec']))->toDateTimeString()
+            "offer_expired_at"  => $offer_expired_at
           ]);
 
           // 2.5.n. Сделать commit
