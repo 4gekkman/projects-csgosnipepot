@@ -412,7 +412,7 @@
           <!-- 1] Аватарка -->
           <!-------------*/ ?>
           <div class="avatar">
-            <img data-bind="attr: {src: avatar}">
+            <img data-bind="attr: {src: avatar() + '?' + bets()[0].m5_users()[0].avatar_steam().slice(-20)}">
           </div>
 
           <?php /*-------------->

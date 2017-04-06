@@ -12,6 +12,7 @@
 @section('title')
 
   <title>CS GO рулетка с минимальной ставкой от 1 рубля! Рулетка скинов игры Counter Strike Global Offencive</title>
+  <meta name="description" content="CSGOHAP - Рулетка на скины Counter Strike Global Offensive от 1 рубля! Вещи для CS GO" />
 
 @stop
 
@@ -231,7 +232,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: m.s1.game.stats.thelastwinner.front.avatar_steam}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thelastwinner.front.id()+'.jpg' + '?' + m.s1.game.stats.thelastwinner.front.avatar_steam().slice(-20)}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -287,7 +288,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: m.s1.game.stats.thelastwinner.back.avatar_steam}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thelastwinner.back.id()+'.jpg' + '?' + m.s1.game.stats.thelastwinner.back.avatar_steam().slice(-20)}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -357,7 +358,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: m.s1.game.stats.luckyoftheday.front.avatar_steam}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.luckyoftheday.front.id()+'.jpg' + '?' + m.s1.game.stats.luckyoftheday.front.avatar_steam().slice(-20)}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -413,7 +414,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: m.s1.game.stats.luckyoftheday.back.avatar_steam}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.luckyoftheday.back.id()+'.jpg' + '?' + m.s1.game.stats.luckyoftheday.back.avatar_steam().slice(-20)}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -483,7 +484,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: m.s1.game.stats.thebiggestbet.front.avatar_steam}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thebiggestbet.front.id()+'.jpg' + '?' + m.s1.game.stats.thebiggestbet.front.avatar_steam().slice(-20)}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -531,7 +532,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: m.s1.game.stats.thebiggestbet.back.avatar_steam}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thebiggestbet.back.id()+'.jpg' + '?' + m.s1.game.stats.thebiggestbet.front.avatar_steam().slice(-20)}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
