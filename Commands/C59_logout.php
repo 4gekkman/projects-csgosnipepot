@@ -184,8 +184,10 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
       // 2. Удалить аутентификационную запись с $id_auth, если $id_auth != 0
       if($id_auth != 0) {
         $auth = \M5\Models\MD8_auth::find($id_auth);
-        $auth->users()->detach();
-        if(!empty($auth)) $auth->delete();
+        if(!empty($auth)) {
+          $auth->users()->detach();
+          $auth->delete();
+        }
       }
 
       // 3. Забыть аутентификационный кэш в сессии

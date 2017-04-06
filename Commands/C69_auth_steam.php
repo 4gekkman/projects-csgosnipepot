@@ -260,9 +260,13 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           ->where('ha_provider_uid', $full_profile_data['steamid'])
           ->first();
 
+Log::info($full_profile_data['avatarfull']);
+
       // 8. Если пользователь не найден, создать нового пользователя
       // - И получить его экземпляр в переменную $user2auth
       if(empty($user2auth)) {
+
+        Log::info(1);
 
         $result = runcommand('\M5\Commands\C9_newuser', [
           "nickname"          => $full_profile_data['personaname'],
@@ -287,6 +291,7 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
       // 9. Если пользователь найден, восстановить и обновить его аккаунт новыми данными
       else {
 
+        // Обновить аккаунт
         $user2auth->restore();
         $user2auth->nickname          = $full_profile_data['personaname'];
         $user2auth->avatar_steam      = $full_profile_data['avatarfull'];
@@ -370,29 +375,29 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
         ]
       ]));
 
-      // 14. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
-
-        // 14.1. Получить
-        $logged_in_steam_users = call_user_func(function(){
-
-          // 1] Получить
-          $result = runcommand('\M5\Commands\C71_count_logged_in_steam_users', []);
-          if($result['status'] != 0)
-            throw new \Exception($result['data']['errormsg']);
-
-          // 2] Вернуть результат
-          return $result['data']['number'];
-
-        });
-
-        // 14.2. Послать
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m5:count_logged_in_steam_users'],
-          'queue'    => 'chat',
-          'data'     => [
-            'number' => $logged_in_steam_users
-          ]
-        ]));
+      //// 14. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+      //
+      //  // 14.1. Получить
+      //  $logged_in_steam_users = call_user_func(function(){
+      //
+      //    // 1] Получить
+      //    $result = runcommand('\M5\Commands\C71_count_logged_in_steam_users', []);
+      //    if($result['status'] != 0)
+      //      throw new \Exception($result['data']['errormsg']);
+      //
+      //    // 2] Вернуть результат
+      //    return $result['data']['number'];
+      //
+      //  });
+      //
+      //  // 14.2. Послать
+      //  Event::fire(new \R2\Broadcast([
+      //    'channels' => ['m5:count_logged_in_steam_users'],
+      //    'queue'    => 'chat',
+      //    'data'     => [
+      //      'number' => $logged_in_steam_users
+      //    ]
+      //  ]));
 
       // 15. Сохранить аватар пользователя
       // - В папку public/public/M5/steam_avatars/<id пользователя>.jpg
