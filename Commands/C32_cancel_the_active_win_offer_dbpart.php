@@ -162,7 +162,6 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
         $validator = r4_validate($this->data, [
 
           "winid"             => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-          "tradeofferid"      => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
           "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
           "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
           "is_expired"        => ["regex:/^[01]{1}$/ui"]
@@ -179,6 +178,10 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
           if(!array_key_exists('is_expired', $this->data))
             $this->data['is_expired'] = 0;
 
+          // 2] tradeofferid
+          if(!array_key_exists('tradeofferid', $this->data))
+            $this->data['tradeofferid'] = "";
+
       // 2. Получить выигрыш с winid и tradeofferid
       // - Заодно удалить значение tradeofferid из pivot-таблицы.
       $win = call_user_func(function(){
@@ -189,24 +192,24 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
             ->first();
 
         // 2] Если у $win нет tradeofferid, вернуть ""
-        $has_tradeofferid = call_user_func(function() USE (&$win) {
-          foreach($win['m8_bots'] as &$bot) {
-            if($bot['pivot']['tradeofferid'] == $this->data['tradeofferid']) {
-
-              // Удалить значение tradeofferid из pivot-таблицы
-              $bot['pivot']['tradeofferid'] = "";
-              $bot['pivot']->save();
-
-              // Вернуть true
-              return true;
-
-            }
-          }
-          return false;
-        });
-
-        // 3] Если $has_tradeofferid == false, вернуть ""
-        if($has_tradeofferid == false) return "";
+        //$has_tradeofferid = call_user_func(function() USE (&$win) {
+        //  foreach($win['m8_bots'] as &$bot) {
+        //    if($bot['pivot']['tradeofferid'] == $this->data['tradeofferid']) {
+        //
+        //      // Удалить значение tradeofferid из pivot-таблицы
+        //      $bot['pivot']['tradeofferid'] = "";
+        //      $bot['pivot']->save();
+        //
+        //      // Вернуть true
+        //      return true;
+        //
+        //    }
+        //  }
+        //  return false;
+        //});
+        //
+        //// 3] Если $has_tradeofferid == false, вернуть ""
+        //if($has_tradeofferid == false) return "";
 
         // 4] Иначе вернуть $win
         return $win;
