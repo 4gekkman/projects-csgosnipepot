@@ -225,8 +225,8 @@ class C32_cancel_the_active_win_offer_dbpart extends Job { // TODO: добави
       if(empty($status_active) || empty($status_ready) || empty($status_expired))
         throw new \Exception('Не удалось найти статусы Active, Ready или Expired в m9.md9_wins_statuses');
 
-      // 4. Отвязать выигрыш от статуса $status_active
-      $win->wins_statuses()->detach($status_active->id);
+      // 4. Отвязать выигрыш от всех статусов
+      $win->wins_statuses()->detach();
 
       // 5. Привязать ставку к другому статусу
 
