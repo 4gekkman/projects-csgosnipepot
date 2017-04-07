@@ -202,17 +202,32 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
             $is_free      = $bot['pivot']['is_free'];
             $tradeofferid = $bot['pivot']['tradeofferid'];
 
-            // 2.2] Отменить $tradeofferid
-            $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
-              "winid"        => $expired_win['id'],
-              "tradeofferid" => $tradeofferid,
-              "id_bot"       => $bot['id'],
-              "id_user"      => $expired_win['m5_users'][0]['id'],
-              "id_room"      => $expired_win['rounds'][0]['rooms']['id'],
-              "is_expired"   => 1
-            ]);
-            if($result['status'] != 0)
-              throw new \Exception($result['data']['errormsg']);
+            // 2.2] Отменить $tradeofferid, если он не пуст
+            if(!empty($tradeofferid)) {
+              $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+                "winid"        => $expired_win['id'],
+                "tradeofferid" => $tradeofferid,
+                "id_bot"       => $bot['id'],
+                "id_user"      => $expired_win['m5_users'][0]['id'],
+                "id_room"      => $expired_win['rounds'][0]['rooms']['id'],
+                "is_expired"   => 1
+              ]);
+              if($result['status'] != 0)
+                throw new \Exception($result['data']['errormsg']);
+            }
+
+            // 2.3] А если пуст, то просто сделать Expired выигрыш $expired_win['id']
+            else {
+              $result = runcommand('\M9\Commands\C32_cancel_the_active_win_offer_dbpart', [
+                "winid"             => $expired_win['id'],
+                "tradeofferid"      => $tradeofferid,
+                "id_user"           => $expired_win['m5_users'][0]['id'],
+                "id_room"           => $expired_win['rounds'][0]['rooms']['id'],
+                "is_expired"        => 1,
+              ]);
+              if($result['status'] != 0)
+                throw new \Exception($result['data']['errormsg']);
+            }
 
           }
 
@@ -220,11 +235,11 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
         // - Но только, если он не был обновлён в C18.
         // - А там он обновляется только лишь при изменении статуса
         //   любого из раундов, любой из комнат.
-        $result = runcommand('\M9\Commands\C25_update_wins_cache', [
-          "all" => true
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+        //$result = runcommand('\M9\Commands\C25_update_wins_cache', [
+        //  "all" => true
+        //]);
+        //if($result['status'] != 0)
+        //  throw new \Exception($result['data']['errormsg']);
 
         // 5.3. Сообщить игроку $this->data['id_user'] свежие данные по выигрышам
         // - Через websocket, по частном каналу.
