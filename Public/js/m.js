@@ -165,7 +165,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				layout_data.data.websocket_server = layout_data.data.websocket_server + ':6001';
 
 				// 2] Подключить ws1
-				self.websocket.ws1 = io(layout_data.data.websocket_server);
+				self.websocket.ws1 = io(layout_data.data.websocket_server, {query: "foo=bar"});
 
 		//--------------------------------------------------------------//
 		// А4.3. Назначение обработчиков сообщений с websocket-серверов //
