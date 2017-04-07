@@ -149,7 +149,7 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
     //----------------------------------------------//
     // Отслеживание сроков годности самих выигрышей //
     //----------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
+    $res = call_user_func(function() { try {
 
       // 1. Получить текущее серверное время в формате Carbon
       $servertime = \Carbon\Carbon::now();
@@ -187,72 +187,36 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
       if(empty($status_expired))
         throw new \Exception('Не удалось найти статус Expired в m9.md9_wins_statuses');
 
-      // 5. Получить активные выигрыши из кэша
-      $wins_active = json_decode(Cache::get('processing:wins:active'), true);
-
-      // 6. Для $expired_wins: отменить активные офферы, сменить статус на Expired
+      // 5. Для $expired_wins: отменить Active и Ready офферы, сменить статус на Expired
       foreach($expired_wins as $expired_win) {
 
-        // 6.1. Отменить все активные офферы для $expired_win
-        call_user_func(function() USE ($expired_win, $expired_wins, $wins_active) {
+        // 5.1. Отменить все активные офферы для $expired_win
 
-          // 1] Отменить офферы истёкших выигрышей, перевести соотв.выигрыши в состояние Expired
-          foreach($wins_active as $win) {
+          // 1] Получить всех ботов, связанных с $win
+          $bots = $expired_win['m8_bots'];
 
-            // 1.1] Получить всех ботов, связанных с $win
-            $bots = $win['m8_bots'];
+          // 2] Проверить истёкшие офферы у каждого из ботов
+          foreach($bots as $bot) {
 
-            // 1.2] Проверить истёкшие офферы у каждого из ботов
-            foreach($bots as $bot) {
+            // 2.1] Получить значения is_free и tradeofferid для $bot
+            $is_free      = $bot['pivot']['is_free'];
+            $tradeofferid = $bot['pivot']['tradeofferid'];
 
-              // 1.2.1] Получить значения is_free и tradeofferid для $bot
-              $is_free      = $bot['pivot']['is_free'];
-              $tradeofferid = $bot['pivot']['tradeofferid'];
-
-              // 1.2.2] Если у $bot нет активного оффера, перейти к след.итерации
-              if($is_free == 1 || !$tradeofferid) continue;
-
-              // 1.2.3] Отменить $tradeofferid
-              $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
-                "winid"        => $win['id'],
-                "tradeofferid" => $tradeofferid,
-                "id_bot"       => $bot['id'],
-                "id_user"      => $win['m5_users'][0]['id'],
-                "id_room"      => $expired_win['rounds'][0]['rooms']['id'],
-                "is_expired"   => 1
-              ]);
-              if($result['status'] != 0)
-                throw new \Exception($result['data']['errormsg']);
-
-            }
+            // 2.2] Отменить $tradeofferid
+            $result = runcommand('\M9\Commands\C31_cancel_the_active_win_offer', [
+              "winid"        => $expired_win['id'],
+              "tradeofferid" => $tradeofferid,
+              "id_bot"       => $bot['id'],
+              "id_user"      => $expired_win['m5_users'][0]['id'],
+              "id_room"      => $expired_win['rounds'][0]['rooms']['id'],
+              "is_expired"   => 1
+            ]);
+            if($result['status'] != 0)
+              throw new \Exception($result['data']['errormsg']);
 
           }
 
-        });
-
-        // 6.2. Сменить статус $expired_win на Expired
-        //call_user_func(function() USE ($expired_win, $status_expired) {
-        //
-        //  // 1] Получить модель выигрыша $expired_win['id']
-        //  $win = \M9\Models\MD4_wins::find($expired_win['id']);
-        //  if(empty($win))
-        //    throw new \Exception('Не удалось найти в БД истёкший выигрыш №'.$expired_win['id']);
-        //
-        //  // 2] Отвязать $win от всех статусов
-        //  $win->wins_statuses()->detach();
-        //
-        //  // 3] Привязать $win к статусу $status_expired
-        //  if(!$win->wins_statuses->contains($status_expired->id)) $win->wins_statuses()->attach($status_expired->id);
-        //
-        //  // 4] Добавить started_at в pivot-таблицу
-        //  $win->wins_statuses()->updateExistingPivot($status_expired->id, ["started_at" => \Carbon\Carbon::now()->toDateTimeString()]);
-        //
-        //});
-
-        // 6.3. Сделать commit
-        DB::commit();
-
-        // 6.4. Обновить весь кэш
+        // 5.2. Обновить весь кэш
         // - Но только, если он не был обновлён в C18.
         // - А там он обновляется только лишь при изменении статуса
         //   любого из раундов, любой из комнат.
@@ -262,7 +226,7 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
 
-        // 6.5. Сообщить игроку $this->data['id_user'] свежие данные по выигрышам
+        // 5.3. Сообщить игроку $this->data['id_user'] свежие данные по выигрышам
         // - Через websocket, по частном каналу.
         // - Сообщить те же данные, что при истечения выигрыша, с тем же task.
         Event::fire(new \R2\Broadcast([
@@ -287,7 +251,6 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C28_wins_expiration_tracking from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
-        DB::rollback();
         Log::info($errortext);
         write2log($errortext, ['M9', 'C28_wins_expiration_tracking']);
         return [
