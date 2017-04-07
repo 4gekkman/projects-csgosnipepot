@@ -322,22 +322,22 @@ Log::info(3.6);
           ]);
           if($result['status'] != 0)
             continue;
-Log::info(3.7);
+
           // 2.5.7. Получить модель $win
           $win2pay_model = \M9\Models\MD4_wins::with('m8_bots')->where('id', $win['id'])->first();
           if(empty($win2pay_model))
             continue;
-Log::info(3.8);
+
           // 2.5.8. Отправить пользователю торговое предложение
 
             // a] Получить статус выигрышей Active
             $status_active = \M9\Models\MD9_wins_statuses::where('status', 'Active')->first();
             if(empty($status_active))
               continue;
-Log::info(3.9);
+
             // 1] Отправить, только если ранее оно уже не было создано
             if(empty($win2pay_model['m8_bots'][0]['pivot']['tradeofferid'])) {
-Log::info("3.9.A1");
+Log::info("3.7 - try to send offer");
               // 1.1] Отправить
               $tradeoffer = runcommand('\M8\Commands\C25_new_trade_offer', [
                 "id_bot"                => $bot['id'],
@@ -353,11 +353,11 @@ Log::info("3.9.A1");
               // 1.2] Если отправить не удалось, перейти к следующей итерации
               if($tradeoffer['status'] != 0 || !array_key_exists('tradeofferid', $tradeoffer['data']) || empty($tradeoffer['data']['tradeofferid']))
                 continue;
-Log::info("3.9.A2");
+
               // 1.3] Если с этим пользователем нельзя торговать из-за escrow, перейти к следующей итерации
               if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
                 continue;
-Log::info("3.9.A3");
+
               // 1.4] Начать транзакцию
               DB::beginTransaction();
 
@@ -378,18 +378,18 @@ Log::info("3.9.A3");
 
             // 2] Подтвердить, только если ранее оффер уже был создан
             else {
-Log::info("3.9.B1");
+Log::info("3.7 - try to confirm offers");
               // 2.1] Подтвердить
               $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
                 "id_bot"                => $bot['id'],
                 "need_to_ids"           => "1",
                 "just_fetch_info"       => "0"
               ]);
-Log::info("3.9.B2");
+
               // 2.2] Если подтвердить не удалось, перейти к следующей итерации
               if($result['status'] != 0 || (!in_array($win2pay_model['m8_bots'][0]['pivot']['tradeofferid'], collect($result['data']['confirmations'])->pluck('id_tradeoffer')->toArray()) && count($result['data']['confirmations']) != 0))
                 continue;
-Log::info("3.9.B3");
+
               // 2.3] Начать транзакцию
               DB::beginTransaction();
 
@@ -397,17 +397,17 @@ Log::info("3.9.B3");
               // - Удалить старые связи с wins_statuses, и создать новую.
               $win2pay_model->wins_statuses()->detach();
               if(!$win2pay_model->wins_statuses->contains($status_active['id'])) $win2pay_model->wins_statuses()->attach($status_active['id'], ['started_at' => \Carbon\Carbon::now()->toDateTimeString(), 'comment' => 'Создание активного оффера (ов) для выплаты этого выигрыша победителю.']);
-Log::info("3.9.B4");
+
               // 2.5] Сделать commit
               DB::commit();
-Log::info("3.9.B5");
+
               // 2.6] Обновить весь кэш
               $result = runcommand('\M9\Commands\C25_update_wins_cache', [
                 "all"   => true
               ]);
               if($result['status'] != 0)
                 throw new \Exception($result['data']['errormsg']);
-Log::info("3.9.B6");
+
             }
 
         }
