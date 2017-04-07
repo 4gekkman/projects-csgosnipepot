@@ -171,7 +171,7 @@ class C48_wins_autopayouts extends Job { // TODO: добавить "implements S
 
       // 2. Обработать каждый выигрыш индивидуально
       foreach($wins_not_paid_expired as $win) {
-Log::info(1);
+Log::info("1 - выигрыш №".$win['id']);
         // 2.1. Получить ID и STEAMID победителя из $win
 
           // Получить
