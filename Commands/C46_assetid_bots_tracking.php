@@ -205,9 +205,10 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
           DB::beginTransaction();
 
           // 4] Получить связанный с $bet раунд
-          $round = \M9\Models\MD2_rounds::whereHas('bets', function($query) USE ($bet) {
-            $query->where('id', $bet['id']);
-          })->first();
+          $round = \M9\Models\MD2_rounds::with(['bets', 'bets.m8_items'])
+            ->whereHas('bets', function($query) USE ($bet) {
+              $query->where('id', $bet['id']);
+            })->first();
 
           // 5] Получить массив assetid уже занятых в других ставках раунда $round
           // - Ставка $bet связана с конкретным раундом $round.
@@ -217,7 +218,7 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
           // - Необходимо получить массив этих самых занятых assetid других ставок.
           $busy_assetids = call_user_func(function() USE ($round) {
 
-            // 1] Получить все связанные с $lastround ставки
+            // 1] Получить все связанные с $round ставки
             $bets = $round['bets'];
 
             // 2] Собрать в массив (без повторений) все assetid всех вещей ставок $bets
