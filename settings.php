@@ -45,4 +45,21 @@ return [
       ]
     ],
 
+    //----------------------//
+    // 5] Настройки M16     //
+    //    M16 configuration //
+    //----------------------//
+
+      // 1] Сколько минут нужно быть непрерывно онлайн, чтобы получить раздачу | How much time you have to be online to get giveaway
+      'giveaway_period_min' => '180',
+
+      // 2] Сколько секунд нужно быть оффлайн, чтобы сбросился счётчик онлайна | How much time you heve to be offline to drop online counter
+      'offline2drop_online_counter_sec' => '180',
+
+      // 3] Как часто делать резервные копии счётчиков онлайн в БД | How often to make reserve copies of online counters to DB
+      'online_counters_backup_period_sec' => '300',
+
+
+
+
 ];

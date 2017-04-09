@@ -43,7 +43,7 @@
         // 2] Пары 'событие-обработчик' документов M-пакета //
         //--------------------------------------------------//
         $pairs2register = [
-
+          'M16\EventHandlers\H1_ticks' => 'R2\Event'
         ];
 
       //----------------------------------//
@@ -117,7 +117,11 @@
         // Список команд для регистрации
         // Пример: '\M1\Console\T1_parseapp',
         $commands = [
-
+          '\M16\Console\T1_processor',
+          '\M16\Console\T2_update_counters',
+          '\M16\Console\T3_broadcast_counters',
+          '\M16\Console\T4_get_counters_data',
+          '\M16\Console\T5_backup_online_counters'
         ];
 
         // Регистрация команд в методе register
