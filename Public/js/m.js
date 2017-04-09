@@ -165,7 +165,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				layout_data.data.websocket_server = layout_data.data.websocket_server + ':6001';
 
 				// 2] Подключить ws1
-				self.websocket.ws1 = io(layout_data.data.websocket_server, {query: "foo=bar"});
+				self.websocket.ws1 = io(layout_data.data.websocket_server, {query: "about_user="+getCookie("about_user")});
 
 		//--------------------------------------------------------------//
 		// А4.3. Назначение обработчиков сообщений с websocket-серверов //
@@ -879,7 +879,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 
 	});
-	
+
 	//------------------------------//
 	// 			        		 	          //
 	// 			 s5. Модель чата  			//
@@ -939,7 +939,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 
 
-	});	
+	});
 
 	//--------------------------------------------------------//
 	// 			        		 	                                    //

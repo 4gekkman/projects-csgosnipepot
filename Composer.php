@@ -156,6 +156,11 @@ View::composer('L10003::layout', function($view) {
   else
     $rate = 60;
 
+  // 9. Добавить APP_KEY/APP_CIPHER приложения в Redis, если его там ещё нет
+  $result = runcommand('\M1\Commands\C58_add_key_cipher_to_redis', []);
+  if($result['status'] != 0)
+    throw new \Exception($result['data']['errormsg']);
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -177,7 +182,8 @@ View::composer('L10003::layout', function($view) {
     'm9_sound_global_ison'  => $m9_sound_global_ison,
     'balance'               => $balance,
     'usdrub_rate'           => $rate,
-    'asset_url'             => asset('')
+    'asset_url'             => asset(''),
+    'prefix'                => config("cache.prefix")
   ], JSON_UNESCAPED_UNICODE));
 
 
