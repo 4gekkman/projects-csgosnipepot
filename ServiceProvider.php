@@ -44,6 +44,7 @@
         // 2] Пары 'событие-обработчик' документов M-пакета //
         //--------------------------------------------------//
         $pairs2register = [
+          'M1\EventHandlers\H1_ticks' => 'R2\Event'
         ];
 
       //----------------------------------//
@@ -148,7 +149,8 @@
           '\M1\Console\T32_github_del',
           '\M1\Console\T33_clone',
           '\M1\Console\T34_make_gitmodules',
-          '\M1\Console\T35_update_forks'
+          '\M1\Console\T35_update_forks',
+          '\M1\Console\T36_add_key_cipher_to_redis'
         ];
 
         // Регистрация команд в методе register
