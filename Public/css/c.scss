@@ -3482,12 +3482,26 @@
         max-width: 100px; max-height: 100px;
       }
 
+      // Помощь
+      .content .fc .fc-container .fc-content .fc-block .help {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 20px;
+        cursor: pointer;
+        color: darken(#68adbc, 15%);
+        transition: all .3s ease;
+      }
+      .content .fc .fc-container .fc-content .fc-block .help:hover {
+        color: #68adbc;
+      }
+
     //---------------------------------//
     // 7.4.2. Стили ежедневной награды //
     //---------------------------------//
 
       // Времени осталось до следующего дня
-      .content .fc .fc-container .fc-content .fc-block .fc-time-until-next-day {
+      .content .fc .fc-container .fc-content .fc-block.daily-reward .fc-time-until-next-day {
         position: absolute; bottom: 15px; left: 20%;
         width: 60%;
         height: 30px;
@@ -3504,7 +3518,7 @@
       }
 
       // Количество монет
-      .content .fc .fc-container .fc-content .fc-block .fc-coins {
+      .content .fc .fc-container .fc-content .fc-block.daily-reward .fc-coins {
         position: absolute; bottom: 55px; left: 0;
         width: 100%;
         height: 25px;
@@ -3513,7 +3527,21 @@
         color: #fff;
       }
 
+    //--------------------------//
+    // 7.4.3. Стили будь онлайн //
+    //--------------------------//
 
+      .content .fc .fc-container .fc-content .fc-block.beonline .timer {
+        position: absolute;
+        top: calc(50% - 12px);
+        left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+        font-size: 30px;
+      }
 
 
 

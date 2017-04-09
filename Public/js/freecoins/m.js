@@ -13,12 +13,13 @@
  * 	s8. Модель Free Coins
  *
  * 		s8.1. Модель ежедневной награды
+ * 		s8.2. Модель будь онлайн
  *    s8.n. Индексы и вычисляемые значения
  *
  *  W. Обработка websocket-сообщений
  *
- * 		w8.1. Обработка сообщений через публичный канал
- * 		w8.2. Обработка сообщений через частный канал
+ * 		w8.2. Обработка сообщений от M15
+ * 		w8.2. Обработка сообщений от M16
  *
  * 	X. Подготовка к завершению
  *
@@ -73,6 +74,84 @@ var ModelFc = { constructor: function(self, m) { m.s8 = this;
 
 		});
 
+	//--------------------------//
+	// s8.2. Модель будь онлайн //
+	//--------------------------//
+	self.m.s8.beonline = {};
+
+		// 1] Сколько минут нужно быть непрерывно онлайн, чтобы получить раздачу //
+		//-----------------------------------------------------------------------//
+		self.m.s8.beonline.giveaway_period_min = ko.observable(server.data.counters.config.giveaway_period_min);
+
+		// 2] Сколько секунд нужно быть оффлайн, чтобы сбросился счётчик онлайна //
+		//-----------------------------------------------------------------------//
+		self.m.s8.beonline.offline2drop_online_counter_sec = ko.observable(server.data.counters.config.offline2drop_online_counter_sec);
+
+		// 3] Счётчик онлайна в секундах
+		self.m.s8.beonline.counter = ko.observable((function(){
+			if(server.data.counters.counters[0])
+				return server.data.counters.counters[0].counter;
+			else
+				return 0;
+		})());
+
+		// 4] Клиентский timestamp последнего обновления на клиенте счётчика онлайна
+		self.m.s8.beonline.counter_updated_at = ko.observable(Date.now());
+
+		// 5] Кол-во секунд, оставшиеся до получения возможности получить раздачу
+		self.m.s8.beonline.left4giveaway_s = ko.computed(function(){
+
+			// 5.a] Пересчитывать это на каждой секунде
+ 			layoutmodel.m.s0.servertime.timestamp_s();
+
+			// 5.1] Сколько секунд минут нужно быть непрерывно онлайн, чтобы получить раздачу
+			var giveaway_period_sec = self.m.s8.beonline.giveaway_period_min()*60;
+
+			// 5.2] Сколько секунд прошло с последнего обновления счётчика онлайна на клиенте
+			var counter_update_left_sec = Math.round((Date.now() - self.m.s8.beonline.counter_updated_at())/1000);
+
+			// 5.3] Вычислить кол-во секунд, оставшиеся до получения возможности получить раздачу
+			var left4giveaway_s = giveaway_period_sec - self.m.s8.beonline.counter() - counter_update_left_sec;
+
+			// 5.4] Если left4giveaway_s меньше нуля, записать в него 0
+			if(left4giveaway_s < 0)
+				left4giveaway_s = 0;
+
+			// 5.5] Если left4giveaway_s == NaN, записать в него giveaway_period_sec
+			if(isNaN(left4giveaway_s))
+				left4giveaway_s = giveaway_period_sec;
+
+			// 5.n] Вернуть результат
+			return left4giveaway_s;
+
+		});
+
+		// 6] Кол-во времени, оставшиеся до получения возможности получить раздачу (для вывода на экран)
+		self.m.s8.beonline.left4giveaway = {};
+
+			// 6.1] Секунды, минуты и часы
+			self.m.s8.beonline.left4giveaway.human 		= ko.observable("00:00:00");
+			self.m.s8.beonline.left4giveaway.seconds 	= ko.observable("00");
+			self.m.s8.beonline.left4giveaway.minutes 	= ko.observable("00");
+			self.m.s8.beonline.left4giveaway.hours 		= ko.observable("00");
+
+			// 6.2] Произвести вычисления
+			ko.computed(function(){
+
+				// Секунды
+				self.m.s8.beonline.left4giveaway.seconds(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("ss"));
+
+				// Минуты
+				self.m.s8.beonline.left4giveaway.minutes(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("mm"));
+
+				// Часы
+				self.m.s8.beonline.left4giveaway.hours(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("HH"));
+
+				// Человеко-понятный формат
+				self.m.s8.beonline.left4giveaway.human(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("HH:mm:ss"));
+
+			});
+
 
 	//--------------------------------------//
 	// s8.n. Индексы и вычисляемые значения //
@@ -94,29 +173,14 @@ var ModelFc = { constructor: function(self, m) { m.s8 = this;
 	// 			         			                //
 	//------------------------------------//
 
-	//-------------------------------------------------//
-	// w8.1. Обработка сообщений через публичный канал //
-	//-------------------------------------------------//
-	self.websocket.ws1.on('m15:public', function(data) {
+	//----------------------------------//
+	// w8.1. Обработка сообщений от M15 //
+	//----------------------------------//
 
-		// 1] Получить имя задачи
-		var task = data.data.data.task;
-
-		// 2] В зависимости от task выполнить соотв.метод
-		switch(task) {
-
-			case "m15:freecoins:left2unblock": self.f.s8.fc_left2unblock(data.data.data.data); break;
-			case "m15:freecoins:unblock": self.f.s8.fc_unblock(); break;
-
-		}
-
-	});
-
-	//-----------------------------------------------//
-	// w8.2. Обработка сообщений через частный канал //
-	//-----------------------------------------------//
-	if(JSON.parse(layout_data.data.auth).is_anon == 0) {
-		self.websocket.ws1.on('m15:private:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
+		//----------------------------------------------//
+		// 1] Обработка сообщений через публичный канал //
+		//----------------------------------------------//
+		self.websocket.ws1.on('m15:public', function(data) {
 
 			// 1] Получить имя задачи
 			var task = data.data.data.task;
@@ -124,14 +188,71 @@ var ModelFc = { constructor: function(self, m) { m.s8 = this;
 			// 2] В зависимости от task выполнить соотв.метод
 			switch(task) {
 
-				case "m15:freecoins:block": self.f.s8.fc_block(); break;
+				case "m15:freecoins:left2unblock": self.f.s8.fc_left2unblock(data.data.data.data); break;
+				case "m15:freecoins:unblock": self.f.s8.fc_unblock(); break;
 
 			}
 
 		});
-	}
 
+		//--------------------------------------------//
+		// 2] Обработка сообщений через частный канал //
+		//--------------------------------------------//
+		if(JSON.parse(layout_data.data.auth).is_anon == 0) {
+			self.websocket.ws1.on('m15:private:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
 
+				// 1] Получить имя задачи
+				var task = data.data.data.task;
+
+				// 2] В зависимости от task выполнить соотв.метод
+				switch(task) {
+
+					case "m15:freecoins:block": self.f.s8.fc_block(); break;
+
+				}
+
+			});
+		}
+
+	//----------------------------------//
+	// w8.2. Обработка сообщений от M16 //
+	//----------------------------------//
+
+		//-------------------------------------------------//
+		// 1] Обработка сообщений через публичный канал //
+		//-------------------------------------------------//
+		self.websocket.ws1.on('m16:public', function(data) {
+
+			// 1] Получить имя задачи
+			var task = data.data.data.task;
+
+			// 2] В зависимости от task выполнить соотв.метод
+			switch(task) {
+
+				//case "m15:freecoins:left2unblock": self.f.s8.fc_left2unblock(data.data.data.data); break;
+
+			}
+
+		});
+
+		//--------------------------------------------//
+		// 2] Обработка сообщений через частный канал //
+		//--------------------------------------------//
+		if(JSON.parse(layout_data.data.auth).is_anon == 0) {
+			self.websocket.ws1.on('m16:private:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
+
+				// 1] Получить имя задачи
+				var task = data.data.data.task;
+
+				// 2] В зависимости от task выполнить соотв.метод
+				switch(task) {
+
+					case "m16:counters:freshdata": self.f.s8.counters_freshdata(data.data.data.data); break;
+
+				}
+
+			});
+		}
 
 
 

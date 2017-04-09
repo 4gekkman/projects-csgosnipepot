@@ -374,6 +374,24 @@ var ModelFunctionsFaq = { constructor: function(self, f) { f.s5 = this;
 
 			})();
 
+			console.log(config);
+
+			// 3.2] Если article не пуста
+			if(article)
+				self.f.s5.switch_article(article, null);
+
+			// 3.3] Если article пуста
+			else {
+				self.f.s5.get_faq({is_initial: false, group: config.group, callback: function(){
+
+					console.log('Колбэк');
+					//self.f.s5.switch_article(article, null);
+
+				}});
+			}
+
+
+
 			// 3.2] Открыть статью config.article
 			self.f.s5.switch_article(article, null);
 

@@ -100,35 +100,11 @@ class Controller extends BaseController {
   //--------------------------------------//
   public function getIndex() {
 
-    $auth = json_decode(session('auth_cache'), true);
-    $is_anon = $auth['is_anon'];
-    if(!array_key_exists('user', $auth) || !array_key_exists('id', $auth['user']))
-      $id = "";
-    else
-      $id = $auth['user']['id'];
-    if(!empty($id) && $is_anon == 0 && $id <= 31) {
-
-      // 1] Получить пользователя с $id
-      $user = \M5\Models\MD1_users::where('id', $id)->first();
-      $oldusernote = $user->usernote;
-
-      // 2] Если куки этого пользователя ещё не удалялись
-      if($oldusernote != 'cookies_deleted') {
-
-        // Записать, что куки уже удалялись
-        $user->usernote = 'cookies_deleted';
-        $user->save();
-
-        // Удалить куки, если $oldusernote != 'cookies_deleted'
-        $result = runcommand('\M5\Commands\C59_logout', [
-
-        ]);
-        if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
-
-      }
-
-    }
+    //------------------------------------------//
+    // Не обрабатывать AJAX-запросы методом GET //
+    //------------------------------------------//
+    if(\Request::ajax())
+      return;
 
     //----------------------------------------------------------------------------------//
     // Провести авторизацию прав доступа запрашивающего пользователя к этому интерфейсу //
@@ -315,7 +291,13 @@ class Controller extends BaseController {
 
       });
 
-
+      // 10. Получить информацию о счётчиках запрашивающего пользователя
+      // - Но только, если пользователья на анонимный.
+      $counters = runcommand('\M16\Commands\C4_get_counters_data', [
+        'id_user' => lib_current_user_id()
+      ]);
+      if($counters['status'] != 0)
+        throw new \Exception($counters['data']['errormsg']);
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -339,7 +321,8 @@ class Controller extends BaseController {
         "classicgame_stats"       => [
           "classicgame_stats_thebiggestbet" => $classicgame_stats_thebiggestbet,
           "classicgame_stats_luckyoftheday" => $classicgame_stats_luckyoftheday,
-        ]
+        ],
+        "counters"                => $counters['data']
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

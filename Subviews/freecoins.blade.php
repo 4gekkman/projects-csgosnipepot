@@ -82,6 +82,33 @@
 
       </div>
 
+      <?php /*--------------------->
+      <!-- 10.1.2.2. Будь онлайн -->
+      <!-----------------------*/ ?>
+      <div class="fc-block beonline">
+
+        <?php /*------------>
+        <!-- 1] Заголовок -->
+        <!--------------*/ ?>
+        <div class="fc-header">
+          <span>БУДЬ ОНЛАЙН</span>
+        </div>
+
+        <?php /*---------------->
+        <!-- 2] Ссылка на FAQ -->
+        <!------------------*/ ?>
+        <!--<i class="help mdi mdi-help-circle" data-bind="click: f.s5.open_faq_article.bind($data, {faq_url: '/faq', group: 'freecoins', article: 'beonline'})"></i>-->
+
+        <?php /*------------------->
+        <!-- 3] Оставшееся время -->
+        <!---------------------*/ ?>
+        <span class="timer" data-bind="text: m.s8.beonline.left4giveaway.human"></span>
+
+
+
+
+      </div>
+
     </div>
 
   </div>
