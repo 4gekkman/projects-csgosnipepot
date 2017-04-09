@@ -144,6 +144,7 @@ class C61_auth_phone_password extends Job { // TODO: добавить "implement
      *  6. Сфоромировать json с новыми аутентификационными данными
      *  7. Записать пользователю новый аутентиф.кэш в сессию
      *  8. Записать пользователю новую куку с временем жизни $lifetime
+     *  9. Записать пользователю новую куку about_user
      *
      *  N. Вернуть статус 0
      *
@@ -205,7 +206,14 @@ class C61_auth_phone_password extends Job { // TODO: добавить "implement
       session(['auth_cache' => $json]);
 
       // 8. Записать пользователю новую куку с временем жизни $lifetime
-      Cookie::queue('auth', $json_encrypted, $lifetime);
+      Cookie::queue('auth', $json, $lifetime, null, null, false, true);
+
+      // 9. Записать пользователю новую куку about_user
+      Cookie::queue('about_user', json_encode([
+        'is_anon' => 0,
+        'id_user' => $user['id']
+      ], JSON_UNESCAPED_UNICODE), 525600, null, null, false, false);
+
 
     DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C61_auth_phone_password from M-package M5 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();

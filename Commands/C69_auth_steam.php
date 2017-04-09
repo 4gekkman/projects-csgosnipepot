@@ -260,13 +260,9 @@ class C69_auth_steam extends Job { // TODO: добавить "implements ShouldQ
           ->where('ha_provider_uid', $full_profile_data['steamid'])
           ->first();
 
-Log::info($full_profile_data['avatarfull']);
-
       // 8. Если пользователь не найден, создать нового пользователя
       // - И получить его экземпляр в переменную $user2auth
       if(empty($user2auth)) {
-
-        Log::info(1);
 
         $result = runcommand('\M5\Commands\C9_newuser', [
           "nickname"          => $full_profile_data['personaname'],
@@ -328,7 +324,7 @@ Log::info($full_profile_data['avatarfull']);
         $auth->save();
 
         // 10.6. Сфоромировать json с новыми аутентификационными данными
-        $user2auth_excepted = collect($user2auth)->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
+        $user2auth_excepted = collect($user2auth)->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at'])->toArray();
         $json = [
           'auth'    => $auth,
           'user'    => $user2auth_excepted,
@@ -342,7 +338,13 @@ Log::info($full_profile_data['avatarfull']);
         session(['auth_cache' => $json]);
 
         // 10.8. Записать пользователю новую куку с временем жизни $lifetime*60 минут
-        Cookie::queue('auth', $json, $lifetime*60);
+        Cookie::queue('auth', $json, $lifetime*60, null, null, false, true);
+
+        // 10.9. Записать пользователю новую куку about_user
+        Cookie::queue('about_user', json_encode([
+          'is_anon' => 0,
+          'id_user' => $user2auth_excepted['id']
+        ], JSON_UNESCAPED_UNICODE), 525600, null, null, false, false);
 
       // 11. Создать группу "Steam Users", если её ещё нет
       $steamusers = \M5\Models\MD2_groups::where('name', 'SteamUsers')->first();
@@ -366,14 +368,14 @@ Log::info($full_profile_data['avatarfull']);
         $steamusers->users()->attach($user2auth->id);
 
       // 13. Через websocket послать аутентиф.информацию по каналу websockets_channel
-      Event::fire(new \R2\Broadcast([
-        'channels'  => [$this->data['websockets_channel']],
-        'queue'     => 'auth',
-        'data'      => [
-          'status'  => 0,
-          'user'    => json_encode($user2auth_excepted->toArray(), JSON_UNESCAPED_UNICODE)
-        ]
-      ]));
+      //Event::fire(new \R2\Broadcast([
+      //  'channels'  => [$this->data['websockets_channel']],
+      //  'queue'     => 'auth',
+      //  'data'      => [
+      //    'status'  => 0,
+      //    'user'    => json_encode($user2auth_excepted, JSON_UNESCAPED_UNICODE)
+      //  ]
+      //]));
 
       //// 14. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
       //

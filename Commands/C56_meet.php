@@ -245,12 +245,24 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             }
 
             // 5] Проверить, существует ли в БД пользователь с таким ID, и с валидной аутентификационной записью
-            $user = \M5\Models\MD1_users::where('id', $auth_cache_arr['user']['id'])
-                ->whereHas('auth', function($query){
-                  $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
-                })->count();
-            if($user == 0)
-              return false;
+
+              // 1] Получить ID аутентификации пользователя
+              $id_auth = call_user_func(function() USE ($auth_cache_arr) {
+
+                if(!is_array($auth_cache_arr) || !array_key_exists('auth', $auth_cache_arr) || !array_key_exists('id', $auth_cache_arr['auth']))
+                  return "";
+                else
+                  return $auth_cache_arr['auth']['id'];
+
+              });
+
+              // 2] Получить пользователя
+              $user = \M5\Models\MD1_users::where('id', $auth_cache_arr['user']['id'])
+                  ->whereHas('auth', function($query){
+                    $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
+                  })->count();
+              if($user == 0)
+                return false;
 
             // n] Вернуть true
             return true;
@@ -300,13 +312,27 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         if(!array_key_exists('user', $auth_cookie_arr) || !array_key_exists('auth', $auth_cookie_arr))
           return false;
 
-        // 3.6. Проверить, существует ли в БД пользователь с таким ID
-        $user = \M5\Models\MD1_users::where('id', $auth_cookie_arr['user']['id'])
-          ->whereHas('auth', function($query){
-            $query->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString());
-          })->count();
-        if($user == 0)
-          return false;
+        // 3.6. Проверить, существует ли в БД пользователь с user.id и аутентификацией auth.id
+
+          // 1] Получить ID аутентификации пользователя
+          $id_auth = call_user_func(function() USE ($auth_cookie_arr) {
+
+            if(!is_array($auth_cookie_arr) || !array_key_exists('auth', $auth_cookie_arr) || !array_key_exists('id', $auth_cookie_arr['auth']))
+              return "";
+            else
+              return $auth_cookie_arr['auth']['id'];
+
+          });
+
+          // 2] Получить пользователя
+          $user = \M5\Models\MD1_users::where('id', $auth_cookie_arr['user']['id'])
+            ->whereHas('auth', function($query) USE ($id_auth) {
+              $query
+                ->whereDate('expired_at', '>', \Carbon\Carbon::now()->toDateTimeString())
+                ->where('id', $id_auth);
+            })->count();
+          if($user == 0)
+            return false;
 
         // 3.n. Вернуть true (успешная валидация)
         return true;
@@ -368,7 +394,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
           if($auth_cookie_arr['is_anon'] == 1) {
 
             // 1.1] Попробовать найти анонимного пользователя
-            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
+            $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at'])->toArray();
             if(count($anon) == 0) {
 
               // Обнулить аутентификационный кэш в сессии
@@ -396,10 +422,16 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             // - В сессию пишем не зашифрованный json
             session(['auth_cache' => $json]);
 
-            // 1.4] Записать пользователю новую куку
+            // 1.4] Записать пользователю новую куку auth
             // - С временем жизни 525600 минут.
             // - В куку пишем зашифрованный json
-            Cookie::queue('auth', $json, 525600);
+            Cookie::queue('auth', $json, 525600, null, null, false, true);
+
+            // 1.5] Записать пользователю новую куку about_user
+            Cookie::queue('about_user', json_encode([
+              'is_anon' => 1,
+              'id_user' => $anon['id']
+            ], JSON_UNESCAPED_UNICODE), 525600, null, null, false, false);
 
           }
 
@@ -424,7 +456,13 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
             // 2.3] Записать пользователю новую куку
             // - С временем жизни $is_valid_auth_note минут.
             // - В куку пишем зашифрованный json
-            Cookie::queue('auth', $json, $is_valid_auth_note);
+            Cookie::queue('auth', $json, $is_valid_auth_note, null, null, false, true);
+
+            // 2.4] Записать пользователю новую куку about_user
+            Cookie::queue('about_user', json_encode([
+              'is_anon' => 0,
+              'id_user' => $auth_cookie_user_id
+            ], JSON_UNESCAPED_UNICODE), 525600, null, null, false, false);
 
           }
 
@@ -441,7 +479,7 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
       else {
 
         // 5.1. Попробовать найти анонимного пользователя
-        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at']);
+        $anon = collect(\M5\Models\MD1_users::where('isanonymous', 1)->first())->except(['is_blocked', 'adminnote', 'password_hash', 'ha_provider_name', 'ha_provider_uid', 'ha_provider_data', 'created_at', 'updated_at', 'deleted_at'])->toArray();
         if(count($anon) == 0) {
 
           // Обнулить аутентификационный кэш в сессии
@@ -472,7 +510,13 @@ class C56_meet extends Job { // TODO: добавить "implements ShouldQueue" 
         // 5.4. Записать пользователю новую куку
         // - С временем жизни 525600 минут.
         // - В куку пишем зашифрованный json
-        Cookie::queue('auth', $json, 525600);
+        Cookie::queue('auth', $json, 525600, null, null, false, true);
+
+        // 5.5] Записать пользователю новую куку about_user
+        Cookie::queue('about_user', json_encode([
+          'is_anon' => 1,
+          'id_user' => $anon['id']
+        ], JSON_UNESCAPED_UNICODE), 525600, null, null, false, false);
 
       }
 

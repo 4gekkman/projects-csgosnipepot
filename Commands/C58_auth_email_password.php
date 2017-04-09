@@ -146,6 +146,7 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
      *  8. Сфоромировать json с новыми аутентификационными данными
      *  9. Записать пользователю новый аутентиф.кэш в сессию
      *  10. Записать пользователю новую куку с временем жизни $lifetime
+     *  11. Записать пользователю новую куку about_user
      *
      *  N. Вернуть статус 0
      *
@@ -219,7 +220,13 @@ class C58_auth_email_password extends Job { // TODO: добавить "implement
       session(['auth_cache' => $json]);
 
       // 10. Записать пользователю новую куку с временем жизни $lifetime
-      Cookie::queue('auth', $json_encrypted, $lifetime);
+      Cookie::queue('auth', $json, $lifetime, null, null, false, true);
+
+      // 11. Записать пользователю новую куку about_user
+      Cookie::queue('about_user', json_encode([
+        'is_anon' => 0,
+        'id_user' => $user['id']
+      ], JSON_UNESCAPED_UNICODE), 525600, null, null, false, false);
 
 
     DB::commit(); } catch(\Exception $e) {

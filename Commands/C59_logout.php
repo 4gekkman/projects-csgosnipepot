@@ -140,8 +140,9 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
      *  3. Забыть аутентификационный кэш в сессии
      *  4. Забыть аутентификационную куку
      *  5. Забыть куку "PHPSESSID", которую ставит HybridAuth
-     *  6. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
-     *  7. Сбросить authorize_access/authorize_exec в сессии
+     *  6. Забыть куку "about_user
+     *  7. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+     *  8. Сбросить authorize_access/authorize_exec в сессии
      *
      *  N. Вернуть статус 0
      *
@@ -199,9 +200,12 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
       // 5. Забыть куку "PHPSESSID", которую ставит HybridAuth
       Cookie::queue( Cookie::forget('PHPSESSID') );
 
-      // 6. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+      // 6. Забыть куку "about_user
+      Cookie::queue( Cookie::forget('about_user') );
 
-        // 6.1. Получить
+      // 7. Через websocket послать всем подписчикам текущее кол-во аутентифицированных Steam-пользователей
+
+        // 7.1. Получить
         $logged_in_steam_users = call_user_func(function(){
 
           // 1] Получить
@@ -214,7 +218,7 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
 
         });
 
-        // 6.2. Послать
+        // 7.2. Послать
         Event::fire(new \R2\Broadcast([
           'channels' => ['m5:count_logged_in_steam_users'],
           'queue'    => 'chat',
@@ -223,7 +227,7 @@ class C59_logout extends Job { // TODO: добавить "implements ShouldQueue
           ]
         ]));
 
-      // 7. Сбросить authorize_access/authorize_exec в сессии
+      // 8. Сбросить authorize_access/authorize_exec в сессии
       Session::forget('authorize_access');
       Session::forget('authorize_exec');
 
