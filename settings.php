@@ -59,7 +59,11 @@ return [
       // 3] Как часто делать резервные копии счётчиков онлайн в БД | How often to make reserve copies of online counters to DB
       'online_counters_backup_period_sec' => '300',
 
+      // 4] ID комнаты, наличие ставок в которой надо проверять при выплате | ID of the room, where user have to have min 1 bet to get free skin
+      'id_room2check' => '2',
 
+      // 5] Срок годности активных выдач
+      'giveaways_limit_secs' => '1800',
 
 
 ];

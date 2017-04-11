@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - The be online system processor, fires at every game tick, every second
+ *    - Tracking of giveaways expiration
  *
  *  Какие аргументы принимает
  *  -------------------------
@@ -101,7 +101,7 @@
 //---------//
 // Команда //
 //---------//
-class C1_processor extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C9_giveaways_expiration_tracking extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,77 +135,101 @@ class C1_processor extends Job { // TODO: добавить "implements ShouldQue
     /**
      * Оглавление
      *
-     *  А. Процессинг счётчиков онлайна/оффлайна и их трансляция
-     *    А1. Обновить счётчики онлайна
-     *    А2. Транслировать свежие данные всем клиентам
-     *    А3. Сделать бэкап/рестор счётчиков онлайна
-     *  Б. Процессинг выдач
-     *    Б1. Обновление кэша выдач
-     *    Б2. Создание новых выдач
-     *    Б3. Отслеживание активных офферов
-     *    Б4. Удаление истёкших выдач/офферов
+     *  1. Получить активные Ready и Active выдачи из кэша
+     *  2. Отменить те активные выдачи, срок годности которых уже вышел
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //------------------------------------------------------------------------//
-    // The be online system processor, fires at every game tick, every second //
-    //------------------------------------------------------------------------//
+    //----------------------------------//
+    // Tracking of giveaways expiration //
+    //----------------------------------//
     $res = call_user_func(function() { try {
 
-      // А. Процессинг счётчиков онлайна/оффлайна и их трансляция
+      // 1. Получить активные Ready и Active выдачи из кэша
+      $trades_ready = json_decode(Cache::get('m16:cache:ready'), true);
+      $trades_active = json_decode(Cache::get('m16:cache:active'), true);
+      $trades_active = array_merge($trades_active, $trades_ready);
+      if(empty($trades_active)) $trades_active = [];
 
-        // А1. Обновить счётчики онлайна
-        runcommand('\M16\Commands\C2_update_counters', [],
-            0, ['on'=>true, 'name'=>'m16_counters']);
+      // 2. Отменить те активные выдачи, срок годности которых уже вышел
+      foreach($trades_active as $trade) {
 
-        // А2. Транслировать свежие данные всем клиентам
-        runcommand('\M16\Commands\C3_broadcast_counters', [],
-            0, ['on'=>true, 'name'=>'m16_counters']);
+        // 2.1. Получить дату и время истечения трейда
+        $expired_at = call_user_func(function() USE ($trade) {
 
-        // А3. Сделать бэкап/рестор счётчиков онлайна
-        runcommand('\M16\Commands\C5_backup_online_counters', [],
-            0, ['on'=>true, 'name'=>'m16_counters']);
+          // 1] Получить giveaways_limit_secs
+          $giveaways_limit_secs = config("M16.giveaways_limit_secs");
+          if(empty($giveaways_limit_secs))
+            $giveaways_limit_secs = 1800;
 
+          // n] Вернуть результат
+          return \Carbon\Carbon::parse($trade['created_at'])->addSeconds((int)$giveaways_limit_secs)->toDateTimeString();
 
-      // Б. Процессинг выдач
-      if(count(Queue::getRedis()->command('LRANGE',['queues:m16_processor_hard', '0', '-1'])) == 0) {
+        });
 
-        // Б1. Обновление кэша выдач
-        runcommand('\M16\Commands\C6_update_cache', [
-          "all"   => true,
-          "force" => false
-        ], 0, ['on'=>true, 'name'=>'m16_processor_hard']);
+        // 2.2. Определить, истёк ли срок годности
+        $is_expired = call_user_func(function() USE ($expired_at) {
 
-        // Б2. Создание новых выдач
-        runcommand('\M16\Commands\C7_create_giveaways', [],
-            0, ['on'=>true, 'name'=>'m16_processor_hard']);
+          return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
 
-        // Б3. Отслеживание активных офферов
-        runcommand('\M16\Commands\C8_active_offers_tracking', [],
-            0, ['on'=>true, 'name'=>'m16_processor_hard']);
+        });
 
-        // Б4. Удаление истёкших выдач/офферов
-        runcommand('\M16\Commands\C9_giveaways_expiration_tracking', [],
-            0, ['on'=>true, 'name'=>'m16_processor_hard']);
+        // 2.3. Если истёк, отменить выдачу
+        if($is_expired == true) {
 
-        // Б5. Отслеживать судьбу активных офферов, след которых потерялся из-за сбоев
-        // - Но выполнять только в том случае, если предыдущая закончила выполняться.
-        $cache = json_decode(Cache::get('m16:processing:offers_toothcomb_executing'), true);
-        $giveaways_active = json_decode(Cache::get('m16:giveaways:active'), true);
-        if(empty($cache) || !is_array($cache) || count($cache) == 0) {
-          if(!empty($giveaways_active))
-            runcommand('\M16\Commands\C10_offers_toothcomb', [],
-                0, ['on'=>true, 'name'=>'m16_processor_toothcomb']);
+          // 1] Начать транзакцию
+          DB::beginTransaction();
+
+          // 2] Получить выдачу с ID $trade['tradeofferid']
+          $giveaway = \M16\Models\MD2_giveaways::with(['m5_users'])
+            ->where('id', $trade['id'])
+            ->first();
+
+          // 3] Если выдача не найдена, перети к следующей итерации
+          if(empty($giveaway))
+            continue;
+
+          // 4] Изменить статус выдачи на 4
+          $giveaway->giveaway_status = 4;
+          $giveaway->save();
+
+          // 6] Обновить кэш m16:cache:active и m16:cache:ready
+          $result = runcommand('\M16\Commands\C6_update_cache', [
+            "all"   => false,
+            "force" => true,
+            "cache2update" => [
+              "m16:cache:active", "m16:cache:ready",
+            ]
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 5] Сделать commit
+          DB::commit();
+
+          // 6] Транслировать игроку через частный канал сигнал удалить выдачу
+          Event::fire(new \R2\Broadcast([
+            'channels' => ['m16:private:'.$giveaway['m5_users'][0]['id']],
+            'queue'    => 'm16_broadcast',
+            'data'     => [
+              'task'   => 'm16_del_giveaway',
+              'status' => 0,
+              'data'   => [
+
+              ]
+            ]
+          ]));
+
         }
 
       }
 
     } catch(\Exception $e) {
-        $errortext = 'Invoking of command C1_processor from M-package M16 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C9_giveaways_expiration_tracking from M-package M16 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         Log::info($errortext);
-        write2log($errortext, ['M16', 'C1_processor']);
+        write2log($errortext, ['M16', 'C9_giveaways_expiration_tracking']);
         return [
           "status"  => -2,
           "data"    => [

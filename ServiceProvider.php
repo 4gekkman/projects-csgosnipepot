@@ -121,7 +121,13 @@
           '\M16\Console\T2_update_counters',
           '\M16\Console\T3_broadcast_counters',
           '\M16\Console\T4_get_counters_data',
-          '\M16\Console\T5_backup_online_counters'
+          '\M16\Console\T5_backup_online_counters',
+          '\M16\Console\T6_update_cache',
+          '\M16\Console\T7_create_giveaways',
+          '\M16\Console\T8_active_offers_tracking',
+          '\M16\Console\T9_giveaways_expiration_tracking',
+          '\M16\Console\T10_offers_toothcomb',
+          '\M16\Console\T11_create_giveaway_offer'
         ];
 
         // Регистрация команд в методе register
