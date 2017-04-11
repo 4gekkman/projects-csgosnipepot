@@ -145,7 +145,7 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
     //--------------------------------------------------------//
     // Backup and restore online counters after server reboot //
     //--------------------------------------------------------//
-    $res = call_user_func(function() { try {
+    $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Сделать бэкап счетчиков онлайна
       call_user_func(function(){
@@ -171,7 +171,14 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
         if($counters['status'] != 0)
           throw new \Exception($counters['data']['errormsg']);
 
-        // 1.3. Сохранить значения $counters в БД
+        // 1.3. Удалить все записи из таблицы MD1_online_counters_backups
+        \M16\Models\MD1_online_counters_backups::chunk(200, function ($backups) {
+          foreach ($backups as $backup) {
+            $backup->delete();
+          }
+        });
+
+        // 1.4. Сохранить значения $counters в БД
         foreach($counters['data']['counters'] as $counter) {
 
           // 1] Получить ID пользователя и значение счётчика
@@ -236,7 +243,7 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
 
       });
 
-    } catch(\Exception $e) {
+    DB::commit(); } catch(\Exception $e) {
         $errortext = 'Invoking of command C5_backup_online_counters from M-package M16 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
