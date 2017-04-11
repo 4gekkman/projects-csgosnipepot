@@ -494,12 +494,14 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
           throw new \Exception('Вероятно, указанный Вами в профиле торговый URL не валиден. Пожалуйста, перейдите в профиль и укажите валидный торговый URL.');
 
         // 10.5. Есть ли у $user хотя бы 1 ставка в Classic Game
-        $is_any_bet = \M9\Models\MD3_bets::whereHas('m5_users', function($queue) USE ($user) {
+        $id_room2check = config("M16.id_room2check") ?: 2;
+        $bets_in_main = \M9\Models\MD3_bets::whereHas('m5_users', function($queue) USE ($user, $id_room2check) {
           $queue->where('id', $user['id']);
-        })->first();
-        if(empty($is_any_bet))
-          throw new \Exception("5");
-
+        })->whereHas('rounds', function($queue) USE ($id_room2check) {
+          $queue->where('id_room', $id_room2check);
+        })->count();
+        if(empty($bets_in_main))
+          throw new \Exception('5');
 
       // 11. Подсчитать общую стоимость покупки в монетах
       $purchase_sum_coins = call_user_func(function() USE ($items2buy_from_uac, $items2order_from_ordercache) {

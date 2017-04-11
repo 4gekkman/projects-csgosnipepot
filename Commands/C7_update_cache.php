@@ -14,7 +14,9 @@
  *
  *    [
  *      "data" => [
- *
+ *        all
+ *        cache2update
+ *        force
  *      ]
  *    ]
  *
