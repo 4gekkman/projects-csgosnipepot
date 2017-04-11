@@ -141,7 +141,7 @@ class C10_active_offers_tracking extends Job { // TODO: добавить "implem
      *  4. Попробовать найти бывшие активные ($trades_active) офферы
      *  5. Получить из кэша информацию о состоянии активных офферов из m13.C12
      *  6. Пополнить $trades_ex_active информацией из $executing
-     *  7. Сделать commit
+     *  7. Пробежаться по каждому офферу в $trades_ex_active
      *
      *  N. Вернуть статус 0
      *
@@ -339,10 +339,7 @@ class C10_active_offers_tracking extends Job { // TODO: добавить "implem
 
       }
 
-      // 7. Сделать commit
-      DB::commit();
-
-      // 8. Пробежаться по каждому офферу в $trades_ex_active
+      // 7. Пробежаться по каждому офферу в $trades_ex_active
       // - И в зависимости от того "Accepted" он, или отличается, предпринять ряд действий.
       call_user_func(function() USE ($trades_ex_active) {
         for($i=0; $i<count($trades_ex_active); $i++) {
