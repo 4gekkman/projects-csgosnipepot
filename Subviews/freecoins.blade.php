@@ -102,10 +102,26 @@
         <?php /*------------------->
         <!-- 3] Оставшееся время -->
         <!---------------------*/ ?>
-        <span class="timer" data-bind="text: m.s8.beonline.left4giveaway.human"></span>
+        <span style="display: none" class="timer" data-bind="visible: !m.s8.beonline.giveaway().id, text: m.s8.beonline.left4giveaway.human"></span>
 
+        <?php /*-------------------------->
+        <!-- 4] Картинка в центре блока -->
+        <!----------------------------*/ ?>
+        <div data-bind="if: m.s8.beonline.giveaway().id">
+          <img class="center-img" data-bind="attr: {src: m.s8.beonline.giveaway().m8_items()[0].steammarket_image}">
+        </div>
 
-
+        <?php /*-------------------->
+        <!-- 2] Кнопка "Получить" -->
+        <!----------------------*/ ?>
+        <div style="display: none" class="fc-get-button" data-bind="visible: m.s8.beonline.giveaway().id, click: f.s8.create_giveaway_offer">
+          <span>Получить</span>
+          <div style="display: none" class="loader" data-bind="visible: m.s8.beonline.is_spinner_vis">
+            <div class="loader-inner ball-clip-rotate">
+              <div></div>
+            </div>
+          </div>
+        </div>
 
       </div>
 

@@ -20,7 +20,11 @@
  *
  *    Б. Модель будь онлайн
  *    ------------------
- *    f.s8.counters_freshdata   | sБ8.1. Обновить данные счётчиков свежими
+ *    f.s8.counters_freshdata   	| sБ8.1. Обновить данные счётчиков свежими
+ *    f.s8.create_giveaway_offer  | sБ8.2. Обновить данные счётчиков свежими
+ *    f.s8.create_giveaway_resp   | sБ8.3. Обработать ответ на запрос создания оффера для получения скина за онлайн
+ *    f.s8.new_giveaway           | sБ8.4. Была создана новая выдача, надо обновить её модель клиента
+ *    f.s8.del_giveaway           | sБ8.5. Удалить выдачу
  *
  *
  *
@@ -160,6 +164,174 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 		self.m.s8.beonline.counter_updated_at(Date.now());
 
 	};
+
+	//------------------------------------------//
+	// sБ8.2. Обновить данные счётчиков свежими //
+	//------------------------------------------//
+	f.s8.create_giveaway_offer = function() {
+
+		// 1] Завершить, если (или):
+		// - Интерфейс заблокирован.
+		// - Это анонимный пользователь.
+		// - Предыдущий запрос ещё не обработан.
+		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in() || self.m.s8.reword.is_spinner_vis()) return;
+
+		// 2] Выполнить ajax-запрос
+		ajaxko(self, {
+			key: 	    		"D10009:11",
+			from: 		    "f.s8.create_giveaway_offer",
+			data: 		    {
+
+			},
+			ajax_params: {
+
+			},
+			prejob:       function(config, data, event){
+
+				// 1] Включить спиннер на кнопке
+				self.m.s8.beonline.is_spinner_vis(true);
+
+			},
+			postjob:      function(data, params){
+
+
+			},
+			ok_0:         function(data, params){
+
+				// n] Выключить спиннер на кнопке
+				//self.m.s8.beonline.is_spinner_vis(false);
+
+			},
+			ok_1:         function(data, params){
+
+				// n] Выключить спиннер на кнопке
+				//self.m.s8.beonline.is_spinner_vis(false);
+
+			},
+			ok_2:         function(data, params){
+
+				// n] Выключить спиннер на кнопке
+				//self.m.s8.reword.is_spinner_vis(false);
+
+			}
+		});
+
+
+	};
+
+	//---------------------------------------------------------------------------------//
+	// sБ8.3. Обработать ответ на запрос создания оффера для получения скина за онлайн //
+	//---------------------------------------------------------------------------------//
+	f.s8.create_giveaway_resp = function(data) {
+
+		// 1] Выключить спиннер на кнопке
+		self.m.s8.beonline.is_spinner_vis(false);
+
+		// 2] Если успех
+		if(data.status == 0) {
+
+			// 2.1] Подготовить html для тоста
+			var html = (function(){
+
+				// 2.1.1] Подготовить результат
+				var result =
+
+					// Сколько офферов должно быть отправлено для выполнения заказа
+					"<p>Вам успешно отправлен оффер в Steam с бесплатным скином.</p>" +
+
+					// ID оффера в steam
+					"ID оффера в steam: "+data.data.tradeofferid+"<br>" +
+
+					// Просьба подтвердить
+					"<p>Для завершения операции, <a style='color: #8ab4f8; text-decoration: underline' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
+
+					// Просьба сверить код безопасности
+					"Обязательно проверьте код безопасности: "+data.data.safecode+".</p>"
+
+				;
+
+				// 2.1.2] Вернуть результат
+				return result;
+
+			})();
+
+			// 2.2] Очистить модель выдачи
+			self.f.s8.del_giveaway();
+
+			// 2.n] Показать тост
+			toastr.warning(html, "Бесплатный скин за онлайн", {
+				timeOut: 					"300000",
+				extendedTimeOut: 	"300000"
+			});
+
+		}
+
+		// 3] Если ошибка
+		else {
+
+			// 1] Если это анонимный пользователь
+			if(data.data.errormsg == "1")
+				toastr.error("Анонимным пользователям скины за онлайн не положены.", "Ошибка");
+
+			// 2] Если выдача не надена
+			else if(data.data.errormsg == "2")
+				toastr.error("Что-то пошло не так, ваша выдача не найдена.", "Ошибка");
+
+			// 3] Если выдача не надена
+			else if(data.data.errormsg == "3")
+				toastr.error("Сделайте хотя бы 1 ставку в комнате Main, чтобы получать бесплатные скины за онлайн.", "Ошибка");
+
+			// 4] Если не удалось создать оффер
+			else if(data.data.errormsg == "4")
+				toastr.error("Нашему боту не удалось отправить вам оффер в Steam. Проверьте свой торговый URL, и попробуйте ещё раз.", "Ошибка");
+
+			// 5] Если не удалось найти такого пользователя
+			else if(data.data.errormsg == "5")
+				toastr.error("Не удалось найти такого пользователя.", "Ошибка");
+
+			// 6] Если не удалось найти такого пользователя
+			else if(data.data.errormsg == "6")
+				toastr.error("Не удалось найти комнату Main.", "Ошибка");
+
+			// 7] Вам уже отправлен оффер с бесплатным скином из этой выдачи
+			else if(data.data.errormsg == "7")
+				toastr.error("Вам уже отправлен оффер с бесплатным скином из этой выдачи.", "Ошибка");
+
+			// n] Если это обычная ошибка
+			else {
+				toastr.error(data.data.errormsg, "Возникла ошибка при создании оффера, проверьте ваш торговый URL.");
+			}
+
+		}
+
+	};
+
+	//-------------------------------------------------------------------//
+	// sБ8.4. Была создана новая выдача, надо обновить её модель клиента //
+	//-------------------------------------------------------------------//
+	f.s8.new_giveaway = function(data) {
+
+		// Обновить модель выдачи
+		self.m.s8.beonline.giveaway(ko.mapping.fromJS(data.giveaway));
+
+	};
+
+	//-----------------------//
+	// sБ8.5. Удалить выдачу //
+	//-----------------------//
+	f.s8.del_giveaway = function(data) {
+
+		// Обновить модель выдачи
+		self.m.s8.beonline.giveaway("");
+
+	};
+
+
+
+
+
+
+
 
 
 return this; }};

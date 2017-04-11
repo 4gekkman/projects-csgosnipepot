@@ -1554,6 +1554,21 @@
         color: lighten(#59b0db, 5%);
       }
 
+    //---------------------------------//
+    // 1.13.4. Баннер "Будь Онлайн" №1 //
+    //---------------------------------//
+
+      // Общие стили
+      .content .notifications-zone .notification.beonline_banner_1 {
+        font-size: 1.15em;
+        color: #fff;
+        cursor: pointer;
+      }
+
+
+
+
+
   //--------------------//
   // 1.14. История игр  //
   //--------------------//
@@ -3543,7 +3558,13 @@
         font-size: 30px;
       }
 
-
+      // Картинка в центре блока
+      .content .fc .fc-container .fc-content .fc-block.beonline .center-img {
+        position: absolute;
+        top: calc(50% - 100px);
+        left: calc(50% - 100px);
+        max-width: 200px; max-height: 200px;
+      }
 
 
 

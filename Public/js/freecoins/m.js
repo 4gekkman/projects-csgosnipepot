@@ -148,9 +148,24 @@ var ModelFc = { constructor: function(self, m) { m.s8 = this;
 				self.m.s8.beonline.left4giveaway.hours(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("HH"));
 
 				// Человеко-понятный формат
-				self.m.s8.beonline.left4giveaway.human(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("HH:mm:ss"));
+
+					// Если время не вышло, показать в виде времени в формате HH:mm:ss
+					if(self.m.s8.beonline.left4giveaway_s())
+						self.m.s8.beonline.left4giveaway.human(moment.utc(self.m.s8.beonline.left4giveaway_s()*1000).format("HH:mm:ss"));
+
+					// Если время вышло, показат надпись "Ожидайте"
+					else
+ 						self.m.s8.beonline.left4giveaway.human("Ожидайте...");
 
 			});
+
+		// 7] Модель выдачи
+		self.m.s8.beonline.giveaway = ko.observable(
+			ko.mapping.fromJS(server.data.giveaway)
+		);
+
+		// 8] Виден ли спиннер на кнопке выдачи
+		self.m.s8.beonline.is_spinner_vis = ko.observable(false);
 
 
 	//--------------------------------------//
@@ -248,6 +263,11 @@ var ModelFc = { constructor: function(self, m) { m.s8 = this;
 				switch(task) {
 
 					case "m16:counters:freshdata": self.f.s8.counters_freshdata(data.data.data.data); break;
+					case "m16_giveaway_offer": self.f.s8.create_giveaway_resp(data.data.data); break;
+					case "m16_new_giveaway": self.f.s8.new_giveaway(data.data.data.data); break;
+					case "m16_del_giveaway": self.f.s8.del_giveaway(); break;
+
+
 
 				}
 

@@ -29,6 +29,7 @@
  *                  POST-API8   D10009:8                   Обновить товарные остатки при первом входе в магазин
  *                  POST-API9   D10009:9                   Осуществить покупку, создать новый трейд для доставки вещей покупателю
  *                  POST-API9   D10009:10                  Пользователь запрашивает бесплатные монеты (ежедневная награда)
+ *                  POST-API9   D10009:11                  Пользователь запрашивает создание оффера по своей выдаче
  *
  *
  */
@@ -299,6 +300,22 @@ class Controller extends BaseController {
       if($counters['status'] != 0)
         throw new \Exception($counters['data']['errormsg']);
 
+      // 11. Получить информацию о Ready-выдаче пользователя lib_current_user_id
+      $giveaway = call_user_func(function(){
+
+        // 1] Получить информацию о выдаче пользователя
+        $giveaway = json_decode(Cache::tags(['m16:cache:ready:personal'])->get('m16:cache:ready:'.lib_current_user_id()), true);
+
+        // 2] Если она пуста, вернуть пустой объект
+        if(empty($giveaway))
+          return new \stdClass();
+
+        // 3] Иначе, вернуть $giveaway
+        return $giveaway;
+
+      });
+
+
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
 
@@ -322,7 +339,8 @@ class Controller extends BaseController {
           "classicgame_stats_thebiggestbet" => $classicgame_stats_thebiggestbet,
           "classicgame_stats_luckyoftheday" => $classicgame_stats_luckyoftheday,
         ],
-        "counters"                => $counters['data']
+        "counters"                => $counters['data'],
+        "giveaway"                => $giveaway
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -742,6 +760,38 @@ class Controller extends BaseController {
 
           // n. Вернуть результаты
           return $result;
+
+        }
+
+        //----------------------------------//
+        // Нестандартная операция D10009:11 //
+        //----------------------------------//
+        // - Пользователь запрашивает создание оффера по своей выдаче
+        if($key == 'D10009:11') {
+
+          // 1. Получить ID текущего пользователя
+          $id_user = lib_current_user_id();
+
+          // 2. Если $id_user == -1, вернуть ошибку "2"
+          if($id_user == -1)
+            return [
+              "status"  => -2,
+              "data"    => [
+                "errortext" => "",
+                "errormsg"  => "2"
+              ]
+            ];
+
+          // 3. Выполнить команду
+          runcommand('\M16\Commands\C11_create_giveaway_offer', [
+            "id_user" => $id_user
+          ], 0, ['on'=>true, 'name'=>'m16_processor_hard']);
+
+          // n. Вернуть результаты
+          return [
+            "status"  => 0,
+            "data"    => ""
+          ];
 
         }
 

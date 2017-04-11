@@ -86,6 +86,7 @@
 Подоглавление:
 
   A1. Уведомление для тех, кто не ввёл свой Steam Trade URL
+  A2. Баннер "Будь Онлайн" №1
 
 -------------------*/ ?>
 <div class="notifications-zone">
@@ -128,6 +129,14 @@
     </div>
 
   </div>
+
+  <?php /*--------------------------->
+  <!-- A2. Баннер "Будь Онлайн" №1 -->
+  <!-----------------------------*/ ?>
+  <div style="display: none" class="notification beonline_banner_1" data-bind="click: layoutmodel.f.s1.choose_subdoc.bind(null, {uri: '/free'}), visible: layoutmodel.m.s1.selected_subdoc().uri() != '/free'">
+    <img src="{!! asset('public/D10009/assets/banners/beonline1.jpg') !!}">
+  </div>
+
 
 </div>
 
