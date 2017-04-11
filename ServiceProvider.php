@@ -111,6 +111,7 @@
           //'$schedule->command("m8:update_bots_authorization_statuses")->cron("*/10 * * * * *");',
           //'$schedule->command("m8:update_bots_apikeys")->hourly();',
           //'$schedule->command("m8:update_prices_all")->dailyAt("04:00");'
+          '$schedule->command("m8:update_prices_csgofast")->dailyAt("04:00");'
         ];
 
       //----------------------------------------------------//
