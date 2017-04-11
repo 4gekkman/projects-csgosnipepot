@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD10_trades_statuses extends Model {
+class MD10_trade_statuses extends Model {
 
   /**
    *
@@ -49,7 +49,7 @@ class MD10_trades_statuses extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm8.md10_trades_statuses';
+  protected $table = 'm8.md10_trade_statuses';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//

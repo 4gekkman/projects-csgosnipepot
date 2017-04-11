@@ -68,7 +68,7 @@ class MD9_trades extends Model {
 
     // relationships start
     public function bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md1007', 'id_trade', 'id_bot'); }
-    public function trades_statuses() { return $this->belongsToMany('\M8\Models\MD10_trades_statuses', 'm8.md1008', 'id_trade', 'id_trade_status'); }
+    public function trade_statuses() { return $this->belongsToMany('\M8\Models\MD10_trade_statuses', 'm8.md1008', 'id_trade', 'id_trade_status'); }
     public function items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm8.md1010', 'id_trade', 'id_item')->withPivot(['price','assetid_bot','assetid_partner']); }
     // relationships stop
 

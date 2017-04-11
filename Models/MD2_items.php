@@ -75,6 +75,7 @@ class MD2_items extends Model {
     public function m13_trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md2002', 'id_item', 'id_trade')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
     public function m14_trades() { return $this->belongsToMany('\M14\Models\MD4_trades', 'm14.md2002', 'id_item', 'id_trade')->withPivot(['assetid_bots','price_coins_atbettime','price_cents_atbettime']); }
     public function m14_skins2order() { return $this->belongsToMany('\M14\Models\MD2_skins2order', 'm14.md2005', 'id_item', 'id_skin2order')->withPivot(['price_coins_atbettime','price_cents_atbettime']); }
+    public function m16_giveaways() { return $this->belongsToMany('\M16\Models\MD2_giveaways', 'm16.md2002', 'id_item', 'id_giveaway')->withPivot(['assetid_bots']); }
     public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2001', 'id_item', 'id_bet')->withPivot(['item_price_at_bet_time','assetid_users','assetid_bots']); }
     public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2006', 'id_item', 'id_win')->withPivot(['price','assetid']); }
     // relationships stop
