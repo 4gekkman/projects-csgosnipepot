@@ -209,7 +209,10 @@ class C9_giveaways_expiration_tracking extends Job { // TODO: добавить "
           // 5] Сделать commit
           DB::commit();
 
-          // 6] Транслировать игроку через частный канал сигнал удалить выдачу
+          // 6] Обнулить счётчик онлайна пользователя $id_user
+          Redis::set('m16:online:counter:'.$giveaway['m5_users'][0]['id'], 0);
+
+          // 7] Транслировать игроку через частный канал сигнал удалить выдачу
           Event::fire(new \R2\Broadcast([
             'channels' => ['m16:private:'.$giveaway['m5_users'][0]['id']],
             'queue'    => 'm16_broadcast',
