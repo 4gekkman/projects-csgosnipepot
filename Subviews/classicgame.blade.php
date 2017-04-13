@@ -80,7 +80,7 @@
             <!-- Описание -->
             <!----------*/ ?>
             <div class="description">
-              <span data-bind="html: description"></span>
+              <span data-bind="html: 'Ставки от ' + Math.ceil((Math.round(min_bet())/100)*server.data.usdrub_rate) + ' р.' + (max_bet() != 0 ? ' до ' + Math.ceil((Math.round(max_bet())/100)*server.data.usdrub_rate) + ' р.' : '')"></span>
             </div>
 
           </div>
