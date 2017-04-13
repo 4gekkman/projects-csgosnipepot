@@ -90,7 +90,7 @@ class T22_update_top_cache extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm9:update_top_cache';
+    protected $signature = 'm9:update_top_cache {force}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //

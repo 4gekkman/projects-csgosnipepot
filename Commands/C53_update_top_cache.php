@@ -170,11 +170,8 @@ class C53_update_top_cache extends Job { // TODO: добавить "implements S
       if(!empty($cache))
         $updated_at = \Carbon\Carbon::parse($cache['updated_at']);
 
-      // 5. Обновить кэш ТОПа игроков, если он пуст, или старше 1 часа
-      if(
-        empty($cache) ||
-        (!empty($updated_at) && $updated_at->diffInMinutes(\Carbon\Carbon::now()) >= 60)
-      ) {
+      // 5. Обновить кэш ТОПа игроков, если он пуст, или force == true
+      if(empty($cache) || $this->data['force'] == true) {
 
         // 1] Получить массив ТОП20 пользователей по сумме win_fact_cents за всю историю побед
         // - В формате:
@@ -257,8 +254,8 @@ class C53_update_top_cache extends Job { // TODO: добавить "implements S
           'updated_at'  => \Carbon\Carbon::now()->toDateTimeString()
         ];
 
-        // 5] Поместить $users в кэш на 24 часа
-        Cache::put('m9:top_players', json_encode($data2record, JSON_UNESCAPED_UNICODE), 1440);
+        // 5] Поместить $users в кэш на 30 минут
+        Cache::put('m9:top_players', json_encode($data2record, JSON_UNESCAPED_UNICODE), 30);
 
       }
 

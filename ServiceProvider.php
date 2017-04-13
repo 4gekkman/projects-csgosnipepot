@@ -107,7 +107,8 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          '$schedule->command("m9:get_stats_luckyoftheday")->cron("*/5 * * * * *");'
+          '$schedule->command("m9:get_stats_luckyoftheday")->cron("*/5 * * * * *");',
+          '$schedule->command("m9:update_top_cache 1")->cron("*/15 * * * * *");'
         ];
 
       //----------------------------------------------------//
