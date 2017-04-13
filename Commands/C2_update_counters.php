@@ -264,9 +264,10 @@ class C2_update_counters extends Job { // TODO: добавить "implements Sho
 
         }
 
-        // 8.5. Если $counter >= $drop_sec, удалить счётчик онлайна пользователя
+        // 8.5. Если $counter >= $drop_sec, удалить счётчик онлайна и счётчик оффлайна пользователя
         if($counter >= $drop_sec) {
           Redis::executeRaw(['DEL', 'm16:online:counter:'.$id_user]);
+          Redis::executeRaw(['DEL', $key]);
         }
 
       }
