@@ -28,8 +28,10 @@
  *                  POST-API7   D10009:7                   Создать новый трейд с запросом вещей пользователя
  *                  POST-API8   D10009:8                   Обновить товарные остатки при первом входе в магазин
  *                  POST-API9   D10009:9                   Осуществить покупку, создать новый трейд для доставки вещей покупателю
- *                  POST-API9   D10009:10                  Пользователь запрашивает бесплатные монеты (ежедневная награда)
- *                  POST-API9   D10009:11                  Пользователь запрашивает создание оффера по своей выдаче
+ *                  POST-API10  D10009:10                  Пользователь запрашивает бесплатные монеты (ежедневная награда)
+ *                  POST-API11  D10009:11                  Пользователь запрашивает создание оффера по своей выдаче
+ *                  POST-API12  D10009:12                  Попытка применить nick promo
+ *                  POST-API13  D10009:13                  Попытка применить steam group promo
  *
  *
  */
@@ -315,6 +317,20 @@ class Controller extends BaseController {
 
       });
 
+      // 12. Получить информацию для Nick Promo
+      $nickpromo = runcommand('\M17\Commands\C2_get_nick_promo_info', [
+        'id_user' => lib_current_user_id()
+      ]);
+      if($nickpromo['status'] != 0)
+        throw new \Exception($nickpromo['data']['errormsg']);
+
+      // 13. Получить информацию для Steam Group Promo
+      $steamgrouppromo = runcommand('\M18\Commands\C2_get_steamgroup_promo_info', [
+        'id_user' => lib_current_user_id()
+      ]);
+      if($steamgrouppromo['status'] != 0)
+        throw new \Exception($steamgrouppromo['data']['errormsg']);
+
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -340,7 +356,15 @@ class Controller extends BaseController {
           "classicgame_stats_luckyoftheday" => $classicgame_stats_luckyoftheday,
         ],
         "counters"                => $counters['data'],
-        "giveaway"                => $giveaway
+        "giveaway"                => $giveaway,
+        "nickpromo"               => [
+          'coins'   => $nickpromo['data']['coins'],
+          'is_paid' => $nickpromo['data']['is_paid']
+        ],
+        "steamgrouppromo"         => [
+          'coins'   => $steamgrouppromo['data']['coins'],
+          'is_paid' => $steamgrouppromo['data']['is_paid']
+        ],
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -772,8 +796,30 @@ class Controller extends BaseController {
           // 1. Получить ID текущего пользователя
           $id_user = lib_current_user_id();
 
-          // 2. Если $id_user == -1, вернуть ошибку "2"
-          if($id_user == -1)
+          // 2. Получить steamid пользователя
+          $steamid = call_user_func(function(){
+
+            // 1] Получить auth_cache
+            $auth = json_decode(session('auth_cache'), true);
+            if(empty($auth)) return "";
+
+            // 2] Получить пользователя
+            if(!array_key_exists('user', $auth)) return "";
+            $user = $auth['user'];
+            if(empty($user)) return "";
+
+            // 3] Получить steamid пользователя
+            if(!array_key_exists('ha_provider_uid', $user)) return "";
+            $steamid = $user['ha_provider_uid'];
+            if(empty($steamid)) return "";
+
+            // 4] Вернуть результат
+            return $steamid;
+
+          });
+
+          // 3. Если $id_user == -1, или нет steamid, вернуть ошибку "2"
+          if($id_user == -1 || empty($steamid))
             return [
               "status"  => -2,
               "data"    => [
@@ -782,9 +828,10 @@ class Controller extends BaseController {
               ]
             ];
 
-          // 3. Выполнить команду
+          // 4. Выполнить команду
           runcommand('\M16\Commands\C11_create_giveaway_offer', [
-            "id_user" => $id_user
+            "id_user" => lib_current_user_id(),
+            "steamid" => $steamid
           ], 0, ['on'=>true, 'name'=>'m16_processor_hard']);
 
           // n. Вернуть результаты
@@ -794,6 +841,85 @@ class Controller extends BaseController {
           ];
 
         }
+
+        //----------------------------------//
+        // Нестандартная операция D10009:12 //
+        //----------------------------------//
+        // - Попытка применить nick promo.
+        if($key == 'D10009:12') {
+
+          // 1. Получить steamid пользователя
+          $steamid = call_user_func(function(){
+
+            // 1] Получить auth_cache
+            $auth = json_decode(session('auth_cache'), true);
+            if(empty($auth)) return "";
+
+            // 2] Получить пользователя
+            if(!array_key_exists('user', $auth)) return "";
+            $user = $auth['user'];
+            if(empty($user)) return "";
+
+            // 3] Получить steamid пользователя
+            if(!array_key_exists('ha_provider_uid', $user)) return "";
+            $steamid = $user['ha_provider_uid'];
+            if(empty($steamid)) return "";
+
+            // 4] Вернуть результат
+            return $steamid;
+
+          });
+
+          // 2. Выполнить команду
+          $result = runcommand('\M17\Commands\C1_apply_nick_promo', [
+            "id_user" => lib_current_user_id(),
+            "steamid" => $steamid
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+        //----------------------------------//
+        // Нестандартная операция D10009:13 //
+        //----------------------------------//
+        // - Попытка применить steam group promo.
+        if($key == 'D10009:13') {
+
+          // 1. Получить steamid пользователя
+          $steamid = call_user_func(function(){
+
+            // 1] Получить auth_cache
+            $auth = json_decode(session('auth_cache'), true);
+            if(empty($auth)) return "";
+
+            // 2] Получить пользователя
+            if(!array_key_exists('user', $auth)) return "";
+            $user = $auth['user'];
+            if(empty($user)) return "";
+
+            // 3] Получить steamid пользователя
+            if(!array_key_exists('ha_provider_uid', $user)) return "";
+            $steamid = $user['ha_provider_uid'];
+            if(empty($steamid)) return "";
+
+            // 4] Вернуть результат
+            return $steamid;
+
+          });
+
+          // 2. Выполнить команду
+          $result = runcommand('\M18\Commands\C1_apply_steamgroup_promo', [
+            "id_user" => lib_current_user_id(),
+            "steamid" => $steamid
+          ]);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
 
 
 

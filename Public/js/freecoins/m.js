@@ -14,6 +14,7 @@
  *
  * 		s8.1. Модель ежедневной награды
  * 		s8.2. Модель будь онлайн
+ * 		s8.3. Модель nick promo
  *    s8.n. Индексы и вычисляемые значения
  *
  *  W. Обработка websocket-сообщений
@@ -166,6 +167,62 @@ var ModelFc = { constructor: function(self, m) { m.s8 = this;
 
 		// 8] Виден ли спиннер на кнопке выдачи
 		self.m.s8.beonline.is_spinner_vis = ko.observable(false);
+
+	//-------------------------//
+	// s8.3. Модель nick promo //
+	//-------------------------//
+	self.m.s8.nickpromo = {};
+
+		// 1] Получил ли уже игрок 20 монет за добавление строки в ник //
+		//-------------------------------------------------------------//
+		self.m.s8.nickpromo.is_paid = ko.observable(server.data.nickpromo.is_paid);
+
+		// 2] Количество монет, которые игрок может получить за добавление строки в ник //
+		//------------------------------------------------------------------------------//
+		self.m.s8.nickpromo.coins = ko.observable(server.data.nickpromo.coins);
+
+		// 3] Монета/Монеты/Монет
+		self.m.s8.nickpromo.declension = ko.computed(function(){
+
+			var declension = declension_by_number(self.m.s8.nickpromo.coins());
+			if(declension == 1) return 'монета';
+			if(declension == 2) return 'монеты';
+			if(declension == 3) return 'монет';
+			return 'монет';
+
+		});
+
+		// 4] Показан ли спиннер на кнопке //
+		//---------------------------------//
+		self.m.s8.nickpromo.is_spinner_vis = ko.observable(false);
+
+	//--------------------------------//
+	// s8.4. Модель steam group promo //
+	//--------------------------------//
+	self.m.s8.steamgrouppromo = {};
+
+		// 1] Получил ли уже игрок 20 монет за вступление в группу //
+		//---------------------------------------------------------//
+		self.m.s8.steamgrouppromo.is_paid = ko.observable(server.data.steamgrouppromo.is_paid);
+
+		// 2] Количество монет, которые игрок может получить за вступление в группу //
+		//--------------------------------------------------------------------------//
+		self.m.s8.steamgrouppromo.coins = ko.observable(server.data.steamgrouppromo.coins);
+
+		// 3] Монета/Монеты/Монет
+		self.m.s8.steamgrouppromo.declension = ko.computed(function(){
+
+			var declension = declension_by_number(self.m.s8.nickpromo.coins());
+			if(declension == 1) return 'монета';
+			if(declension == 2) return 'монеты';
+			if(declension == 3) return 'монет';
+			return 'монет';
+
+		});
+
+		// 4] Показан ли спиннер на кнопке //
+		//---------------------------------//
+		self.m.s8.steamgrouppromo.is_spinner_vis = ko.observable(false);
 
 
 	//--------------------------------------//

@@ -19,12 +19,20 @@
  *    f.s8.fc_left2unblock      | sА8.4. Обновить время, оставшееся до следующего дня
  *
  *    Б. Модель будь онлайн
- *    ------------------
+ *    ---------------------
  *    f.s8.counters_freshdata   	| sБ8.1. Обновить данные счётчиков свежими
  *    f.s8.create_giveaway_offer  | sБ8.2. Обновить данные счётчиков свежими
  *    f.s8.create_giveaway_resp   | sБ8.3. Обработать ответ на запрос создания оффера для получения скина за онлайн
  *    f.s8.new_giveaway           | sБ8.4. Была создана новая выдача, надо обновить её модель клиента
  *    f.s8.del_giveaway           | sБ8.5. Удалить выдачу
+ *
+ *    В. Модель nick promo
+ *    --------------------
+ *    f.s8.apply_nick_promo       | sВ8.1. Сделать попытку применить nick promo
+ *
+ *    Г. Модель steam group promo
+ *    --------------------
+ *    f.s8.apply_steamgroup_promo | sГ8.1. Сделать попытку применить steam group promo
  *
  *
  *
@@ -297,6 +305,14 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 			else if(data.data.errormsg == "7")
 				toastr.error("Вам уже отправлен оффер с бесплатным скином из этой выдачи.", "Ошибка");
 
+			// 8] Если не удалось обнаружить надписи в нике
+			else if(data.data.errormsg == "8")
+				toastr.error("Добавьте 'csgohap.ru' к своему нику в Steam,чтобы получать бесплатные скины за онлайн.", "Ошибка");
+
+			// 9] Если не удалось обнаружить надписи в нике
+			else if(data.data.errormsg == "9")
+				toastr.error("Вступите в <a target='_blank' href='http://steamcommunity.com/groups/CSGOHAP'>нашу группу в Steam</a>, чтобы получать бесплатные скины за онлайн.", "Ошибка");
+
 			// n] Если это обычная ошибка
 			else {
 				toastr.error(data.data.errormsg, "Возникла ошибка при создании оффера, проверьте ваш торговый URL.");
@@ -326,8 +342,172 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 
 	};
 
+	//---------------------------------------------//
+	// sВ8.1. Сделать попытку применить nick promo //
+	//---------------------------------------------//
+	f.s8.apply_nick_promo = function() {
+
+		// 1] Если пользователь уже применил ранее nick promo, завершить
+		if(self.m.s8.nickpromo.is_paid() == 1) return;
+
+		// 2] Завершить, если (или):
+		// - Интерфейс заблокирован.
+		// - Это анонимный пользователь.
+		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in()) return;
+
+		// 3] Выполнить ajax-запрос
+		ajaxko(self, {
+			key: 	    		"D10009:12",
+			from: 		    "f.s8.apply_nick_promo",
+			data: 		    {
+
+			},
+			ajax_params: {
+
+			},
+			prejob:       function(config, data, event){
+
+				// n] Включить спиннер на кнопке
+				self.m.s8.nickpromo.is_spinner_vis(true);
+
+			},
+			postjob:      function(data, params){
 
 
+			},
+			ok_0:         function(data, params){
+
+				// 1] Записать в is_paid единицу
+				self.m.s8.nickpromo.is_paid(1);
+
+				// 2] Выключить спиннер на кнопке
+				self.m.s8.nickpromo.is_spinner_vis(false);
+
+				// 3] Перейти на главную
+				layoutmodel.f.s1.choose_subdoc.bind(null, {uri: '/'})();
+
+				// 4] Совершить logout
+				layoutmodel.f.s0.logout();
+
+			},
+			ok_1:         function(data, params){
+
+				// n] Выключить спиннер на кнопке
+				self.m.s8.nickpromo.is_spinner_vis(false);
+
+			},
+			ok_2:         function(data, params){
+
+				// 1] Если не удалось получить ник игрока
+				if(data.data.errormsg == "1")
+					toastr.error("Сбой в системе, связанный с API-ключём бота. Обратитесь в тех.поддержку.", "Ошибка");
+
+				// 2] Если в нике игрока нет нужной строки
+				else if(data.data.errormsg == "2")
+					toastr.error("Нам не удалось обнаружить в Вашем нике надпись 'csgohap.ru'. Пожалуйста, перепроверьте. Возможно, Steam ещё не успел обновиться, и следует попробовать позже.", "Ошибка");
+
+				// 3] Если возникли проблемы с начислением монет
+				else if(data.data.errormsg == "3")
+					toastr.error("Возникли проблемы с начислением монет. Попробуйте ещё раз, или обратитесь в тех.поддержку.", "Ошибка");
+
+				// 4] Если игрок уже получал монеты за это задание
+				else if(data.data.errormsg == "4")
+					toastr.error("Вы уже получали монеты за выполнение этого задания.", "Ошибка");
+
+				// n] Если это обычная ошибка
+				else {
+					toastr.error(data.data.errormsg, "Ошибка при обработке заказа");
+				}
+
+				// n] Выключить спиннер на кнопке
+				self.m.s8.nickpromo.is_spinner_vis(false);
+
+			}
+		});
+
+
+	};
+
+
+	//----------------------------------------------------//
+	// sГ8.1. Сделать попытку применить steam group promo //
+	//----------------------------------------------------//
+	f.s8.apply_steamgroup_promo = function() {
+
+		// 1] Если пользователь уже применил ранее steam group promo, завершить
+		if(self.m.s8.steamgrouppromo.is_paid() == 1) return;
+
+		// 2] Завершить, если (или):
+		// - Интерфейс заблокирован.
+		// - Это анонимный пользователь.
+		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in()) return;
+
+		// 3] Выполнить ajax-запрос
+		ajaxko(self, {
+			key: 	    		"D10009:13",
+			from: 		    "f.s8.apply_steamgroup_promo",
+			data: 		    {
+
+			},
+			ajax_params: {
+
+			},
+			prejob:       function(config, data, event){
+
+				// n] Включить спиннер на кнопке
+				self.m.s8.steamgrouppromo.is_spinner_vis(true);
+
+			},
+			postjob:      function(data, params){
+
+
+			},
+			ok_0:         function(data, params){
+
+				// 1] Записать в is_paid единицу
+				self.m.s8.steamgrouppromo.is_paid(1);
+
+				// 2] Выключить спиннер на кнопке
+				self.m.s8.steamgrouppromo.is_spinner_vis(false);
+
+			},
+			ok_1:         function(data, params){
+
+				// n] Выключить спиннер на кнопке
+				self.m.s8.steamgrouppromo.is_spinner_vis(false);
+
+			},
+			ok_2:         function(data, params){
+
+				// 1] Если не удалось получить ник игрока
+				if(data.data.errormsg == "1")
+					toastr.error("Сбой в системе, связанный с API-ключём бота. Обратитесь в тех.поддержку.", "Ошибка");
+
+				// 2] Если игрок не состоит в группе
+				else if(data.data.errormsg == "2")
+					toastr.error("Нам не удалось найти Вас в нашей группе. Пожалуйста, перепроверьте. Возможно, Steam ещё не успел обновиться, и следует попробовать позже.", "Ошибка");
+
+				// 3] Если возникли проблемы с начислением монет
+				else if(data.data.errormsg == "3")
+					toastr.error("Возникли проблемы с начислением монет. Попробуйте ещё раз, или обратитесь в тех.поддержку.", "Ошибка");
+
+				// 4] Если игрок уже получал монеты за это задание
+				else if(data.data.errormsg == "4")
+					toastr.error("Вы уже получали монеты за выполнение этого задания.", "Ошибка");
+
+				// n] Если это обычная ошибка
+				else {
+					toastr.error(data.data.errormsg, "Ошибка при обработке заказа");
+				}
+
+				// n] Выключить спиннер на кнопке
+				self.m.s8.steamgrouppromo.is_spinner_vis(false);
+
+			}
+		});
+
+
+	};
 
 
 

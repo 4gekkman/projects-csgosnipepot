@@ -7,7 +7,10 @@
 
     10.1.1. Шапка
     10.1.2. Контент Free Coins
-
+      10.1.2.1. Ежедневная награда
+      10.1.2.2. Будь онлайн
+      10.1.2.3. Добавь CSGOHAP.RU к своему никнейму в Steam
+      10.1.2.4. Вступи в нашу группу в Steam
 
 -------------------*/ ?>
 <div class="fc" data-bind="visible: layoutmodel.m.s1.selected_subdoc().uri() == '/free'">
@@ -121,6 +124,96 @@
               <div></div>
             </div>
           </div>
+        </div>
+
+      </div>
+
+      <?php /*----------------------------------------------------->
+      <!-- 10.1.2.3. Добавь CSGOHAP.RU к своему никнейму в Steam -->
+      <!-------------------------------------------------------*/ ?>
+      <div style="display: none" class="fc-block nick-promo" data-bind="visible: !m.s8.nickpromo.is_paid()">
+
+        <?php /*------------>
+        <!-- 1] Заголовок -->
+        <!--------------*/ ?>
+        <div class="fc-header">
+          <span>ДОБАВЬ CSGOHAP.RU К СВОЕМУ НИКНЕЙМУ В STEAM</span>
+        </div>
+
+        <?php /*-------------------->
+        <!-- 2] Кнопка "Получить" -->
+        <!----------------------*/ ?>
+        <div class="fc-get-button" data-bind="click: f.s8.apply_nick_promo">
+          <span>Получить</span>
+          <div style="display: none" class="loader" data-bind="visible: m.s8.nickpromo.is_spinner_vis">
+            <div class="loader-inner ball-clip-rotate">
+              <div></div>
+            </div>
+          </div>
+        </div>
+
+        <?php /*-------------------------->
+        <!-- 3] Картинка в центре блока -->
+        <!----------------------------*/ ?>
+        <img class="fc-center-img" src="{!! asset('public/D10009/assets/images/gift-1.png') !!}">
+
+        <?php /*---------------------------->
+        <!-- 4] Кнопка "Изменить никнейм" -->
+        <!------------------------------*/ ?>
+        <div class="change-nick-href">
+          <a target="_blank" data-bind="attr: {href: 'http://steamcommunity.com/profiles/'+(layoutmodel.m.s0.auth.is_anon() ? '' : layoutmodel.m.s0.auth.user().ha_provider_uid())+'/edit'}">Изменить никнейм</a>
+        </div>
+
+        <?php /*------------------------------>
+        <!-- 5] Количество бесплатных монет -->
+        <!--------------------------------*/ ?>
+        <div class="fc-coins">
+          <span data-bind="text: m.s8.nickpromo.coins() + ' ' + m.s8.nickpromo.declension()"></span>
+        </div>
+
+      </div>
+
+      <?php /*-------------------------------------->
+      <!-- 10.1.2.4. Вступи в нашу группу в Steam -->
+      <!----------------------------------------*/ ?>
+      <div style="display: none" class="fc-block steam-group-promo" data-bind="visible: !m.s8.steamgrouppromo.is_paid()">
+
+        <?php /*------------>
+        <!-- 1] Заголовок -->
+        <!--------------*/ ?>
+        <div class="fc-header">
+          <span>ВСТУПИ В ГРУППУ В STEAM</span>
+        </div>
+
+        <?php /*-------------------->
+        <!-- 2] Кнопка "Получить" -->
+        <!----------------------*/ ?>
+        <div class="fc-get-button" data-bind="click: f.s8.apply_steamgroup_promo">
+          <span>Получить</span>
+          <div style="display: none" class="loader" data-bind="visible: m.s8.steamgrouppromo.is_spinner_vis">
+            <div class="loader-inner ball-clip-rotate">
+              <div></div>
+            </div>
+          </div>
+        </div>
+
+        <?php /*-------------------------->
+        <!-- 3] Картинка в центре блока -->
+        <!----------------------------*/ ?>
+        <img class="fc-center-img" src="{!! asset('public/D10009/assets/images/steam.png') !!}">
+
+        <?php /*----------------------------->
+        <!-- 4] Кнопка "Вступить в группу" -->
+        <!-------------------------------*/ ?>
+        <div class="change-nick-href">
+          <a target="_blank" data-bind="attr: {href: 'http://steamcommunity.com/groups/CSGOHAP'}">Вступить в группу</a>
+        </div>
+
+        <?php /*------------------------------>
+        <!-- 5] Количество бесплатных монет -->
+        <!--------------------------------*/ ?>
+        <div class="fc-coins">
+          <span data-bind="text: m.s8.steamgrouppromo.coins() + ' ' + m.s8.steamgrouppromo.declension()"></span>
         </div>
 
       </div>
