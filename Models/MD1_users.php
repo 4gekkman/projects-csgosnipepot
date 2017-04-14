@@ -85,6 +85,8 @@ class MD1_users extends Model {
     public function m14_purchases() { return $this->belongsToMany('\M14\Models\MD1_purchases', 'm14.md2004', 'id_user', 'id_purchase'); }
     public function m15_statuses() { return $this->belongsToMany('\M15\Models\MD1_statuses', 'm15.md2000', 'id_user', 'id_status'); }
     public function m16_giveaways() { return $this->belongsToMany('\M16\Models\MD2_giveaways', 'm16.md2000', 'id_user', 'id_giveaway'); }
+    public function m17_nickpromo() { return $this->belongsToMany('\M17\Models\MD1_nickpromo', 'm17.md2000', 'id_user', 'id_nickpromo'); }
+    public function m18_promo() { return $this->belongsToMany('\M18\Models\MD1_promo', 'm18.md2000', 'id_user', 'id_promo'); }
     public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2000', 'id_user', 'id_bet')->withPivot(['tickets_from','tickets_to']); }
     public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2004', 'id_user', 'id_win'); }
     // relationships stop
