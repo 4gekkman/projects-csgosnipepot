@@ -141,6 +141,7 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *
      * Оглавление
      *
+     *  *. Если это первая итерация, послать всем клиентам команду перезагрузиться
      *  А. Подготовить имя очереди, которая будет обрабатывать команды
      *  Б. Добавить все необходимые команды в $queue, если она пуста
      *    Б1. Обновить весь кэш, но для каждого, только если он отсутствует
@@ -159,7 +160,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
      *    Д1. Записывать в кэш дату и время последнего и предпоследнего выполнения команды processor
      *    Д2. Искать "пропущенные" офферы типа 1
      *    Д3. Искать "пропущенные" офферы типа 2
-     *  Е. Если это первая итерация, послать всем клиентам команду перезагрузиться
      *
      *  N. Вернуть статус 0
      *
@@ -175,6 +175,22 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
       //  return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
       //};
       //$start = call_user_func($milliseconds);
+
+      // *. Если это первая итерация, послать всем клиентам команду перезагрузиться
+      // - Поскольку, их CSRF-токены недействительны.
+      $last_datetime = Cache::get('m9:processing:last_datetime');
+      if(empty($last_datetime)) {
+        Event::fire(new \R2\Broadcast([
+          'channels' => ['m9:public'],
+          'queue'    => 'm9_lottery_broadcasting',
+          'data'     => [
+            'task' => 'reload_page',
+            'data' => [
+
+            ]
+          ]
+        ]));
+      }
 
       // А. Подготовить имя очереди, которая будет обрабатывать команды
       $queues = [
@@ -289,22 +305,6 @@ class C11_processor extends Job { // TODO: добавить "implements ShouldQu
               }
           }
         }
-
-      // Е. Если это первая итерация, послать всем клиентам команду перезагрузиться
-      // - Поскольку, их CSRF-токены недействительны.
-      $last_datetime = Cache::get('m9:processing:last_datetime');
-      if(empty($last_datetime)) {
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:public'],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'reload_page',
-            'data' => [
-
-            ]
-          ]
-        ]));
-      }
 
 
       //Log::info('Задач в m9_processor_statuses: '.count(Queue::getRedis()->command('LRANGE',['queues:m9_processor_statuses', '0', '-1'])));
