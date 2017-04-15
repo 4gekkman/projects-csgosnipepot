@@ -155,6 +155,15 @@
       opacity: 1 !important;
       transform: rotate(90deg);
     }
+    #toast-container .toast a {
+      color: #6ea0ad;
+      text-decoration: none;
+      transition: all .2s ease;
+    }
+    #toast-container .toast a:hover {
+      color: #7fb8c7;
+      border-bottom: 1px solid #7fb8c7;
+    }
 
     // 3.2. Класс processing (бот формирует оффер)
     #toast-container .toast.win-payout-offer.processing {
