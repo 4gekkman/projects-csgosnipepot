@@ -217,7 +217,7 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
         // 8.1. Провенить
         $is_user_in_groups2join = runcommand('\M18\Commands\C3_check_if_user_in_group', [
           'steamid'       => $this->data['steamid'],
-          'strings2check' => $strings2check = config('M18.groups2join') ?: []
+          'groups2join'   => config('M18.groups2join') ?: []
         ]);
         if($is_user_in_groups2join['status'] != 0)
           throw new \Exception('9');
@@ -233,7 +233,7 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
         // 9.1. Провенить
         $is_strings2check_in_nickname = runcommand('\M17\Commands\C3_check_strings_in_nickname', [
           'steamid'       => $this->data['steamid'],
-          'strings2check' => $strings2check = config('M17.strings2check') ?: []
+          'strings2check' => config('M17.strings2check') ?: []
         ]);
         if($is_strings2check_in_nickname['status'] != 0)
           throw new \Exception('8');
