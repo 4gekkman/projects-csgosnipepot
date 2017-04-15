@@ -137,11 +137,12 @@ class C1_apply_steamgroup_promo extends Job { // TODO: добавить "impleme
      * Оглавление
      *
      *  1. Провести проверку входящих данных
-     *  2. Получить из конфига необходимые данные
-     *  3. Если у id_user уже есть промо, завершить с ошибкой
-     *  4. Состоит ли пользователь хотя бы в одной из групп $groups2join
-     *  5. Если $is_user_in_groups2join == 0, вернуть ошибку
-     *  6. Если $is_user_in_groups2join == 1
+     *  2. Проверить, не слишком ли часть пользователь id_user запрашивает
+     *  3. Получить из конфига необходимые данные
+     *  4. Если у id_user уже есть промо, завершить с ошибкой
+     *  5. Состоит ли пользователь хотя бы в одной из групп $groups2join
+     *  6. Если $is_user_in_groups2join == 0, вернуть ошибку
+     *  7. Если $is_user_in_groups2join == 1
      *
      *  N. Вернуть статус 0
      *
@@ -160,22 +161,35 @@ class C1_apply_steamgroup_promo extends Job { // TODO: добавить "impleme
         throw new \Exception($validator['data']);
       }
 
-      // 2. Получить из конфига необходимые данные
+      // 2. Проверить, не слишком ли часть пользователь id_user запрашивает
+      // - Давать запрашивать не чаще, чем раз в 1 минуту.
 
-        // 2.1. Массив gid групп, в которых должен состоять пользователь
+        // 1] Получить из кэша дату и время последней попытки
+        $last_try_datetime = Cache::get('m18:c1_apply_steamgroup_promo:lasttry:datetime:'.$this->data['id_user']);
+
+        // 2] Если $last_try_datetime не пуста, и прошло менее 60 секунд, завершить с ошибкой
+        if(!empty($last_try_datetime) && +(\Carbon\Carbon::parse($last_try_datetime)->diffInSeconds(\Carbon\Carbon::now())) < 60)
+          throw new \Exception("5");
+
+        // 3] Обновить кэш
+        Cache::put('m18:c1_apply_steamgroup_promo:lasttry:datetime:'.$this->data['id_user'], \Carbon\Carbon::now()->toDateTimeString(), 300);
+
+      // 3. Получить из конфига необходимые данные
+
+        // 3.1. Массив gid групп, в которых должен состоять пользователь
         $groups2join = config('M18.groups2join') ?: [];
 
-        // 2.2. Получить из конфига кол-во монет, которые буду выданы за добавление строки в ник
+        // 3.2. Получить из конфига кол-во монет, которые буду выданы за добавление строки в ник
         $coins = config('M18.coins') ?: 20;
 
-      // 3. Если у id_user уже есть промо, завершить с ошибкой
+      // 4. Если у id_user уже есть промо, завершить с ошибкой
       $promo = \M18\Models\MD1_promo::whereHas('m5_users', function($queue){
         $queue->where('id', $this->data['id_user']);
       })->first();
       if(!empty($promo))
         throw new \Exception("4");
 
-      // 4. Состоит ли пользователь хотя бы в одной из групп $groups2join
+      // 5. Состоит ли пользователь хотя бы в одной из групп $groups2join
       $is_user_in_groups2join = runcommand('\M18\Commands\C3_check_if_user_in_group', [
         'steamid'       => $this->data['steamid'],
         'groups2join'   => $groups2join
@@ -185,23 +199,23 @@ class C1_apply_steamgroup_promo extends Job { // TODO: добавить "impleme
       else
         $is_user_in_groups2join = $is_user_in_groups2join['data']['result'];
 
-      // 5. Если $is_user_in_groups2join == 0, вернуть ошибку
+      // 6. Если $is_user_in_groups2join == 0, вернуть ошибку
       if($is_user_in_groups2join == 0)
         throw new \Exception("2");
 
-      // 6. Если $is_user_in_groups2join == 1
+      // 7. Если $is_user_in_groups2join == 1
       else {
 
-        // 6.1. Создать новый промо для пользователя
+        // 7.1. Создать новый промо для пользователя
         $promo = new \M18\Models\MD1_promo();
         $promo->coins = $coins;
         $promo->save();
 
-        // 6.2. Связать $promo с id_user
+        // 7.2. Связать $promo с id_user
         if(!$promo->m5_users->contains($this->data['id_user']))
           $promo->m5_users()->attach($this->data['id_user']);
 
-        // 6.3. Начислить пользователю id_user $coins монет
+        // 7.3. Начислить пользователю id_user $coins монет
         $result = runcommand('\M13\Commands\C13_add_coins', [
           'id_user'     => $this->data['id_user'],
           'coins'       => $coins,
@@ -210,10 +224,10 @@ class C1_apply_steamgroup_promo extends Job { // TODO: добавить "impleme
         if($result['status'] != 0)
           throw new \Exception("3");
 
-        // 6.4. Сделать commit
+        // 7.4. Сделать commit
         DB::commit();
 
-        // 6.n. Вернуть результаты
+        // 7.n. Вернуть результаты
         return [
           "status"  => 0,
           "data"    => [
