@@ -137,11 +137,12 @@ class C1_apply_nick_promo extends Job { // TODO: добавить "implements Sh
      * Оглавление
      *
      *  1. Провести проверку входящих данных
-     *  2. Получить из конфига массив строк, на которые надо проверять ник игрока
-     *  3. Если у id_user уже есть промо, завершить с ошибкой
-     *  4. Есть ли в нике пользователя steamid строки из $strings2check
-     *  5. Если $is_strings2check_in_nickname == 0, вернуть ошибку
-     *  6. Если $is_strings2check_in_nickname == 1
+     *  2. Проверить, не слишком ли часть пользователь id_user запрашивает
+     *  3. Получить из конфига массив строк, на которые надо проверять ник игрока
+     *  4. Если у id_user уже есть промо, завершить с ошибкой
+     *  5. Есть ли в нике пользователя steamid строки из $strings2check
+     *  6. Если $is_strings2check_in_nickname == 0, вернуть ошибку
+     *  7. Если $is_strings2check_in_nickname == 1
      *
      *  N. Вернуть статус 0
      *
@@ -160,22 +161,35 @@ class C1_apply_nick_promo extends Job { // TODO: добавить "implements Sh
         throw new \Exception($validator['data']);
       }
 
-      // 2. Получить из конфига необходимые данные
+      // 2. Проверить, не слишком ли часть пользователь id_user запрашивает
+      // - Давать запрашивать не чаще, чем раз в 1 минуту.
 
-        // 2.1. Массив строк, на которые надо проверять ник игрока
+        // 1] Получить из кэша дату и время последней попытки
+        $last_try_datetime = Cache::get('m17:c1_apply_nick_promo:lasttry:datetime:'.$this->data['id_user']);
+
+        // 2] Если $last_try_datetime не пуста, и прошло менее 60 секунд, завершить с ошибкой
+        if(!empty($last_try_datetime) && +(\Carbon\Carbon::parse($last_try_datetime)->diffInSeconds(\Carbon\Carbon::now())) < 60)
+          throw new \Exception("5");
+
+        // 3] Обновить кэш
+        Cache::put('m17:c1_apply_nick_promo:lasttry:datetime:'.$this->data['id_user'], \Carbon\Carbon::now()->toDateTimeString(), 300);
+
+      // 3. Получить из конфига необходимые данные
+
+        // 3.1. Массив строк, на которые надо проверять ник игрока
         $strings2check = config('M17.strings2check') ?: [];
 
-        // 2.2. Получить из конфига кол-во монет, которые буду выданы за добавление строки в ник
+        // 3.2. Получить из конфига кол-во монет, которые буду выданы за добавление строки в ник
         $coins = config('M17.coins') ?: 20;
 
-      // 3. Если у id_user уже есть промо, завершить с ошибкой
+      // 4. Если у id_user уже есть промо, завершить с ошибкой
       $promo = \M17\Models\MD1_nickpromo::whereHas('m5_users', function($queue){
         $queue->where('id', $this->data['id_user']);
       })->first();
       if(!empty($promo))
         throw new \Exception("4");
 
-      // 4. Есть ли в нике пользователя steamid строки из $strings2check
+      // 5. Есть ли в нике пользователя steamid строки из $strings2check
       $is_strings2check_in_nickname = runcommand('\M17\Commands\C3_check_strings_in_nickname', [
         'steamid'       => $this->data['steamid'],
         'strings2check' => $strings2check
@@ -185,29 +199,29 @@ class C1_apply_nick_promo extends Job { // TODO: добавить "implements Sh
       else
         $is_strings2check_in_nickname = $is_strings2check_in_nickname['data']['result'];
 
-      // 5. Если $is_strings2check_in_nickname == 0, вернуть ошибку
+      // 6. Если $is_strings2check_in_nickname == 0, вернуть ошибку
       if($is_strings2check_in_nickname == 0)
         throw new \Exception("2");
 
-      // 6. Если $is_strings2check_in_nickname == 1
+      // 7. Если $is_strings2check_in_nickname == 1
       else {
 
-        // 6.1. Создать новый промо для пользователя
+        // 7.1. Создать новый промо для пользователя
         $promo = new \M17\Models\MD1_nickpromo();
         $promo->coins = $coins;
         $promo->save();
 
-        // 6.2. Связать $promo с id_user
+        // 7.2. Связать $promo с id_user
         if(!$promo->m5_users->contains($this->data['id_user']))
           $promo->m5_users()->attach($this->data['id_user']);
 
-        // 6.3. Обновить ник пользователя
+        // 7.3. Обновить ник пользователя
         $user = \M5\Models\MD1_users::find($this->data['id_user']);
         if(empty($user))
           throw new \Exception('5');
         $user->nickname = $is_strings2check_in_nickname['data']['nickname'];
 
-        // 6.4. Начислить пользователю id_user $coins монет
+        // 7.4. Начислить пользователю id_user $coins монет
         $result = runcommand('\M13\Commands\C13_add_coins', [
           'id_user'     => $this->data['id_user'],
           'coins'       => $coins,
@@ -216,10 +230,10 @@ class C1_apply_nick_promo extends Job { // TODO: добавить "implements Sh
         if($result['status'] != 0)
           throw new \Exception("3");
 
-        // 6.5. Сделать commit
+        // 7.5. Сделать commit
         DB::commit();
 
-        // 6.n. Вернуть результаты
+        // 7.n. Вернуть результаты
         return [
           "status"  => 0,
           "data"    => [
@@ -229,8 +243,6 @@ class C1_apply_nick_promo extends Job { // TODO: добавить "implements Sh
         ];
 
       }
-
-
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C1_apply_nick_promo from M-package M17 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
