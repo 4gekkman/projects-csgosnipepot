@@ -251,7 +251,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 					"ID оффера в steam: "+data.data.tradeofferid+"<br>" +
 
 					// Просьба подтвердить
-					"<p>Для завершения операции, <a style='color: #8ab4f8; text-decoration: underline' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
+					"<p>Для завершения операции, <a style='color: #8ab4f8; ' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
 
 					// Просьба сверить код безопасности
 					"Обязательно проверьте код безопасности: "+data.data.safecode+".</p>"
@@ -414,6 +414,10 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 				else if(data.data.errormsg == "4")
 					toastr.error("Вы уже получали монеты за выполнение этого задания.", "Ошибка");
 
+				// 5] Слишком частые запросы
+				else if(data.data.errormsg == "5")
+					toastr.error("Вы делаете запросы слишком часто, попробуйте снова через 1 минуту.", "Ошибка");
+
 				// n] Если это обычная ошибка
 				else {
 					toastr.error(data.data.errormsg, "Ошибка при обработке заказа");
@@ -494,6 +498,10 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 				// 4] Если игрок уже получал монеты за это задание
 				else if(data.data.errormsg == "4")
 					toastr.error("Вы уже получали монеты за выполнение этого задания.", "Ошибка");
+
+				// 5] Слишком частые запросы
+				else if(data.data.errormsg == "5")
+					toastr.error("Вы делаете запросы слишком часто, попробуйте снова через 1 минуту.", "Ошибка");
 
 				// n] Если это обычная ошибка
 				else {

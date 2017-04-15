@@ -388,7 +388,7 @@ f.s6.deposit = function(data, event) {
 					"<p>Торговое предложение №"+data.data.tradeofferid+" успешно создано и отправлено вам.</p>" +
 
 					// Просьба подтвердить
-					"<p>Для завершения операции, <a style='color: #8ab4f8; text-decoration: underline' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
+					"<p>Для завершения операции, <a style='color: #8ab4f8; ' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
 
 					// Просьба сверить код безопасности
 					"Обязательно проверьте код безопасности: "+data.data.safecode+".</p>" +

@@ -590,7 +590,7 @@ f.s7.offer_created = function(data) {
 			"Всего должно быть офферов: "+data.purchase_trades_num+"</p>" +
 
 			// Просьба подтвердить
-			"<p>Для завершения операции, <a style='color: #8ab4f8; text-decoration: underline' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
+			"<p>Для завершения операции, <a style='color: #8ab4f8; ' target='_blank' href='https://steamcommunity.com/tradeoffer/"+data.tradeofferid+"'>подтвердите оффер в Steam</a>. " +
 
 			// Просьба сверить код безопасности
 			"Обязательно проверьте код безопасности: "+data.safecode+".</p>"
