@@ -346,7 +346,7 @@ class C6_update_cache extends Job { // TODO: добавить "implements Should
           // 3.3.1. Получить кэш
           $cache = json_decode(Cache::get('m16:cache:bots'), true);
 
-          // 3.3.2. Обновить кэш
+          // 3.3.2. Обновить кэш m16:cache:bots
           // - Если он отсутствует, или если параметр force == true
           if(
             (!Cache::has('m16:cache:bots') || empty($cache) || count($cache) == 0) ||
@@ -365,20 +365,20 @@ class C6_update_cache extends Job { // TODO: добавить "implements Should
               Cache::put('m16:cache:bots', json_encode($bots->pluck('id')->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
               // 3] Получить инвентарь каждого из ботов, и записать в кэш
-              foreach($bots as $bot) {
-
-                // 3.1] Получить инвентарь
-                $inventory = runcommand('\M8\Commands\C4_getinventory', [
-                  'force' => true,
-                  'steamid' => $bot['steamid']
-                ]);
-                if($inventory['status'] != 0)
-                  continue;
-
-                // 3.2] Записать его в кэш
-                Cache::tags(['m16:cache:inventory'])->put('m16:cache:inventory:'.$bot['id'], json_encode($inventory, JSON_UNESCAPED_UNICODE), 30);
-
-              }
+              //foreach($bots as $bot) {
+              //
+              //  // 3.1] Получить инвентарь
+              //  $inventory = runcommand('\M8\Commands\C4_getinventory', [
+              //    'force' => true,
+              //    'steamid' => $bot['steamid']
+              //  ]);
+              //  if($inventory['status'] != 0)
+              //    continue;
+              //
+              //  // 3.2] Записать его в кэш
+              //  Cache::tags(['m16:cache:inventory'])->put('m16:cache:inventory:'.$bot['id'], json_encode($inventory, JSON_UNESCAPED_UNICODE), 30);
+              //
+              //}
 
               // 4] Если $bots пуст, сбросить весь персонализированный кэш
               if(count($bots) == 0) {
@@ -388,6 +388,47 @@ class C6_update_cache extends Job { // TODO: добавить "implements Should
             }
 
           }
+
+          // 3.3.3. Обновить кэш m16:cache:inventory:<id бота>
+
+            // 1] Получить кэш m16:cache:bots
+            $cache_bots = json_decode(Cache::get('m16:cache:bots'), true);
+
+            // 2] Пробежаться по кэшу ботов
+            foreach($cache_bots as $id_bot) {
+
+              // 2.1] Попробовать найти кэш бота $id_bot
+              $bot_cache = Cache::tags(['m16:cache:inventory'])->get('m16:cache:inventory:'.$id_bot);
+
+              // 2.2] Обновить его, если выполненые необходимые условия
+              // - Если он не найден, или если force == true.
+              // - И если all == true, или m16:cache:bots есть в cache2update.
+              if((empty($bot_cache) || $this->data['force'] == true) && ($this->data['all'] == true || in_array("m16:cache:bots", $this->data['cache2update']) == true)) {
+
+                // Попробовать обновить
+                call_user_func(function() USE ($id_bot) {
+
+                  // 2.2.1] Получить бота $id_bot из БД
+                  $bot = \M8\Models\MD1_bots::where('id', $id_bot)->first();
+                  if(empty($bot))
+                    return;
+
+                  // 2.2.2] Получить инвентарь
+                  $inventory = runcommand('\M8\Commands\C4_getinventory', [
+                    'force'   => true,
+                    'steamid' => $bot['steamid']
+                  ]);
+                  if($inventory['status'] != 0)
+                    return;
+
+                  // 2.2.3] Записать его в кэш
+                  Cache::tags(['m16:cache:inventory'])->put('m16:cache:inventory:'.$id_bot, json_encode($inventory, JSON_UNESCAPED_UNICODE), 30);
+
+                });
+
+              }
+
+            }
 
 
     } catch(\Exception $e) {
