@@ -293,7 +293,7 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
             "steamid_partner"  			=> $user['ha_provider_uid'],
             "id_partner"            => $partner,
             "token_partner"         => $token,
-            "dont_trade_with_gays"  => "1",
+            "dont_trade_with_gays"  => "0",
             "assets2send"           => $assets2send,
             "assets2recieve"        => [],
             "tradeoffermessage"     => $tradeoffermessage
@@ -340,10 +340,13 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
       if(empty($tradeofferid['tradeofferid'])) {
 
         // 1] Изменить статус выдачи на Expired
-        $giveaway->giveaway_status = 4;
-        $giveaway->save();
+        //$giveaway->giveaway_status = 4;
+        //$giveaway->save();
 
-        // 2] Обновить весь кэш, кроме связанного с ботами и инвентарём
+        // 2] Подтвердить транзакцию
+        //DB::commit();
+
+        // 3] Обновить весь кэш, кроме связанного с ботами и инвентарём
         $cacheupdate = runcommand('\M16\Commands\C6_update_cache', [
           "all"   => false,
           "force" => true,
@@ -354,11 +357,13 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
         if($cacheupdate['status'] != 0)
           throw new \Exception($cacheupdate['data']['errormsg']);
 
-        // 3] Обнулить счётчик онлайна пользователя $id_user
+        // 4] Обнулить счётчик онлайна пользователя $id_user
         //Redis::set('m16:online:counter:'.$id_user, 0);
 
-        // 4] Вернуть ошибку
-        throw new \Exception('4');
+        Log::info('-----> Неудачная попытка забрать скин за онлайн. Пользователь №'.$this->data['id_user'].'; выдача №'.$giveaway->id.'; ошибка: '.$tradeofferid['error']);
+
+        // 5] Вернуть ошибку
+        throw new \Exception($tradeofferid['error']);
 
       }
 
