@@ -143,12 +143,13 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
      *  5. Получить Ready-выдачу, связанную с этим пользователем
      *  6. Получить ID связанного с $giveaway бота
      *  7. Получить массив вещей, который надо отдать
-     *  8. Проверить кол-во ставок в комнате Main
+     *  8. Проверить, выполнено ли задание со вступлением в группу
      *  9. Проверить, выполнено ли задание с добавлением строки в ник
-     *  10. Отправить игроку торговое предложение
-     *  11. Начать транзакцию
-     *  12. Если $tradeofferid отправить не удалось
-     *  13. Если $tradeofferid удалось успешно отправить
+     *  10. Проверить кол-во ставок в комнате Main
+     *  11. Отправить игроку торговое предложение
+     *  12. Начать транзакцию
+     *  13. Если $tradeofferid отправить не удалось
+     *  14. Если $tradeofferid удалось успешно отправить
      *
      *  N. Вернуть статус 0
      *
@@ -211,18 +212,21 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
       // 7. Получить массив вещей, который надо отдать
       $assets2send = [$giveaway['m8_items'][0]['pivot']['assetid_bots']];
 
-      // 8. Проверить кол-во ставок в комнате Main
+      // 8. Проверить, выполнено ли задание со вступлением в группу
 
-        // 8.1. Проверить
-        $bets_in_main = \M9\Models\MD3_bets::whereHas('m5_users', function($queue) USE ($id_user, $id_room) {
-          $queue->where('id', $id_user);
-        })->whereHas('rounds', function($queue) USE ($id_room) {
-          $queue->where('id_room', $id_room);
-        })->count();
+        // 8.1. Провенить
+        $is_user_in_groups2join = runcommand('\M18\Commands\C3_check_if_user_in_group', [
+          'steamid'       => $this->data['steamid'],
+          'strings2check' => $strings2check = config('M18.groups2join') ?: []
+        ]);
+        if($is_user_in_groups2join['status'] != 0)
+          throw new \Exception('9');
+        else
+          $is_user_in_groups2join = $is_user_in_groups2join['data']['result'];
 
-        // 8.2. Если ставок нет, вернуть ошибку
-        if(empty($bets_in_main))
-          throw new \Exception('3');
+        // 8.2. Если не выполнено, вернуть ошибку
+        if($is_user_in_groups2join == 0)
+          throw new \Exception('9');
 
       // 9. Проверить, выполнено ли задание с добавлением строки в ник
 
@@ -240,23 +244,20 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
         if($is_strings2check_in_nickname == 0)
           throw new \Exception('8');
 
-      // 10. Проверить, выполнено ли задание с добавлением строки в ник
+      // 10. Проверить кол-во ставок в комнате Main
 
-        // 10.1. Провенить
-        $is_user_in_groups2join = runcommand('\M18\Commands\C3_check_if_user_in_group', [
-          'steamid'       => $this->data['steamid'],
-          'strings2check' => $strings2check = config('M18.groups2join') ?: []
-        ]);
-        if($is_user_in_groups2join['status'] != 0)
-          throw new \Exception('9');
-        else
-          $is_user_in_groups2join = $is_user_in_groups2join['data']['result'];
+        // 10.1. Проверить
+        $bets_in_main = \M9\Models\MD3_bets::whereHas('m5_users', function($queue) USE ($id_user, $id_room) {
+          $queue->where('id', $id_user);
+        })->whereHas('rounds', function($queue) USE ($id_room) {
+          $queue->where('id_room', $id_room);
+        })->count();
 
-        // 10.2. Если не выполнено, вернуть ошибку
-        if($is_user_in_groups2join == 0)
-          throw new \Exception('9');
+        // 10.2. Если ставок нет, вернуть ошибку
+        if(empty($bets_in_main))
+          throw new \Exception('3');
 
-      // 10. Отправить игроку торговое предложение
+      // 11. Отправить игроку торговое предложение
       $tradeofferid = call_user_func(function() USE ($id_bot, $giveaway, $user, $assets2send){
 
         // 1] Получить steam_tradeurl пользователя $user
@@ -332,10 +333,10 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
 
       });
 
-      // 11. Начать транзакцию
+      // 12. Начать транзакцию
       DB::beginTransaction();
 
-      // 12. Если $tradeofferid отправить не удалось
+      // 13. Если $tradeofferid отправить не удалось
       if(empty($tradeofferid['tradeofferid'])) {
 
         // 1] Изменить статус выдачи на Expired
@@ -361,7 +362,7 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
 
       }
 
-      // 13. Если $tradeofferid удалось успешно отправить
+      // 14. Если $tradeofferid удалось успешно отправить
       else {
 
         // 1] Изменить статус выдачи на Active
