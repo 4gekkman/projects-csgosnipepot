@@ -308,18 +308,69 @@
     <!----------------------------*/ ?>
     <div class="users-counter">
 
+      <?php /*------------------------->
+      <!-- Контент для скрытого меню -->
+      <!---------------------------*/ ?>
+      <div style="display: none" class="content-menu-hidden" data-bind="visible: !m.s2.expanded()">
+        <span data-bind="text: m.s0.logged_in_steam_users"></span>
+      </div>
+
+      <?php /*--------------------------->
+      <!-- Контент для раскрытого меню -->
+      <!-----------------------------*/ ?>
+      <div style="display: none" class="content-menu-not-hidden" data-bind="visible: m.s2.expanded">
+        <span data-bind="text: 'На сайте '+m.s0.logged_in_steam_users()+' '+m.s0.logged_in_steam_users_declension()"></span>
+      </div>
+
+    </div>
+
+    <?php /*--------------------->
+    <!-- 2.4. Иконки соц.сетей -->
+    <!-----------------------*/ ?>
+    <div class="social-icons">
+
       <?php /*--------------------------->
       <!-- Контент для раскрытого меню -->
       <!-----------------------------*/ ?>
       <div style="display: none" class="content-menu-hidden" data-bind="visible: !m.s2.expanded()">
-        <span data-bind="text: m.s0.logged_in_steam_users"></span>
+
+        <?php /*----- VK -----*/ ?>
+        <a target="_blank" href="https://vk.com/csgohap">
+          <img src="{!! asset('public/L10003/assets/social/vk_icon.svg') !!}">
+        </a>
+
+        <?php /*----- Twitter -----*/ ?>
+        <a target="_blank" href="https://twitter.com/csgohap ">
+          <img src="{!! asset('public/L10003/assets/social/twitter_icon.svg') !!}">
+        </a>
+
+        <?php /*----- Steam -----*/ ?>
+        <a target="_blank" href="http://steamcommunity.com/groups/CSGOHAP">
+          <img src="{!! asset('public/L10003/assets/social/steam_icon.svg') !!}">
+        </a>
+
       </div>
 
       <?php /*------------------------->
       <!-- Контент для скрытого меню -->
       <!---------------------------*/ ?>
       <div style="display: none" class="content-menu-not-hidden" data-bind="visible: m.s2.expanded">
-        <span data-bind="text: 'Сейчас людей на сайте: '+m.s0.logged_in_steam_users()"></span>
+
+        <?php /*----- VK -----*/ ?>
+        <a target="_blank" href="https://vk.com/csgohap">
+          <img src="{!! asset('public/L10003/assets/social/vk_icon.svg') !!}">
+        </a>
+
+        <?php /*----- Twitter -----*/ ?>
+        <a target="_blank" href="https://twitter.com/csgohap ">
+          <img src="{!! asset('public/L10003/assets/social/twitter_icon.svg') !!}">
+        </a>
+
+        <?php /*----- Steam -----*/ ?>
+        <a target="_blank" href="http://steamcommunity.com/groups/CSGOHAP">
+          <img src="{!! asset('public/L10003/assets/social/steam_icon.svg') !!}">
+        </a>
+
       </div>
 
     </div>
@@ -530,7 +581,7 @@
             <!-- 2.1.2] Основной текст -->
             <!-----------------------*/ ?>
             <div class="main-text">
-              <span data-bind="text: 'Обменяйте свои скины стоимостью от 10 рублей на монеты. За '+f.s7.kopeyky()['every']+' '+Math.round(layout_data.data.usdrub_rate)+' '+f.s7.kopeyky()['kop']+' вы получите 1 монету.'">Обменяйте свои скины стоимостью от 10 рублей на монеты. За каждый рубль Вы получите 1 монету.</span>
+              <span data-bind="text: 'Обменяйте свои скины стоимостью от ~'+m.s7.min_price_rub()+' '+m.s7.declension()+' на монеты. За '+f.s7.kopeyky()['every']+' ~'+Math.round(layout_data.data.usdrub_rate)+' '+f.s7.kopeyky()['kop']+' вы получите 1 монету.'"></span>
             </div>
 
             <?php /*---------------------->

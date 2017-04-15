@@ -645,6 +645,7 @@
   4.3. Переключатель главного меню в узком состоянии
   4.4. Стили пункта меню
   4.5. Стили счётчика пользователей онлайн
+  4.6. Стили иконок соц.сетей
 
 //------------------------------------*/
 
@@ -820,8 +821,6 @@
       float: right;
     }
 
-
-
   //------------------------------------------//
   // 4.5. Стили счётчика пользователей онлайн //
   //------------------------------------------//
@@ -834,6 +833,8 @@
       line-height: $sizes_mainmenu_itemh/1.6;
       color: #aaa;
       font-size: 1.1em;
+      overflow: hidden;
+      text-overflow: clip;
     }
 
     // Стили контента при скрытом меню
@@ -842,6 +843,47 @@
     // Стили контента при раскрытом скрытом меню
     .menu .users-counter .content-menu-not-hidden { }
 
+  //-----------------------------//
+  // 4.6. Стили иконок соц.сетей //
+  //-----------------------------//
+
+    // Контейнер счётчика пользователей
+    .menu .social-icons {
+      min-height: $sizes_mainmenu_itemh/1.6; width: 100%;
+      //border-top: 2px solid #2F5463;
+      text-align: center;
+      line-height: $sizes_mainmenu_itemh/1.6;
+      color: #aaa;
+      font-size: 1.1em;
+    }
+    .menu .social-icons a {
+      display: inline-block;
+      vertical-align: baseline;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      margin-right: 15px;
+      font-size: 0;
+    }
+    .menu .social-icons a:last-child {
+      margin-right: 0;
+    }
+    .menu .social-icons a img {
+      vertical-align: top;
+      max-width: 30px;
+      max-height: 30px;
+      cursor: pointer;
+    }
+
+    // Стили контента при скрытом меню
+    .menu .social-icons .content-menu-hidden a {
+      margin-right: 0;
+    }
+
+    // Стили контента при раскрытом скрытом меню
+    .menu .social-icons .content-menu-not-hidden {
+      margin-top: -4px;
+    }
 
 
 //-------------------------------------//

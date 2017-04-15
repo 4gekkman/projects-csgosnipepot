@@ -435,7 +435,20 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//-------------------------------------------------------------//
 	// s0.9. Количество залогиненных Steam-пользователей в системе //
 	//-------------------------------------------------------------//
-	self.m.s0.logged_in_steam_users = ko.observable(layout_data.data.logged_in_steam_users);
+
+		// 1] Количество
+		self.m.s0.logged_in_steam_users = ko.observable(layout_data.data.logged_in_steam_users);
+
+		// 2] Школьник/Школьника/Школьников
+		self.m.s0.logged_in_steam_users_declension = ko.computed(function(){
+
+			var declension = declension_by_number(self.m.s0.logged_in_steam_users());
+			if(declension == 1) return 'человек';
+			if(declension == 2) return 'человека';
+			if(declension == 3) return 'человек';
+			return 'человек';
+
+		});
 
 	//------------------------//
 	// s0.10. Серверное время //
@@ -1026,6 +1039,30 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	// s7.2. Показаны ли модальный щит и модальное окно интерфейса //
 	//-------------------------------------------------------------//
   self.m.s7.ison = ko.observable(false);
+
+	//----------------------------------//
+	// s7.3. Минимальная сумма депозита //
+	//----------------------------------//
+
+		// 1] Сумма в центах
+		self.m.s7.min_price_cents = ko.observable(layout_data.data.min_skin2accept_price_cents);
+
+		// 2] Сумма в рублях
+		self.m.s7.min_price_rub = ko.computed(function(){
+			return Math.round((self.m.s7.min_price_cents()/100)*server.data.usdrub_rate);
+		});
+
+		// 3] Рубль/Рубля/Рублей
+		self.m.s7.declension = ko.computed(function(){
+
+			var declension = declension_by_number(self.m.s7.min_price_rub());
+			if(declension == 1) return 'рубль';
+			if(declension == 2) return 'рубля';
+			if(declension == 3) return 'рублей';
+			return 'рублей';
+
+		});
+
 
 
 	//--------------------------------------//

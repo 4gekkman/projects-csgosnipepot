@@ -674,6 +674,9 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 				// 2.4] Добавить высоту счётчика посетителей
 				height = height + getBoundingDocRect(document.getElementsByClassName('users-counter')[0]).height;
 
+				// 2.5] Добавить высоту блока иконок соц.сетей
+				height = height + getBoundingDocRect(document.getElementsByClassName('social-icons')[0]).height;
+
 				// 2.n] Вернуть результат
 				return height;
 
