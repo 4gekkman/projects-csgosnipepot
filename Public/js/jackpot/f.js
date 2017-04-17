@@ -1620,9 +1620,20 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 			var msg = (function(){
 				var result  = "";
 				for(var i=0; i<codes_and_errors.length; i++) {
-					result = result + '<b>Код ошибки №' + codes_and_errors[i]['code'] + '</b>: ';
-					result = result + codes_and_errors[i]['desc'];
-					result = result + '<br><br>';
+
+					// Если код ошибки №7
+					if(codes_and_errors[i]['code'] == 7) {
+						result = result + "Минимальная ставка в Main комнате "+Math.ceil((Math.round(self.m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)+" руб. Перейдите в комнату Low.";
+						result = result + '<br><br>';
+					}
+
+					// В общем случае
+					else {
+						result = result + '<b>Код ошибки №' + codes_and_errors[i]['code'] + '</b>: ';
+						result = result + codes_and_errors[i]['desc'];
+						result = result + '<br><br>';
+					}
+
 				}
 				return result;
 			})();
