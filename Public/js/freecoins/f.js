@@ -182,7 +182,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 		// - Интерфейс заблокирован.
 		// - Это анонимный пользователь.
 		// - Предыдущий запрос ещё не обработан.
-		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in() || self.m.s8.reword.is_spinner_vis()) return;
+		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in() || self.m.s8.beonline.is_spinner_vis()) return;
 
 		// 2] Выполнить ajax-запрос
 		ajaxko(self, {
@@ -309,7 +309,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 			else if(data.data.errormsg == "8")
 				toastr.error("Добавьте 'csgohap.ru' к своему нику в Steam,чтобы получать бесплатные скины за онлайн.", "Ошибка");
 
-			// 9] Если не удалось обнаружить надписи в нике
+			// 9] Если не удалось обнаружить игрока в группе
 			else if(data.data.errormsg == "9")
 				toastr.error("Вступите в <a target='_blank' href='http://steamcommunity.com/groups/CSGOHAP'>нашу группу в Steam</a>, чтобы получать бесплатные скины за онлайн.", "Ошибка");
 
@@ -353,7 +353,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 		// 2] Завершить, если (или):
 		// - Интерфейс заблокирован.
 		// - Это анонимный пользователь.
-		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in()) return;
+		if(self.m.s0.ajax_counter() || self.m.s8.nickpromo.is_spinner_vis() || !layoutmodel.m.s0.is_logged_in()) return;
 
 		// 3] Выполнить ajax-запрос
 		ajaxko(self, {
@@ -444,7 +444,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 		// 2] Завершить, если (или):
 		// - Интерфейс заблокирован.
 		// - Это анонимный пользователь.
-		if(self.m.s0.ajax_counter() || !layoutmodel.m.s0.is_logged_in()) return;
+		if(self.m.s0.ajax_counter() || self.m.s8.steamgrouppromo.is_spinner_vis() || !layoutmodel.m.s0.is_logged_in()) return;
 
 		// 3] Выполнить ajax-запрос
 		ajaxko(self, {
