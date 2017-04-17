@@ -151,7 +151,8 @@
           '\M8\Console\T28_add_new_bot',
           '\M8\Console\T29_delete_bot',
           '\M8\Console\T30_rename_group',
-          '\M8\Console\T31_update_items_quality_indb'
+          '\M8\Console\T31_update_items_quality_indb',
+          '\M8\Console\T32_check_escrow_hold_days_by_tradeofferid'
         ];
 
         // Регистрация команд в методе register
