@@ -135,8 +135,8 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
     /**
      * Оглавление
      *
-     *  1. Сделать бэкап счетчиков онлайна
-     *  2. Сделать рестор счётчиков онлайна (единожды, до следующей перезагрузки сервера)
+     *  1. Сделать рестор счётчиков онлайна (единожды, до следующей перезагрузки сервера)
+     *  2. Сделать бэкап счетчиков онлайна
      *
      *  N. Вернуть статус 0
      *
@@ -147,10 +147,39 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
     //--------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Сделать бэкап счетчиков онлайна
+      // 1. Сделать рестор счётчиков онлайна (единожды, до следующей перезагрузки сервера)
       call_user_func(function(){
 
-        // 1.1. Если с предыдущего выполнения ещё не прошло online_counters_backup_period_sec, ничего не делать
+        // 2.1. Получить метку, производился ли ресто после запуска
+        $is_restored = Redis::get('m16:was_online_counters_restored_after_server_boot');
+
+        // 1.2. Если метка не пуста, завершить
+        if(!empty($is_restored))
+          return;
+
+        // 1.3. Извлекать данные счётчиков из бэкапа кусками, и применять
+        \M16\Models\MD1_online_counters_backups::chunk(200, function ($counters) {
+          foreach ($counters as $counter) {
+
+            // 1] Получить id пользователя и значение счётчика
+            $id_user = $counter['id_user'];
+            $counter = $counter['online_counter'];
+
+            // 2] Установить новое значение в Redis
+            Redis::set('m16:online:counter:'.$id_user, $counter);
+
+          }
+        });
+
+        // 1.4. Записать 1 в метку $is_restored
+        Redis::set('m16:was_online_counters_restored_after_server_boot', 1);
+
+      });
+
+      // 2. Сделать бэкап счетчиков онлайна
+      call_user_func(function(){
+
+        // 2.1. Если с предыдущего выполнения ещё не прошло online_counters_backup_period_sec, ничего не делать
 
           // 1] Получить значение online_counters_backup_period_sec из конфига
           $online_counters_backup_period_sec = config("M16.online_counters_backup_period_sec") ?: 300;
@@ -165,20 +194,20 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
           // 4] Обновить кэш
           Cache::put('m16:c5_backup_online_counters:backup:lasttry:datetime', \Carbon\Carbon::now()->toDateTimeString(), 300);
 
-        // 1.2. Получить информацию о счётчиках запрашивающего пользователя
+        // 2.2. Получить информацию о счётчиках запрашивающего пользователя
         // - Но только, если пользователья на анонимный.
         $counters = runcommand('\M16\Commands\C4_get_counters_data', []);
         if($counters['status'] != 0)
           throw new \Exception($counters['data']['errormsg']);
 
-        // 1.3. Удалить все записи из таблицы MD1_online_counters_backups
+        // 2.3. Удалить все записи из таблицы MD1_online_counters_backups
         \M16\Models\MD1_online_counters_backups::chunk(200, function ($backups) {
           foreach ($backups as $backup) {
             $backup->delete();
           }
         });
 
-        // 1.4. Сохранить значения $counters в БД
+        // 2.4. Сохранить значения $counters в БД
         foreach($counters['data']['counters'] as $counter) {
 
           // 1] Получить ID пользователя и значение счётчика
@@ -211,35 +240,6 @@ class C5_backup_online_counters extends Job { // TODO: добавить "impleme
 
         }
 
-
-      });
-
-      // 2. Сделать рестор счётчиков онлайна (единожды, до следующей перезагрузки сервера)
-      call_user_func(function(){
-
-        // 2.1. Получить метку, производился ли ресто после запуска
-        $is_restored = Redis::get('m16:was_online_counters_restored_after_server_boot');
-
-        // 2.2. Если метка не пуста, завершить
-        if(!empty($is_restored))
-          return;
-
-        // 2.3. Извлекать данные счётчиков из бэкапа кусками, и применять
-        \M16\Models\MD1_online_counters_backups::chunk(200, function ($counters) {
-          foreach ($counters as $counter) {
-
-            // 1] Получить id пользователя и значение счётчика
-            $id_user = $counter['id_user'];
-            $counter = $counter['online_counter'];
-
-            // 2] Установить новое значение в Redis
-            Redis::set('m16:online:counter:'.$id_user, $counter);
-
-          }
-        });
-
-        // 2.4. Записать 1 в метку $is_restored
-        Redis::set('m16:was_online_counters_restored_after_server_boot', 1);
 
       });
 
