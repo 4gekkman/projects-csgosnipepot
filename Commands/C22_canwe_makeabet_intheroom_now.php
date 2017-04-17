@@ -361,7 +361,7 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
 
         });
 
-        // 5] Достенгут ли лимит по кол-ву поставленных вещей для пользователя id_user
+        // 5] Достингут ли лимит по кол-ву поставленных вещей для пользователя id_user
         $results['by_items_count'] = call_user_func(function() USE ($room_limits, $bank) {
 
           // Если ограничений нет (значение 0), вернуть false
