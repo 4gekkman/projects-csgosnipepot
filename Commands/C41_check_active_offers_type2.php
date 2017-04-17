@@ -299,7 +299,6 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
           'get_received_offers' => 1,
           'get_descriptions' => 1
         ]);
-
         if($active_incoming_offers['status'] != 0) {
 
           // 1] Получить домен из конфига
@@ -436,7 +435,52 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
             // 4] Если пользователя найти не удалось, сообщить и завершить
             if(empty($user)) {
               \Log::info('В команде M9.C41, для извлечённого с помощью API Steam активного оффера '.$offer['tradeofferid'].', не удалось найти в БД пользователя по steamid = '.$steamid);
+              DB::rollback();
+              continue;
+            }
 
+          // 4.6.3. Получить вердикт по escrow
+
+            // Получить вердикт
+            $escrow_verdict = call_user_func(function() USE ($offer, $id_bot, $user) {
+
+              // 1] Попробовать найти в кэше информацию о escrow пользователя $user
+              $escrow_cache = Cache::get('m8:escrow:'.$user['id']);
+
+              // 2] Если $escrow_cache не пуст, вернуть 0
+              if(!empty($escrow_cache))
+                return 0;
+
+              // 3] Запросить информацию о escrow пользователя, приславшего $offer
+              $escrow = runcommand('\M8\Commands\C35_check_escrow_hold_days_by_tradeofferid', [
+                "id_bot"        => $id_bot,
+                "tradeofferid"  => $offer['tradeofferid']
+              ]);
+
+              // 4] Если проверить escrow не удалось, вернуть -1
+              if($escrow['status'] != 0)
+                return -1;
+
+              // 5] Если проверить escrow удалось, вернуть результат
+              else {
+
+                // 5.1] Так есть ли у $user escrow
+                $has_escrow = $escrow['data']['could_trade'] == 1 ? 0 : 1;
+
+                // 5.2] Если escrow нет, записать метку в кэш
+                if($has_escrow == 0)
+                  Cache::put('m8:escrow:'.$user['id'], 1, 1440);
+
+                // 5.3] Вернуть результат
+                return $escrow['data']['could_trade'] == 1 ? 0 : 1;
+
+              }
+
+            });
+
+            // Если вердикт -1 (не удалось запросить данные), перейти к след.итерации
+            if($escrow_verdict == -1) {
+              DB::rollback();
               continue;
             }
 
@@ -445,15 +489,7 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
           $newbet->type = 2;
           $newbet->tradeofferid = $offer['tradeofferid'];
           $newbet->sum_cents_at_bet_moment = "";
-          $newbet->escrow_end_date = call_user_func(function() USE ($offer) {
-
-            if(array_key_exists('escrow_end_date', $offer) && $offer['escrow_end_date'] != 0)
-              return 1;
-
-            else
-              return 0;
-
-          });
+          $newbet->escrow_end_date = $escrow_verdict;
           $newbet->items_to_give = call_user_func(function() USE ($offer) {
 
             if(array_key_exists('items_to_give', $offer) && count($offer['items_to_give']) != 0)

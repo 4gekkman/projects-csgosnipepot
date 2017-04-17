@@ -298,7 +298,7 @@ class C42_process_active_offers_type2 extends Job { // TODO: добавить "i
             // Проверяем №2 в $checklist: не нулевой escrow
             call_user_func(function() USE (&$checklist, $offer) {
 
-              // 1] Если в оффере есть запрос вещей бота
+              // 1] Если в оффере есть не нулевой escrow_end_date
               if(!empty($offer['escrow_end_date']))
                 $checklist['escrow_end_date']['verdict'] = true;
 
