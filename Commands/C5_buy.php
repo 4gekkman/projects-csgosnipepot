@@ -159,9 +159,9 @@ class C5_buy extends Job { // TODO: добавить "implements ShouldQueue" - 
      *
      */
 
-    //-------------------------------------//
+    //------------------------------------------------------------------//
     // Add notes about future trade offers of this purchase to database //
-    //-------------------------------------//
+    //------------------------------------------------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров

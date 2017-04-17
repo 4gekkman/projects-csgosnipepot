@@ -263,7 +263,7 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
               "steamid_partner"  			=> $user['ha_provider_uid'],
               "id_partner"            => $partner,
               "token_partner"         => $token,
-              "dont_trade_with_gays"  => "1",
+              "dont_trade_with_gays"  => "0",
               "assets2send"           => $assets2send,
               "assets2recieve"        => [],
               "tradeoffermessage"     => $tradeoffermessage
