@@ -448,9 +448,14 @@
     }
 
     // 3.2.2. Логотип
+    .site-header .area1 .logo {
+      line-height: 40px;
+      //text-align: center;
+    }
     .site-header .area1 .logo img {
-      max-height: 50px;
-      margin-left: 10px;
+      display: inline-block;
+      max-height: 30px;
+      margin-left: 15px;
     }
 
   //--------------------------------------------//
@@ -1300,10 +1305,11 @@ body {
 }
 .start-loading-screen img {
   position: absolute;
+  max-width: 400px;
   top: 50%;
-  margin-top: -77px;
+  margin-top: -32px;
   left: 50%;
-  margin-left: -208px;
+  margin-left: -200px;
   -webkit-animation: loadhorse 1s linear 0s infinite;
 }
 

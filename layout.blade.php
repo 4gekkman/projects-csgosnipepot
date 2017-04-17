@@ -84,7 +84,7 @@
     <div class="area1">
 
       <div class="logo">
-        <img src="{!! asset('public/L10003/assets/images/main_logo.png') !!}">
+        <img src="{!! asset('public/L10003/assets/images/csgohap_logo_white.png') !!}">
       </div>
 
     </div>
@@ -705,7 +705,7 @@
   <!-----------------------------*/ ?>
   <div class="start-loading-screen" style="z-index: 99999999;">
 
-    <img src="{!! asset('public/L10003/assets/images/main_logo.png') !!}">
+    <img src="{!! asset('public/L10003/assets/images/csgohap_logo_white.png') !!}">
 
   </div>
 
