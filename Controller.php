@@ -197,15 +197,21 @@ class Controller extends BaseController {
         // - Безопасная обёртка для команды постинга в чат
         if($key == 'L10004:2') { try {
 
-          // 1. Выполнить команду
-          $result = runcommand('\M10\Commands\C3_clientside_post_to_chat_room', [
-            "message" => Input::get('data')['message'],
-            "room"    => "dashboard_common"
+          // 1. Получить комнату с именем $this->data['room']
+          $room = \M10\Models\MD1_rooms::where('name', "dashboard_common")->first();
+          if(empty($room))
+            throw new \Exception("Can't find the room with NAME = 'main'");
+
+          // 2. Выполнить команду
+          $result = runcommand('\M10\Commands\C2_add_message_to_the_room', [
+            "message"     => Input::get('data')['message'],
+            "id_room"     => $room->id,
+            "from_who_id" => 0
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 2. Вернуть результаты
+          // 3. Вернуть результаты
           return $result;
 
         } catch(\Exception $e) {

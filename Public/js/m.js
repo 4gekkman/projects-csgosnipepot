@@ -184,7 +184,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			// A4.3.3. Обработка новых сообщений и обновлений в чат админки через частный канал //
 			//----------------------------------------------------------------------------------//
 			if(JSON.parse(layout_data.data.auth).is_anon == 0) {
-				self.websocket.ws1.on('m10:private:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
+				self.websocket.ws1.on('m10:chat:private:dashboard_common:'+JSON.parse(layout_data.data.auth).user.id, function(data) {
 
 					// 1] Если data.data.data.message не пуст
 					// - Добавить новое сообщение в конец m.s5.messages
