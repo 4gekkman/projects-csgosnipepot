@@ -420,7 +420,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 
 				// n] Если это обычная ошибка
 				else {
-					toastr.error(data.data.errormsg, "Ошибка при обработке заказа");
+					toastr.error(data.data.errormsg, "Ошибка");
 				}
 
 				// n] Выключить спиннер на кнопке
@@ -505,7 +505,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 
 				// n] Если это обычная ошибка
 				else {
-					toastr.error(data.data.errormsg, "Ошибка при обработке заказа");
+					toastr.error(data.data.errormsg, "Ошибка");
 				}
 
 				// n] Выключить спиннер на кнопке
