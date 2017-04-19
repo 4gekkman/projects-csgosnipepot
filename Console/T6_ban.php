@@ -7,7 +7,7 @@
 /**
  *  Что делает
  *  ----------
- *    - Post to the main chat room
+ *    - Ban specified user
  *
  *  Аргументы
  *  ---------
@@ -76,7 +76,7 @@
 //--------------------//
 // Консольная команда //
 //--------------------//
-class T3_clientside_post_to_chat_room extends Command
+class T6_ban extends Command
 {
 
   //---------------------------//
@@ -90,13 +90,13 @@ class T3_clientside_post_to_chat_room extends Command
   //  - '[имя] {user : desc}' | задать описание аргументу / опции
   // - TODO: настроить шаблон консольной команды
 
-    protected $signature = 'm10:clientside_post_to_chat_room';
+    protected $signature = 'm10:ban {id_room} {id_user2ban}';
 
   //-----------------------------//
   // 2. Описание artisan-команды //
   //-----------------------------//
 
-    protected $description = 'Post to the main chat room';
+    protected $description = 'Ban specified user';
 
   //---------------------------------------------------//
   // 3. Свойства для принятия значений из конструктора //
@@ -161,20 +161,20 @@ class T3_clientside_post_to_chat_room extends Command
      *
      */
 
-//    // 1. Выполнить команду
-//    $result = runcommand('\M10\Commands\C1_command', $this->argument());
-//
-//
-//    // 2. В случае неудачи, вывести текст ошибки
-//    if($result['status'] != 0) {
-//      $this->error('Error: '.$result['data']['errormsg']);
-//      return;
-//    }
-//
-//
-//    // 3. В случае успеха, вывести соотв.сообщение
-//    $this->info("Success");
-//
+    // 1. Выполнить команду
+    $result = runcommand('\M10\Commands\C6_ban', $this->argument());
+
+
+    // 2. В случае неудачи, вывести текст ошибки
+    if($result['status'] != 0) {
+      $this->error('Error: '.$result['data']['errormsg']);
+      return;
+    }
+
+
+    // 3. В случае успеха, вывести соотв.сообщение
+    $this->info("Success");
+
   }
 
 }

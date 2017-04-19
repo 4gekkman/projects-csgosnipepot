@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD1_rooms extends Model {
+class MD3_bans extends Model {
 
   /**
    *
@@ -49,7 +49,7 @@ class MD1_rooms extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm10.md1_rooms';
+  protected $table = 'm10.md3_bans';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
@@ -60,7 +60,6 @@ class MD1_rooms extends Model {
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
-    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//
@@ -68,10 +67,8 @@ class MD1_rooms extends Model {
   //------------------//
 
     // relationships start
-    public function messages() { return $this->belongsToMany('\M10\Models\MD2_messages', 'm10.md1000', 'id_room', 'id_message'); }
-    public function bans() { return $this->belongsToMany('\M10\Models\MD3_bans', 'm10.md1001', 'id_room', 'id_ban'); }
-    public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm10.md2000', 'id_room', 'id_user'); }
-    public function m5_users_md2003() { return $this->belongsToMany('\M5\Models\MD1_users', 'm10.md2003', 'id_room', 'id_user'); }
+    public function rooms() { return $this->belongsToMany('\M10\Models\MD1_rooms', 'm10.md1001', 'id_ban', 'id_room'); }
+    public function m5_users() { return $this->belongsToMany('\M5\Models\MD1_users', 'm10.md2004', 'id_ban', 'id_user'); }
     // relationships stop
 
 

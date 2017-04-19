@@ -7,15 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Post to the main chat room
+ *    - Ban specified user
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        message
- *        room
+ *        id_user       | Какого пользователя баним
+ *        ban_time_min  | Время бана в минутах, начиная с текущего момента
+ *        reason        | Причина бана кратко
  *      ]
  *    ]
  *
@@ -41,15 +42,6 @@
  *    status = -2
  *    -----------
  *      - Текст ошибки. Может заменяться на "" в контроллерах (чтобы скрыть от клиента).
- *
- *  Куда постит сообщения эта команда
- *  ---------------------------------
- *    - В комнату с именем "main".
- *
- *  От чьего имени постит сообщения эта команда
- *  -------------------------------------------
- *    - От имени текущего аутентифицированного пользователя, который вызвал её через AJAX.
- *
  *
  */
 
@@ -111,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C3_clientside_post_to_chat_room extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C6_ban extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -146,49 +138,100 @@ class C3_clientside_post_to_chat_room extends Job { // TODO: добавить "i
      * Оглавление
      *
      *  1. Провести валидацию входящих параметров
-     *  2. Выполнить C2_add_message_to_the_room от имени вызвавшего эту команду пользователя
+     *  2. Найти пользователя id_user
+     *  3. Найти пользователя id_user
+     *  4. Добавить в таблицу банов новую запись
+     *  5. Связать $newban с $room
+     *  6. Связать $newban с $user
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //---------------------------------------------------------------------------------------------------------//
-    // Запостить новое сообщение в комнату с именем "main" от имени текущего аутентифицированного пользователя //
-    //---------------------------------------------------------------------------------------------------------//
+    //--------------------//
+    // Ban specified user //
+    //--------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
       // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "message"         => ["required", "string"],
-        "room"            => ["required", "string"],
+        "room_name"       => ["required", "string"],
+        "id_user"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "reason"          => ["required", "string"],
+        "ban_time_min"    => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
-        throw new \Exception("There is no message.");
+        throw new \Exception($validator['data']);
       }
 
-      // 2. Получить комнату с именем $this->data['room']
-      $room = \M10\Models\MD1_rooms::where('name', $this->data['room'])->first();
-      if(empty($room))
-      if(empty($room))
-        throw new \Exception("Can't find the room with NAME = '".$this->data['room']."'");
+      // 2. Найти пользователя id_user
+      $user = \M5\Models\MD1_users::where('id', $this->data['id_user'])->first();
+      if(empty($user))
+        throw new \Exception('Не удалось найти в БД пользователя с ID = '.$this->data['id_user']);
 
-      // 3. Выполнить C2_add_message_to_the_room от имени вызвавшего эту команду пользователя
-      $result = runcommand('\M10\Commands\C2_add_message_to_the_room', [
-        'id_room'       => $room->id,
-        'message'       => $this->data['message'],
-        'from_who_id'   => '0'
-      ]);
-      if($result['status'] != 0)
-        throw new \Exception("An error occurred while adding post. You are probably was banned.");
+      // 3. Найти пользователя id_user
+      $room = \M10\Models\MD1_rooms::where('name', $this->data['room_name'])->first();
+      if(empty($room))
+        throw new \Exception('Не удалось найти в БД комнату с name = '.$this->data['room_name']);
+
+      // 4. Добавить в таблицу банов новую запись
+      $newban = new \M10\Models\MD3_bans();
+      $newban->reason = $this->data['reason'];
+      $newban->will_be_ended_at = \Carbon\Carbon::now()->addMinutes($this->data['ban_time_min'])->toDateTimeString();
+      $newban->save();
+
+      // 5. Связать $newban с $room
+      if(!$newban->rooms->contains($room['id']))
+        $newban->rooms()->attach($room['id']);
+
+      // 6. Связать $newban с $user
+      if(!$newban->m5_users->contains($user['id']))
+        $newban->m5_users()->attach($user['id']);
+
+      // 7. Приказать всем клиентам удалить все сообщения пользователя $user
+      // - Послав им соответствующее сообщение через публичный канал.
+      Event::fire(new \R2\Broadcast([
+        'channels' => ['m10:chat:public:'.$room['name']],
+        'queue'    => 'chat',
+        'data'     => [
+          'task'    => "ban_user",
+          'data' => [
+            'id'                => $user->id,
+            'nickname'          => $user->nickname,
+            'will_be_ended_at'  => $newban->will_be_ended_at,
+            'reason'            => $newban->reason,
+            'ban_time_min'      => $this->data['ban_time_min']
+          ]
+        ]
+      ]));
+
+
+
+
+
+
+
+//    - В таблицу банов добавляется новая запись.
+//      Запись содержит дату/время истечения бана, и причину бана.
+//      Она связывается с комнатой и пользователем.
+//    - Всем клиентам посылается через публичный канал сигнал удалить из себя
+//      все сообщения забаненного пользователя.
+//    - В чат добавляется новое сообщение от псевдо-пользователя "Система",
+//      имя которого в чате выделено красным цветом, а в качестве аватарки
+//      используется оная от ботов "csgohap". Сообщение содержит информацию
+//      типа: "Бан <юзер>. Причина: <причина>".
+
+
+
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C3_clientside_post_to_chat_room from M-package M10 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C6_ban from M-package M10 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M10', 'C3_clientside_post_to_chat_room']);
+        write2log($errortext, ['M10', 'C6_ban']);
         return [
           "status"  => -2,
           "data"    => [
-            "errortext" => '',
+            "errortext" => $errortext,
             "errormsg" => $e->getMessage()
           ]
         ];

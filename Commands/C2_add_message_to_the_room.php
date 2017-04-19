@@ -173,7 +173,7 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
       }
 
       // 2. Попробовать найти комнату с id_room
-      $room = \M10\Models\MD1_rooms::with(['m5_users_md2003'])
+      $room = \M10\Models\MD1_rooms::with(['bans','bans.m5_users'])
           ->where('id', $this->data['id_room'])
           ->first();
       if(empty($room))
@@ -223,11 +223,11 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
         throw new \Exception("The user with ID = ".$this->data['from_who_id'].' is blocked.');
 
       // 5. Если пользователь $user забанен, возбудить исключение
-      foreach($room->m5_users_md2002() as $banned_user) {
-
-        if($banned_user->id == $user->id)
-          throw new \Exception("The user with ID = ".$this->data['from_who_id'].' is banned.');
-
+      foreach($room['bans'] as $ban) {
+        foreach($ban['m5_users'] as $banned_user) {
+          if($banned_user['id'] == $user['id'] && \Carbon\Carbon::now()->lte(\Carbon\Carbon::parse($ban['will_be_ended_at'])))
+            throw new \Exception("Вы были забанены в чате до ".$ban['will_be_ended_at']." UTC. <br><br><b>Причина бана</b><br>".$ban['reason']);
+        }
       }
 
       // 6. Если в $room запрещено публиковать гостям, а $user гость, возбудить исключение
@@ -266,15 +266,20 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
         if(count($room['m5_users_md2003']) == 0) {
 
           Event::fire(new \R2\Broadcast([
-            'channels' => ['m10:chat_main'],
+            'channels' => ['m10:chat:public:'.$room['name']],
             'queue'    => 'chat',
             'data'     => [
+              'task'    => "new_message",
               'message' => [
                 'id'          => $new_message->id,
                 'steamname'   => $user->nickname,
                 'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
                 'level'       => '1',
                 'message'     => $new_message->message,
+                'id_user'     => $user->id,
+                'system'      => 0,
+                'created_at'  => $new_message->created_at,
+                'updated_at'  => $new_message->updated_at,
               ]
             ]
           ]));
@@ -290,7 +295,7 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
 
             // 2] Транслировать данные получателю
             Event::fire(new \R2\Broadcast([
-              'channels' => ['m10:private:'.$id],
+              'channels' => ['m10:chat:private:'.$room['name'].':'.$id],
               'queue'    => 'chat',
               'data'     => [
                 'message' => [
@@ -299,6 +304,10 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
                   'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
                   'level'       => '1',
                   'message'     => $new_message->message,
+                  'id_user'     => $user->id,
+                  'system'      => 0,
+                  'created_at'  => $new_message->created_at,
+                  'updated_at'  => $new_message->updated_at,
                 ]
               ]
             ]));

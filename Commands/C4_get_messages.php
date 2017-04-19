@@ -198,10 +198,17 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
         // 3.3. Если нужны только сообщения не забаненных и не заблокированных пользователей
         if($this->data['active_only']) {
 
-          $query->whereHas('rooms', function($query) {
-            $query->doesntHave('m5_users_md2002');
-          })->whereHas('m5_users', function($query){
+          // 1] На заблокированных
+          $query->whereHas('m5_users', function($query){
             $query->where('is_blocked',0);
+          });
+
+          // 2] Не забаненных
+          $query->whereHas('m5_users', function($query){
+            $query->whereDoesntHave('m10_bans', function($query){
+              $query->where('will_be_ended_at', '>=', \Carbon\Carbon::now()->toDateTimeString());
+              //$query->whereDate('will_be_ended_at', '>=', \Carbon\Carbon::now()->toDateTimeString());
+            });
           });
 
         }
@@ -227,10 +234,12 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
       // - Добавить поля: avatar, level, steamname
       $messages = $messages->each(function($item, $key){
 
-        // 1] Добавить поля: avatar, level, steamname
+        // 1] Добавить поля: avatar, level, steamname, id_user
         $item->level      = '1';
         $item->steamname  = $item->m5_users[0]['nickname'];
         $item->avatar     = !empty($item->m5_users[0]['avatar_steam']) ? $item->m5_users[0]['avatar_steam'] : (!empty($item->m5_users[0]['avatar']) ? $item->m5_users[0]['avatar'] : 'http://placehold.it/34x34/ffffff');
+        $item->id_user    = $item->m5_users[0]['id'];
+        $item->system     = 0;
 
         // 2] Удалить m5_users и hided
         unset($item->m5_users);
