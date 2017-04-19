@@ -72,7 +72,7 @@
  *  	s5.5. Разрешено ли публиковать сообщения гостям
  *  	s5.6. Максимальное кол-во сообщений в чате
  *  	s5.7. Массив с ID модераторов чата
- *  	s5.8. Количество залогиненных Steam-пользователей в системе
+ *    s5.8. Интерфейс бана чата
  *  	s5.n. Индексы и вычисляемые значения
  *
  *  s6. Данные, связанные с классической игрой
@@ -198,30 +198,18 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 
 			// A4.3.3. Обработка новых сообщений и обновлений в чат //
 			//------------------------------------------------------//
-			self.websocket.ws1.on('m10:chat_main', function(data) {
+			self.websocket.ws1.on('m10:chat:public:main', function(data) {
 
-				// 1] Если data.data.data.message не пуст
-				// - Добавить новое сообщение в конец m.s5.messages
-				if(data.data.data.message)
-					self.f.s5.add_incoming_msg(data.data.data.message);
+				// 1] Получить имя задачи
+				var task = data.data.data.task;
 
-				// 2] Если data.data.data.message2hide не пуст
-				// - Удалить указанное сообщение
-				if(data.data.data.message2hide) {
+				// 2] В зависимости от task выполнить соотв.метод
+				switch(task) {
+
+					case "new_message": self.f.s5.add_incoming_msg(data.data.data.message); break;
+					case "ban_user": self.f.s5.ban_user_handle(data.data.data.data); break;
 
 				}
-
-				// 3] Прокрутить чат до конца вниз
-
-					// 3.1] Получить контейнер чата
-					var container = document.getElementsByClassName('chat-messages')[0];
-
-					// 3.2] Получить вертикальный размер прокрутки контейнера
-					var scrollHeight = container.scrollHeight;
-
-					// 3.3] Прокрутить container в конец
-					container.scrollTop = scrollHeight;
-					Ps.update(container);
 
 			});
 
@@ -932,7 +920,51 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//------------------------------------//
 	// s5.7. Массив с ID модераторов чата //
 	//------------------------------------//
-	self.m.s5.moderators = ko.observableArray(layout_data.data.chat_main.moderator_ids);
+
+		// 1] Массив модераторов
+		self.m.s5.moderators = ko.observableArray(layout_data.data.chat_main.moderator_ids);
+
+		// 2] Является ли текущий пользователь модератором
+		self.m.s5.is_curuser_moderator = ko.computed(function(){
+
+			// 2.1] Подготовить переменную для результата
+			var result = 0;
+
+			// 2.2] Если пользователь анонимный, вернуть result
+			if(!self.m.s0.is_logged_in())
+				return result;
+
+			// 2.3] Иначе, если пользователь есть среди модераторов, вернуть 1
+			for(var i=0; i<self.m.s5.moderators().length; i++) {
+				if(self.m.s5.moderators()[i] == self.m.s0.auth.user().id())
+					return 1;
+			}
+
+			// 2.n] вернуть результат
+			return result;
+
+		});
+
+	//---------------------------//
+	// s5.8. Интерфейс бана чата //
+	//---------------------------//
+	self.m.s5.ban = {};
+
+		// 1] Видим ли интерфес бана чата
+		self.m.s5.ban.visible = ko.observable(0);
+
+		// 2] Время бана в минутах
+		self.m.s5.ban.ban_time_min = ko.observable(1440);
+
+		// 3] Причина бана
+		self.m.s5.ban.reason = ko.observable('За нарушение правил использования чата.');
+
+		// 4] Пользователь, которого надо забанить
+		self.m.s5.ban.id_user 	= ko.observable('');
+		self.m.s5.ban.steamname = ko.observable('');
+
+		// 5] Включён ли спиннер на кнопке
+		self.m.s5.ban.is_spinner_vis 	= ko.observable(false);
 
 
 	//--------------------------------------//

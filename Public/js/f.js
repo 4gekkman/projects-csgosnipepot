@@ -39,6 +39,10 @@
  *
  *    f.s5.post_to_the_chat_main    | s5.1. Запостить сообщение в главную комнату чата
  *    f.s5.add_incoming_msg         | s5.2. Добавить в чат новое, поступившее по websocket сообщение
+ *    f.s5.ban_open_interface       | s5.3. Открыть интерфейс бана
+ *    f.s5.ban                      | s5.4. Забанить указанного пользователя
+ *    f.s5.ban_user_handle          | s5.5. Обработка бана пользователя
+ *
  *
  *  s6. Функционал для работы с классической игрой
  *
@@ -835,7 +839,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 					ok_2:         function(data, params){
 
 						// Сообщить об ошибке
-						notify({msg: data.data.errormsg, time: 5, fontcolor: 'RGB(200,50,50)'});
+						toastr.error(data.data.errormsg, "Ошибка");
 
 					}
 				});
@@ -872,27 +876,157 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 		//----------------------------------------------------------------//
 		f.s5.add_incoming_msg = function(message) {
 
-			// 1] Сформировать объект для добавления
-			var obj = {};
-			for(var key in message) {
+			// 1] Если message отсутствует, завершит
+			if(!message)
+				return;
 
-				// Если свойство не своё, пропускаем
-				if(!message.hasOwnProperty(key)) continue;
+			// 2] Добавить новое сообщение в конец m.s5.messages
 
-				// Добавим в obj свойство key
-				obj[key] = ko.observable(message[key]);
+				// 2.1] Сформировать объект для добавления
+				var obj = {};
+				for(var key in message) {
 
-			}
+					// Если свойство не своё, пропускаем
+					if(!message.hasOwnProperty(key)) continue;
 
-			// 2] Добавить obj в m.s5.messages
-			self.m.s5.messages.push(obj);
+					// Добавим в obj свойство key
+					obj[key] = ko.observable(message[key]);
 
-			// 3] Если длина m.s5.messages больше разрешённой
-			// - Удалить 1-й элемент из массива
-			if(self.m.s5.messages().length > self.m.s5.max_messages())
-				self.m.s5.messages.shift();
+				}
+
+				// 2.2] Добавить obj в m.s5.messages
+				self.m.s5.messages.push(ko.observable(obj));
+
+				// 2.3] Если длина m.s5.messages больше разрешённой
+				// - Удалить 1-й элемент из массива
+				if(self.m.s5.messages().length > self.m.s5.max_messages())
+					self.m.s5.messages.shift();
+
+			// 3] Прокрутить чат до конца вниз
+
+				// 3.1] Получить контейнер чата
+				var container = document.getElementsByClassName('chat-messages')[0];
+
+				// 3.2] Получить вертикальный размер прокрутки контейнера
+				var scrollHeight = container.scrollHeight;
+
+				// 3.3] Прокрутить container в конец
+				container.scrollTop = scrollHeight;
+				Ps.update(container);
 
 		};
+
+		//------------------------------//
+		// s5.3. Открыть интерфейс бана //
+		//------------------------------//
+		f.s5.ban_open_interface = function(data, event) {
+
+			// 1] Записать id_user и steamname сообщения data в модель бана
+			self.m.s5.ban.id_user(data.id_user());
+			self.m.s5.ban.steamname(data.steamname());
+
+			// 2] Сбросить значения параметров на дефолнтые
+			self.m.s5.ban.ban_time_min(1440);
+			self.m.s5.ban.reason('За нарушение правил использования чата.');
+
+			// n] Раскрыть интерфейс
+			self.m.s5.ban.visible(1);
+
+		};
+
+		//----------------------------------------//
+		// s5.4. Забанить указанного пользователя //
+		//----------------------------------------//
+		f.s5.ban = function(data, event) {
+
+			// 1] Завершить, если (или):
+			// - Интерфейс заблокирован.
+			// - Это анонимный пользователь.
+			if(self.m.s0.ajax_counter() || self.m.s5.ban.is_spinner_vis() || !layoutmodel.m.s0.is_logged_in()) return;
+
+			// n] Отправить запрос
+			ajaxko(self, {
+				url:          window.location.protocol + '//' + window.location.host + "/layouts/l10003",
+				key: 	    		"L10003:3",
+				from: 		    "ajaxko",
+				data: 		    {
+					id_user: self.m.s5.ban.id_user(),
+					reason: self.m.s5.ban.reason(),
+					ban_time_min: self.m.s5.ban.ban_time_min()
+				},
+				prejob:       function(config, data, event){
+
+					// n] Включить спиннер на кнопке
+					self.m.s5.ban.is_spinner_vis(true);
+
+				},
+				postjob:      function(data, params){},
+				ok_0:         function(data, params){
+
+					// 1] Закрыть интерфейс бана
+					self.m.s5.ban.visible(0);
+
+					// 2] ...
+
+					// n] Выключить спиннер на кнопке
+					self.m.s5.ban.is_spinner_vis(false);
+
+				},
+				ok_1:         function(data, params){
+
+					// n] Выключить спиннер на кнопке
+					self.m.s5.ban.is_spinner_vis(false);
+
+				},
+				ok_2:         function(data, params){
+
+					// 1] Сообщить об ошибке
+					toastr.error(data.data.errormsg, "Ошибка");
+
+					// n] Выключить спиннер на кнопке
+					self.m.s5.ban.is_spinner_vis(false);
+
+				}
+			});
+
+		};
+
+		//-----------------------------------//
+		// s5.5. Обработка бана пользователя //
+		//-----------------------------------//
+		f.s5.ban_user_handle = function(data) {
+
+			// 1] Получить ID пользователя, которого надо забанить
+			var id = data.id;
+
+			// 2] Если этот клиент и есть id, показть ему тост
+			if(self.m.s0.auth.user().id() == id)
+				toastr.error("<b>Причина бана</b><br>"+data.reason+"<br><br><b>Когда разбанят</b><br>"+data.will_be_ended_at+" UTC.", "Вы получили БАН в чате");
+
+			// 3] Удалить из messages все сообщения пользователя id
+			self.m.s5.messages.remove(function(item){
+				return item().id_user() == id;
+			});
+
+			// 4] Добавить в чат сообщение от пользователя СИСТЕМА
+			layoutmodel.f.s5.add_incoming_msg({
+				id: 				0,
+				steamname: 	'Система',
+				avatar: 		layoutmodel.m.s0.full_host() + '/public/L10003/assets/images/chat_daemon.jpg',
+				level: 			1,
+				message: 		data.nickname+' заблокирован в чате на '+data.ban_time_min+' мин. '+data.reason,
+				id_user: 		0,
+				system: 		1,
+				created_at: "",
+				updated_at: ""
+			});
+
+
+		};
+
+
+
+
 
 
 	//------------------------------------------------------------//

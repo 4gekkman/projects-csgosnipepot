@@ -432,7 +432,7 @@
           <?php /*-------->
           <!-- Аватарка -->
           <!----------*/ ?>
-          <div class="avatarka span20" data-bind="attr: {title: '['+level()+'] ' + steamname()}">
+          <div class="avatarka span20" data-bind="attr: {title: steamname}">
             <img data-bind="attr: {src: avatar}">
           </div>
 
@@ -444,17 +444,24 @@
             <?php /*--------->
             <!-- Заголовок -->
             <!-----------*/ ?>
-            <div data-bind="attr: {title: steamname()}">
+            <div data-bind="attr: {title: steamname()}, css: {system: system}">
               <span data-bind="text: steamname()"></span>
             </div>
 
             <?php /*-------------->
             <!-- Само сообщение -->
             <!----------------*/ ?>
-            <div>
+            <div data-bind="css: {system: system}">
               <span data-bind="text: message"></span>
             </div>
 
+          </div>
+
+          <?php /*------------>
+          <!-- Кнопка "Бан" -->
+          <!--------------*/ ?>
+          <div style="display: none" class="ban-button" data-bind="visible: $root.m.s5.is_curuser_moderator() && !system(), click: $root.f.s5.ban_open_interface">
+            <span>Бан</span>
           </div>
 
         </div>
@@ -494,6 +501,64 @@
         </div>
 
       </div>
+
+      <?php /*------------------------>
+      <!-- 3.5. Интерфейс бана чата -->
+      <!--------------------------*/ ?>
+      <div style="display: none" class="ban-interface" data-bind="visible: (m.s5.ban.visible() && m.s5.is_curuser_moderator())">
+
+        <?php /*--------->
+        <!-- Заголовок -->
+        <!-----------*/ ?>
+        <div class="ban-header">
+          <span>Бан пользователя в чате</span>
+          <i class="mdi mdi-close" data-bind="click: function(){ m.s5.ban.visible(0); }"></i>
+        </div>
+
+        <?php /*---------->
+        <!-- Содержимое -->
+        <!------------*/ ?>
+        <div class="ban-content">
+
+          <?php /*--------------------->
+          <!-- ID и ник пользователя -->
+          <!-----------------------*/ ?>
+          <div class="ban-id-nick">
+            <span data-bind="html: m.s5.ban.steamname() + ' (id: ' + m.s5.ban.id_user() + ')', attr: {title: m.s5.ban.steamname() + ' (id: ' + m.s5.ban.id_user() + ')'}"></span>
+          </div>
+
+          <?php /*------------------->
+          <!-- Срок бана в минутах -->
+          <!---------------------*/ ?>
+          <div class="ban-time">
+            <input type="text" data-bind="textInput: m.s5.ban.ban_time_min" placeholder="Время бана в минутах">
+            - время в мин.
+          </div>
+
+          <?php /*------------>
+          <!-- Причина бана -->
+          <!--------------*/ ?>
+          <div class="ban-time">
+            <textarea data-bind="value: m.s5.ban.reason"></textarea>
+          </div>
+
+        </div>
+
+        <?php /*----------------->
+        <!-- Кнопка "Забанить" -->
+        <!-------------------*/ ?>
+        <div class="ban-button" data-bind="click: f.s5.ban">
+          <span>Забанить</span>
+          <div style="display: none" class="loader" data-bind="visible: m.s5.ban.is_spinner_vis">
+            <div class="loader-inner ball-clip-rotate">
+              <div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
 
     </noindex></div>
 

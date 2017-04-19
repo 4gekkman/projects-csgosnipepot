@@ -902,6 +902,9 @@
   5.4. Кнопка раскрытия чата
   5.5. Стили перенесённого влево чата (при малой ширине браузера)
   5.6. Стили сообщений в чате
+  5.7. Стили панельки с градиентом прозрачности в верхней части чата
+  5.8. Поле для ввода сообщений в чат
+  5.9. Стили интерфейса бана чата
 
 //------------------------------------*/
 
@@ -1073,6 +1076,7 @@
       visibility: hidden;
     }
     .chat-right-container .chat .chat-messages .chat-message {
+      position: relative;
       //margin-bottom: 10px;
       transition: all 0.1s ease;
       color: #aaa;
@@ -1106,12 +1110,21 @@
       cursor: default;
       padding-right: 5px;
     }
+    .chat-right-container .chat .chat-messages .chat-message .message div.system:nth-child(1) {
+      color: red;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
     .chat-right-container .chat .chat-messages .chat-message .message div:nth-child(2) {
       padding-right: 5px;
       padding-bottom: 12px;
       -webkit-transition: all .5s ease;
       transition: all .5s ease;
       line-height: 14px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .message div.system:nth-child(2) {
+      //color: red;
+      font-weidht: bold;
     }
     .chat-right-container .chat .chat-messages .chat-message .avatarka {
       text-align: center;
@@ -1127,6 +1140,26 @@
       max-width: 34px;
       max-height: 34px;
       border-radius: 17px;
+    }
+    .chat-right-container .chat .chat-messages .chat-message .ban-button {
+      position: absolute; top: 5px; right: 5px;
+      height: 15px;
+      background-color: #000;
+      color: #fff;
+      font-size: 13px;
+      line-height: 15px;
+      padding: 0 5px;
+      cursor: pointer;
+      border-radius: 2px;
+      opacity: 0;
+      transition: all .2s ease;
+    }
+    .chat-right-container .chat .chat-messages .chat-message:hover .ban-button {
+      opacity: .8;
+      color: red;
+      height: 20px;
+      line-height: 20px;
+      font-size: 18px;
     }
 
     // Компактные стили для малого чата
@@ -1225,6 +1258,94 @@
       cursor: pointer;
     }
 
+  //---------------------------------//
+  // 5.9. Стили интерфейса бана чата //
+  //---------------------------------//
+
+    // Общие стили
+    .chat-right-container .chat .ban-interface {
+      position: absolute; top: 45px; left: 0;
+      width: 100%;
+      height: 190px;
+      background: RGBA(0,0,0,.8);
+      color: #fff;
+    }
+
+    // Заголовок и кнопка "Закрыть"
+    .chat-right-container .chat .ban-interface .ban-header {
+      position: relative;
+      height: 30px;
+      line-height: 30px;
+      font-size: 1.2em;
+      text-align: center;
+      color: red;
+      font-weight: bold;
+      border-bottom: 1px solid RGBA(255,255,255,.2);
+    }
+    .chat-right-container .chat .ban-interface .ban-header i {
+      position: absolute; top: 0; right: 10px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    // Содержимое интерфейса бана
+    .chat-right-container .chat .ban-interface .ban-content {
+      position: relative;
+      height: 120px;
+      padding: 10px;
+          z-index: 1;
+    }
+    .chat-right-container .chat .ban-interface .ban-content input {
+      display: inline-block;
+      width: 50%;
+      background: transparent;
+      outline: 0;
+      border: 1px solid RGBA(100,0,0,1);
+      padding: 0 5px;
+    }
+    .chat-right-container .chat .ban-interface .ban-content textarea {
+      width: 100%;
+      max-width: 100%;
+      height: 70px;
+      max-height: 70px;
+      background: transparent;
+      outline: 0;
+      border: 0;
+      padding: 5px;
+      border-left: 1px solid RGBA(100,0,0,1);
+    }
+    .chat-right-container .chat .ban-interface .ban-content .ban-id-nick {
+      height: 20px;
+      overflow: hidden;
+      cursor: default;
+      font-weight: bold;
+      color: coral;
+    }
+    .chat-right-container .chat .ban-interface .ban-content .ban-time {
+
+    }
+
+
+
+    // Кнопка "Забанить"
+    .chat-right-container .chat .ban-interface .ban-button {
+      position: relative;
+      height: 40px;
+      line-height: 40px;
+      font-size: 1.5em;
+      background-color: RGBA(255,0,0,.4);
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .chat-right-container .chat .ban-interface .ban-button .loader {
+      position: absolute;
+      top: 6px;
+      right: 5px;
+    }
+    .chat-right-container .chat .ban-interface .ban-button:hover {
+      background-color: RGBA(255,0,0,.6);
+    }
 
 
 //-------------------------------------------------------//

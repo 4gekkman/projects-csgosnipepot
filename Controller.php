@@ -20,6 +20,7 @@
  *
  *                  POST-API1   L10003:1                   Безопасная обёртка для команды логаута
  *                  POST-API2   L10003:2                   Безопасная обёртка для команды постинга в чат
+ *                  POST-API3   L10003:3                   Безопасная обёртка для команды бана
  *
  *
  *
@@ -196,15 +197,21 @@ class Controller extends BaseController {
         // - Безопасная обёртка для команды постинга в чат
         if($key == 'L10003:2') { try {
 
-          // 1. Выполнить команду
-          $result = runcommand('\M10\Commands\C3_clientside_post_to_chat_room', [
-            "message" => Input::get('data')['message'],
-            "room"    => "main"
+          // 1. Получить комнату с именем $this->data['room']
+          $room = \M10\Models\MD1_rooms::where('name', "main")->first();
+          if(empty($room))
+            throw new \Exception("Can't find the room with NAME = 'main'");
+
+          // 2. Выполнить команду
+          $result = runcommand('\M10\Commands\C2_add_message_to_the_room', [
+            "message"     => Input::get('data')['message'],
+            "id_room"     => $room->id,
+            "from_who_id" => 0
           ]);
           if($result['status'] != 0)
             throw new \Exception($result['data']['errormsg']);
 
-          // 2. Вернуть результаты
+          // 3. Вернуть результаты
           return $result;
 
         } catch(\Exception $e) {
@@ -219,6 +226,49 @@ class Controller extends BaseController {
             ]
           ];
         }}
+
+        //---------------------------------//
+        // Нестандартная операция L10003:3 //
+        //---------------------------------//
+        // - Безопасная обёртка для команды бана
+        if($key == 'L10003:3') { try {
+
+          // 1. Получить ID пользователя
+          $id_user = lib_current_user_id();
+
+          // 2. Извлечь из конфига информацию о модераторах комнаты чата с именем 'main'
+          $chat_main_moderators = config("M10.rooms.main.moderator_ids");
+          if(empty($chat_main_moderators))
+            $chat_main_moderators = [];
+
+          // 3. Если $id_user не состоит в $chat_main, возбудить исключение
+          if(!in_array($id_user, $chat_main_moderators))
+            throw new \Exception('Вы не являетесь модератором этого чата.');
+
+          // 4. Выполнить команду бана
+          $result = runcommand('\M10\Commands\C6_ban', [
+            "room_name"     => 'main',
+            "id_user"       => Input::get('data')['id_user'],
+            "ban_time_min"  => Input::get('data')['ban_time_min'],
+            "reason"        => Input::get('data')['reason']
+          ]);
+
+          // 5. Вернуть результаты
+          return $result;
+
+        } catch(\Exception $e) {
+          $errortext = 'Invoking of command L10003:L10003:2 from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+          Log::info($errortext);
+          write2log($errortext, ['M9', 'L10003:L10003:2']);
+          return [
+            "status"  => -2,
+            "data"    => [
+              "errortext" => $errortext,
+              "errormsg" => $e->getMessage()
+            ]
+          ];
+        }}
+
 
 
 
