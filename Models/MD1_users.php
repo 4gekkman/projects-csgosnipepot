@@ -79,6 +79,7 @@ class MD1_users extends Model {
     public function genders() { return $this->belongsTo('\M5\Models\MD11_genders', 'gender', 'id'); }
     public function m10_rooms() { return $this->belongsToMany('\M10\Models\MD1_rooms', 'm10.md2003', 'id_user', 'id_room'); }
     public function m10_messages() { return $this->belongsToMany('\M10\Models\MD2_messages', 'm10.md2001', 'id_user', 'id_message'); }
+    public function m10_bans() { return $this->belongsToMany('\M10\Models\MD3_bans', 'm10.md2004', 'id_user', 'id_ban'); }
     public function m13_wallets() { return $this->belongsToMany('\M13\Models\MD1_wallets', 'm13.md2000', 'id_user', 'id_wallet'); }
     public function m13_trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md2001', 'id_user', 'id_trade'); }
     public function m14_trades() { return $this->belongsToMany('\M14\Models\MD4_trades', 'm14.md2001', 'id_user', 'id_trade'); }
