@@ -331,6 +331,16 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
       // 5. Попробовать осуществить запрос
       $response = $m8_c6_make_response();
 
+      // TODO !!!
+      if($this->data['url'] == 'https://steamcommunity.com/tradeoffer/new/send') {
+        Log::info('https://steamcommunity.com/tradeoffer/new/send');
+        Log::info('Status: '.$response['status']);
+        Log::info('Body:');
+        Log::info($response['body']);
+        Log::info('---');
+      }
+      // TODO !!!
+
       // 6. Если статус не 200, или $body содержит намёки на проблемы с аутентификацией
       // - Попробовать перелогинить бота, и снова осуществить запрос.
       if($response['status'] != 200 || (preg_match("/g_steamID = false/ui", $response['body']) != 0 && preg_match("/waitforauth/ui", $response['body']))) {
