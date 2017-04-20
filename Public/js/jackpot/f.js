@@ -1623,7 +1623,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 					// Если код ошибки №7
 					if(codes_and_errors[i]['code'] == 7) {
-						result = result + "Минимальная ставка в Main комнате "+Math.ceil((Math.round(self.m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)+" руб. Перейдите в комнату Low.";
+						result = result + "Сумма ставки слишком мала. Минимум: "+Math.ceil((Math.round(self.m.s1.game.choosen_room().min_bet())/100)*server.data.usdrub_rate)+" руб.";
 						result = result + '<br><br>';
 					}
 
