@@ -348,11 +348,8 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
 
         // 3] Обновить весь кэш, кроме связанного с ботами и инвентарём
         $cacheupdate = runcommand('\M16\Commands\C6_update_cache', [
-          "all"   => false,
-          "force" => true,
-          "cache2update" => [
-            "m16:cache:ready", "m16:cache:active"
-          ]
+          "all"   => true,
+          "force" => true
         ]);
         if($cacheupdate['status'] != 0)
           throw new \Exception($cacheupdate['data']['errormsg']);
@@ -390,11 +387,8 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
 
         // 7] Обновить весь кэш, кроме связанного с ботами и инвентарём
         $cacheupdate = runcommand('\M16\Commands\C6_update_cache', [
-          "all"   => false,
-          "force" => true,
-          "cache2update" => [
-            "m16:cache:ready", "m16:cache:active"
-          ]
+          "all"   => true,
+          "force" => true
         ]);
         if($cacheupdate['status'] != 0)
           throw new \Exception($cacheupdate['data']['errormsg']);

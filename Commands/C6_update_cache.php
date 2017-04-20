@@ -419,7 +419,7 @@ class C6_update_cache extends Job { // TODO: добавить "implements Should
                     'steamid' => $bot['steamid']
                   ]);
                   if($inventory['status'] != 0)
-                    return;
+                    throw new \Exception($inventory['data']['errormsg']);
 
                   // 2.2.3] Записать его в кэш
                   Cache::tags(['m16:cache:inventory'])->put('m16:cache:inventory:'.$id_bot, json_encode($inventory, JSON_UNESCAPED_UNICODE), 30);

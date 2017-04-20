@@ -313,6 +313,17 @@ class C7_create_giveaways extends Job { // TODO: добавить "implements Sh
           $giveaway_new->safecode = $safecode;
           $giveaway_new->save();
 
+       // 3.z. Обновить весь кэш, связанный с ботами
+        $cacheupdate = runcommand('\M16\Commands\C6_update_cache', [
+          "all"   => false,
+          "force" => true,
+          "cache2update" => [
+            "m16:cache:bots"
+          ]
+        ]);
+        if($cacheupdate['status'] != 0)
+          throw new \Exception($cacheupdate['data']['errormsg']);
+
         // 3.n. Подтвердить транзакцию
         DB::commit();
 

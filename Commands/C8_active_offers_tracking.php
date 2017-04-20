@@ -365,11 +365,8 @@ class C8_active_offers_tracking extends Job { // TODO: добавить "impleme
 
         // Обновить кэш m16:cache:active и m16:cache:ready
         $result = runcommand('\M16\Commands\C6_update_cache', [
-          "all"   => false,
+          "all"   => true,
           "force" => true,
-          "cache2update" => [
-            "m16:cache:active", "m16:cache:ready",
-          ]
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
