@@ -49,7 +49,7 @@
       <?php /*--------------------------->
       <!-- 2] Интерфейс выбора комнаты -->
       <!-----------------------------*/ ?>
-      <div style="display: none" class="choose-room" data-bind="if: m.s1.game.choosen_room()">
+      <div class="choose-room" data-bind="if: m.s1.game.choosen_room()">
 
         <?php /*------------------------------->
         <!-- 2.1] Название выбранной комнаты -->

@@ -508,7 +508,7 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			// 2] Выбрать комнату по переданному choosen_room_id
 			// - Но только, если он не равен 0.
 			if(server.data.choosen_room_id != 0)
-				self.m.s1.game.choosen_room(self.m.s1.indexes.rooms[server.data.choosen_room_id]);
+				self.m.s1.game.choosen_room(self.m.s1.indexes.rooms[3]); // server.data.choosen_room_id
 
 			// 3] Инициировать статистику последнего победителя
 			self.f.s1.stats_init_lastwinner();

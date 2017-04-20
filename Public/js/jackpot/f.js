@@ -1590,8 +1590,17 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 	// s1.14. Обработка клика по кнопке "Внести депозит" //
 	//---------------------------------------------------//
 	f.s1.onclick_handler = function() {
-		//if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1)
+
+		// 1] Если торговый URL не введё, показать уведомление и завершить
+		if(!self.m.s2.notif_tradeurl.tradeurl())
+			toastr.error('Чтобы ставить, сначала введите ссылку на обмен в Steam (в блоке сверху).');
+
+		// 2] В ином случае
+		else
 			window.open(self.m.s1.game.current_bot());
+
+		//if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1)
+			//window.open(self.m.s1.game.current_bot());
 		//else popupCenter(self.m.s1.game.current_bot(),'steam','800','600');
 	};
 
