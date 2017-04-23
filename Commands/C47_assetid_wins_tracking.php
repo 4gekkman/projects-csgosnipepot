@@ -250,7 +250,8 @@ class C47_assetid_wins_tracking extends Job { // TODO: добавить "impleme
 
             // 2] Наполнить $results
             $cents_already = 0;
-            for($i=0; $i<count($items); $i++) {
+            //for($i=0; $i<count($items); $i++) {
+            for($i=count($items)-1; $i>=0; $i--) {
               $cents_already = +$cents_already + +$items[$i]['price']*100;
               if($cents_already <= $win['howmuch_finally_cents'])
                 array_push($results, $items[$i]);
