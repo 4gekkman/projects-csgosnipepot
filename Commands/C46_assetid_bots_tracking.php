@@ -204,22 +204,24 @@ class C46_assetid_bots_tracking extends Job { // TODO: добавить "impleme
           // 3] Начать транзакцию
           DB::beginTransaction();
 
-          // 4] Получить связанный с $bet раунд
-          $round = \M9\Models\MD2_rounds::with(['bets', 'bets.m8_items'])
-            ->whereHas('bets', function($query) USE ($bet) {
-              $query->where('id', $bet['id']);
-            })->first();
+          // 4] Получить все ставки комнаты $room, не старше $payout_limit_min
+          $bets_fresh = \M9\Models\MD3_bets::whereHas('rounds', function($query) USE ($room) {
+            $query->whereHas('rooms', function($query) USE ($room) {
+              $query->where('id', $room['id']);
+            });
+          })->where('created_at', '>', $max_age->toDateTimeString())
+            ->get();
 
-          // 5] Получить массив assetid уже занятых в других ставках раунда $round
+          // 5] Получить массив assetid уже занятых в других ставках из $bets
           // - Ставка $bet связана с конкретным раундом $round.
-          // - С этим раундом могут быть связаны от 0 и более других ставок.
+          // - С этим или предыдущими раундами могут быть связаны от 0 и более других ставок.
           // - Каждая из этих ставок связана с 1-й или более вещью.
           // - В связи с каждой вещью определен и assetid этой вещи у бота.
           // - Необходимо получить массив этих самых занятых assetid других ставок.
-          $busy_assetids = call_user_func(function() USE ($round) {
+          $busy_assetids = call_user_func(function() USE ($bets_fresh) {
 
             // 1] Получить все связанные с $round ставки
-            $bets = $round['bets'];
+            $bets = $bets_fresh;
 
             // 2] Собрать в массив (без повторений) все assetid всех вещей ставок $bets
             $busy_assetids = [];
