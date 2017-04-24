@@ -13,6 +13,7 @@
  *
  *    f.s0.txt_delay_save						| s0.1. Функционал "механизма отложенного сохранения для текстовых полей"
  *    f.s0.tooltipster_init         | s0.2. Переинициализирует tooltipster
+ *    f.s0.testfunc                 | s0.3. Функция для тестов
  *
  *  s1. Функционал игры Jackpot
  *  s2. Функционал зоны уведомлений
@@ -28,7 +29,6 @@
  *
  *
  */
-
 
 //========================//
 // 			        		 	    //
@@ -138,6 +138,36 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			$('.tooltipstered').tooltipster(config);
 
 		};
+
+
+		//--------------------------//
+		// s0.3. Функция для тестов //
+		//--------------------------//
+		f.s0.testfunc = function(data, event) {
+
+			ajaxko(self, {
+
+				command: 	"\\M8\\Commands\\C25_new_trade_offer",
+				from: 		"ajaxko",
+				data: 		{
+
+				},
+				prejob: 	function(config, data, event){},
+				postjob: 	function(data, params){},
+				ok_0: 		function(data, params){
+					console.log('Успех');
+				},
+				ok_1: 		function(data, params){
+					console.log('Нет доступа');
+				},
+				ok_2: 		function(data, params){
+					console.log(data.data.errormsg);
+				}
+
+			});
+
+		};
+
 
 
 	//----------------------------------------//
