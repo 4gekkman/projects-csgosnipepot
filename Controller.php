@@ -107,6 +107,15 @@ class Controller extends BaseController {
 
     }
 
+    //--------------------------------------//
+    // Сделать запись в авторизационный лог //
+    //--------------------------------------//
+    file_put_contents(env('LOG_ACCESS_L10000'), json_encode([
+      'ip'        => \Request::ip(),
+      'id_user'   => lib_current_user_id(),
+      'datetime'  => \Carbon\Carbon::now()->toDateTimeString()
+    ], JSON_UNESCAPED_UNICODE).PHP_EOL , FILE_APPEND | LOCK_EX);
+
     //------------------------//
     // Обработать POST-запрос //
     //------------------------//

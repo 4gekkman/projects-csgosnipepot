@@ -57,6 +57,13 @@
 ////==========================================================//*/
 View::composer('L10000::layout', function($view) {
 
+  // a] Сделать запись в лог
+  file_put_contents(env('LOG_ACCESS_L10000'), json_encode([
+    'ip'        => \Request::ip(),
+    'id_user'   => lib_current_user_id(),
+    'datetime'  => \Carbon\Carbon::now()->toDateTimeString()
+  ], JSON_UNESCAPED_UNICODE).PHP_EOL , FILE_APPEND | LOCK_EX);
+
   // 1. Получить из конфига данные о пунктах меню
   $menu = config("L10000.menuitems");
 
