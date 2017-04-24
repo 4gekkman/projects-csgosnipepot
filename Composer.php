@@ -57,6 +57,12 @@
 ////==========================================================//*/
 View::composer('L10004::layout', function($view) {
 
+  // a] Сделать запись в лог
+  file_put_contents(env('LOG_ACCESS_L10004'), json_encode([
+    'ip'        => \Request::ip(),
+    'id_user'   => lib_current_user_id(),
+    'datetime'  => \Carbon\Carbon::now()->toDateTimeString()
+  ], JSON_UNESCAPED_UNICODE).PHP_EOL , FILE_APPEND | LOCK_EX);
 
   // 1. Получить все сегменты-параметры URI запроса в виде массива значений
   $parameters = array_values(Route::current()->parameters());
