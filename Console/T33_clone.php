@@ -386,7 +386,7 @@ class T33_clone extends Command
                   'ssh-add id_rsa4clone;' .
                   'ssh-keyscan github.com >> /root/.ssh/known_hosts;' .
                   'cd '.base_path('vendor/4gekkman').';'.
-                  'git clone git@github.com:4gekkman/'.$packid;
+                  'git clone --origin '.$packid.' git@github.com:4gekkman/'.$packid;
 
       // 6.2. Выполнить клонирование
       $clone_result = shell_exec($command);
