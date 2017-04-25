@@ -476,6 +476,15 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 			bg_color:   '#223340',
 			brd_color:  'transparent',
 			visible:    true
+		},
+		{
+			uri:        '/lk/activity',
+			icon_mdi:   'mdi-airplane-takeoff',
+			icon_url:   '',
+			title:      'Система активности',
+			bg_color:   '#223340',
+			brd_color:  'transparent',
+			visible:    true
 		}
 	]);
 
