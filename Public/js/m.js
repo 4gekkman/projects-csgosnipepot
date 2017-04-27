@@ -31,6 +31,7 @@
  *    s0.10. Серверное время
  *    s0.11. Текущий хост (включая http/https)
  *    s0.12. Текущий хост (включая http/https, порт и базовый URI)
+ *    s0.13. Базовый URL для asset-ресурсов шаблона
  *
  *  s1. Модель управления главным меню
  *
@@ -433,6 +434,11 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 				   layout_data.data.request.baseuri;
 
 	})());
+
+	//-----------------------------------------------//
+	// s0.13. Базовый URL для asset-ресурсов шаблона //
+	//-----------------------------------------------//
+	self.m.s0.asset_url = ko.observable(layout_data.data.asset_url);
 
 
 	//----------------------------------------------//

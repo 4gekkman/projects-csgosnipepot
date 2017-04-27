@@ -126,7 +126,8 @@ View::composer('L10004::layout', function($view) {
     'logged_in_steam_users' => Redis::get('active_connections_number'),
     'messages'              => $messages,
     'chat_main'             => $chat_main,
-    'servertime_s'          => \Carbon\Carbon::now()->timestamp
+    'servertime_s'          => \Carbon\Carbon::now()->timestamp,
+    'asset_url'             => asset(''),
   ], JSON_UNESCAPED_UNICODE));
 
 });
