@@ -45,4 +45,30 @@ return [
       ]
     ],
 
+    //------------------------//
+    // 5] Настройки пакета M7 //
+    //    M7 settings         //
+    //------------------------//
+    'default_parameters' => [
+      'folderpath_relative_to_basepath' => 'public/public/M5/steam_avatars',
+      'should_save_original'            => false,
+      'should_save_not_filtered_images' => false,
+      'sizes'                           => [
+        [
+          184,
+          184
+        ]
+      ],
+      'types'                           => [
+        'image/jpeg'
+      ],
+      'quality'                         => 100,
+      'filters'                         => [],
+    ],
+    'parameter_groups' => [
+
+    ],
+
+
+
 ];
