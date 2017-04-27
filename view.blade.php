@@ -74,6 +74,7 @@
       <div class="logo_and_name">
         <i class="mdi mdi-shopping"></i>
         <span>Система активности</span>
+        <input type="file" id="inputurl" style="display: none; position: absolute; top: 15px; right: 350px; line-height: 10px;" data-bind="visible: $root.m.s2.chava.winner() && $root.m.s2.choosen().id(), event: { change: function() { $root.m.s2.chava.inputurl($element.files[0]); } }">
       </div>
 
     </div>
@@ -98,16 +99,99 @@
           <!---------------*/ ?>
           <div class="winners" style="display: none" data-bind="visible: m.s1.selected_subdoc().name() == 'winners'">
 
-            Победители
+            <?php /*--------->
+            <!-- Контейнер -->
+            <!-----------*/ ?>
+            <div class="winner-cont" data-bind="foreach: m.s2.winners">
+
+              <?php /*---------->
+              <!-- Победитель -->
+              <!------------*/ ?>
+              <div class="winner" data-bind="click: $root.f.s2.choose_winner">
+
+                <?php /*------>
+                <!-- Аватар -->
+                <!--------*/ ?>
+                <img class="winner-avatar" data-bind="attr: {id: 'image_of_winner_'+id(), src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+id()+'.jpg' + '?' + avatar_steam().slice(-20)}">
+
+                <?php /*--->
+                <!-- Ник -->
+                <!-----*/ ?>
+                <div class="winner-nickname">
+                  <span style="display: none" data-bind="visible: !$root.m.s2.rename.winner() || id() != $root.m.s2.choosen().id(), text: nickname"></span>
+                  <input style="display: none" type="text" data-bind="visible: $root.m.s2.rename.winner() && id() == $root.m.s2.choosen().id(), textInput: $root.m.s2.rename.input, attr: {id: 'rename_input_of_db_winner_'+id()}">
+                </div>
+
+                <?php /*----------->
+                <!-- Блок кнопок -->
+                <!-------------*/ ?>
+                <div class="winner-btn-blck">
+
+                  <?php /*----------------------------------------------->
+                  <!-- Кнопки, относящиеся к переименованию победителя -->
+                  <!-------------------------------------------------*/ ?>
+                  <div style="display: none" data-bind="visible: !$root.m.s2.chava.winner()">
+                    <i style="display: none" class="mdi mdi-check apply" title="Подтвердить переименование" data-bind="visible: $root.m.s2.rename.winner() && id() == $root.m.s2.choosen().id(), click: $root.f.s2.apply_win_rename"></i>
+                    <i style="display: none" class="mdi mdi-close cancel" title="Отменить переименование" data-bind="visible: $root.m.s2.rename.winner() && id() == $root.m.s2.choosen().id(), click: $root.f.s2.cancel_win_rename"></i>
+                    <i style="display: none" class="mdi mdi-rename-box rename" title="Переименовать" data-bind="visible: !$root.m.s2.rename.winner(), click: $root.f.s2.turnon_rename_win_mode"></i>
+                  </div>
+
+                  <?php /*-------------------------------------------------->
+                  <!-- Кнопки, относящиеся к изменению аватара победителя -->
+                  <!----------------------------------------------------*/ ?>
+                  <div style="display: none" data-bind="visible: !$root.m.s2.rename.winner()">
+                    <i style="display: none" class="mdi mdi-check apply" title="Подтвердить изменение аватара" data-bind="visible: $root.m.s2.chava.winner() && id() == $root.m.s2.choosen().id(), click: $root.f.s2.saveimage"></i>
+                    <i style="display: none" class="mdi mdi-close cancel" title="Отменить изменение аватара" data-bind="visible: $root.m.s2.chava.winner() && id() == $root.m.s2.choosen().id(), click: $root.f.s2.saveimage_cancel"></i>
+                    <i style="display: none" class="mdi mdi-file-image rename" title="Изменить аватар" data-bind="visible: !$root.m.s2.chava.winner(), click: $root.f.s2.turnon_chava_win_mode"></i>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
 
           </div>
 
           <?php /*----------->
           <!-- 2] Победить -->
           <!-------------*/ ?>
-          <div style="display: none" data-bind="visible: m.s1.selected_subdoc().name() == 'win'">
+          <div class="win" style="display: none" data-bind="visible: m.s1.selected_subdoc().name() == 'win'">
 
-            Победить
+            <?php /*--------->
+            <!-- Контейнер -->
+            <!-----------*/ ?>
+            <div class="win-cont" data-bind="foreach: m.s3.rooms">
+
+              <?php /*------->
+              <!-- Комната -->
+              <!---------*/ ?>
+              <div class="room">
+
+                <?php /*---------------->
+                <!-- Название комнаты -->
+                <!------------------*/ ?>
+                <div class="win-room-name">
+                  <span data-bind="text: name"></span>
+                </div>
+
+                <?php /*--------------------------------------->
+                <!-- Поле для ввода номера билета победителя -->
+                <!-----------------------------------------*/ ?>
+                <div class="win-steamid">
+                  <input type="text" data-bind="textInput: ticket2win" placeholder="Номер билета победителя">
+                </div>
+
+                <?php /*----------------->
+                <!-- Кнопка "Победить" -->
+                <!-------------------*/ ?>
+                <div class="win-button">
+                  <button data-bind="click: $root.f.s3.let_him_win">Пусть он победит</button>
+                </div>
+
+              </div>
+
+            </div>
 
           </div>
 

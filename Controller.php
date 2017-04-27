@@ -19,8 +19,8 @@
  * ------------------------------------------------------------------------------------------------------------
  * Нестандартные POST-операции
  *
- *                  POST-API1   D10013:1              (v)      Описание
- *                  POST-API2   D10013:2              (v)      Описание
+ *                  POST-API1   D10013:1              (v)  Изменить ник пользователя в системе.
+ *                  POST-API1   D10013:2              (v)  Изменить аватар пользователя в системе.
  *
  *
  *
@@ -112,8 +112,15 @@ class Controller extends BaseController {
     // Обработать GET-запрос //
     //-----------------------//
 
-      // 1. ...
+      // 1. Получить всех победителей
+      $winners = \M5\Models\MD1_users::whereHas('groups', function($queue){
+        $queue->where('name', 'Winners');
+      })->get();
 
+      // 2. Получить все текущие игровые данные
+      $allgamedata = runcommand('\M9\Commands\C7_get_all_game_data', ['rounds_limit' => 1, 'safe' => true]);
+      if($allgamedata['status'] != 0)
+        throw new \Exception($allgamedata['data']['errormsg']);
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -124,6 +131,8 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
+        'winners'               => $winners,
+        'rooms'                 => $allgamedata['data']['rooms']
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -206,17 +215,50 @@ class Controller extends BaseController {
       // - А в $key прислать ключ-код номер операции.
       if(!empty($key) && empty($command)) {
 
-        //-----------------------------//
+        //---------------------------------//
         // Нестандартная операция D10013:1 //
-        //-----------------------------//
+        //---------------------------------//
+        // - Изменить ник пользователя в системе.
         if($key == 'D10013:1') {
 
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
 
+          // 2. Выполнить команду
+          $result = runcommand('\M5\Commands\C73_rename_user', $data);
+
+          // n. Вернуть результаты
+          return $result;
 
         }
 
+        //---------------------------------//
+        // Нестандартная операция D10013:2 //
+        //---------------------------------//
+        // - Изменить аватар пользователя в системе.
+        if($key == 'D10013:2') {
+
+          // 1. Подготовить данные для команды
+          $data = [
+            "file"        => \Request::hasFile('file') ? Input::file('file') : "",
+            "group"       => Input::get('group') ?: "",
+            "params"      => Input::get('params') ? json_decode(Input::get('params'), true) : [],
+            "timestamp"   => Input::get('timestamp') ?: 0,
+          ];
+
+          // 2. Выполнить команду
+          $result = runcommand('\M7\Commands\C1_saveimage', $data);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
 
       }
+
+
+
+
 
   } // конец postIndex()
 
