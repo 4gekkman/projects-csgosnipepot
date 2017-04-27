@@ -7,16 +7,16 @@
 /**
  *  Что делает
  *  ----------
- *    - Command of M-package
+ *    - Add new key
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *        all           | True/False, если true, то обновить весь кэш
- *        cache2update  | Массив ID комнат, кэш для которых надо обновить (нужен, только если all не указано)
- *        force         | (по умолчанию, == true) Обновлять кэш, даже если он присутствует
+ *        id_room
+ *        id_round
+ *        ticket2win
  *      ]
  *    ]
  *
@@ -103,7 +103,7 @@
 //---------//
 // Команда //
 //---------//
-class C51_update_history_cache extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C57_add_new_key extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -137,154 +137,81 @@ class C51_update_history_cache extends Job { // TODO: добавить "implemen
     /**
      * Оглавление
      *
-     *  1. Принять и проверить входящие данные
-     *  2. Назначить значения по умолчанию
-     *  3. Получить массив ID комнат, кэш которых надо обновить
-     *  4. На какой срок сохранять кэш?
-     *  5. Обновить кэш комнат, ID которых указаны в $room_ids
+     *  1. Провести валидацию входящих параметров
+     *  2. Получить раунд, для которого надо записать secret1
+     *  3. Записать значение для secret1 в $round
+     *  m. Сделать commit
+     *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //----------------------------------------//
-    // Обновить кэш истории классической игры //
-    //----------------------------------------//
+    //-------------//
+    // Add new key //
+    //-------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Принять и проверить входящие данные
+      // 1. Провести валидацию входящих параметров
       $validator = r4_validate($this->data, [
-        "all"             => ["boolean"],
-        "cache2update"    => ["required_without:all", "array"],
-        "force"           => ["boolean"],
+        "id_room"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "ticket2win"      => ["r4_defined", "regex:/^([1-9]+[0-9]*|)$/ui"],
+        "id_round"        => ["sometimes", "regex:/^[1-9]+[0-9]*$/ui"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
 
-      // 2. Назначить значения по умолчанию
+      // 2. Получить раунд, для которого надо записать secret1
+      // - Он должен быть в состоянии ниже или равном Pending (4).
 
-        // 2.1. Если all не передано, задать ей значение по умолчанию false
-        if(!array_key_exists('all', $this->data))
-          $this->data['all'] = false;
+        // Получить
+        $round = call_user_func(function(){
 
-        // 2.2. Если cache2update не передан, назначить пустой массив
-        if(!array_key_exists('cache2update', $this->data))
-          $this->data['cache2update'] = [];
+          // 2.1. Если id_round передан
+          if(array_key_exists('id_round', $this->data)) {
+            return \M9\Models\MD2_rounds::with(['rounds_statuses'])
+                ->where('id', $this->data['id_round'])
+                ->first();
+          }
 
-        // 2.3. Если force отсутствует, назначить true
-        if(!array_key_exists('force', $this->data))
-          $this->data['force'] = true;
+          // 2.2. Если id_round не передан
+          else {
+            return \M9\Models\MD2_rounds::with(['rounds_statuses'])
+              ->whereHas('rooms', function($queue) {
+                $queue->where('id', $this->data['id_room']);
+              })->orderBy('id', 'desc')->first();
+          }
 
-      // 3. Получить массив ID комнат, кэш которых надо обновить
-      $room_ids = call_user_func(function(){
+        });
 
-        // 3.1. Получить массив ID всех активных комнат
-        $room_ids_all = json_decode(Cache::get('processing:rooms:ids'), true);
-        if(empty($room_ids_all)) $room_ids_all = [];
+        // Если $round пуст, завершить
+        if(empty($round))
+          throw new \Exception('Не удалось обнаружить раунд.');
 
-        // 3.2. Если all == true, вернуть $room_ids_all
-        if($this->data['all'] == true)
-          return $room_ids_all;
+        // Если статус раунда > 4, завершить
+        if($round['rounds_statuses'][0]['pivot']['id_status'] > 4)
+          throw new \Exception('Поздно выбирать победителя! Раунд №'.$round['id'].' уже перешёл в состояние Lottery, или более позднее. В следующий раз, действуй оперативнее.');
 
-        // 3.3. В противном случа, вернуть cache2update
-        else
-          return $this->data['cache2update'];
+      // 3. Записать значение для secret1 в $round
+      $round->secret1 = $this->data['ticket2win'];
+      $round->save();
 
-      });
+      // m. Сделать commit
+      DB::commit();
 
-      // 4. На какой срок сохранять кэш?
-      $payout_limit_min = !empty($room['payout_limit_min']) ? $room['payout_limit_min'] : 60;
-      $time = +$payout_limit_min + 5;
+      // n. Вернуть результаты
+      return [
+        "status"  => 0,
+        "data"    => [
+          "id_round" => $round->id
+        ]
+      ];
 
-      // 5. Обновить кэш комнат, ID которых указаны в $room_ids
-      foreach($room_ids as $id_room) {
-
-        // 5.1. Получить кэш
-        $cache = json_decode(Cache::get('m9:history:'.$id_room), true);
-
-        // 5.2. Обновить кэш
-        // - Если он отсутствует, или если параметр force == true
-        if(
-          ((!Cache::has('m9:history:'.$id_room) || empty($cache) || count($cache) == 0) ||
-          $this->data['force'] == true)
-        ) {
-
-          // 1] Получить последние 50 раундов комнаты $id_room
-          $rounds = \M9\Models\MD2_rounds::with([
-            "rooms",
-
-            "bets",
-            "bets.m5_users",
-            "bets.m8_bots",
-            "bets.m8_items",
-
-            "wins",
-            "wins.m5_users",
-            "wins.m8_bots",
-            "wins.m8_items",
-          ])
-            ->whereHas('wins')
-            ->whereHas('wins.m8_items')
-            ->where('id_room', $id_room)
-            ->orderBy('id', 'desc')->take(50)->get();
-
-          // 2] Подготовить из $rounds массив данных для помещения в кэш
-          $data4cache = call_user_func(function() USE ($rounds) {
-
-            // 2.1] Подготовить массив для результатов
-            $results = [];
-
-            // 2.2] Наполнить $results
-            foreach($rounds->toArray() as $round) {
-
-              array_push($results, [
-                "id"                        => $round['id'],
-                "room_name"                 => $round['rooms']['name'],
-                "key"                       => $round['key'],
-                "key_hash"                  => empty($round['secret2']) ? $round['key_hash'] : $round['secret2'],
-
-                "nickname"                  => $round['wins'][0]['m5_users']['0']['nickname'],
-                "avatar_steam"              => $round['wins'][0]['m5_users']['0']['avatar_steam'],
-                "steamid"                   => $round['wins'][0]['m5_users']['0']['ha_provider_uid'],
-                "jackpot_total_sum_cents"   => $round['wins'][0]['jackpot_total_sum_cents'],
-                "winner_bets_items_cents"   => $round['wins'][0]['winner_bets_items_cents'],
-                "win_fact_cents"            => $round['wins'][0]['win_fact_cents'],
-
-                "items"                     => call_user_func(function() USE ($round) {
-
-                  $result = [];
-                  foreach($round['wins'][0]['m8_items'] as $item) {
-                    array_push($result, [
-                      'id'                => $item['id'],
-                      'name'              => $item['name'],
-                      'price'             => (int)($item['pivot']['price']*100),
-                      'steammarket_image' => preg_replace("/360fx360f/ui", "320fx320f", $item['steammarket_image']),
-                    ]);
-                  }
-                  return $result;
-
-                })
-              ]);
-
-            }
-
-            // 2.n] Вернуть результаты
-            return $results;
-
-          });
-
-          // 3] Поместить $data4cache в кэш на 30 минут
-          Cache::put('m9:history:'.$id_room, json_encode($data4cache, JSON_UNESCAPED_UNICODE), $time);
-
-        }
-
-      }
-
-    DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C51_update_history_cache from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+    } catch(\Exception $e) {
+        $errortext = 'Invoking of command C57_add_new_key from M-package M9 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M9', 'C51_update_history_cache']);
+        write2log($errortext, ['M9', 'C57_add_new_key']);
         return [
           "status"  => -2,
           "data"    => [

@@ -200,10 +200,19 @@ class H1_ticks  // TODO: написать "implements ShouldQueue", и тогд�
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 3. Процессинг выигрышей игры "Лоттерея"
-      $result = runcommand('\M9\Commands\C24_processor_wins', [], 0, ['on'=>true, 'name'=>'processor_wins_main']);
-      if($result['status'] != 0)
+      // 3. Процессинг выигрышей игры "Лоттерея" (не чаще, чем раз в 60 секунд)
+      $last_try_wins_processing = Cache::get('m9:winsproc:datetime');
+      if(empty($last_try_wins_processing) || +(\Carbon\Carbon::parse($last_try_wins_processing)->diffInSeconds(\Carbon\Carbon::now())) >= 60) {
+
+        // Обновить кэш
+        Cache::put('m9:winsproc:datetime', \Carbon\Carbon::now()->toDateTimeString(), 60);
+
+        // Процессинг выигрышей игры "Лоттерея"
+        $result = runcommand('\M9\Commands\C24_processor_wins', [], 0, ['on'=>true, 'name'=>'processor_wins_main']);
+        if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
+
+      }
 
       // 4. Если от C11_processor ничего не слышно более 10 секунд
       // - То, вероятно, он "замёрз".

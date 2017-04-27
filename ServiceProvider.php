@@ -141,7 +141,8 @@
           '\M9\Console\T22_update_top_cache',
           '\M9\Console\T23_get_top',
           '\M9\Console\T24_get_stats_thebiggestbet',
-          '\M9\Console\T25_get_stats_luckyoftheday'
+          '\M9\Console\T25_get_stats_luckyoftheday',
+          '\M9\Console\T26_add_new_key'
         ];
 
         // Регистрация команд в методе register

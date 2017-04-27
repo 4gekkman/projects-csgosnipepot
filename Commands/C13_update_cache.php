@@ -631,6 +631,11 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                       else
                         $round['key'] = "";
 
+                    // secret, secret1, secret2
+                    unset($round['secret']);
+                    unset($round['secret1']);
+                    unset($round['secret2']);
+
                     // прочие
                     foreach($round['bets'] as &$bet) {
 

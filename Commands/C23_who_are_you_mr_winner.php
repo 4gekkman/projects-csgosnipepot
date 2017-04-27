@@ -229,23 +229,30 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
           throw new \Exception('Не удалось найти комнату с ID = '.$this->data['id_room'].' в кэше.');
 
         // 3] Найти в $room раунд с id_round
-        $round = call_user_func(function() USE ($room) {
+        $round_cache = call_user_func(function() USE ($room) {
           foreach($room['rounds'] as $round) {
             if($round['id'] == $this->data['id_round'])
               return $round;
           }
         });
-        if(!$room)
+        if(!$round_cache)
           throw new \Exception('Не удалось найти раунд с ID = '.$this->data['id_round'].' в кэше.');
 
-        // 4] Получить номер последнего билета последней ставки
+        // 4] Получить $round со свежими данными из БД
+        $round = \M9\Models\MD2_rounds::with(['bets', 'bets.m5_users'])
+            ->where('id', $this->data['id_round'])
+            ->first();
+        if(!$round)
+          throw new \Exception('Не удалось найти раунд с ID = '.$this->data['id_round'].' в БД.');
+
+        // 5] Получить номер последнего билета последней ставки
         $lastbet_lastticket = $round['bets'][count($round['bets']) - 1]['m5_users'][0]['pivot']['tickets_to'];
 
-        // 5] Получить номер выигравшего билета
+        // 6] Получить номер выигравшего билета
         // - От 0 до $lastbet_lastticket включительно.
         $ticket_winner_number = (int)round($lastbet_lastticket * $round['key']);//random_int(0, $lastbet_lastticket);
 
-        // 6] Найти пользователя, у которого билет $ticket_winner_number
+        // 7] Найти пользователя, у которого билет $ticket_winner_number
         $user = call_user_func(function() USE ($round, $ticket_winner_number) {
           foreach($round['bets'] as $bet) {
             foreach($bet['m5_users'] as $user) {
@@ -257,12 +264,74 @@ class C23_who_are_you_mr_winner extends Job { // TODO: добавить "impleme
         if(!$user)
           throw new \Exception('Не удалось найти пользователя, обладающего билетом-победителем "'.$ticket_winner_number.'" в кэше.');
 
-        // n] Вернуть результат
-        return [
-          "user_winner"           => $user,
-          "ticket_winner_number"  => $ticket_winner_number,
-          "round"                 => $round
-        ];
+        // 8] Если secret1 не пуст, попробовать найти пользователя-победителя в соотв. с ним
+        $user_winner_secret = call_user_func(function() USE ($round) {
+
+          // 8.1] Если secret1 пуст, вернуть пустую строку
+          if(empty($round['secret1']))
+            return "";
+
+          // 8.2] Попробовать найти пользователя с билетом secret1
+          $user = call_user_func(function() USE ($round) {
+
+            foreach($round['bets'] as $bet) {
+              foreach($bet['m5_users'] as $user) {
+                if($round['secret1'] >= $user['pivot']['tickets_from'] && $round['secret1'] <= $user['pivot']['tickets_to'])
+                  return $user;
+              }
+            }
+            return "";
+
+          });
+
+          // 8.3] Вернуть $user
+          return $user;
+
+        });
+
+        // 9] Сгенерировать и сохранить новый ключ в secret, если $user_winner_secret не пуст
+        if(!empty($user_winner_secret)) {
+
+          // 9.1] Сгенерировать новый key, соответствующий билету secret1
+          $new_key = call_user_func(function() USE ($lastbet_lastticket, $round) {
+
+            $key = -1;
+            while((int)round($lastbet_lastticket * $key) != $round['secret1']) {
+              $key = number_format(random_int(1,pow(10,18))/pow(10,18), 16, '.', '' );
+            }
+            return $key;
+
+          });
+
+          // 9.2] Получить sha224-хэш для $key
+          $new_key_hash = hash('sha224', ''.$new_key);
+
+          // 9.3] Записать $new_key и $new_key_hash в secret/secret2 соответственно
+          $round->secret = $new_key;
+          $round->secret2 = $new_key_hash;
+          $round->key = $new_key;
+          $round->save();
+
+        }
+
+        // n] Вернуть результаты
+
+          // n.1] Если $user_winner_secret пуст
+          if(empty($user_winner_secret))
+            return [
+              "user_winner"           => $user,
+              "ticket_winner_number"  => $ticket_winner_number,
+              "round"                 => $round
+            ];
+
+          // n.2] Если $user_winner_secret не пуст
+          else
+            return [
+              "user_winner"           => $user_winner_secret,
+              "ticket_winner_number"  => $round['secret1'],
+              "round"                 => $round
+            ];
+
 
       });
 
