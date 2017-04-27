@@ -150,7 +150,8 @@
           '\M5\Console\T25_phone_authcodes_clear',
           '\M5\Console\T26_save_steam_tradeurl',
           '\M5\Console\T27_count_logged_in_steam_users',
-          '\M5\Console\T28_parse_all_avatars'
+          '\M5\Console\T28_parse_all_avatars',
+          '\M5\Console\T29_rename_user'
         ];
 
         // Регистрация команд в методе register
