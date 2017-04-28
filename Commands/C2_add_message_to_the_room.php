@@ -271,15 +271,16 @@ class C2_add_message_to_the_room extends Job { // TODO: добавить "implem
             'data'     => [
               'task'    => "new_message",
               'message' => [
-                'id'          => $new_message->id,
-                'steamname'   => $user->nickname,
-                'avatar'      => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
-                'level'       => '1',
-                'message'     => $new_message->message,
-                'id_user'     => $user->id,
-                'system'      => 0,
-                'created_at'  => $new_message->created_at,
-                'updated_at'  => $new_message->updated_at,
+                'id'                => $new_message->id,
+                'steamname'         => $user->nickname,
+                'avatar'            => !empty($user->avatar_steam) ? $user->avatar_steam : (!empty($user->avatar) ? $user->avatar : 'http://placehold.it/34x34/ffffff'),
+                'level'             => '1',
+                'message'           => $new_message->message,
+                'id_user'           => $user->id,
+                'user_updated_at'   => $user->updated_at->toDateTimeString(),
+                'system'            => 0,
+                'created_at'        => $new_message->created_at,
+                'updated_at'        => $new_message->updated_at,
               ]
             ]
           ]));

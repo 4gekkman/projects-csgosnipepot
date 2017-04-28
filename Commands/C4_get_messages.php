@@ -235,11 +235,12 @@ class C4_get_messages extends Job { // TODO: добавить "implements Should
       $messages = $messages->each(function($item, $key){
 
         // 1] Добавить поля: avatar, level, steamname, id_user
-        $item->level      = '1';
-        $item->steamname  = $item->m5_users[0]['nickname'];
-        $item->avatar     = !empty($item->m5_users[0]['avatar_steam']) ? $item->m5_users[0]['avatar_steam'] : (!empty($item->m5_users[0]['avatar']) ? $item->m5_users[0]['avatar'] : 'http://placehold.it/34x34/ffffff');
-        $item->id_user    = $item->m5_users[0]['id'];
-        $item->system     = 0;
+        $item->level            = '1';
+        $item->steamname        = $item->m5_users[0]['nickname'];
+        $item->avatar           = !empty($item->m5_users[0]['avatar_steam']) ? $item->m5_users[0]['avatar_steam'] : (!empty($item->m5_users[0]['avatar']) ? $item->m5_users[0]['avatar'] : 'http://placehold.it/34x34/ffffff');
+        $item->id_user          = $item->m5_users[0]['id'];
+        $item->user_updated_at  = $item->m5_users[0]['updated_at']->toDateTimeString();
+        $item->system           = 0;
 
         // 2] Удалить m5_users и hided
         unset($item->m5_users);
