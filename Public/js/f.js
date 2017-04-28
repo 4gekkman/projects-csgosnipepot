@@ -316,18 +316,52 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 			  postjob:      function(data, params){},
 			  ok_0:         function(data, params){
 
-					// 1] Сообщить
-					toastr.success("Аватар успешно изменён.", "Успех");
-
-					// 2] Очистить inputurl
+					// 1] Очистить inputurl
 					self.m.s2.chava.inputurl("");
 
-					// 3] Обновить картинку
-					var img = document.getElementById('image_of_winner_'+self.m.s2.chava.winner().id());
-					img.src = img.src + '&time=' + new Date().getTime();
+					// 2] Сделать touch для пользователя chava.winner().id()
+					ajaxko(self, {
+						command: 	    "",
+						key:          "D10013:3",
+						from: 		    "f.s2.saveimage",
+						data: {
+							id_user: 		self.m.s2.chava.winner().id()
+						},
+						ajax_params: {
+							data: data
+						},
+						prejob:       function(config, data, event){
 
-					// 3] Вывести выбранного победителя из режима изменения ватара
-					self.m.s2.chava.winner("");
+							// Уведомить о том, что пошёл запрос
+							toastr.info("Обновляю update_at пользователя...");
+
+						},
+						postjob:      function(data, params){},
+						ok_0:         function(data, params){
+
+							// 1] Сообщить
+							toastr.success("Аватар успешно изменён.", "Успех");
+
+							// 2] Обновить картинку
+							var img = document.getElementById('image_of_winner_'+self.m.s2.chava.winner().id());
+							img.src = img.src + '&time=' + new Date().getTime();
+
+							// 3] Вывести выбранного победителя из режима изменения ватара
+							self.m.s2.chava.winner("");
+
+						},
+						ok_1:         function(data, params){
+
+							toastr.error('Сервер не отвечает.', 'Таймаут запроса');
+
+						},
+						ok_2:         function(data, params){
+
+							toastr.error(data.data.errormsg, "Ошибка");
+
+						}
+
+					});
 
 				},
 			  ok_1:         function(data, params){

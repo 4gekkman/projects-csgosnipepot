@@ -112,7 +112,7 @@
                 <?php /*------>
                 <!-- Аватар -->
                 <!--------*/ ?>
-                <img class="winner-avatar" data-bind="attr: {id: 'image_of_winner_'+id(), src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+id()+'.jpg' + '?' + avatar_steam().slice(-20)}">
+                <img class="winner-avatar" data-bind="attr: {id: 'image_of_winner_'+id(), src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+id()+'.jpg' + '?as=' + avatar_steam().slice(-20) + '&ua=' + updated_at().replace(/[ :-]/g,'')}">
 
                 <?php /*--->
                 <!-- Ник -->
