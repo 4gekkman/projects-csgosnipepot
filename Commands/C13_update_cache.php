@@ -510,7 +510,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                           'avatar_steam'            => $user['avatar_steam'],
                           'jackpot_total_sum_cents' => $win['jackpot_total_sum_cents'],
                           'odds'                    => $odds,
-                          'id_round'                => $last['id']
+                          'id_round'                => $last['id'],
+                          'updated_at'              => $user['updated_at']->toDateTimeString()
                         ];
 
                       }
@@ -525,7 +526,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                           'avatar_steam'            => '',
                           'jackpot_total_sum_cents' => '',
                           'odds'                    => '',
-                          'id_round'                => ''
+                          'id_round'                => '',
+                          'updated_at'              => ''
                         ];
 
                       }
@@ -562,7 +564,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                           'avatar_steam'            => $user['avatar_steam'],
                           'jackpot_total_sum_cents' => $win['jackpot_total_sum_cents'],
                           'odds'                    => $odds,
-                          'id_round'                => $penult['id']
+                          'id_round'                => $penult['id'],
+                          'updated_at'              => $user['updated_at']->toDateTimeString()
                         ];
 
                       }
@@ -577,7 +580,8 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                           'avatar_steam'            => '',
                           'jackpot_total_sum_cents' => '',
                           'odds'                    => '',
-                          'id_round'                => ''
+                          'id_round'                => '',
+                          'updated_at'              => ''
                         ];
 
                       }
@@ -654,7 +658,6 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                         unset($user['birthday']);
                         unset($user['created_at']);
                         unset($user['deleted_at']);
-                        unset($user['updated_at']);
                         unset($user['email']);
                         unset($user['gender']);
                         unset($user['is_blocked']);

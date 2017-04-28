@@ -180,29 +180,29 @@ class C53_update_top_cache extends Job { // TODO: добавить "implements S
         //      <id_пользователя>: <кол-во выигранных центов>
         //    ]
         //
-        $users_ids_cents = \M9\Models\MD4_wins::select('md2004.id_user as id', DB::raw('SUM(win_fact_cents) AS totalsum'))
-            ->leftjoin('m9.md2004', 'md4_wins.id', '=', 'm9.md2004.id_win')
-            ->groupBy('md2004.id_user')
-            ->orderBy('totalsum', 'DESC')
-            ->take(20)
-            ->pluck('totalsum', 'id')
-            ->sort()
-            ->reverse()
-            ->toArray();
 
-        //$users_ids_cents = \M5\Models\MD1_users::select('md1_users.id', 'md2004.id_win', DB::raw('SUM(md4_wins.win_fact_cents) as totalsum'))
-        //    ->leftJoin('m9.md2004', 'id', '=', 'm9.md2004.id_user')
-        //    ->where('id_win', '!=', null)
-        //    ->leftJoin('m9.md4_wins', 'id_win', '=', 'm9.md4_wins.id')
-        //    ->groupBy('id')->orderByRaw("CAST(win_fact_cents as SIGNED) DESC")
-        //    ->take(20)
-        //    ->pluck('totalsum', 'id')
-        //    ->sort()
-        //    ->reverse()
-        //    ->toArray();
+          // 1] Получить массив ID пользователей из группы Winners
+          $winners_ids = \M5\Models\MD1_users::whereHas('groups', function($queue){
+            $queue->where('name', 'Winners');
+          })->pluck('id')->toArray();
 
-        // 2] Получить массив ID ТОП20 пользователей
-        $users_ids = collect($users_ids_cents)->keys();
+          // 2] Получить TOP100 без учёта $winners_ids
+          $users_ids_cents = \M9\Models\MD4_wins::select('md2004.id_user as id', DB::raw('SUM(win_fact_cents) AS totalsum'))
+              ->leftjoin('m9.md2004', 'md4_wins.id', '=', 'm9.md2004.id_win')
+              ->groupBy('md2004.id_user')
+              ->orderBy('totalsum', 'DESC')
+              ->take(100)
+              ->pluck('totalsum', 'id')
+              ->sort()
+              ->reverse()
+              ->toArray();
+
+          // 3] Отфильтровать из $users_ids_cents элементы, key которых есть в $winners_ids
+          $users_ids_cents = collect($users_ids_cents)->filter(function($value, $key) USE ($winners_ids) {
+            if(!in_array($key, $winners_ids))
+              return true;
+            return false;
+          })->take(20)->toArray();
 
         // 3] Получить всех пользователей из $users_ids
         // - Сохранить порядок сортировки, как в $users_ids.

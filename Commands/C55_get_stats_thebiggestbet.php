@@ -208,7 +208,8 @@ class C55_get_stats_thebiggestbet extends Job { // TODO: добавить "imple
               'nickname'                => $user['nickname'],
               'avatar_steam'            => $user['avatar_steam'],
               'sum_cents_at_bet_moment' => $bet['sum_cents_at_bet_moment'],
-              'date'                    => \Carbon\Carbon::now()->toDateString()
+              'date'                    => \Carbon\Carbon::now()->toDateString(),
+              'updated_at'              => $user['updated_at']->toDateTimeString()
             ];
 
           }
@@ -221,7 +222,8 @@ class C55_get_stats_thebiggestbet extends Job { // TODO: добавить "imple
               'nickname'                => '',
               'avatar_steam'            => '',
               'sum_cents_at_bet_moment' => '',
-              'date'                    => ''
+              'date'                    => '',
+              'updated_at'              => ''
             ];
 
           }

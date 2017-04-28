@@ -251,7 +251,8 @@ class C56_get_stats_luckyoftheday extends Job { // TODO: добавить "imple
               'nickname'                => $user['nickname'],
               'avatar_steam'            => $user['avatar_steam'],
               'jackpot_total_sum_cents' => $win['jackpot_total_sum_cents'],
-              'odds'                    => $odds
+              'odds'                    => $odds,
+              'updated_at'              => $user['updated_at']->toDateTimeString()
             ];
 
           }
@@ -262,7 +263,8 @@ class C56_get_stats_luckyoftheday extends Job { // TODO: добавить "imple
             'nickname'                => '',
             'avatar_steam'            => '',
             'jackpot_total_sum_cents' => '',
-            'odds'                    => ''
+            'odds'                    => '',
+            'updated_at'              => ''
           ];
 
         });
