@@ -433,7 +433,7 @@
           <!-- Аватарка -->
           <!----------*/ ?>
           <div class="avatarka span20" data-bind="attr: {title: steamname}">
-            <img data-bind="attr: {src: avatar}">
+            <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+id_user()+'.jpg' + '?as=' + avatar().slice(-20) + '&ua=' + user_updated_at().replace(/[ :-]/g,'')}">
           </div>
 
           <?php /*--------->
