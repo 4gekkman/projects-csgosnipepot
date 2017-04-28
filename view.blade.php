@@ -247,7 +247,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thelastwinner.front.id()+'.jpg' + '?' + m.s1.game.stats.thelastwinner.front.avatar_steam().slice(-20)}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thelastwinner.front.id()+'.jpg' + '?as=' + m.s1.game.stats.thelastwinner.front.avatar_steam().slice(-20) + '&ua=' + m.s1.game.stats.thelastwinner.front.updated_at().replace(/[ :-]/g,'')}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -303,7 +303,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thelastwinner.back.id()+'.jpg' + '?' + m.s1.game.stats.thelastwinner.back.avatar_steam().slice(-20)}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thelastwinner.back.id()+'.jpg' + '?as=' + m.s1.game.stats.thelastwinner.back.avatar_steam().slice(-20) + '&ua=' + m.s1.game.stats.thelastwinner.back.updated_at().replace(/[ :-]/g,'')}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -373,7 +373,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.luckyoftheday.front.id()+'.jpg' + '?' + m.s1.game.stats.luckyoftheday.front.avatar_steam().slice(-20)}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.luckyoftheday.front.id()+'.jpg' + '?as=' + m.s1.game.stats.luckyoftheday.front.avatar_steam().slice(-20) + '&ua=' + m.s1.game.stats.luckyoftheday.front.updated_at().replace(/[ :-]/g,'')}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -429,7 +429,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.luckyoftheday.back.id()+'.jpg' + '?' + m.s1.game.stats.luckyoftheday.back.avatar_steam().slice(-20)}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.luckyoftheday.back.id()+'.jpg' + '?as=' + m.s1.game.stats.luckyoftheday.back.avatar_steam().slice(-20) + '&ua=' + m.s1.game.stats.luckyoftheday.back.updated_at().replace(/[ :-]/g,'')}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -499,7 +499,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thebiggestbet.front.id()+'.jpg' + '?' + m.s1.game.stats.thebiggestbet.front.avatar_steam().slice(-20)}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thebiggestbet.front.id()+'.jpg' + '?as=' + m.s1.game.stats.thebiggestbet.front.avatar_steam().slice(-20) + '&ua=' + m.s1.game.stats.thebiggestbet.front.updated_at().replace(/[ :-]/g,'')}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->
@@ -547,7 +547,7 @@
           <?php /*----------->
           <!-- 2.1] Аватар -->
           <!-------------*/ ?>
-          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thebiggestbet.back.id()+'.jpg' + '?' + m.s1.game.stats.thebiggestbet.front.avatar_steam().slice(-20)}">
+          <img data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+m.s1.game.stats.thebiggestbet.back.id()+'.jpg' + '?as=' + m.s1.game.stats.thebiggestbet.back.avatar_steam().slice(-20) + '&ua=' + m.s1.game.stats.thebiggestbet.back.updated_at().replace(/[ :-]/g,'')}">
 
           <?php /*------------>
           <!-- 2.2] Никнэйм -->

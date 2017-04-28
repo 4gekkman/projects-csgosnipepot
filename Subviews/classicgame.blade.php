@@ -413,7 +413,7 @@
           <!-- 1] Аватарка -->
           <!-------------*/ ?>
           <div class="avatar">
-            <img data-bind="attr: {src: avatar() + '?' + bets()[0].m5_users()[0].avatar_steam().slice(-20)}">
+            <img data-bind="attr: {src: avatar() + '?as=' + bets()[0].m5_users()[0].avatar_steam().slice(-20) + '&ua=' + bets()[0].m5_users()[0].updated_at().replace(/[ :-]/g,'')}">
           </div>
 
           <?php /*-------------->
@@ -451,7 +451,7 @@
             <!-- Аватар -->
             <!--------*/ ?>
             <div class="avatar">
-              <img data-bind="attr: {src: m5_users()[0].avatar_steam}" />
+              <img data-bind="attr: {src: layoutmodel.m.s0.asset_url()+'public/M5/steam_avatars/'+m5_users()[0].id()+'.jpg' + '?as=' + m5_users()[0].avatar_steam().slice(-20) + '&ua=' + m5_users()[0].updated_at().replace(/[ :-]/g,'')}" /> {{-- m5_users()[0].avatar_steam --}}
             </div>
 
             <?php /*--------------------->
@@ -604,7 +604,7 @@
               <?php /*--------->
               <!-- 1) Аватар -->
               <!-----------*/ ?>
-              <img class="avatar" data-bind="attr: {src: avatar_steam}">
+              <img class="avatar" data-bind="attr: {src: layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+id_user()+'.jpg' + '?as=' + avatar_steam().slice(-20) + '&ua=' + updated_at().replace(/[ :-]/g,'')}">
 
               <?php /*--------------------->
               <!-- 2) Ник, шанс, выигрыш -->
@@ -615,7 +615,7 @@
                 <!-- Ник -->
                 <!-----*/ ?>
                 <div class="nick">
-                  <a target="_blank" data-bind="text: nickname, attr: {href: 'http://steamcommunity.com/profiles/'+steamid()}"></a>
+                  <a target="_blank" data-bind="text: nickname"></a> {{-- attr: {href: 'http://steamcommunity.com/profiles/'+steamid()} --}}
                 </div>
 
                 <?php /*---->
