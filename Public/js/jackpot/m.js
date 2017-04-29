@@ -1124,8 +1124,27 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 			})();
 
+			//-----------------------------------------------------------------//
+			// 8] Индекс updated_at игроков текущего раунда выбранной комнаты //
+			//-----------------------------------------------------------------//
+			// - По ID игрока можно получить его аватар.
+			self.m.s1.indexes.users_updated_at = (function(){
+
+					// 1. Подготовить объект для результатов
+					var results = {};
+
+					// 2. Заполнить results
+					for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
+						results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i].user().updated_at();
+					}
+
+				// 3. Вернуть results
+				return results;
+
+			})();
+
 			//-----------------------------------------------------------------------//
-			// 8] Наполнить модель полосы аватаров текущего раунда выбранной комнаты //
+			// 9] Наполнить модель полосы аватаров текущего раунда выбранной комнаты //
 			//-----------------------------------------------------------------------//
 			(function(){
 
@@ -1140,16 +1159,23 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 4] Наполнить m.s1.game.strip.avatars
 				for(var i=0; i<avatars_strip_ids.length; i++) {
-					//self.m.s1.game.strip.avatars.push(self.m.s1.indexes.users_avatars[avatars_strip_ids[i]]);
-					//self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?' + m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20));
-					self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?as=' + m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20) + '&ua=' + (m.s1.indexes.users_updated_at[avatars_strip_ids[i]]).replace(/[ :-]/g,''));
+
+					// 4.1] Если нет необходимых ресурсов, всё очистить и завершить
+					if(!self.m.s1.indexes.users_avatars[avatars_strip_ids[i]] || !self.m.s1.indexes.users_updated_at[avatars_strip_ids[i]]) {
+						self.m.s1.game.strip.avatars.removeAll();
+						break;
+					}
+
+					// 4.2] Добавить в strip.avatars значение
+					self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?as=' + self.m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20) + '&ua=' + (self.m.s1.indexes.users_updated_at[avatars_strip_ids[i]]).replace(/[ :-]/g,''));
+
 				}
 
 			})();
 
-			//-----------------------------------------------------------------------//
-			// 9] Расчитать ширину полосы аватаров текущего раунда выбранной комнаты //
-			//-----------------------------------------------------------------------//
+			//------------------------------------------------------------------------//
+			// 10] Расчитать ширину полосы аватаров текущего раунда выбранной комнаты //
+			//------------------------------------------------------------------------//
 			(function(){
 
 				self.m.s1.game.strip.width(self.m.s1.game.strip.avatars().length*80 + self.m.s1.game.strip.avatars().length*2);
@@ -1157,51 +1183,51 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			})();
 
 			//-----------------------------------------------------------------------------------//
-			// 10] Расчитать финальную позицию полосы аватаров текущего раунда выбранной комнаты //
+			// 11] Расчитать финальную позицию полосы аватаров текущего раунда выбранной комнаты //
 			//-----------------------------------------------------------------------------------//
 //			(function(){
 //
-//				// 10.1] Если отсутствуют необходимые ресурсы, вернуть 0
+//				// 11.1] Если отсутствуют необходимые ресурсы, вернуть 0
 //				if(!self.m.s1.game.choosen_room())
 //					return 0;
 //
-//				// 10.2] Ширина аватара в px с учётом отступа справа
+//				// 11.2] Ширина аватара в px с учётом отступа справа
 //				var avatarwidth_origin = 80;
 //				var avatarrightmargin = 2;
 //				var avatarwidth = +avatarwidth_origin + +avatarrightmargin;
 //
-//				// 10.3] Получить ширину всей ленты
+//				// 11.3] Получить ширину всей ленты
 //				var width = self.m.s1.game.strip.width();
 //
-//				// 10.4] Получить поправку для установки позиции в конец ленты
+//				// 11.4] Получить поправку для установки позиции в конец ленты
 //				var endfix = (6*avatarwidth)-62;
 //
-//				// 10.5] Вычислить позицию в начале 100-го аватара (победителя)
+//				// 11.5] Вычислить позицию в начале 100-го аватара (победителя)
 //				var winnerpos = width - endfix - (11*avatarwidth);
 //
-//				// 10.6] Получить значение
+//				// 11.6] Получить значение
 //				var avatar_winner_stop_percents = (function(){
 //
-//					// 10.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
+//					// 11.6.1] Если предыдущий раунд есть, и статус Finished, Created или First bet, берём смещение из предыдущего раунда
 //					if(self.m.s1.game.choosen_room().rounds().length > 1 && ['Finished', 'Created', 'First bet'].indexOf(self.m.s1.game.choosen_room().rounds()[0].rounds_statuses()[self.m.s1.game.choosen_room().rounds()[0].rounds_statuses().length - 1].status()) != -1)
 //						return self.m.s1.game.choosen_room().rounds()[1].avatar_winner_stop_percents();
 //
-//					// 10.6.2] Иначе, берём смещение из текущего раунда
+//					// 11.6.2] Иначе, берём смещение из текущего раунда
 //					else
 //						return self.m.s1.game.choosen_room().rounds()[0].avatar_winner_stop_percents();
 //
 //				})();
 //
-//				// 10.7] Вычислить позицию с учётом avatar_winner_stop_percents
+//				// 11.7] Вычислить позицию с учётом avatar_winner_stop_percents
 //				var winnerpos_final = -(winnerpos + avatarwidth_origin*(avatar_winner_stop_percents/100));
 //
-//				// 10.n] Вернуть результаты
+//				// 11.n] Вернуть результаты
 //				self.m.s1.game.strip.final_px(winnerpos_final);
 //
 //			})();
 
 			//--------------------------------------------------------------------------------------------//
-			// 11] Расчитать кол-во внесенных вещей и шансы игрока в в текущем раунде в выбранной комнате //
+			// 12] Расчитать кол-во внесенных вещей и шансы игрока в в текущем раунде в выбранной комнате //
 			//--------------------------------------------------------------------------------------------//
 			(function(){
 
@@ -1228,7 +1254,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			})();
 
 			//---------------------------------------------------------------------------------------------//
-			// 12] Какой бот должен принимать ставки в текущем раунде выбранной комнаты до статуса Lottery //
+			// 13] Какой бот должен принимать ставки в текущем раунде выбранной комнаты до статуса Lottery //
 			//---------------------------------------------------------------------------------------------//
 			(function(){
 
@@ -1313,20 +1339,20 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 			})();
 
 			//-----------------------------------------------------------------------------------//
-			// 13] Обновить значения odds_player у всех ставок текущего раунда выбранной комнаты //
+			// 14] Обновить значения odds_player у всех ставок текущего раунда выбранной комнаты //
 			//-----------------------------------------------------------------------------------//
 			(function(){
 
-				// 13.1] Если ставки отсутствуют, завершить
+				// 14.1] Если ставки отсутствуют, завершить
 				if(!self.m.s1.game.curprev().current().bets || !self.m.s1.smoothbets.bets().length) return;
 
-				// 13.2] Получить ставки текущего раунда выбранной комнаты в короткую переменную
+				// 14.2] Получить ставки текущего раунда выбранной комнаты в короткую переменную
 				var bets = self.m.s1.smoothbets.bets();
 
-				// 13.3] Обновить odds_player всех ставок
+				// 14.3] Обновить odds_player всех ставок
 				for(var i=0; i<bets.length; i++) {
 
-					// 13.3.1] Получить шансы владейльца i-й ставки
+					// 14.3.1] Получить шансы владейльца i-й ставки
 					var odds = (function(){
 
 						// 1) Получить ID игрока-владельца ставки
@@ -1351,25 +1377,6 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					bets[i].odds_player(odds);
 
 				}
-
-			})();
-
-			//-----------------------------------------------------------------//
-			// 14] Индекс updated_at игроков текущего раунда выбранной комнаты //
-			//-----------------------------------------------------------------//
-			// - По ID игрока можно получить его аватар.
-			self.m.s1.indexes.users_updated_at = (function(){
-
-					// 1. Подготовить объект для результатов
-					var results = {};
-
-					// 2. Заполнить results
-					for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
-						results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i].user().updated_at();
-					}
-
-				// 3. Вернуть results
-				return results;
 
 			})();
 
