@@ -1010,15 +1010,16 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 
 			// 4] Добавить в чат сообщение от пользователя СИСТЕМА
 			layoutmodel.f.s5.add_incoming_msg({
-				id: 				0,
-				steamname: 	'Система',
-				avatar: 		layoutmodel.m.s0.full_host() + '/public/L10003/assets/images/chat_daemon.jpg',
-				level: 			1,
-				message: 		data.nickname+' заблокирован в чате на '+data.ban_time_min+' мин. '+data.reason,
-				id_user: 		0,
-				system: 		1,
-				created_at: "",
-				updated_at: ""
+				id: 							0,
+				steamname: 				'Система',
+				avatar: 					layoutmodel.m.s0.full_host() + '/public/L10003/assets/images/chat_daemon.jpg',
+				level: 						1,
+				message: 					data.nickname+' заблокирован в чате на '+data.ban_time_min+' мин. '+data.reason,
+				id_user: 					0,
+				system: 					1,
+				created_at: 			"",
+				updated_at: 			"",
+				user_updated_at: 	""
 			});
 
 
