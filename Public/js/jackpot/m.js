@@ -1141,7 +1141,8 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 				// 4] Наполнить m.s1.game.strip.avatars
 				for(var i=0; i<avatars_strip_ids.length; i++) {
 					//self.m.s1.game.strip.avatars.push(self.m.s1.indexes.users_avatars[avatars_strip_ids[i]]);
-					self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?' + m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20));
+					//self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?' + m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20));
+					self.m.s1.game.strip.avatars.push(layoutmodel.m.s0.asset_url() + 'public/M5/steam_avatars/'+avatars_strip_ids[i]+'.jpg' + '?as=' + m.s1.indexes.users_avatars[avatars_strip_ids[i]].slice(-20) + '&ua=' + (m.s1.indexes.users_updated_at[avatars_strip_ids[i]]).replace(/[ :-]/g,''));
 				}
 
 			})();
@@ -1350,6 +1351,25 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 					bets[i].odds_player(odds);
 
 				}
+
+			})();
+
+			//-----------------------------------------------------------------//
+			// 14] Индекс updated_at игроков текущего раунда выбранной комнаты //
+			//-----------------------------------------------------------------//
+			// - По ID игрока можно получить его аватар.
+			self.m.s1.indexes.users_updated_at = (function(){
+
+					// 1. Подготовить объект для результатов
+					var results = {};
+
+					// 2. Заполнить results
+					for(var i=0; i<self.m.s1.game.wheel.data().length; i++) {
+						results[self.m.s1.game.wheel.data()[i].user().id()] = self.m.s1.game.wheel.data()[i].user().updated_at();
+					}
+
+				// 3. Вернуть results
+				return results;
 
 			})();
 
