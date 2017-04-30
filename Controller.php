@@ -331,6 +331,27 @@ class Controller extends BaseController {
       if($steamgrouppromo['status'] != 0)
         throw new \Exception($steamgrouppromo['data']['errormsg']);
 
+      // 14. Состоит ли текущий пользователь в группе winners
+      $is_in_winners = call_user_func(function() {
+
+        // Состоит ли $user в группе winners
+        $is_in_winners = \M5\Models\MD1_users::where('id', lib_current_user_id())
+          ->whereHas('groups', function($queue){
+            $queue->where('name', 'Winners');
+          })->first();
+
+        // Если $user состоит в группе Winners
+        if(!empty($is_in_winners)) {
+          return 4;
+        }
+
+        // Если не состоит
+        else {
+          return 0;
+        }
+
+      });
+
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -365,6 +386,7 @@ class Controller extends BaseController {
           'coins'   => $steamgrouppromo['data']['coins'],
           'is_paid' => $steamgrouppromo['data']['is_paid']
         ],
+        "is_in_group" => $is_in_winners
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 

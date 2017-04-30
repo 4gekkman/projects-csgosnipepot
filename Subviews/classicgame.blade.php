@@ -49,7 +49,45 @@
       <?php /*--------------------------->
       <!-- 2] Интерфейс выбора комнаты -->
       <!-----------------------------*/ ?>
-      <div class="choose-room" data-bind="if: m.s1.game.choosen_room()">
+      {{-- Новый вариант --}}
+      <div class="choose-room-new1" data-bind="if: m.s1.game.choosen_room()"><div data-bind="foreach: m.s1.game.rooms">
+
+        <?php /*------->
+        <!-- Комната -->
+        <!---------*/ ?>
+        <div class="room" data-bind="click: $root.f.s1.choose_room, css: {choosen: id() == $root.m.s1.game.choosen_room().id()}">
+
+          <?php /*------------------->
+          <!-- Название и описание -->
+          <!---------------------*/ ?>
+          <div class="name_and_desc">
+            <span style="font-size: 16px; color: #f59c1a;" data-bind="text: name()"></span>
+            <span style="font-size: 12px;" data-bind="html: ' от ' + Math.ceil((Math.round(min_bet())/100)*server.data.usdrub_rate) + 'р.' + (max_bet() != 0 ? ' до ' + Math.ceil((Math.round(max_bet())/100)*server.data.usdrub_rate) + 'р.' : '')"></span>
+          </div>
+
+          <?php /*------------------->
+          <!-- Название и описание -->
+          <!---------------------*/ ?>
+          <div class="bank">
+
+            <?php /*------------------>
+            <!-- Название состояния -->
+            <!--------------------*/ ?>
+            <span class="game-state" data-bind="text: $root.m.s1.room_states()[id()]()"></span>
+
+            <?php /*------->
+            <!-- На кону -->
+            <!---------*/ ?>
+            <span class="game-prize" data-bind="attr: {id: 'game-prize-'+id()}, text: Math.round(($root.m.s1.room_jackpots()[id()]()/100)*server.data.usdrub_rate) + ' руб.'"></span>
+
+          </div>
+
+        </div>
+
+      </div></div>
+
+      {{-- Старый вариант --}}
+      <div style="display: none" class="choose-room" data-bind="if: m.s1.game.choosen_room()">
 
         <?php /*------------------------------->
         <!-- 2.1] Название выбранной комнаты -->
@@ -471,10 +509,11 @@
                   <span> до </span>
                   <span class="ticketnumber" data-bind="text: '#' + m5_users()[0].pivot.tickets_to()"></span>
                 </div>
-                <!--<span class="bet-number" data-bind="text: 'Ставка №' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>-->
+                {{-- <!--<span class="bet-number" data-bind="text: 'Ставка №' + (($root.m.s1.game.curprev().current().bets().length) - ($index() + 1) + 1)" title="Номер ставки в рамках раунда"></span>--> --}}
 
                 <!-- Nickname игрока, сделавшего ставку-->
-                <a class="nickname" target="_blank" data-bind="text: m5_users()[0].nickname"></a> <!--, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}" title="Перейти в профиль игрока в Steam"></a>-->
+                <a style="display: none" class="nickname" target="_blank" data-bind="visible: !server.data.is_in_group, text: m5_users()[0].nickname"></a> {{--, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}" title="Перейти в профиль игрока в Steam"></a> --}}
+                <a style="display: none" class="nickname" target="_blank" data-bind="visible: server.data.is_in_group, text: m5_users()[0].nickname, attr: {href: 'http://steamcommunity.com/profiles/' + m5_users()[0].ha_provider_uid()}"></a>
 
               </div>
 

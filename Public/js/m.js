@@ -513,6 +513,28 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			// 3] Инициировать статистику последнего победителя
 			self.f.s1.stats_init_lastwinner();
 
+			// 4] Записать room_jackpots
+			self.m.s1.room_jackpots((function(){
+
+				var result = {};
+				for(var i=0; i<self.m.s1.game.rooms().length; i++) {
+					result[self.m.s1.game.rooms()[i].id()] = ko.observable(0);
+				}
+				return result;
+
+			})());
+
+			// 4] Записать room_jackpots
+			self.m.s1.room_states((function(){
+
+				var result = {};
+				for(var i=0; i<self.m.s1.game.rooms().length; i++) {
+					result[self.m.s1.game.rooms()[i].id()] = ko.observable('На кону:');
+				}
+				return result;
+
+			})());
+
 		})();
 		
 		//----------------------------------------------------------------//
@@ -640,8 +662,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 			});
 
 		})();
-
-
 
 	});
 

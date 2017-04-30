@@ -133,9 +133,9 @@
   <?php /*--------------------------->
   <!-- A2. Баннер "Будь Онлайн" №1 -->
   <!-----------------------------*/ ?>
-  <div style="display: none" class="notification beonline_banner_1" data-bind="click: layoutmodel.f.s1.choose_subdoc.bind(null, {uri: '/free'}), visible: layoutmodel.m.s1.selected_subdoc().uri() != '/free'">
+  <!--<div style="display: none" class="notification beonline_banner_1" data-bind="click: layoutmodel.f.s1.choose_subdoc.bind(null, {uri: '/free'}), visible: layoutmodel.m.s1.selected_subdoc().uri() != '/free'">
     <img src="{!! asset('public/D10009/assets/banners/beonline1.jpg') !!}">
-  </div>
+  </div>-->
 
 
 </div>
