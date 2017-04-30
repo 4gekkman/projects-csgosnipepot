@@ -651,8 +651,10 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                         }
                       }
 
-                      // Обрезать m5_users
+                      // Обрезать m5_users, добавить новые свойства
                       foreach($bet['m5_users'] as &$user) {
+
+                        // 1] Обрезать
                         unset($user['adminnote']);
                         unset($user['password_hash']);
                         unset($user['birthday']);
@@ -665,6 +667,7 @@ class C13_update_cache extends Job { // TODO: добавить "implements Shoul
                         unset($user['usernote']);
                         unset($user['is_email_approved']);
                         unset($user['is_phone_approved']);
+
                       }
 
                     }
