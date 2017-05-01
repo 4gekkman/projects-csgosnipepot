@@ -169,8 +169,9 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
       // 1. Получить и проверить входящие данные
       $validator = r4_validate($this->data, [
 
-        "id_room"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
-        "id_user"           => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_room" => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_user" => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "id_bet"  => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
 
       ]); if($validator['status'] == -1) {
 
@@ -195,6 +196,10 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
 
       // 4. Получить последний раунд, связанный с комнатой $room
       $lastround = count($room['rounds']) >= 0 ? $room['rounds']['0'] : "";
+      //$lastround = \M9\Models\MD2_rounds::with(['rounds_statuses','bets', 'bets.m8_items', 'bets.bets_statuses'])
+      //  ->whereHas('rooms', function($queue) USE ($room) {
+      //    $queue->where('id', $room['id']);
+      //  })->orderBy('id', 'desc')->first();
       if(empty($lastround)) {
         return [
           "status"  => 0,
@@ -302,12 +307,32 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
           return $result;
         });
 
+        // 6] Вычислить кол-во вещей в ставке id_bet, можно ли принять которую решает эта команда
+        $results['id_bet_items_count'] = call_user_func(function(){
+
+          // 6.1] Попробовать найти ставку id_bet
+          $bet = \M9\Models\MD3_bets::with(['m8_items'])
+              ->where('id', $this->data['id_bet'])->first();
+          if(empty($bet))
+            throw new \Exception('Не удалось найти ставку с ID = '.$this->data['id_bet']);
+
+          // 6.2] Посчитать кол-во вещей в $bet
+          $items_count = 0;
+          foreach($bet['m8_items'] as $item) {
+            $items_count = +$items_count + 1;
+          }
+
+          // 6.3] Вернуть результат
+          return $items_count;
+
+        });
+
         // n] Вернуть результаты
         return $results;
 
       });
 
-      // 9. Определить, не превышены ли уже лимиты в этом раунде
+      // 8. Определить, не превышены ли уже лимиты в этом раунде
       $is_limits_exceeded = call_user_func(function() USE ($room_limits, $bank) {
 
         // 1] Подготовить массив для результатов
@@ -369,7 +394,7 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
             return false;
 
           // Если лимит превышен, вернуть true
-          if(intval($bank['user_items_count']) >= intval($room_limits['max_items_peruser_perround']))
+          if(intval(+$bank['user_items_count'] + +$bank['id_bet_items_count']) >= intval($room_limits['max_items_peruser_perround']))
             return true;
 
           // Вернуть false (по умолчанию)
@@ -382,7 +407,7 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
 
       });
 
-      // 10. Сформулировать итоговый вердикт, можем ли мы в этом раунде принять ставку от этого пользователя
+      // 9. Сформулировать итоговый вердикт, можем ли мы в этом раунде принять ставку от этого пользователя
       $verdict = call_user_func(function() USE ($is_limits_exceeded) {
         foreach($is_limits_exceeded as $is_exceeded) {
           if($is_exceeded == true) return false;

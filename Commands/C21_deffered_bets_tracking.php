@@ -213,7 +213,8 @@ class C21_deffered_bets_tracking extends Job { // TODO: добавить "implem
 
               $result = runcommand('\M9\Commands\C22_canwe_makeabet_intheroom_now', [
                 "id_room" => $room['id'],
-                "id_user" => $bet2attach['m5_users'][0]['id']
+                "id_user" => $bet2attach['m5_users'][0]['id'],
+                "id_bet"  => $bet2attach['id'],
               ]);
               if($result['status'] != 0)
                 throw new \Exception($result['data']['errormsg']);

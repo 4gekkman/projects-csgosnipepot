@@ -378,7 +378,8 @@ class C16_active_to_accepted extends Job { // TODO: добавить "implements
 
         $result = runcommand('\M9\Commands\C22_canwe_makeabet_intheroom_now', [
           "id_room" => $this->data['id_room'],
-          "id_user" => $this->data['id_user']
+          "id_user" => $this->data['id_user'],
+          "id_bet"  => $this->data['betid'],
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
