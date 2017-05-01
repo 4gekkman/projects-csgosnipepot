@@ -156,7 +156,6 @@ class C72_parse_all_avatars extends Job { // TODO: добавить "implements 
 
       // 3] Извлекать пользователей из группы SteamUsers по 100 штук
       // - И добавлять аватар каждого из них в steam_avatars, если его там ещё нет
-
       \M5\Models\MD1_users::whereHas('groups', function($queue){
         $queue->where('name', 'SteamUsers');
       })->chunk(100, function($users) USE ($fs) {
