@@ -418,6 +418,10 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 				else if(data.data.errormsg == "5")
 					toastr.error("Вы делаете запросы слишком часто, попробуйте снова через 1 минуту.", "Ошибка");
 
+				// 6] Закрытый профиль
+				else if(data.data.errormsg == "6")
+					toastr.error("Похоже, ваш профиль в Steam скрыт, и мы не можем проверить, в каких группах вы состоите.", "Ошибка");
+
 				// n] Если это обычная ошибка
 				else {
 					toastr.error(data.data.errormsg, "Ошибка");

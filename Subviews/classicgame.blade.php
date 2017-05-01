@@ -50,7 +50,7 @@
       <!-- 2] Интерфейс выбора комнаты -->
       <!-----------------------------*/ ?>
       {{-- Новый вариант --}}
-      <div class="choose-room-new1" data-bind="if: m.s1.game.choosen_room()"><div data-bind="foreach: m.s1.game.rooms.slice(0).reverse()">
+      <div class="choose-room-new1" data-bind="if: m.s1.game.choosen_room()"><div data-bind="foreach: m.s1.game.rooms">
 
         <?php /*------->
         <!-- Комната -->
