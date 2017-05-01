@@ -200,7 +200,7 @@ class C3_check_if_user_in_group extends Job { // TODO: добавить "impleme
 
       });
       if(empty($data) || $data->response->success == false) {
-        throw new \Exception('1');
+        throw new \Exception('6');
       }
 
       // 4. Получить массив gid групп, в которых состоит пользователь
