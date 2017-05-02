@@ -152,7 +152,8 @@
           '\M5\Console\T27_count_logged_in_steam_users',
           '\M5\Console\T28_parse_all_avatars',
           '\M5\Console\T29_rename_user',
-          '\M5\Console\T30_touch_user'
+          '\M5\Console\T30_touch_user',
+          '\M5\Console\T31_update_steam_nick_ava_by_id'
         ];
 
         // Регистрация команд в методе register
