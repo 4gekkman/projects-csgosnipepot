@@ -164,7 +164,8 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       // 1. Провести валидацию
       $validator = r4_validate($this->data, [
 
-        "file"                                    => ["required", "image"],
+        "file"                                    => ["required_without:url", "image"],
+        "url"                                     => ["required_without:file", "url"],
         "group"                                   => ["sometimes", "string"],
         "params"                                  => ["sometimes", "array"],
         "params.folderpath_relative_to_basepath"  => ["sometimes", "string"],
@@ -245,7 +246,10 @@ class C1_saveimage extends Job { // TODO: добавить "implements ShouldQue
       }
 
       // 6. Создать оригинальный экземпляр II из оригинала изображения
-      $image = \Intervention\Image\ImageManagerStatic::make($this->data['file']);
+      if(array_key_exists('file', $this->data))
+        $image = \Intervention\Image\ImageManagerStatic::make($this->data['file']);
+      else if(array_key_exists('url', $this->data))
+        $image = \Intervention\Image\ImageManagerStatic::make($this->data['url']);
 
       // 7. Проверить mime-тип изображения
       if(!in_array($image->mime(), ['image/jpeg', 'image/png', 'image/gif']))
