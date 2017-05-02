@@ -161,24 +161,33 @@ class Controller extends BaseController {
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 2. Получить steam_tradeurl, если он есть
-      $steam_tradeurl = call_user_func(function(){
+      // 2. Получить steam_tradeurl и $user, если он есть
+      $steam_tradeurl_and_user = call_user_func(function(){
 
         // 1] Извлечь auth_cache
         $auth = json_decode(session('auth_cache'), true);
 
         // 2] Получить ID запрашивающего пользователя
         if(!array_key_exists('user', $auth) || !array_key_exists('id', $auth['user']))
-          return "";
+          return [
+            "steam_tradeurl" => "",
+            "user"           => ""
+          ];
         $id = $auth['user']['id'];
 
         // 3] Попробовать найти пользователя с $id
         $user = \M5\Models\MD1_users::find($id);
         if(empty($user))
-          return "";
+          return [
+            "steam_tradeurl" => "",
+            "user"           => ""
+          ];
 
         // 4] Вернуть steam_tradeurl
-        return $user->steam_tradeurl;
+        return [
+          "steam_tradeurl" => $user->steam_tradeurl,
+          "user"           => $user
+        ];
 
       });
 
@@ -352,6 +361,39 @@ class Controller extends BaseController {
 
       });
 
+      // 15. Если пользователь не анонимный, обновить его аватар и ник, если время пришло
+      if(!empty($steam_tradeurl_and_user['user'])) {
+
+        // 15.1. Получить last_ava_nick_update_at пользователя
+        $last = $steam_tradeurl_and_user['user']->last_ava_nick_update_at;
+
+        // 15.2. Получить из конфига значение how_often2update_users_ava_and_nick
+        $how_often = config("M5.how_often2update_users_ava_and_nick") ?: 1440;
+
+        // 15.3. Если с момента $last уже прошло $how_often минут, или $last пуст
+        // - Обновить ник и аватар пользователя.
+        if(empty($last) || +(\Carbon\Carbon::parse($last)->diffInMinutes(\Carbon\Carbon::now())) >= $how_often) {
+
+          // 1] Обновить ник и аватар пользователя.
+          $result = runcommand('\M5\Commands\C75_update_steam_nick_ava_by_id', [
+            "id"              => $steam_tradeurl_and_user['user']->id,
+            "besides_groups"  => ['']
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 2] Обновить значение $last
+          $steam_tradeurl_and_user['user']->last_ava_nick_update_at = \Carbon\Carbon::now();
+
+        }
+
+      }
+
+      // m. Если пользователь не анонимный, записать ему значение в last_visit_at
+      if(!empty($steam_tradeurl_and_user['user'])) {
+        $steam_tradeurl_and_user['user']->last_visit_at = \Carbon\Carbon::now();
+        $steam_tradeurl_and_user['user']->save();
+      }
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -362,7 +404,7 @@ class Controller extends BaseController {
         'layoutid'                => $this->layoutid,
         'websocket_server'        => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'      => Session::getId(),
-        'steam_tradeurl'          => $steam_tradeurl,
+        'steam_tradeurl'          => $steam_tradeurl_and_user['steam_tradeurl'],
         'rooms'                   => $allgamedata['data']['rooms'],
         'choosen_room_id'         => $allgamedata['data']['choosen_room_id'],
         'lottery_game_statuses'   => $lottery_game_statuses_db,

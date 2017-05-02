@@ -15,6 +15,7 @@
   5. Стили интерфейса пополнения баланса скинами
   6. Стили магазина скинов
   7. Стили Free Coins
+  8. Стили футера
 
 ////------------------------------////
 ////             ////
@@ -48,7 +49,7 @@
   1.12. Статистические данные
   1.13. Зона уведомлений
   1.14. История игр
-
+  1.15. СЕО-текст
 
 //------------------------------------*/
 
@@ -1281,7 +1282,6 @@
 
     // Общие стили
     .content .classic-game .termsofuse {
-      text-align: center;
       margin: 10px 0;
       font-size: 1.1em;
     }
@@ -1289,13 +1289,39 @@
     // Заявление о не аффилированности
     .content .classic-game .termsofuse .not-affilated-statement {
       color: #9ea7b3;
+      text-align: center;
     }
 
     // Правила использования
+    .content .classic-game .termsofuse .termslink {
+      text-align: center;
+    }
     .content .classic-game .termsofuse .termslink a {
       color: #1e96b0;
       text-decoration: underline;
       cursor: pointer;
+    }
+
+    // Сео-текст
+    .content .classic-game .termsofuse .seo {
+      padding-top: 30px;
+      padding-bottom: 50px;
+      color: #9ea7b3;
+    }
+    .content .classic-game .termsofuse .seo h1 {
+      text-align: center;
+    }
+    .content .classic-game .termsofuse .seo h1, .content .classic-game .termsofuse .seo h2, .content .classic-game .termsofuse .seo h3 {
+      font-weight: bold;
+    }
+    .content .classic-game .termsofuse .seo ul, .content .classic-game .termsofuse .seo ol {
+      margin-left: 40px;
+    }
+    .content .classic-game .termsofuse .seo ol {
+      list-style-type: decimal;
+    }
+    .content .classic-game .termsofuse .seo ul {
+      list-style-type: disc;
     }
 
   //-----------------------------//
@@ -1797,7 +1823,32 @@
       font-size: 2em;
     }
 
-    
+  //-----------------//
+  // 1.15. СЕО-текст //
+  //-----------------//
+  .content .seo {
+    padding-top: 30px;
+    padding-bottom: 50px;
+    color: #9ea7b3;
+  }
+  .content .seo h1 {
+    text-align: center;
+  }
+  .content .seo h1, .content .seo h2, .content .seo h3 {
+    font-weight: bold;
+  }
+  .content .seo ul, .content .seo ol {
+    margin-left: 40px;
+  }
+  .content .seo ol {
+    list-style-type: decimal;
+  }
+  .content .seo ul {
+    list-style-type: disc;
+  }
+
+
+
 //------------------//
 // 2. Стили профиля //
 /*------------------//
@@ -3704,10 +3755,76 @@
         color: #fff;
       }
 
+//-----------------//
+// 8. Стили футера //
+/*-----------------//
+Оглавление
 
+  1.1. Общие стили футера
+  1.2. Стили условий использования
 
+//------------------------------------*/
 
+  //-----------------------------//
+  // 8.1. Общие стили Free Coins //
+  //-----------------------------//
 
+    // Внешний контейнер
+    .content .footer {
+
+    }
+
+  //----------------------------------//
+  // 8.2. Стили условий использования //
+  //----------------------------------//
+
+    // Общие стили
+    .content .footer .termsofuse {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    // Заявление о не аффилированности
+    .content .footer .termsofuse .not-affilated-statement {
+      color: #9ea7b3;
+      text-align: center;
+    }
+
+    // Правила использования
+    .content .footer .termsofuse .termslink {
+      text-align: center;
+    }
+    .content .footer .termsofuse .termslink a {
+      color: #1e96b0;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    // Сео-текст
+    .content .footer .termsofuse .seo {
+      padding-top: 30px;
+      padding-bottom: 50px;
+      color: #9ea7b3;
+    }
+    .content .footer .termsofuse .seo h1 {
+      text-align: center;
+    }
+    .content .footer .termsofuse .seo h1, .content .footer .termsofuse .seo h2, .content .footer .termsofuse .seo h3 {
+      font-weight: bold;
+    }
+    .content .footer .termsofuse .seo ul, .content .footer .termsofuse .seo ol {
+      margin-left: 40px;
+    }
+    .content .footer .termsofuse .seo ol {
+      list-style-type: decimal;
+    }
+    .content .footer .termsofuse .seo ul {
+      list-style-type: disc;
+    }
+    
+    
+    
+    
 
 
 
