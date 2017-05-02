@@ -394,7 +394,7 @@ class C22_canwe_makeabet_intheroom_now extends Job { // TODO: добавить "
             return false;
 
           // Если лимит превышен, вернуть true
-          if(intval(+$bank['user_items_count'] + +$bank['id_bet_items_count']) >= intval($room_limits['max_items_peruser_perround']))
+          if(intval(+$bank['user_items_count'] + +$bank['id_bet_items_count']) > intval($room_limits['max_items_peruser_perround']))
             return true;
 
           // Вернуть false (по умолчанию)
