@@ -210,7 +210,10 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
           $fs->put($file, '');
         }
 
-        // 8] Вернуть результат
+        // 8] Сделать chmod 777 на всю папку rootfolder
+        Log::info(shell_exec("chmod -R 777 '".base_path()."/..';"));
+
+        // 9] Вернуть результат
         return [
           'fs'          => $fs,
           'fullpath'    => base_path($file),
