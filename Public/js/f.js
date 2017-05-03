@@ -43,7 +43,6 @@
  *    f.s5.ban                      | s5.4. Забанить указанного пользователя
  *    f.s5.ban_user_handle          | s5.5. Обработка бана пользователя
  *
- *
  *  s6. Функционал для работы с классической игрой
  *
  *    f.s6.notify_animate           | s6.1. Запустить анимацию уведомления о ставке в пункте меню Classic game
@@ -1040,7 +1039,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 		//--------------------------------------------------------------------------//
 		// s6.1. Запустить анимацию уведомления о ставке в пункте меню Classic game //
 		//--------------------------------------------------------------------------//
-		f.s6.notify_animate = function() {
+		f.s6.notify_animate = function(value) {
 
 			// 1] Снизить длительность анимации до 0
 			self.m.s6.notify.traisitionDuration('0s');
@@ -1048,7 +1047,10 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			// 2] Показать уведомление
 			self.m.s6.notify.is_hidden(0);
 
-			// 3] Через .5s
+			// 3] Обновить текст уведомления
+			self.m.s6.notify.text(value);
+
+			// 4] Через .5s
 			setTimeout(function(){
 
 				// Вернуть длительность анимации 01s
