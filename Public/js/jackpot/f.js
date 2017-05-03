@@ -334,7 +334,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 										// 2] Иначе - добавить
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
 										self.f.s1.playsound('bet', room2update.id(), '1');
-										layoutmodel.f.s6.notify_animate();
+										layoutmodel.f.s6.notify_animate('+ '+Math.round((round2update_data.bets[i].sum_cents_at_bet_moment/100)*server.data.usdrub_rate) + ' руб.');
 										self.f.s1.tradeoffer_accepted({
 											id_room: 					room2update.id(),
 											id_user:          round2update.bets()[i].m5_users()[0].id(),
@@ -370,7 +370,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 										// 2] Иначе - добавить
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
 										self.f.s1.playsound('bet', room2update.id(), '2');
-										layoutmodel.f.s6.notify_animate();
+										layoutmodel.f.s6.notify_animate('+ '+Math.round((round2update_data.bets[i].sum_cents_at_bet_moment/100)*server.data.usdrub_rate) + ' руб.');
 										self.f.s1.tradeoffer_accepted({
 											id_room: 					room2update.id(),
 											id_user:          round2update.bets()[i].m5_users()[0].id(),
@@ -414,7 +414,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 										// 2] Иначе - добавить
 										round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
  										self.f.s1.playsound('bet', room2update.id(), '3');
-										layoutmodel.f.s6.notify_animate();
+										layoutmodel.f.s6.notify_animate('+ '+Math.round((round2update_data.bets[i].sum_cents_at_bet_moment/100)*server.data.usdrub_rate) + ' руб.');
 										self.f.s1.tradeoffer_accepted({
 											id_room: 					room2update.id(),
 											id_user:          round2update.bets()[i].m5_users()[0].id(),
@@ -458,7 +458,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 										for(var i=round2update.bets().length; i<round2update_data.bets.length; i++) {
 											round2update.bets.push(ko.mapping.fromJS(round2update_data.bets[i]));
 											self.f.s1.playsound('bet', room2update.id(), '4');
-											layoutmodel.f.s6.notify_animate();
+											layoutmodel.f.s6.notify_animate('+ '+Math.round((round2update_data.bets[i].sum_cents_at_bet_moment/100)*server.data.usdrub_rate) + ' руб.');
 											self.f.s1.tradeoffer_accepted({
 												id_room: 					room2update.id(),
 												id_user:          round2update.bets()[i].m5_users()[0].id(),

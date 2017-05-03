@@ -1812,7 +1812,7 @@ var ModelJackpot = { constructor: function(self, m) { m.s1 = this;
 
 				// 4.2] Добавить текст для уведомления в пункте "Classic game" главного меню
 				layoutmodel.m.s6.notify.text((function(){
- 					return '+ '+Math.ceil((newbets[i].sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.';
+ 					return '+ '+Math.round((newbets[i].sum_cents_at_bet_moment()/100)*server.data.usdrub_rate) + ' руб.';
 				})());
 
 			}
