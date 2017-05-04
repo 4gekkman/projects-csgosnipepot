@@ -211,7 +211,8 @@ class C6_bot_request_steam extends Job { // TODO: добавить "implements S
         }
 
         // 8] Сделать chmod 777 на всю папку rootfolder
-        Log::info(shell_exec("chmod -R 777 '".base_path()."/..';"));
+        if(env("APP_ENV") != 'dev')
+          shell_exec("chmod -R 777 '".base_path()."/..';");
 
         // 9] Вернуть результат
         return [
