@@ -436,7 +436,7 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 			}
 
 			// 4] Если это анон, а доступ к документу для анонов закрыт, переадресовать на anon_redir, и завершить
-			if(!self.m.s0.is_logged_in() && !subdoc.vis4anon()) {
+			if(!self.m.s0.is_logged_in() && (!subdoc.vis4anon() || !subdoc.access4anon())) {
 
 				// 4.1] Переадресовать
 				self.f.s1.choose_subdoc({
