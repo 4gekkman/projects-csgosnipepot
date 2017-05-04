@@ -658,7 +658,7 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 					st.lottery = moment.utc(+started_at_s + +durations.started + +durations.pending);
 
 					// Когда надо переключить в Winner
-					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery);
+					st.winner = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + 1);
 
 					// Когда надо переключить в Created
 					st.created = moment.utc(+started_at_s + +durations.started + +durations.pending + +durations.lottery + +durations.winner) + +room2update.rounds()[0].started_duration_fact_s() + 1;
@@ -1558,15 +1558,22 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 
 			if( isNaN(futuretime) || isNaN(avatar_arrow_num) || isNaN(self.m.s1.game.strip.avatar_arrow_num_prev()) || ((Date.now() > futuretime))) {
 
-				// n.1) Установить currentpos на финальную позицию
-				self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
-
-				// n.2) Удалить комнату из реестра комнат с работающими анимациями
+				// Удалить комнату из реестра комнат с работающими анимациями
 				// - И остановить анимацию.
 				self.m.s1.game.strip.rooms_with_working_animation.remove(function(item){
 					if(item.id_room == self.m.s1.game.choosen_room().id()) {
+
+						console.log('clearinterval');
+
+						// 1] Удалить интервал
 						clearInterval(item.interval);
+
+						// 2] Установить currentpos на финальную позицию
+						self.m.s1.game.strip.currentpos(self.m.s1.game.strip.final_px());
+
+						// 3] Удалить комнату из реестра
 						return true;
+
 					}
 				});
 
@@ -1575,6 +1582,8 @@ var ModelFunctionsJackpot = { constructor: function(self, f) { f.s1 = this;
 		};
 
 		// n. Запустить розыгрыш
+
+			console.log('Start lottery');
 
 			// Запустить
 			var interval = setInterval(handler, 25, futuretime, times, lottery_duration_ms, self.m.s1.game.choosen_room().id());

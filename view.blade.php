@@ -256,7 +256,7 @@
           <!-- 2.2] Никнэйм -->
           <!--------------*/ ?>
           <div class="nickname">
-            <span data-bind="text: m.s1.game.stats.thelastwinner.front.nickname"></span>
+            <span data-bind="text: m.s1.game.stats.thelastwinner.front.nickname, attr: {title: m.s1.game.stats.thelastwinner.front.nickname}"></span>
           </div>
 
         </div>
@@ -312,7 +312,7 @@
           <!-- 2.2] Никнэйм -->
           <!--------------*/ ?>
           <div class="nickname">
-            <span data-bind="text: m.s1.game.stats.thelastwinner.back.nickname"></span>
+            <span data-bind="text: m.s1.game.stats.thelastwinner.back.nickname, attr: {title: m.s1.game.stats.thelastwinner.back.nickname}"></span>
           </div>
 
         </div>
@@ -382,7 +382,7 @@
           <!-- 2.2] Никнэйм -->
           <!--------------*/ ?>
           <div class="nickname">
-            <span data-bind="text: m.s1.game.stats.luckyoftheday.front.nickname"></span>
+            <span data-bind="text: m.s1.game.stats.luckyoftheday.front.nickname, attr: {title: m.s1.game.stats.luckyoftheday.front.nickname}"></span>
           </div>
 
         </div>
@@ -438,7 +438,7 @@
           <!-- 2.2] Никнэйм -->
           <!--------------*/ ?>
           <div class="nickname">
-            <span data-bind="text: m.s1.game.stats.luckyoftheday.back.nickname"></span>
+            <span data-bind="text: m.s1.game.stats.luckyoftheday.back.nickname, attr: {title: m.s1.game.stats.luckyoftheday.back.nickname}"></span>
           </div>
 
         </div>
@@ -508,7 +508,7 @@
           <!-- 2.2] Никнэйм -->
           <!--------------*/ ?>
           <div class="nickname">
-            <span data-bind="text: m.s1.game.stats.thebiggestbet.front.nickname"></span>
+            <span data-bind="text: m.s1.game.stats.thebiggestbet.front.nickname, attr: {title: m.s1.game.stats.thebiggestbet.front.nickname}"></span>
           </div>
 
         </div>
@@ -556,7 +556,7 @@
           <!-- 2.2] Никнэйм -->
           <!--------------*/ ?>
           <div class="nickname">
-            <span data-bind="text: m.s1.game.stats.thebiggestbet.back.nickname"></span>
+            <span data-bind="text: m.s1.game.stats.thebiggestbet.back.nickname, attr: {title: m.s1.game.stats.thebiggestbet.back.nickname}"></span>
           </div>
 
         </div>
