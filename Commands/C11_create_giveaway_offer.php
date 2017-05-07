@@ -316,8 +316,11 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
         // 5] Подтвердить все исходящие торговые предложения бота $id_bot
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $id_bot,
-          "need_to_ids"           => "0",
-          "just_fetch_info"       => "0"
+          "need_to_ids"           => "1",
+          "just_fetch_info"       => "0",
+          "tradeoffer_ids"        => [
+            $tradeoffer['data']['tradeofferid']
+          ]
         ]);
         if($result['status'] != 0)
           return [
