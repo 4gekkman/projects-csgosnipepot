@@ -286,8 +286,11 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
           // 5] Подтвердить все исходящие торговые предложения бота $id_bot
           $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
             "id_bot"                => $id_bot,
-            "need_to_ids"           => "0",
-            "just_fetch_info"       => "0"
+            "need_to_ids"           => "1",
+            "just_fetch_info"       => "0",
+            "tradeoffer_ids"        => [
+              $tradeoffer['data']['tradeofferid']
+            ]
           ]);
           if($result['status'] != 0)
             return [
