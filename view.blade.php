@@ -90,7 +90,259 @@
       <!-- A1. Боты и задачи -->
       <!-------------------*/ ?>
       <td class="left-part">
-        Боты и задачи
+
+        <?php /*------------------>
+        <!-- A1.1. Список ботов -->
+        <!--------------------*/ ?>
+        <div style="display: none" class="bots-list" data-bind="visible: !m.s2.choosen_bot()"><div data-bind="foreach: m.s2.bots_filtered">
+
+          <?php /*--->
+          <!-- Бот -->
+          <!-----*/ ?>
+          <div class="bots-bot" data-bind="click: $root.f.s1.choose_bot">
+
+            <?php /*------------->
+            <!-- Описание бота -->
+            <!---------------*/ ?>
+            <span data-bind="text: description"></span>
+
+            <?php /*--------------------------------->
+            <!-- Login и steam ID бота (если есть) -->
+            <!-----------------------------------*/ ?>
+            <div class="bot-login-steamid" style="display: none" data-bind="visible: (login() && steamid())">
+              <span data-bind="text: login() + ' (' + steamid() + ')'"></span>
+            </div>
+
+          </div>
+
+        </div></div>
+
+        <?php /*------------------------------>
+        <!-- A1.2. Свойства выбранного бота -->
+        <!--------------------------------*/ ?>
+        <div style="display: none" class="bots-props" data-bind="visible: m.s2.choosen_bot">
+
+          <?php /*----------------------->
+          <!-- А1] Панель инструментов -->
+          <!-------------------------*/ ?>
+          <div class="tools">
+
+            <?php /*----------------------------------------->
+            <!-- A1.1. Кнопка "Назад" в левом верхнем углу -->
+            <!-------------------------------------------*/ ?>
+            <div class="btn-common back-button" data-bind="click: f.s1.unchoose_bot">
+              <span>← Back</span>
+            </div>
+
+          </div>
+
+          <?php /*----------------------------------------------->
+          <!-- А2] Редактирование safe-свойств выбранного бота -->
+          <!-------------------------------------------------*/ ?>
+          <div class="botedit form-horizontal" style="padding-bottom: 30px;" data-bind="if: m.s2.choosen_bot">
+
+            <?php /* Заголовок и кнопка save -->
+            <!-----------------------------*/ ?>
+            <div class="header-note">
+
+              <?php /*------------->
+              <!-- Кнопка "Save" -->
+              <!---------------*/ ?>
+              <span>Safe bot properties</span>
+
+              <?php /*------------->
+              <!-- Кнопка "Save" -->
+              <!---------------*/ ?>
+              <div class="btn-common save-button" data-bind="click: f.s1.edit_bot_safe.bind($data, function(){})">
+                <span>Update safe bot properties</span>
+              </div>
+
+            </div>
+
+            <?php /* 1] Login -->
+            <!--------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Login</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_safe.login">
+              </div>
+            </div>
+
+            <?php /* 2] Steamid -->
+            <!----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Steam ID</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_safe.steamid">
+              </div>
+            </div>
+
+            <?php /* 3] API domain -->
+            <!-------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">API domain</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_safe.apikey_domain">
+              </div>
+            </div>
+
+            <?php /* 4] API key -->
+            <!----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">API key</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_safe.apikey">
+              </div>
+            </div>
+
+            <?php /* 5] Trade URL -->
+            <!------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Trade URL</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_safe.trade_url">
+              </div>
+            </div>
+
+            <?php /* 6] Description -->
+            <!--------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Description</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_safe.description">
+              </div>
+            </div>
+
+            <?php /* Заголовок -->
+            <!---------------*/ ?>
+            <div class="header-note">
+
+              <?php /*------------->
+              <!-- Кнопка "Save" -->
+              <!---------------*/ ?>
+              <span>Unsafe bot properties</span>
+
+              <?php /*------------->
+              <!-- Кнопка "Save" -->
+              <!---------------*/ ?>
+              <div class="btn-common save-button-unsafe" data-bind="click: f.s1.edit_bot_unsafe.bind($data, function(){})">
+                <span>Update unsafe bot properties</span>
+              </div>
+
+            </div>
+
+            <?php /* 1] Password -->
+            <!-----------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Password</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.password">
+              </div>
+            </div>
+
+            <?php /* 2] Session ID -->
+            <!--------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Session ID</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.sessionid">
+              </div>
+            </div>
+
+            <?php /* 3] Shared secret -->
+            <!----------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Shared secret</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.shared_secret">
+              </div>
+            </div>
+
+            <?php /* 4] Serial number -->
+            <!----------------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">Serial number</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.serial_number">
+              </div>
+            </div>
+
+            <?php /* 5] Revocation code -->
+            <!------------------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">Revocation code</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.revocation_code">
+              </div>
+            </div>
+
+            <?php /* 6] URI -->
+            <!------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">URI</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.uri">
+              </div>
+            </div>
+
+            <?php /* 7] Server time -->
+            <!--------------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">Server time</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.server_time">
+              </div>
+            </div>
+
+            <?php /* 8] Account name -->
+            <!---------------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">Account name</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.account_name">
+              </div>
+            </div>
+
+            <?php /* 9] Token gid -->
+            <!------------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">Token gid</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.token_gid">
+              </div>
+            </div>
+
+            <?php /* 10] identity_secret -->
+            <!-------------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Identity secret</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.identity_secret">
+              </div>
+            </div>
+
+            <?php /* 11] Secret 1 -->
+            <!------------------*/ ?>
+            <div style="display: none" class="form-group">
+              <div class="col-sm-3 control-label">Secret 1</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.secret_1">
+              </div>
+            </div>
+
+            <?php /* 12] Device ID -->
+            <!-------------------*/ ?>
+            <div class="form-group">
+              <div class="col-sm-3 control-label">Device ID</div>
+              <div class="col-sm-9">
+                <input class="form-control input-sm" data-bind="textInput: m.s2.edit_unsafe.device_id">
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
       </td>
 
       <?php /*-------------------->
@@ -101,13 +353,13 @@
         <?php /*------------------------------------->
         <!-- A2.1. Интерфейс создания новой группы -->
         <!---------------------------------------*/ ?>
-        <div class="newgroup-cont">
+        <div style="display: none" class="newgroup-cont">
 
           <?php /*--------------------------------------------------->
           <!-- A2.1.1. Кнопка "Новая группа" в правом верхнем углу -->
           <!-----------------------------------------------------*/ ?>
           <div style="display: none" class="new-group-button-cont" data-bind="visible: !$root.m.s1.groups.new.ison()">
-            <div class="new-group-button">
+            <div class="new-group-button" data-bind="click: f.s1.create_new_group">
               <span>Новая группа</span>
             </div>
           </div>
@@ -170,8 +422,8 @@
               <!-- Блок управления -->
               <!-----------------*/ ?>
               <div class="controls">
-                <i class="mdi mdi-rename-box rename" title="Переименовать" data-bind="click: $root.f.s1.turnon_rename_group_mode"></i>
-                <i class="mdi mdi-delete-empty delete" title="Удалить"></i>
+                <i class="mdi mdi-rename-box rename" title="Переименовать" data-bind="click: $root.f.s1.turnon_rename_group_mode, clickBubble: false"></i>
+                <i class="mdi mdi-delete-empty delete" title="Удалить" data-bind="click: $root.f.s1.delete_group, clickBubble: false"></i>
               </div>
 
             </div>
@@ -203,7 +455,7 @@
         <?php /*------------->
         <!-- A2.4. Фильтры -->
         <!---------------*/ ?>
-        <div class="filters">
+        <div style="display: none" class="filters">
 
           <?php /*------------------------->
           <!-- A2.4.1. Фильтры для групп -->

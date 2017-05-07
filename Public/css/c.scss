@@ -18,6 +18,10 @@
       4.2.4. Стили групп из БД главного интерфейса ЕСУБ
       4.2.5. Стили фильтров
       4.2.6. Стили интерфейса создания новой группы
+      4.2.7. Стили списка ботов
+      4.2.8. Стили свойств ботов
+
+
 
 //------------------------------//
 // Стили //
@@ -60,6 +64,45 @@
       border-radius: 6px;
       background: #284351;
     }
+
+    // input-ы
+    .content .botnet .botnet-container input {
+      background: #253d4a;
+      border: 1px solid #253d4a;
+      color: #ddd;
+      font-size: 0.8em;
+    }
+
+    // Заголовок в форме
+    .content .botnet .botnet-container .header-note {
+      position: relative;
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: #55afdd;
+    }
+
+    // Общие стили кнопки
+    .content .botnet .btn-common {
+      display: inline-block;
+      float: left;
+      border-radius: 5px;
+      margin: 8px 15px 8px 4px;
+      background-color: transparent;
+      border: 2px solid #55afdd;
+      color: #55afdd;
+      padding: 0 15px;
+      height: 26px;
+      line-height: 22px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 1em;
+      transition: all .5s ease;
+    }
+    .content .botnet .btn-common:hover {
+      background: #55afdd;
+      color: #fff;
+    }
+
 
   //---------------------//
   // 3. Стили шапки ЕСУБ //
@@ -331,9 +374,95 @@
           vertical-align: middle;
         }
 
+      //---------------------------//
+      // 4.2.7. Стили списка ботов //
+      //---------------------------//
+
+        // Общие стили списка ботов
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-list {
+          padding: 0 10px;
+        }
+
+        // Стили бота
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-list .bots-bot {
+          position: relative;
+          width: 100%;
+          height: 50px; line-height: 50px;
+          text-align: center;
+          margin-top: 10px;
+          background: #253d4a;
+          border-radius: 6px;
+          box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.3);
+          cursor: pointer;
+          transition: all .2s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-list .bots-bot:hover {
+          box-shadow: 0px 3px 5px 0px rgba(0,0,0,0.3);
+          line-height: 32px;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-list .bots-bot .bot-login-steamid {
+          position: absolute; top: 32px;
+          text-align: center;
+          width: 100%;
+          font-size: 0.8em; line-height: 0.7em;
+          color: #55afdd;
+          opacity: 0;
+          transition: all .2s ease;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-list .bots-bot:hover .bot-login-steamid {
+          opacity: 1;
+        }
+
+        // Стили панели инструментов
+
+          // Общие стили
+          .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props .tools {
+            height: 42px;
+            line-height: 42px;
+          }
 
 
+        // Стили формы редактирования бота
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props .botedit {
+          padding: 20px;
+        }
 
 
+      //----------------------------//
+      // 4.2.8. Стили свойств ботов //
+      //----------------------------//
+
+        // Общие стили списка ботов
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props {
+
+        }
+
+        // Стили кнопки "Сохранить безопасные свойства"
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props .save-button {
+          position: absolute;
+          top: -7px;
+          right: -15px;
+          border: 2px solid #43dd52;
+          color: #43dd52;
+          font-weight: normal;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props .save-button:hover {
+          background: #43dd52;
+          color: #fff;
+        }
+
+        // Стили кнопки "Сохранить небезопасные свойства"
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props .save-button-unsafe {
+          position: absolute;
+          top: -7px;
+          right: -15px;
+          border: 2px solid #dd434a;
+          color: #dd434a;
+          font-weight: normal;
+        }
+        .content .botnet .botnet-container .botnet-content .botnet-table .left-part .bots-props .save-button-unsafe:hover {
+          background: #dd434a;
+          color: #fff;
+        }
 
 

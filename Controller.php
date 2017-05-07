@@ -20,6 +20,9 @@
  * Нестандартные POST-операции
  *
  *                  POST-API1   D10011:1              (v)      Переименовать группу
+ *                  POST-API2   D10011:2              (v)      Отредактировать безопасные свойства бота
+ *                  POST-API3   D10011:3              (v)      Отредактировать небезопасные свойства бота
+ *
  *
  *
  *
@@ -114,7 +117,12 @@ class Controller extends BaseController {
       // 1. Получить все группы ботов из базы данных
       $groups = \M8\Models\MD7_groups::all();
 
-
+      // 2. Получить всех ботов, связи с $groups, но без секретов
+      $bots_safe = \M8\Models\MD1_bots::with(['groups'])
+          ->whereHas('groups', function($queue) USE ($groups) {
+            $queue->whereIn('id', $groups->pluck('id')->toArray());
+          })
+          ->get();
 
       // N. Вернуть клиенту представление и данные $data
       return View::make($this->packid.'::view', ['data' => json_encode([
@@ -125,7 +133,8 @@ class Controller extends BaseController {
         'layoutid'              => $this->layoutid,
         'websocket_server'      => (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ':6001',
         'websockets_channel'    => Session::getId(),
-        'groups'                => $groups
+        'groups'                => $groups,
+        'bots_safe'             => $bots_safe
 
       ]), 'layoutid' => $this->layoutid.'::layout']);
 
@@ -225,6 +234,39 @@ class Controller extends BaseController {
 
         }
 
+        //---------------------------------//
+        // Нестандартная операция D10011:2 //
+        //---------------------------------//
+        // - Отредактировать безопасные свойства бота.
+        if($key == 'D10011:2') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Выполнить команду
+          $result = runcommand('\M8\Commands\C36_edit_bot_safe', $data);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
+
+        //---------------------------------//
+        // Нестандартная операция D10011:3 //
+        //---------------------------------//
+        // - Отредактировать небезопасные свойства бота.
+        if($key == 'D10011:3') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Выполнить команду
+          $result = runcommand('\M8\Commands\C37_set_bot_secrets', $data);
+
+          // n. Вернуть результаты
+          return $result;
+
+        }
 
       }
 

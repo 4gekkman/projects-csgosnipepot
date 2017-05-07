@@ -19,6 +19,12 @@
  *    f.s1.turnon_rename_group_mode     | s1.2. Переключить группу в режим переименования
  *    f.s1.cancel_group_rename          | s1.3. Отменить переименование группы
  *    f.s1.apply_group_rename           | s1.4. Подтвердить переименование группы
+ *    f.s1.create_new_group             | s1.5. Создать новую группу
+ *    f.s1.delete_group             		| s1.6. Удалить группу
+ *    f.s1.choose_bot                   | s1.7. Выбрать кликнутого бота
+ *    f.s1.unchoose_bot                 | s1.8. Развыбрать выбранного бота
+ *    f.s1.edit_bot_safe                | s1.9. Отредактировать безопасные свойства бота
+ *    f.s1.edit_bot_unsafe              | s1.10. Отредактировать небезопасные свойства бота
  *
  *
  *
@@ -135,12 +141,19 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 
 			}
 
+			// 3] Развыбрать выбранного бота
+			self.m.s2.choosen_bot("");
+
 		};
 
 		//-------------------------------------------------//
 		// s1.2. Переключить группу в режим переименования //
 		//-------------------------------------------------//
 		f.s1.turnon_rename_group_mode = function(data, event) {
+
+			// Сообщить, что функция недоступна, и завершить
+			toastr.warning("К сожалению, эта функция недоступна на данный момент.");
+			return;
 
 			// 1] Наполнить input, предназначенный для переименования
 			self.m.s1.groups.rename.input(data.name());
@@ -255,8 +268,175 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 				}
 			});
 
+		};
 
+		//----------------------------//
+		// s1.5. Создать новую группу //
+		//----------------------------//
+		f.s1.create_new_group = function(data, event) {
 
+			toastr.warning("К сожалению, эта функция недоступна на данный момент.");
+
+		};
+
+		//----------------------//
+		// s1.6. Удалить группу //
+		//----------------------//
+		f.s1.delete_group = function(data, event) {
+
+			toastr.warning("К сожалению, эта функция недоступна на данный момент.");
+
+		};
+
+		//----------------------//
+		// s1.7. Выбрать кликнутого бота //
+		//----------------------//
+		f.s1.choose_bot = function(data, event) {
+
+			// 1] Выбрать кликнутого бота
+			self.m.s2.choosen_bot(data);
+
+			// 2] Обновить безопасные свойства бота для редактирования
+			self.m.s2.edit_safe.login(self.m.s2.choosen_bot().login());
+			self.m.s2.edit_safe.steamid(self.m.s2.choosen_bot().steamid());
+			self.m.s2.edit_safe.apikey_domain(self.m.s2.choosen_bot().apikey_domain());
+			self.m.s2.edit_safe.apikey(self.m.s2.choosen_bot().apikey());
+			self.m.s2.edit_safe.trade_url(self.m.s2.choosen_bot().trade_url());
+			self.m.s2.edit_safe.description(self.m.s2.choosen_bot().description());
+
+			// 3] Обнулить небезопасные свойства бота для редактирования
+			self.m.s2.edit_unsafe.password("");
+			self.m.s2.edit_unsafe.sessionid("");
+			self.m.s2.edit_unsafe.shared_secret("");
+			self.m.s2.edit_unsafe.serial_number("");
+			self.m.s2.edit_unsafe.revocation_code("");
+			self.m.s2.edit_unsafe.uri("");
+			self.m.s2.edit_unsafe.server_time("");
+			self.m.s2.edit_unsafe.account_name("");
+			self.m.s2.edit_unsafe.token_gid("");
+			self.m.s2.edit_unsafe.identity_secret("");
+			self.m.s2.edit_unsafe.secret_1("");
+			self.m.s2.edit_unsafe.device_id("");
+
+		};
+
+		//----------------------------------//
+		// s1.8. Развыбрать выбранного бота //
+		//----------------------------------//
+		f.s1.unchoose_bot = function(data, event) {
+
+			// 1] Развыбрать выбранного бота
+			self.m.s2.choosen_bot("");
+
+		};
+
+		//------------------------------------------------//
+		// s1.9. Отредактировать безопасные свойства бота //
+		//------------------------------------------------//
+		f.s1.edit_bot_safe = function(callback, data, event) {
+
+			// 1] Подготовить объект с данными для отправки
+			var obj2send = {
+				id_bot:         self.m.s2.choosen_bot().id(),
+				login: 					self.m.s2.edit_safe.login(),
+				steamid: 				self.m.s2.edit_safe.steamid(),
+				apikey_domain:  self.m.s2.edit_safe.apikey_domain(),
+				apikey: 				self.m.s2.edit_safe.apikey(),
+				trade_url:  		self.m.s2.edit_safe.trade_url(),
+				description:		self.m.s2.edit_safe.description()
+			};
+
+			// 1] Отправить запрос
+			ajaxko(self, {
+				key: 	    		"D10011:2",
+				from: 		    "ajaxko",
+				data: 		    obj2send,
+				prejob:       function(config, data, event){
+
+					// 1] Сообщить, что идёт сохранение
+					toastr.info("Сохраняю безопасные свойства бота...");
+
+				},
+				ajax_params: {
+					obj2send: obj2send
+				},
+				postjob:      function(data, params){},
+				callback: 		callback,
+				ok_0:         function(data, params){
+
+					// 1] Сообщить об успехе
+					toastr.success("Безопасные свойства бота успешно сохранены!");
+
+					// 2] Обновить выбранного бота
+					self.m.s2.choosen_bot().login(params.obj2send.login);
+					self.m.s2.choosen_bot().steamid(params.obj2send.steamid);
+					self.m.s2.choosen_bot().apikey_domain(params.obj2send.apikey_domain);
+					self.m.s2.choosen_bot().apikey(params.obj2send.apikey);
+					self.m.s2.choosen_bot().trade_url(params.obj2send.trade_url);
+					self.m.s2.choosen_bot().description(params.obj2send.description);
+
+				},
+				ok_2:         function(data, params){
+
+					// n] Сообщить о неизвестной ошибке
+				  toastr.error(data.data.errormsg);
+
+				}
+			});
+
+		};
+
+		//---------------------------------------------------//
+		// s1.10. Отредактировать небезопасные свойства бота //
+		//---------------------------------------------------//
+		f.s1.edit_bot_unsafe = function(callback, data, event) {
+
+			// 1] Подготовить объект с данными для отправки
+			var obj2send = {
+				id_bot:         	self.m.s2.choosen_bot().id()
+			};
+			if(self.m.s2.edit_unsafe.password()) 				obj2send.password 				= self.m.s2.edit_unsafe.password();
+			if(self.m.s2.edit_unsafe.sessionid()) 			obj2send.sessionid 				= self.m.s2.edit_unsafe.sessionid();
+			if(self.m.s2.edit_unsafe.shared_secret()) 	obj2send.shared_secret 		= self.m.s2.edit_unsafe.shared_secret();
+			if(self.m.s2.edit_unsafe.serial_number()) 	obj2send.serial_number 		= self.m.s2.edit_unsafe.serial_number();
+			if(self.m.s2.edit_unsafe.revocation_code()) obj2send.revocation_code 	= self.m.s2.edit_unsafe.revocation_code();
+			if(self.m.s2.edit_unsafe.uri()) 						obj2send.uri 							= self.m.s2.edit_unsafe.uri();
+			if(self.m.s2.edit_unsafe.server_time()) 		obj2send.server_time 			= self.m.s2.edit_unsafe.server_time();
+			if(self.m.s2.edit_unsafe.account_name()) 		obj2send.account_name 		= self.m.s2.edit_unsafe.account_name();
+			if(self.m.s2.edit_unsafe.token_gid()) 			obj2send.token_gid 				= self.m.s2.edit_unsafe.token_gid();
+			if(self.m.s2.edit_unsafe.identity_secret()) obj2send.identity_secret 	= self.m.s2.edit_unsafe.identity_secret();
+			if(self.m.s2.edit_unsafe.secret_1()) 				obj2send.secret_1 				= self.m.s2.edit_unsafe.secret_1();
+			if(self.m.s2.edit_unsafe.device_id()) 			obj2send.device_id 				= self.m.s2.edit_unsafe.device_id();
+
+			// 2] Отправить запрос
+			ajaxko(self, {
+				key: 	    		"D10011:3",
+				from: 		    "ajaxko",
+				data: 		    obj2send,
+				prejob:       function(config, data, event){
+
+					// 1] Сообщить, что идёт сохранение и шифрование
+					toastr.info("Сохраняю и шифрую небезопасные свойства бота...");
+
+				},
+				ajax_params: {
+					obj2send: obj2send
+				},
+				postjob:      function(data, params){},
+				callback: 		callback,
+				ok_0:         function(data, params){
+
+					// 1] Сообщить об успехе
+					toastr.success("Небезопасные свойства бота успешно зашифрованы и сохранены!");
+
+				},
+				ok_2:         function(data, params){
+
+					// n] Сообщить о неизвестной ошибке
+				  toastr.error(data.data.errormsg);
+
+				}
+			});
 
 		};
 

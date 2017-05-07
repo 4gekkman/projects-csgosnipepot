@@ -38,6 +38,16 @@
  *    s1.3. Модель фильтров
  *    s1.n. Индексы и вычисляемые значения
  *
+ *  s2. Модель ботов и их свойств
+ *
+ *  	s2.1. Объект-контейнер для всех свойств модели
+ *  	s2.2. Наблюдаемый массив ботов
+ *    s2.3. Отфильтрованный в соотв.с выбранной группой массив ботов
+ *    s2.4. Выбранный на данный момент бот
+ *    s2.5. Редактирование безопасных свойств бота
+ *    s2.6. Редактирование небезопасных свойств бота
+ *    s2.n. Индексы и вычисляемые значения
+ *
  *  sN. Данные, которым доступны все прочие данные
  *
  *    sN.1. Объект-контейнер для всех свойств модели
@@ -420,7 +430,6 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 
 
-
 	//--------------------------------------//
 	// s1.n. Индексы и вычисляемые значения //
 	//--------------------------------------//
@@ -440,6 +449,119 @@ var ModelProto = { constructor: function(ModelFunctions) {
 
 	});
 
+
+	//-----------------------------------------//
+	// 			        		 	                     //
+	// 			 s2. Модель ботов и их свойств 		 //
+	// 			         			                     //
+	//-----------------------------------------//
+
+	//------------------------------------------------//
+	// s2.1. Объект-контейнер для всех свойств модели //
+	//------------------------------------------------//
+	self.m.s2 = {};
+
+	//--------------------------------//
+	// s2.2. Наблюдаемый массив ботов //
+	//--------------------------------//
+	self.m.s2.bots = ko.mapping.fromJS(server.data.bots_safe);
+
+	//----------------------------------------------------------------//
+	// s2.3. Отфильтрованный в соотв.с выбранной группой массив ботов //
+	//----------------------------------------------------------------//
+	self.m.s2.bots_filtered = ko.observableArray();
+
+	//--------------------------------------//
+	// s2.4. Выбранный на данный момент бот //
+	//--------------------------------------//
+	self.m.s2.choosen_bot = ko.observable();
+
+	//----------------------------------------------//
+	// s2.5. Редактирование безопасных свойств бота //
+	//----------------------------------------------//
+	self.m.s2.edit_safe = {};
+
+		// 1] Безопасные свойства бота
+		self.m.s2.edit_safe.login 					= ko.observable();
+		self.m.s2.edit_safe.steamid 				= ko.observable();
+		self.m.s2.edit_safe.apikey_domain 	= ko.observable();
+		self.m.s2.edit_safe.apikey 					= ko.observable();
+		self.m.s2.edit_safe.trade_url 			= ko.observable();
+		self.m.s2.edit_safe.description 		= ko.observable();
+
+	//------------------------------------------------//
+	// s2.6. Редактирование небезопасных свойств бота //
+	//------------------------------------------------//
+	self.m.s2.edit_unsafe = {};
+
+		// 1] Небезопасные свойства бота
+		self.m.s2.edit_unsafe.password 					= ko.observable();
+		self.m.s2.edit_unsafe.sessionid 				= ko.observable();
+		self.m.s2.edit_unsafe.shared_secret 		= ko.observable();
+		self.m.s2.edit_unsafe.serial_number 		= ko.observable();
+		self.m.s2.edit_unsafe.revocation_code 	= ko.observable();
+		self.m.s2.edit_unsafe.uri 							= ko.observable();
+		self.m.s2.edit_unsafe.server_time 			= ko.observable();
+		self.m.s2.edit_unsafe.account_name 			= ko.observable();
+		self.m.s2.edit_unsafe.token_gid 				= ko.observable();
+		self.m.s2.edit_unsafe.identity_secret 	= ko.observable();
+		self.m.s2.edit_unsafe.secret_1 					= ko.observable();
+		self.m.s2.edit_unsafe.device_id 				= ko.observable();
+
+
+	//--------------------------------------//
+	// s2.n. Индексы и вычисляемые значения //
+	//--------------------------------------//
+	ko.computed(function(){
+
+		//--------------------------------------------------------------//
+		// s2.n.1. Объект-контейнер для индексов и вычисляемых значений //
+		//--------------------------------------------------------------//
+		self.m.s2.indexes = {};
+
+		//---------------------------------//
+		// s2.n.2. Наполнить bots_filtered //
+		//---------------------------------//
+		(function(){
+
+			// 1] Если нет необходимых ресурсов, завершить
+			if(!self.m.s1.groups.choosen()) return;
+
+			// 2] Очистить bots_filtered
+			self.m.s2.bots_filtered.removeAll();
+
+			// 3] Наполнить m.s2.bots_filtered
+			for(var i=0; i<self.m.s2.bots().length; i++) {
+
+				// 3.1] Если выбрана перманентная группа №2
+				// - Перейти к следующей итерации.
+				if(self.m.s1.groups.choosen().permanent && self.m.s1.groups.choosen().permanent() && self.m.s1.groups.choosen().id() == 2) {
+					continue;
+				}
+
+				// 3.2] Если выбрана перманентная группа №1
+				// - Добавить i-го бота, и перейти к след.итерации
+				if(self.m.s1.groups.choosen().permanent && self.m.s1.groups.choosen().permanent() && self.m.s1.groups.choosen().id() == 1) {
+					self.m.s2.bots_filtered.push(self.m.s2.bots()[i]);
+				}
+
+				// 3.3] Если выбрана не перманентная группа
+				// - Если i-ый бот состоит в выбранной группе, добавить его.
+				// - Перейти к следующей итерации
+				if(!self.m.s1.groups.choosen().permanent || !self.m.s1.groups.choosen().permanent()) {
+					if(self.m.s2.bots()[i].groups()[0].id() == self.m.s1.groups.choosen().id())
+						self.m.s2.bots_filtered.push(self.m.s2.bots()[i]);
+					continue;
+				}
+
+			}
+
+		})();
+
+
+
+
+	});
 
 
 	//------------------------------------------------------------//
