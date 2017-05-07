@@ -301,23 +301,23 @@ class C41_check_active_offers_type2 extends Job { // TODO: добавить "imp
         ]);
         if($active_incoming_offers['status'] != 0) {
 
-          // 1] Получить домен из конфига
-          $domain = config('M8.api_keys_default_domain') ?: 'csgogames.com';
-
-          // 2] Произвести замену API-ключа для бота $id_bot
-          $result = runcommand('\M8\Commands\C11_bot_set_apikey', [
-            "id_bot"  => $id_bot,
-            "force"   => 1,
-            "domain"  => $domain
-          ]);
-          if($result['status'] != 0) {
-
-            // Сообщить
-            $errortext = 'Invoking of command C11_bot_set_apikey from M-package M8 have ended on line with error: '.$result['data']['errormsg'];
-            Log::info($errortext);
-            write2log($errortext, ['M8', 'C11_bot_set_apikey']);
-
-          }
+          //// 1] Получить домен из конфига
+          //$domain = config('M8.api_keys_default_domain') ?: 'csgogames.com';
+          //
+          //// 2] Произвести замену API-ключа для бота $id_bot
+          //$result = runcommand('\M8\Commands\C11_bot_set_apikey', [
+          //  "id_bot"  => $id_bot,
+          //  "force"   => 1,
+          //  "domain"  => $domain
+          //]);
+          //if($result['status'] != 0) {
+          //
+          //  // Сообщить
+          //  $errortext = 'Invoking of command C11_bot_set_apikey from M-package M8 have ended on line with error: '.$result['data']['errormsg'];
+          //  Log::info($errortext);
+          //  write2log($errortext, ['M8', 'C11_bot_set_apikey']);
+          //
+          //}
 
           // 3] Сообщить
           $errortext = 'Invoking of command C41_check_active_offers_type2 from M-package M9 have ended on line with error: '.$active_incoming_offers['data']['errormsg'];

@@ -244,22 +244,22 @@ class C28_wins_expiration_tracking extends Job { // TODO: добавить "impl
         // 5.3. Сообщить игроку $this->data['id_user'] свежие данные по выигрышам
         // - Через websocket, по частном каналу.
         // - Сообщить те же данные, что при истечения выигрыша, с тем же task.
-        Event::fire(new \R2\Broadcast([
-          'channels' => ['m9:private:'.$expired_win['m5_users'][0]['id']],
-          'queue'    => 'm9_lottery_broadcasting',
-          'data'     => [
-            'task' => 'tradeoffer_wins_cancel',
-            'data' => [
-              'id_room'     =>   $expired_win['rounds'][0]['rooms']['id'],
-              'wins'        => [
-                "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$expired_win['m5_users'][0]['id']), true) ?: "",
-                "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
-                //"paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
-                //"expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: []
-              ]
-            ]
-          ]
-        ]));
+        //Event::fire(new \R2\Broadcast([
+        //  'channels' => ['m9:private:'.$expired_win['m5_users'][0]['id']],
+        //  'queue'    => 'm9_lottery_broadcasting',
+        //  'data'     => [
+        //    'task' => 'tradeoffer_wins_cancel',
+        //    'data' => [
+        //      'id_room'     =>   $expired_win['rounds'][0]['rooms']['id'],
+        //      'wins'        => [
+        //        "active"            => json_decode(Cache::tags(['processing:wins:active:personal:safe'])->get('processing:wins:active:safe:'.$expired_win['m5_users'][0]['id']), true) ?: "",
+        //        "not_paid_expired"  => json_decode(Cache::tags(['processing:wins:not_paid_expired:personal:safe'])->get('processing:wins:not_paid_expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
+        //        //"paid"              => json_decode(Cache::tags(['processing:wins:paid:personal:safe'])->get('processing:wins:paid:safe:'.$expired_win['m5_users'][0]['id']), true) ?: [],
+        //        //"expired"           => json_decode(Cache::tags(['processing:wins:expired:personal:safe'])->get('processing:wins:expired:safe:'.$expired_win['m5_users'][0]['id']), true) ?: []
+        //      ]
+        //    ]
+        //  ]
+        //]));
 
       }
 

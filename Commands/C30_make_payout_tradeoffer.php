@@ -323,8 +323,11 @@ class C30_make_payout_tradeoffer extends Job { // TODO: добавить "implem
               // 1.5.4] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
               $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
                 "id_bot"                => $bot['id'],
-                "need_to_ids"           => "0",
-                "just_fetch_info"       => "0"
+                "need_to_ids"           => "1",
+                "just_fetch_info"       => "0",
+                "tradeoffer_ids"        => [
+                  $tradeoffer['data']['tradeofferid']
+                ]
               ]);
               if($result['status'] != 0)
                 return [

@@ -583,8 +583,11 @@ class C9_make_tradeoffer_2accept_thebet extends Job { // TODO: добавить 
         // 6] Подтвердить все исходящие торговые предложения бота $bot2acceptbet
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $bot2acceptbet->id,
-          "need_to_ids"           => "0",
-          "just_fetch_info"       => "0"
+          "need_to_ids"           => "1",
+          "just_fetch_info"       => "0",
+          "tradeoffer_ids"        => [
+            $tradeoffer['data']['tradeofferid']
+          ]
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);

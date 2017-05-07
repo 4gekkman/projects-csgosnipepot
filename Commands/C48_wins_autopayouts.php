@@ -383,7 +383,10 @@ Log::info("3.7 - try to confirm offers");
               $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
                 "id_bot"                => $bot['id'],
                 "need_to_ids"           => "1",
-                "just_fetch_info"       => "0"
+                "just_fetch_info"       => "0",
+                "tradeoffer_ids"        => [
+                  $win2pay_model['m8_bots'][0]['pivot']['tradeofferid']
+                ]
               ]);
 
               // 2.2] Если подтвердить не удалось, перейти к следующей итерации
