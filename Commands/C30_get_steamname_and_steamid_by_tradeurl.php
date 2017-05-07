@@ -206,6 +206,7 @@ class C30_get_steamname_and_steamid_by_tradeurl extends Job { // TODO: доба�
       //      escrow_days_partner     // Escrow hold партнёра
       //    ]
       //
+      Log::info($html);
       $needed_data = call_user_func(function() USE ($html) {
 
         // 4.1. Подготовить массив для результатов

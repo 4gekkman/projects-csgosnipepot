@@ -236,13 +236,13 @@ class C10_update_bots_authorization_statuses extends Job { // TODO: добави
       }
 
       // 3. Транслировать клиентам через websocket свежие данные об авторизации ботов
-      Event::fire(new \R2\Broadcast([
-        'channels' => ['m8:update_bots_authorization_statuses'],
-        'queue'    => 'smallbroadcast',
-        'data'     => [
-          'bots' => \M8\Models\MD1_bots::query()->get()
-        ]
-      ]));
+      //Event::fire(new \R2\Broadcast([
+      //  'channels' => ['m8:update_bots_authorization_statuses'],
+      //  'queue'    => 'smallbroadcast',
+      //  'data'     => [
+      //    'bots' => \M8\Models\MD1_bots::query()->get()
+      //  ]
+      //]));
 
 
     DB::commit(); } catch(\Exception $e) {

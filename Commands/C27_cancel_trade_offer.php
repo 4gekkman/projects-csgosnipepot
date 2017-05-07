@@ -158,16 +158,28 @@ class C27_cancel_trade_offer extends Job { // TODO: добавить "implements
         throw new \Exception($validator['data']);
 
       // 2. Попробовать найти модель бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
-      if(empty($bot->sessionid))
-        throw new \Exception("Can't find sessionid of the bot with ID = ".$bot->id);
+
+        // 2.1. Получить бота
+        $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+        if(empty($bot))
+          throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+
+        // 2.2. Получить sessionid бота
+        $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+          'id_bot' => $bot->id,
+          'secret' => 'sessionid',
+          'key'    => env('SECRETS_KEY')
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+        $bot_sessionid = $result['data']['value'];
+        if(empty($bot_sessionid))
+          throw new \Exception("Can't find sessionid of the bot with ID = ".$bot->id);
 
       // 3. Осуществить запрос к steam и отменить указанное торговое предложение
 
         // 3.1. Запросить
-        $response = call_user_func(function() USE ($bot){
+        $response = call_user_func(function() USE ($bot, $bot_sessionid){
 
           // 1] Осуществить запрос
           $result = runcommand('\M8\Commands\C6_bot_request_steam', [
@@ -176,7 +188,7 @@ class C27_cancel_trade_offer extends Job { // TODO: добавить "implements
             "url"             => "https://steamcommunity.com/tradeoffer/".$this->data['id_tradeoffer']."/cancel",
             "cookies_domain"  => 'steamcommunity.com',
             "data"            => [
-              'sessionid' => $bot->sessionid
+              'sessionid' => $bot_sessionid
             ],
             "ref"             => 'https://steamcommunity.com/tradeoffer/'.$this->data['id_tradeoffer'].'/'
           ]);

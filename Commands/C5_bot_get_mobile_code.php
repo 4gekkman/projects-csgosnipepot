@@ -177,20 +177,30 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
       if(empty($bot))
         throw new \Exception("Can't find bot with id == ".$this->data['id_bot']);
 
-      // 3. Провести валидацию необходимых для генерации кода свойств бота
-      $validator = r4_validate($bot->toArray(), [
-        "shared_secret"   => ["required"]
-      ]); if($validator['status'] == -1) {
-        throw new \Exception($validator['data']);
-      }
+      // 3. Попробовать найти секретные данные, связанные с $bot
+      $secrets = \M8\Models\MD11_secrets::whereHas('bots', function($queue) USE ($bot) {
+        $queue->where('id', $bot['id']);
+      })->first();
+      if(empty($secrets))
+        throw new \Exception('Не удалось найти в БД секретные данные для бота с ID = '.$this->data['id_bot']);
 
-      // 4. Подготовить всё необходимое для генерации кода
+      // 4. Получить shared_secret бота
+      $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+        'id_bot' => $bot->id,
+        'secret' => 'shared_secret',
+        'key'    => env('SECRETS_KEY')
+      ]);
+      if($result['status'] != 0)
+        throw new \Exception($result['data']['errormsg']);
+      $shared_secret = $result['data']['value'];
+
+      // 5. Подготовить всё необходимое для генерации кода
       $time                   = !empty($this->data['time']) ? $this->data['time'] : time();
-      $sharedSecret           = $bot->shared_secret;
+      $sharedSecret           = $shared_secret;
       $codeTranslations       = [50, 51, 52, 53, 54, 55, 56, 57, 66, 67, 68, 70, 71, 72, 74, 75, 77, 78, 80, 81, 82, 84, 86, 87, 88, 89];
       $codeTranslationsLength = 26;
 
-      // 5. Узнать разницу между временем локального сервера и сервера steam
+      // 6. Узнать разницу между временем локального сервера и сервера steam
       $difference = call_user_func(function(){
 
         // 1] Подготовить новый экземпляр Guzzle
@@ -211,7 +221,7 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
 
       });
 
-      // 6. Сгенерировать код для $bot и $time (с учётом $difference)
+      // 7. Сгенерировать код для $bot и $time (с учётом $difference)
       $code = call_user_func(function() USE ($time, $difference, $sharedSecret, $codeTranslations, $codeTranslationsLength) {
 
         $intToByte = function($int){
@@ -238,7 +248,7 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
 
       });
 
-      // 7. Рассчитать, через сколько секунд данный код устареет
+      // 8. Рассчитать, через сколько секунд данный код устареет
       $expires = call_user_func(function(){
 
         // 1] Получить секундную составляющую текущего времени
@@ -256,7 +266,7 @@ class C5_bot_get_mobile_code extends Job { // TODO: добавить "implements
 
       });
 
-      // 8. Вернуть результаты
+      // 9. Вернуть результаты
       return [
         "status"  => 0,
         "data"    => [

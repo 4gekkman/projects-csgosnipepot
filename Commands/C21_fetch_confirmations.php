@@ -17,6 +17,7 @@
  *        id_bot            // ID бота, с которым работаем
  *        need_to_ids       // 0/1 - нужно ли в каждое $confirmation в $confirmations добавить поле id_tradeoffer с ID торг.предложения, связанного с этим подтверждением
  *        just_fetch_info   // 0/1 - если 1, то подтверждения не будут приняты, а лишь будет извлечена информация
+ *        tradeoffer_ids    // Подтверждать только эти офферы, а если отсутствует, тогда все
  *      ]
  *    ]
  *
@@ -190,6 +191,7 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
         "id_bot"            => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
         "need_to_ids"       => ["required", "regex:/^[01]{1}$/ui"],
         "just_fetch_info"   => ["required", "regex:/^[01]{1}$/ui"],
+        "tradeoffer_ids"    => ["sometimes", "array"],
       ]); if($validator['status'] == -1) {
         throw new \Exception($validator['data']);
       }
@@ -218,10 +220,37 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
           // 3] Обновить кэш
           Cache::put('m8:c21:confirmations:lasttry:datetime:'.$this->data['id_bot'], \Carbon\Carbon::now()->toDateTimeString(), 300);
 
+        // 2.3. Попробовать найти секретные данные, связанные с $bot
+        $secrets = \M8\Models\MD11_secrets::whereHas('bots', function($queue) USE ($bot) {
+          $queue->where('id', $bot['id']);
+        })->first();
+        if(empty($secrets))
+          throw new \Exception('Не удалось найти в БД секретные данные для бота с ID = '.$this->data['id_bot']);
+
+        // 2.4. Получить identity_secret бота
+        $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+          'id_bot' => $bot->id,
+          'secret' => 'identity_secret',
+          'key'    => env('SECRETS_KEY')
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+        $identity_secret = $result['data']['value'];
+
+        // 2.5. Получить device_id бота
+        $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+          'id_bot' => $bot->id,
+          'secret' => 'device_id',
+          'key'    => env('SECRETS_KEY')
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+        $device_id = $result['data']['value'];
+
       // 3. Проверить наличие у бота непустых device_id, steamid и identity_secret
 
         // 3.1. Проверить device_id
-        if(empty($bot->device_id))
+        if(empty($device_id))
           throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой device_id');
 
         // 3.2. Проверить steamid
@@ -229,7 +258,7 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
           throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой steamid');
 
         // 3.3. Проверить identity_secret
-        if(empty($bot->identity_secret))
+        if(empty($identity_secret))
           throw new \Exception('У бота с ID = '.$this->data['id_bot'].' пустой identity_secret');
 
       // 4. Получить серверное время Steam
@@ -239,10 +268,10 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
       else $time = $time['data']['steamtime'];
 
       // 5. Получить хэш подтверждения для $tag = conf и $time
-      $conformation_hash_for_time = call_user_func(function() USE ($bot, $time) {
+      $conformation_hash_for_time = call_user_func(function() USE ($bot, $time, $identity_secret) {
 
         $tag = 'conf';
-        $identitySecret = base64_decode($bot->identity_secret);
+        $identitySecret = base64_decode($identity_secret);
         $array = $tag ? substr($tag, 0, 32) : '';
         for ($i = 8; $i > 0; $i--) {
             $array = chr($time & 0xFF) . $array;
@@ -254,10 +283,10 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
       });
 
       // 6. Подготовить параметры для запроса
-      $params = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time) {
+      $params = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time, $device_id) {
 
         return [
-          "p"       => $bot->device_id,
+          "p"       => $device_id,
           "a"       => $bot->steamid,
           "k"       => $conformation_hash_for_time,
           "t"       => $time,
@@ -333,10 +362,10 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
       if($this->data['need_to_ids'] == 1) {
 
         // 9.1. Получить хэш подтверждения для $tag = details и $time
-        $conformation_hash_for_time_details = call_user_func(function() USE ($bot, $time) {
+        $conformation_hash_for_time_details = call_user_func(function() USE ($bot, $time, $identity_secret) {
 
           $tag = 'details';
-          $identitySecret = base64_decode($bot->identity_secret);
+          $identitySecret = base64_decode($identity_secret);
           $array = $tag ? substr($tag, 0, 32) : '';
           for ($i = 8; $i > 0; $i--) {
               $array = chr($time & 0xFF) . $array;
@@ -348,10 +377,10 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
         });
 
         // 9.2. Подготовить параметры для запросов ID торгового предложения
-        $params_4to = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time_details) {
+        $params_4to = call_user_func(function() USE ($bot, $time, $conformation_hash_for_time_details, $device_id) {
 
           return [
-            "p"       => $bot->device_id,
+            "p"       => $device_id,
             "a"       => $bot->steamid,
             "k"       => $conformation_hash_for_time_details,
             "t"       => $time,
@@ -418,17 +447,23 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
       }
 
       // 10. Принять все подтверждения из $confirmations, если just_fetch_info == 1
+      // - Если tradeoffer_ids отсутствует, тогда принимать все.
+      // - А если присутствует, то только для тех офферов, которые перечислены в tradeoffer_ids.
       if($this->data['just_fetch_info'] == 0) {
         foreach($confirmations as $confirmation) {
+
+          // 11.a. Завершить, если этот оффер на надо подтверждать
+          if(array_key_exists('tradeoffer_ids', $this->data) && !in_array($confirmation['id_tradeoffer'], $this->data['tradeoffer_ids']) )
+            continue;
 
           // 10.1. Получить свежее время
           $time_new = time() + $time['data']['difference'];
 
           // 10.2. Получить хэш подтверждения для $tag = allow и $time_new
-          $conformation_hash_for_time_allow = call_user_func(function() USE ($bot, $time_new) {
+          $conformation_hash_for_time_allow = call_user_func(function() USE ($bot, $time_new, $identity_secret) {
 
             $tag = 'allow';
-            $identitySecret = base64_decode($bot->identity_secret);
+            $identitySecret = base64_decode($identity_secret);
             $array = $tag ? substr($tag, 0, 32) : '';
             for ($i = 8; $i > 0; $i--) {
                 $array = chr($time_new & 0xFF) . $array;
@@ -440,11 +475,11 @@ class C21_fetch_confirmations extends Job { // TODO: добавить "implement
           });
 
           // 10.3. Подготовить параметры для запросов ID торгового предложения
-          $params_4allow = call_user_func(function() USE ($bot, $time_new, $conformation_hash_for_time_allow, $confirmation) {
+          $params_4allow = call_user_func(function() USE ($bot, $time_new, $conformation_hash_for_time_allow, $confirmation, $device_id) {
 
             return [
               "op"      => "allow",
-              "p"       => $bot->device_id,
+              "p"       => $device_id,
               "a"       => $bot->steamid,
               "k"       => $conformation_hash_for_time_allow,
               "t"       => $time_new,

@@ -7,14 +7,20 @@
 /**
  *  Что делает
  *  ----------
- *    - This command invokes every 10 minutes by laravel scheduler, and update bots inventory count.
+ *    - Edit safe bot properties
  *
  *  Какие аргументы принимает
  *  -------------------------
  *
  *    [
  *      "data" => [
- *
+ *        id_bot
+ *        login
+ *        steamid
+ *        apikey_domain
+ *        apikey
+ *        trade_url
+ *        description
  *      ]
  *    ]
  *
@@ -101,7 +107,7 @@
 //---------//
 // Команда //
 //---------//
-class C9_update_bots_inventory_count extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
+class C36_edit_bot_safe extends Job { // TODO: добавить "implements ShouldQueue" - и команда будет добавляться в очередь задач
 
   //----------------------------//
   // А. Подключить пару трейтов //
@@ -135,65 +141,51 @@ class C9_update_bots_inventory_count extends Job { // TODO: добавить "im
     /**
      * Оглавление
      *
-     *  1. Получить коллекцию всех ботов
-     *  2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
-     *  3. Транслировать клиентам через websocket свежие данные об инвентарях ботов
+     *  1. Провести валидацию входящих параметров
+     *  2. Попробовать найти бота id_bot
+     *  3. Обовить свойства бота
      *
      *  N. Вернуть статус 0
      *
      */
 
-    //-----------------------------------------------------------------------------------//
-    // Каждый 10 минут обновлять информацию о кол-ве вещей в CS:GO инвентарях всех ботов //
-    //-----------------------------------------------------------------------------------//
+    //--------------------------//
+    // Edit safe bot properties //
+    //--------------------------//
     $res = call_user_func(function() { try { DB::beginTransaction();
 
-      // 1. Получить коллекцию всех ботов
-      $bots = \M8\Models\MD1_bots::query()->get();
-
-      // 2. Обновить информацию о кол-ве вещей в инвентаре CS:GO каждого бота
-      foreach($bots as $bot) {
-
-        // 2.1. Проверить, не пуст ли steamid бота
-        // - Если пуст, записать информацию о проблеме, перейти к след.итерации
-        if(empty($bot->steamid)) {
-          $bot->inventory_count_last_bug = "Can't update the bots inventory count, because his steamid is empty.";
-          $bot->save();
-          continue;
-        }
-
-        // 2.2. Попробовать получить инвентарь бота
-        // - Если ошибка, записать информацию о проблеме, перейти к след.итерации
-        $result = runcommand('\M8\Commands\C4_getinventory', ['steamid' => $bot->steamid]);
-        if($result['status'] != 0) {
-          $bot->inventory_count_last_bug = "Can't update the bots inventory count, because: ".$result['data']['errormsg'];
-          $bot->save();
-          continue;
-        }
-
-        // 2.3. Обновить информацию о кол-ве вещей бота
-        $bot->inventory_count_last_bug    = "";
-        $bot->inventory_count             = $result['data']['inventory_count'];
-        $bot->inventory_count_last_update = (string) \Carbon\Carbon::now();
-        $bot->save();
-
+      // 1. Провести валидацию входящих параметров
+      $validator = r4_validate($this->data, [
+        "id_bot"          => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "login"           => ["required", "string"],
+        "steamid"         => ["required", "regex:/^[1-9]+[0-9]*$/ui"],
+        "apikey_domain"   => ["required", "string"],
+        "apikey"          => ["required", "string"],
+        "trade_url"       => ["required", "string"],
+        "description"     => ["r4_defined", "string"],
+      ]); if($validator['status'] == -1) {
+        throw new \Exception($validator['data']);
       }
 
-      // 3. Транслировать клиентам через websocket свежие данные об инвентарях ботов
-      //Event::fire(new \R2\Broadcast([
-      //  'channels' => ['m8:update_bots_inventory_count'],
-      //  'queue'    => 'smallbroadcast',
-      //  'data'     => [
-      //    'bots' => \M8\Models\MD1_bots::query()->get()
-      //  ]
-      //]));
+      // 2. Попробовать найти бота id_bot
+      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+      if(empty($bot))
+        throw new \Exception('Не удалось найти в БД бота с ID = '.$this->data['id_bot']);
 
+      // 3. Обовить свойства бота
+      $bot->login         = $this->data['login'];
+      $bot->steamid       = $this->data['steamid'];
+      $bot->apikey_domain = $this->data['apikey_domain'];
+      $bot->apikey        = $this->data['apikey'];
+      $bot->trade_url     = $this->data['trade_url'];
+      $bot->description   = $this->data['description'];
+      $bot->save();
 
     DB::commit(); } catch(\Exception $e) {
-        $errortext = 'Invoking of command C9_update_bots_inventory_count from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
+        $errortext = 'Invoking of command C36_edit_bot_safe from M-package M8 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
         DB::rollback();
         Log::info($errortext);
-        write2log($errortext, ['M8', 'C9_update_bots_inventory_count']);
+        write2log($errortext, ['M8', 'C36_edit_bot_safe']);
         return [
           "status"  => -2,
           "data"    => [

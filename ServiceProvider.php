@@ -107,11 +107,10 @@
         //    $schedule->command("m1:parseapp")->withoutOverlapping()->cron("0,15,30,45 * * * * *");    // каждые 15 минут
         //
         $add2schedule = [
-          //'$schedule->command("m8:update_bots_inventory_count")->cron("*/10 * * * * *");',
-          //'$schedule->command("m8:update_bots_authorization_statuses")->cron("*/10 * * * * *");',
-          //'$schedule->command("m8:update_bots_apikeys")->hourly();',
-          //'$schedule->command("m8:update_prices_all")->dailyAt("04:00");'
-          '$schedule->command("m8:update_prices_csgofast")->dailyAt("04:00");'
+          '//$schedule->command("m8:update_bots_inventory_count")->cron("*/10*****");',
+          '//$schedule->command("m8:update_bots_authorization_statuses")->cron("*/10*****");',
+          '//$schedule->command("m8:update_bots_apikeys")->hourly();',
+          '//$schedule->command("m8:update_prices_all")->dailyAt("04:00");$schedule->command("m8:update_prices_csgofast")->dailyAt("04:00");'
         ];
 
       //----------------------------------------------------//
@@ -152,7 +151,10 @@
           '\M8\Console\T29_delete_bot',
           '\M8\Console\T30_rename_group',
           '\M8\Console\T31_update_items_quality_indb',
-          '\M8\Console\T32_check_escrow_hold_days_by_tradeofferid'
+          '\M8\Console\T32_check_escrow_hold_days_by_tradeofferid',
+          '\M8\Console\T33_edit_bot_safe',
+          '\M8\Console\T34_set_bot_secrets',
+          '\M8\Console\T35_get_bot_secret'
         ];
 
         // Регистрация команд в методе register

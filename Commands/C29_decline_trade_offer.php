@@ -158,11 +158,28 @@ class C29_decline_trade_offer extends Job { // TODO: добавить "implement
         throw new \Exception($validator['data']);
 
       // 2. Попробовать найти модель бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
-      if(empty($bot->sessionid))
-        throw new \Exception("Can't find sessionid of the bot with ID = ".$bot->id);
+
+        // 2.1. Получить бота
+        $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+        if(empty($bot))
+          throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+
+        // 2.2. Попробовать найти секретные данные, связанные с $bot
+        $secrets = \M8\Models\MD11_secrets::whereHas('bots', function($queue) USE ($bot) {
+          $queue->where('id', $bot['id']);
+        })->first();
+        if(empty($secrets))
+          throw new \Exception('Не удалось найти в БД секретные данные для бота с ID = '.$this->data['id_bot']);
+
+        // 2.3. Получить sessionid бота
+        $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+          'id_bot' => $bot->id,
+          'secret' => 'sessionid',
+          'key'    => env('SECRETS_KEY')
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+        $sessionid = $result['data']['value'];
 
       // 3. Осуществить запрос к steam и отклонить указанное торговое предложение
 
@@ -175,7 +192,7 @@ class C29_decline_trade_offer extends Job { // TODO: добавить "implement
             "url"             => "https://steamcommunity.com/tradeoffer/".$this->data['id_tradeoffer']."/decline",
             "cookies_domain"  => 'steamcommunity.com',
             "data"            => [
-              'sessionid'     => $bot->sessionid,
+              'sessionid'     => $sessionid,
               'serverid'      => '1',
             ],
             "ref"             => 'https://steamcommunity.com/tradeoffer/'.$this->data['id_tradeoffer'].'/'

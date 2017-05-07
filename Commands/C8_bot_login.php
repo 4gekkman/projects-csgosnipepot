@@ -231,11 +231,21 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         $bot->authorization_last_bug_code = "";
         $bot->authorization_status_last_bug = "";
         $bot->authorization_used_attempts = "0";
-        $bot->sessionid = $is_bot_authorized['sessionid'];
+        //$bot->sessionid = $is_bot_authorized['sessionid'];
         $bot->save();
+
+        // 2] Обновить sessionid бота в secrets
+        $result = runcommand('\M8\Commands\C37_set_bot_secrets', [
+          'id_bot'    => $bot->id,
+          'sessionid' => $is_bot_authorized['sessionid']
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // 3] Сделать commit
         DB::commit();
 
-        // 2] Завершить
+        // 4] Завершить
         return [
           "status"  => 0,
           "data"    => [
@@ -296,10 +306,20 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
         // 6.4. Добавить $key
         $rsa_instance->loadKey($key, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_RAW);
 
-        // 6.5. Получить зашифрованный пароль
-        $password = base64_encode($rsa_instance->encrypt($bot->password));
+        // 6.5. Получить пароль бота
+        $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+          'id_bot' => $bot->id,
+          'secret' => 'password',
+          'key'    => env('SECRETS_KEY')
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+        $bot_psw = $result['data']['value'];
 
-        // 6.6. Вернуть результат
+        // 6.6. Получить зашифрованный пароль
+        $password = base64_encode($rsa_instance->encrypt($bot_psw));
+
+        // 6.7. Вернуть результат
         return $password;
 
       });
@@ -429,18 +449,28 @@ class C8_bot_login extends Job { // TODO: добавить "implements ShouldQue
           $bot->authorization_last_bug_code = "";
           $bot->authorization_status_last_bug = "";
           $bot->authorization_used_attempts = "0";
-          $bot->sessionid = $is_bot_authorized_new['sessionid'];
+          //$bot->sessionid = $is_bot_authorized_new['sessionid'];
           $bot->save();
+
+          // 3] Обновить sessionid бота в secrets
+          $result = runcommand('\M8\Commands\C37_set_bot_secrets', [
+            'id_bot'    => $bot->id,
+            'sessionid' => $is_bot_authorized_new['sessionid']
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 4] Сделать commit
           DB::commit();
 
-          // 3] Вернуть результаты
+          // 5] Вернуть результаты
           return [
             "status"  => 0,
             "data"    => [
               'was_bot_authorized'  => $is_bot_authorized['is_bot_authenticated'],
               'id_bot'              => $this->data['id_bot'],
               'relogin'             => $this->data['relogin'],
-              'sessionid'           => $is_bot_authorized_new['sessionid'],
+              //'sessionid'           => $is_bot_authorized_new['sessionid'],
               'too_many_tries'      => false
             ]
           ];

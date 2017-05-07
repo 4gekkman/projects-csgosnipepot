@@ -180,13 +180,27 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
       }
 
       // 2. Попробовать найти модель бота с id_bot
-      $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
-      if(empty($bot))
-        throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
-      if(empty($bot->trade_url))
-        throw new \Exception('Не удалось найти торговый URL бота с ID = '.$this->data['id_bot']);
-      if(empty($bot->sessionid))
-        throw new \Exception("Can't find sessionid of the bot with ID = ".$bot->id);
+
+        // 2.1. Получить бота
+        $bot = \M8\Models\MD1_bots::find($this->data['id_bot']);
+        if(empty($bot))
+          throw new \Exception('Не удалось найти бота с ID = '.$this->data['id_bot']);
+
+        // 2.2. Проверить наличие Trade URL бота
+        if(empty($bot->trade_url))
+          throw new \Exception('Не удалось найти торговый URL бота с ID = '.$this->data['id_bot']);
+
+        // 2.3. Получить sessionid бота
+        $result = runcommand('\M8\Commands\C38_get_bot_secret', [
+          'id_bot' => $bot->id,
+          'secret' => 'sessionid',
+          'key'    => env('SECRETS_KEY')
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+        $bot_sessionid = $result['data']['value'];
+        if(empty($bot_sessionid))
+          throw new \Exception("Can't find sessionid of the bot with ID = ".$bot->id);
 
       // 3. Написать функцию для преобразования partnerid хэша для
       $get_partner_hash = function($id) {
@@ -273,7 +287,7 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
       //
       //      }
       //
-      $params = call_user_func(function() USE ($bot, $get_partner_hash) {
+      $params = call_user_func(function() USE ($bot, $bot_sessionid, $get_partner_hash) {
 
         // 1] Подготовить массив для результата
         $results = [];
@@ -314,11 +328,22 @@ class C25_new_trade_offer extends Job { // TODO: добавить "implements Sh
           return $results;
         });
 
-        // 4] Наполнить $results
-        $results['sessionid']                   = $bot->sessionid;
+        // 4] Подготовить tradeoffermessage
+        $tradeoffermessage = call_user_func(function(){
+
+          $result = "";
+          if(!empty($this->data['tradeoffermessage']))
+            $result = $result . $this->data['tradeoffermessage'] . ' <<<<<<<>>>>>>> ';
+          $result = $result . base64_encode(\Carbon\Carbon::now()->toDateTimeString()) . PHP_EOL;
+          return $result;
+
+        });
+
+        // 5] Наполнить $results
+        $results['sessionid']                   = $bot_sessionid;
         $results['serverid']                    = 1;
         $results['partner']                     = (int)$this->data['steamid_partner'];
-        $results['tradeoffermessage']           = !empty($this->data['tradeoffermessage']) ? $this->data['tradeoffermessage'] : "";
+        $results['tradeoffermessage']           = $tradeoffermessage;
         $results['trade_offer_create_params']   = json_encode([
           'trade_offer_access_token' => $this->data['token_partner']
         ], JSON_UNESCAPED_UNICODE);

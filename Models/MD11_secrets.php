@@ -26,7 +26,7 @@
 //-----------------//
 // В. Класс-модель //
 //-----------------//
-class MD1_bots extends Model {
+class MD11_secrets extends Model {
 
   /**
    *
@@ -49,18 +49,17 @@ class MD1_bots extends Model {
   // - По умолчанию, имя класса модели с 's' на конце
   // - Пример: 'm1.md1_settings'
   // - Внимание! Регистр в имени таблицы имеет значение!
-  protected $table = 'm8.md1_bots';
+  protected $table = 'm8.md11_secrets';
 
     // 2] Вкл (по умолч.) / Выкл автообслуживание столбцов created_at / updated_at //
     //-----------------------------------------------------------------------------//
-    public $timestamps = true;
+    public $timestamps = false;
 
     // 3] Вкл / Выкл (по умолч.) мягкое удаление //
     //-------------------------------------------//
     // use SoftDeletes;
     // protected $dates = ['deleted_at'];
     // 
-    use SoftDeletes; protected $dates = ["deleted_at"];
 
 
   //------------------//
@@ -68,16 +67,7 @@ class MD1_bots extends Model {
   //------------------//
 
     // relationships start
-    public function items() { return $this->belongsToMany('\M8\Models\MD2_items', 'm8.md1003', 'id_bot', 'id_item'); }
-    public function groups() { return $this->belongsToMany('\M8\Models\MD7_groups', 'm8.md1004', 'id_bot', 'id_group'); }
-    public function trades() { return $this->belongsToMany('\M8\Models\MD9_trades', 'm8.md1007', 'id_bot', 'id_trade'); }
-    public function secrets() { return $this->belongsToMany('\M8\Models\MD11_secrets', 'm8.md1011', 'id_bot', 'id_secret'); }
-    public function m13_trades() { return $this->belongsToMany('\M13\Models\MD4_trades', 'm13.md2003', 'id_bot', 'id_trade'); }
-    public function m14_trades() { return $this->belongsToMany('\M14\Models\MD4_trades', 'm14.md2003', 'id_bot', 'id_trade'); }
-    public function m16_giveaways() { return $this->belongsToMany('\M16\Models\MD2_giveaways', 'm16.md2001', 'id_bot', 'id_giveaway'); }
-    public function m9_bets() { return $this->belongsToMany('\M9\Models\MD3_bets', 'm9.md2002', 'id_bot', 'id_bet'); }
-    public function m9_rooms() { return $this->belongsToMany('\M9\Models\MD1_rooms', 'm9.md2003', 'id_bot', 'id_room'); }
-    public function m9_wins() { return $this->belongsToMany('\M9\Models\MD4_wins', 'm9.md2005', 'id_bot', 'id_win')->withPivot(['is_free','tradeofferid','offer_expired_at']); }
+    public function bots() { return $this->belongsToMany('\M8\Models\MD1_bots', 'm8.md1011', 'id_secret', 'id_bot'); }
     // relationships stop
 
 
