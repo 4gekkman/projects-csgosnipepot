@@ -438,8 +438,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						from: 		    "f.s0.send_trade_offer",
 						data: 		    {
 							id_bot: 							self.m.s2.edit.id(),
-							need_to_ids:          "0",
-							just_fetch_info:      "0"
+							need_to_ids:          "1",
+							just_fetch_info:      "0",
+							tradeoffer_ids: [
+								data.data.tradeofferid
+							]
 						},
 						prejob:       function(config, data, event){},
 						postjob:      function(data, params){},
@@ -2222,8 +2225,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						from: 		    "f.s7.accept",
 						data: 		    {
 							id_bot: 							self.m.s2.edit.id(),
-							need_to_ids:          "0",
-							just_fetch_info:      "0"
+							need_to_ids:          "1",
+							just_fetch_info:      "0",
+							tradeoffer_ids: [
+								data.data.tradeofferid
+							]
 						},
 						prejob:       function(config, data, event){},
 						postjob:      function(data, params){},
@@ -2335,8 +2341,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						from: 		    "f.s7.decline",
 						data: 		    {
 							id_bot: 							self.m.s2.edit.id(),
-							need_to_ids:          "0",
-							just_fetch_info:      "0"
+							need_to_ids:          "1",
+							just_fetch_info:      "0",
+							tradeoffer_ids: [
+								data.data.tradeofferid
+							]
 						},
 						prejob:       function(config, data, event){},
 						postjob:      function(data, params){},
@@ -2448,8 +2457,11 @@ var ModelFunctions = { constructor: function(self) { var f = this;
 						from: 		    "f.s7.decline",
 						data: 		    {
 							id_bot: 							self.m.s2.edit.id(),
-							need_to_ids:          "0",
-							just_fetch_info:      "0"
+							need_to_ids:          "1",
+							just_fetch_info:      "0",
+							tradeoffer_ids: [
+								data.data.tradeofferid
+							]
 						},
 						prejob:       function(config, data, event){},
 						postjob:      function(data, params){},
