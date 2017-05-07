@@ -465,8 +465,11 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         // 5] Подтвердить все исходящие торговые предложения бота $bot
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $bot->id,
-          "need_to_ids"           => "0",
-          "just_fetch_info"       => "0"
+          "need_to_ids"           => "1",
+          "just_fetch_info"       => "0",
+          "tradeoffer_ids"        => [
+            $tradeoffer['data']['tradeofferid']
+          ]
         ]);
         if($result['status'] != 0)
           throw new \Exception($result['data']['errormsg']);
