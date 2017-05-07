@@ -178,12 +178,12 @@ class C3_get_freecoins extends Job { // TODO: добавить "implements Shoul
       if(empty($status_db))
         throw new \Exception("Не удалось найти статус с ID = ".$status['data']['status']['id']);
 
-      // 4. Получить из конфига кол-во монет, которые надо выплатить
+      // 5. Получить из конфига кол-во монет, которые надо выплатить
       $coins_num = config('M15.daily_coins_payout_num_everyuser');
       if(empty($coins_num))
         $coins_num = 10;
 
-      // 5. Начислить пользователю id_user $coins_num монет
+      // 6. Начислить пользователю id_user $coins_num монет
       $result = runcommand('\M13\Commands\C13_add_coins', [
         "id_user"     => $this->data['id_user'],
         "coins"       => $coins_num,
@@ -192,14 +192,14 @@ class C3_get_freecoins extends Job { // TODO: добавить "implements Shoul
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 6. Изменить id_status пользователя на 1
+      // 7. Изменить id_status пользователя на 1
       $status_db->id_status = 1;
       $status_db->save();
 
-      // 7. Сделать commit
+      // 8. Сделать commit
       DB::commit();
 
-      // 8. Транслировать через частный канал пользователю id_user приказ заблокировать интерфейс
+      // 9. Транслировать через частный канал пользователю id_user приказ заблокировать интерфейс
       Event::fire(new \R2\Broadcast([
         'channels' => ['m15:private:'.$this->data['id_user']],
         'queue'    => 'm15_freecoins',
