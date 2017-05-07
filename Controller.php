@@ -235,7 +235,7 @@ class Controller extends BaseController {
         //-----------------------------//
         if($key == 'D10012:1') {
 
-
+          return 123;
 
         }
 
