@@ -50,6 +50,7 @@
   1.13. Зона уведомлений
   1.14. История игр
   1.15. СЕО-текст
+  1.16. СЕО-меню
 
 //------------------------------------*/
 
@@ -1302,27 +1303,7 @@
       cursor: pointer;
     }
 
-    // Сео-текст
-    .content .classic-game .termsofuse .seo {
-      padding-top: 30px;
-      padding-bottom: 50px;
-      color: #9ea7b3;
-    }
-    .content .classic-game .termsofuse .seo h1 {
-      text-align: center;
-    }
-    .content .classic-game .termsofuse .seo h1, .content .classic-game .termsofuse .seo h2, .content .classic-game .termsofuse .seo h3 {
-      font-weight: bold;
-    }
-    .content .classic-game .termsofuse .seo ul, .content .classic-game .termsofuse .seo ol {
-      margin-left: 40px;
-    }
-    .content .classic-game .termsofuse .seo ol {
-      list-style-type: decimal;
-    }
-    .content .classic-game .termsofuse .seo ul {
-      list-style-type: disc;
-    }
+
 
   //-----------------------------//
   // 1.12. Статистические данные //
@@ -1830,7 +1811,7 @@
   //-----------------//
   .content .seo {
     padding-top: 30px;
-    padding-bottom: 50px;
+    padding-bottom: 20px;
     color: #9ea7b3;
   }
   .content .seo h1 {
@@ -1847,6 +1828,29 @@
   }
   .content .seo ul {
     list-style-type: disc;
+  }
+
+  //----------------//
+  // 1.16. СЕО-меню //
+  //----------------//
+  .content .seo-menu {
+    padding-bottom: 10px;
+  }
+  .content .seo-menu ul {
+    margin-left: 0; /* Отступ слева в браузере IE и Opera */
+    padding-left: 0; /* Отступ слева в браузере Firefox, Safari, Chrome */
+  }
+  .content .seo-menu ul li {
+    display: inline-block;
+    list-style-type: none;
+    font-size: 1.1em;
+    padding-right: 10px;
+  }
+  .content .seo-menu ul li a {
+    color: #337ab7;
+  }
+  .content .seo-menu ul li a:hover {
+    color: lighten(#337ab7, 5%);
   }
 
 
@@ -3802,30 +3806,6 @@
       cursor: pointer;
     }
 
-    // Сео-текст
-    .content .footer .termsofuse .seo {
-      padding-top: 30px;
-      padding-bottom: 50px;
-      color: #9ea7b3;
-    }
-    .content .footer .termsofuse .seo h1 {
-      text-align: center;
-    }
-    .content .footer .termsofuse .seo h1, .content .footer .termsofuse .seo h2, .content .footer .termsofuse .seo h3 {
-      font-weight: bold;
-    }
-    .content .footer .termsofuse .seo ul, .content .footer .termsofuse .seo ol {
-      margin-left: 40px;
-    }
-    .content .footer .termsofuse .seo ol {
-      list-style-type: decimal;
-    }
-    .content .footer .termsofuse .seo ul {
-      list-style-type: disc;
-    }
-    
-    
-    
     
 
 
