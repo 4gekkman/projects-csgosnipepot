@@ -199,13 +199,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
-        Log::info('Parsing for md1_packtypes have ended on line '.$e->getLine().' with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Parsing for md1_packtypes have ended with error: '.$e->getMessage()
-        ];
+      Log::info('Parsing for md1_packtypes have ended on line '.$e->getLine().' with error: '.$e->getMessage());
+      return [
+        "status"  => -2,
+        "data"    => 'Parsing for md1_packtypes have ended with error: '.$e->getMessage()
+      ];
     }}); if(!empty($res)) return $res;
+    usleep(100000);
 
 
     //-----------------------------------//
@@ -262,7 +262,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       // 2.5. Наполнить md4_locales
       foreach($packages as $key => $packtype) {
         foreach($packtype as $package) {
-          foreach($get_pack_locales($package) as $locale) {
+          foreach($get_pack_locales($package) as $locale) { usleep(100000);
 
             // 1] Попробовать найти такую локаль
             $locale_in_trash = \M1\Models\MD4_locales::onlyTrashed()->where('name','=',$locale)->first();
@@ -295,14 +295,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        DB::rollback();
-        Log::info('Parsing for md4_locales have ended with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Parsing for md4_locales have ended with error: '.$e->getMessage()
-        ];
+      Log::info('Parsing for md4_locales have ended with error: '.$e->getMessage());
+      return [
+        "status"  => -2,
+        "data"    => 'Parsing for md4_locales have ended with error: '.$e->getMessage()
+      ];
     }}); if(!empty($res)) return $res;
-
+    usleep(100000);
 
     //--------------------------------------------//
     // 3. Парсинг данных для md2_packages, md1002 //
@@ -315,7 +314,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 1] Проверить, существует ли класс \M1\Models\MD2_packages
         if(!class_exists('\M1\Models\MD2_packages')) {
-          DB::rollback();
           throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD2_packages" не существует.');
         }
 
@@ -440,7 +438,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
       // 3.10. Наполнить md2_packages, md1002
       foreach($packages as $key => $packtype) {
-        foreach($packtype as $package) {
+        foreach($packtype as $package) { usleep(100000);
 
           // 1] Попробовать найти пакет $package
           $package_in_trash = \M1\Models\MD2_packages::onlyTrashed()->where('id_inner','=',$package)->first();
@@ -480,14 +478,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           }
 
           // 5] Наполнить md1002
-          foreach($get_pack_locales($package) as $locale) {
+          foreach($get_pack_locales($package) as $locale) { usleep(100000);
 
             // 5.1] Получить ID локали $locale
             $locale_id = \M1\Models\MD4_locales::where('name','=',$locale)->first()->id;
 
             // 5.2] Проверить, существует ли у \M1\Models\MD2_packages связь locales
             if(!r1_rel_exists("m1","md2_packages","locales")) {
-              DB::rollback();
               throw new \Exception('Необходимая для осуществления парсинга приложения связь "locales" класса "\M1\Models\MD2_packages" не существует.');
             }
 
@@ -500,13 +497,13 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       }
 
     DB::commit(); } catch(\Exception $e) {
-        Log::info('Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage()
-        ];
+      Log::info('Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage());
+      return [
+        "status"  => -2,
+        "data"    => 'Parsing for md2_packages, md1002 have ended with error: '.$e->getMessage()
+      ];
     }}); if(!empty($res)) return $res;
-
+    usleep(100000);
 
     //---------------------------------------------//
     // 4. Парсинг связей между пакетами для md1000 //
@@ -521,7 +518,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
       // 4.3. Для каждого пакета получить массив имён пакетов, от которых он зависит
       $dependencies = [];
-      foreach($packages as $package) {
+      foreach($packages as $package) { usleep(100000);
 
         // 1] Получить массив зависимостей пакета $packages
         $d = json_decode($this->storage->get($package['id_inner'].'/composer.json'), true)['require'];
@@ -554,7 +551,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       foreach($dependencies as $key => $value) {
         foreach($value as $pack_id) {
           if($key == $pack_id) {
-            DB::rollback();
             throw new \Exception('Package '.$pack_id.' depends on himself, that is not good.');
           }
         }
@@ -576,33 +572,31 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           foreach($value as $pack_id) {
 
             if(!in_array(mb_substr($pack_id,0,1,"UTF-8"), $allowed_dependencies[mb_substr($key,0,1,"UTF-8")])) {
-              DB::rollback();
               throw new \Exception('Package '.$key.' has forbidden dependencies.');
             }
 
           }
         }
 
-      // 4.6. Наполнить таблицу связей пакетов md1000
-      foreach($packages as $package) {
-        foreach($dependencies[$package['id_inner']] as $dependency) {
-          if(!r1_rel_exists("m1","md2_packages","packages")) {
-            DB::rollback();
-            throw new \Exception('Необходимая для осуществления парсинга приложения связь "packages" класса "\M1\Models\MD2_packages" не существует.');
-          }
-          $package->packages()->attach(\M1\Models\MD2_packages::where('id_inner','=',$dependency)->first()->id);
-        }
-      }
+//      // 4.6. Наполнить таблицу связей пакетов md1000
+//      foreach($packages as $package) {
+//        foreach($dependencies[$package['id_inner']] as $dependency) { usleep(100000);
+//          if(!r1_rel_exists("m1","md2_packages","packages")) {
+//            throw new \Exception('Необходимая для осуществления парсинга приложения связь "packages" класса "\M1\Models\MD2_packages" не существует.');
+//          }
+//          $package->packages()->attach(\M1\Models\MD2_packages::where('id_inner','=',$dependency)->first()->id);
+//        }
+//      }
 
 
     DB::commit(); } catch(\Exception $e) {
-        Log::info('Parsing for md1000 have ended with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Parsing for md1000 have ended with error: '.$e->getMessage()
-        ];
+      Log::info('Parsing for md1000 have ended with error: '.$e->getMessage());
+      return [
+        "status"  => -2,
+        "data"    => 'Parsing for md1000 have ended with error: '.$e->getMessage()
+      ];
     }}); if(!empty($res)) return $res;
-
+    usleep(100000);
 
     //---------------------------------------------------------------------//
     // 5. Для M-пакетов парсинг моделей для md3_models и связей для md1001 //
@@ -616,7 +610,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 1] Проверить, существует ли класс \M1\Models\MD2_packages
         if(!class_exists('\M1\Models\MD3_models')) {
-          DB::rollback();
           throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD3_models" не существует.');
         }
 
@@ -632,7 +625,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       })->get();
 
       // 5.4. Наполнить md3_models и md1001 для каждого M-пакета
-      foreach($mpackages as $mpackage) {
+      foreach($mpackages as $mpackage) { usleep(100000);
 
         // 1] Получить пути ко всем дочерним файлам в Models этого M-пакета
         $paths = $this->storage->files($mpackage->id_inner.'/Models');
@@ -655,7 +648,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         $mpackage_model_ids = [];
 
         // 4] Пробежаться по $paths
-        foreach($paths as $path) {
+        foreach($paths as $path) { usleep(100000);
 
           // 3.1] Извлечь имя модели из пути (без .php на конце)
           $name = preg_replace("/^.*\\//ui", "", $path);
@@ -680,7 +673,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 5] Проверить, существует ли у \M1\Models\MD2_packages связь models
         if(!r1_rel_exists("m1","md2_packages","models")) {
-          DB::rollback();
           throw new \Exception('Необходимая для осуществления парсинга приложения связь "models" класса "\M1\Models\MD2_packages" не существует.');
         }
 
@@ -696,7 +688,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           "data"    => 'Parsing for md3_models and md1001 have ended with error: '.$e->getMessage()
         ];
     }}); if(!empty($res)) return $res;
-
+    usleep(100000);
 
     //----------------------------------------------------------------------//
     // 6. Для M-пакетов парсинг команд для md5_commands и связей для md1003 //
@@ -707,7 +699,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
         // 1] Проверить, существует ли класс \M1\Models\MD5_commands
         if(!class_exists('\M1\Models\MD5_commands')) {
-          DB::rollback();
           throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD5_commands" не существует.');
         }
 
@@ -724,7 +715,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
       })->get();
 
       // 6.3. Наполнить md5_commands и md1003
-      foreach($mpackages as $mpackage) {
+      foreach($mpackages as $mpackage) { usleep(100000);
 
         // 1] Получить список имён команд M-пакета $mpackage
         $commands = array_map(function($item){
@@ -745,7 +736,7 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
         })));
 
         // 2] Добавить эти команды в md5_commands, а их связи в md1003
-        foreach($commands as $command) {
+        foreach($commands as $command) { usleep(100000);
 
           // 2.1] Извлечь внутренний ID команды
 
@@ -785,7 +776,6 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
 
           // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь commands
           if(!r1_rel_exists("m1","md2_packages","commands")) {
-            DB::rollback();
             throw new \Exception('Необходимая для осуществления парсинга приложения связь "commands" класса "\M1\Models\MD2_packages" не существует.');
           }
 
@@ -803,244 +793,244 @@ class C1_parseapp extends Job { // TODO: добавить "implements ShouldQueu
           "data"    => 'Parsing for md5_commands and md1003 have ended with error: '.$e->getMessage()
         ];
     }}); if(!empty($res)) return $res;
-
-
-    //------------------------------------------------------------------------//
-    // 7. Для M-пакетов парсинг к.команд для md6_console и связей для md1004  //
-    //------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
-
-      // 7.1. Очистить md1004, удалить всё из md6_console, сбросить автоинкремент
-
-        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
-        if(!class_exists('\M1\Models\MD6_console')) {
-          DB::rollback();
-          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD6_console" не существует.');
-        }
-
-        // 2] Удалить
-        DB::table('m1.md1004')->delete();
-        \M1\Models\MD6_console::query()->delete();
-
-        // 3] Сбросить счётчик автоинкремента
-        DB::statement('ALTER TABLE m1.md6_console AUTO_INCREMENT = 1;');
-
-      // 7.2. Получить все M-пакеты
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
-        $query->where('name','=','M');
-      })->get();
-
-      // 7.3. Наполнить md6_console и md1004
-      foreach($mpackages as $mpackage) {
-
-        // 1] Получить список имён к.команд докуменда $doc
-        $commands = array_map(function($item){
-
-          return preg_replace("/\\.php$/ui", "", preg_replace("/^.*\\//ui", "", $item));
-
-        }, array_values(array_filter($this->storage->files($mpackage->id_inner.'/Console'), function($item){
-
-          // Извлечь имя к.команды из пути (включая .php на конце)
-          $lastsection = preg_replace("/^.*\\//ui", "", $item);
-
-          // Если $lastsection не матчится, отсеять
-          if( !preg_match("/^T[0-9]+_.*$/ui", $lastsection) ) return false;
-
-          // В противном случае, включить в результирующий массив
-          return true;
-
-        })));
-
-        // 2] Добавить эти к.команды в md6_console, а их связи в md1004
-        foreach($commands as $command) {
-
-          // 2.1] Извлечь внутренний ID к.команды
-
-            // Осуществить поиск
-            $innerid = [];
-            preg_match("/^T[0-9]+_/ui", $command, $innerid);
-
-            // Извлечь результат
-            $innerid = $innerid[0];
-
-            // Удалить последний символ _ из $innerid
-            $innerid = mb_substr($innerid, 0, -1);
-
-          // 2.2] Извлечь описание к.команды
-          $description = call_user_func(function() USE ($mpackage, $command) {
-
-            // 2.2.1] Извлечь содержимое к.команды $command пакета $mpackage
-            $contents = $this->storage->get($mpackage->id_inner.'/Console/'.$command.'.php');
-
-            // 2.2.2] Извлечь описание к.команды
-            preg_match("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*(\r?\n){1}/smuiU", $contents, $result);
-            $result = preg_replace("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*/smuiU", '', $result[0]);
-            $result = preg_replace("/(\r?\n){1}$/smuiU", '', $result);
-
-            // 2.2.3] Вернуть результат
-            return $result;
-
-          });
-
-          // 2.3] Добавить $command в md6_console
-          $new = new \M1\Models\MD6_console();
-          $new->uid         = $mpackage->id_inner . '_' . $innerid;
-          $new->id_inner    = $innerid;
-          $new->name        = $command;
-          $new->description = $description;
-          $new->save();
-
-          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь console
-          if(!r1_rel_exists("m1","md2_packages","console")) {
-            DB::rollback();
-            throw new \Exception('Необходимая для осуществления парсинга приложения связь "console" класса "\M1\Models\MD2_packages" не существует.');
-          }
-
-          // 2.5] Связать пакет $mpackage с к.командой $command
-          $mpackage->console()->attach($new->id);
-
-        }
-
-      }
-
-    DB::commit(); } catch(\Exception $e) {
-        Log::info('Parsing for md6_console and md1004 have ended with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Parsing for md6_console and md1004 have ended with error: '.$e->getMessage()
-        ];
-    }}); if(!empty($res)) return $res;
-
-
-    //----------------------------------------------------------------------------//
-    // 8. Для M-пакетов парсинг обработчиков для md7_handlers и связей для md1005 //
-    //----------------------------------------------------------------------------//
-    $res = call_user_func(function() { try { DB::beginTransaction();
-
-      // 8.1. Очистить md1005, удалить всё из md7_handlers, сбросить автоинкремент
-
-        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
-        if(!class_exists('\M1\Models\MD7_handlers')) {
-          DB::rollback();
-          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD7_handlers" не существует.');
-        }
-
-        // 2] Удалить
-        DB::table('m1.md1005')->delete();
-        \M1\Models\MD7_handlers::query()->delete();
-
-        // 3] Сбросить счётчик автоинкремента
-        DB::statement('ALTER TABLE m1.md7_handlers AUTO_INCREMENT = 1;');
-
-      // 8.2. Получить все M-пакеты
-      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
-        $query->where('name','=','M');
-      })->get();
-
-      // 8.3. Наполнить md7_handlers и md1005
-      foreach($mpackages as $mpackage) {
-
-        // 1] Получить список имён обработчиков докуменда $doc
-        $handlers = array_map(function($item){
-
-          return preg_replace("/\\.php$/ui", "", preg_replace("/^.*\\//ui", "", $item));
-
-        }, array_values(array_filter($this->storage->files($mpackage->id_inner.'/EventHandlers'), function($item){
-
-          // Извлечь имя обработчика из пути (включая .php на конце)
-          $lastsection = preg_replace("/^.*\\//ui", "", $item);
-
-          // Если $lastsection не матчится, отсеять
-          if( !preg_match("/^H[0-9]+_.*$/ui", $lastsection) ) return false;
-
-          // В противном случае, включить в результирующий массив
-          return true;
-
-        })));
-
-        // 2] Добавить эти обработчики в md7_handlers, а их связи в md1005
-        foreach($handlers as $handler) {
-
-          // 2.1] Извлечь внутренний ID обработчика
-
-            // Осуществить поиск
-            $innerid = [];
-            preg_match("/^H[0-9]+_/ui", $handler, $innerid);
-
-            // Извлечь результат
-            $innerid = $innerid[0];
-
-            // Удалить последний символ _ из $innerid
-            $innerid = mb_substr($innerid, 0, -1);
-
-          // 2.2] Извлечь описание обработчика
-          $description = call_user_func(function() USE ($mpackage, $handler) {
-
-            // 2.2.1] Извлечь содержимое обработчика $handler пакета $mpackage
-            $contents = $this->storage->get($mpackage->id_inner.'/EventHandlers/'.$handler.'.php');
-
-            // 2.2.2] Извлечь описание обработчика
-            preg_match("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*(\r?\n){1}/smuiU", $contents, $result);
-            $result = preg_replace("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*/smuiU", '', $result[0]);
-            $result = preg_replace("/(\r?\n){1}$/smuiU", '', $result);
-
-            // 2.2.3] Вернуть результат
-            return $result;
-
-          });
-
-          // 2.3] Добавить $handler в md8_handlers
-          $new = new \M1\Models\MD7_handlers();
-          $new->uid         = $mpackage->id_inner . '_' . $innerid;
-          $new->id_inner    = $innerid;
-          $new->name        = $handler;
-          $new->description = $description;
-          $new->save();
-
-          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь handlers
-          if(!r1_rel_exists("m1","md2_packages","handlers")) {
-            DB::rollback();
-            throw new \Exception('Необходимая для осуществления парсинга приложения связь "handlers" класса "\M1\Models\MD2_packages" не существует.');
-          }
-
-          // 2.5] Связать пакет $mpackage с обработчиком $handler
-          $mpackage->handlers()->attach($new->id);
-
-        }
-
-      }
-
-    DB::commit(); } catch(\Exception $e) {
-        Log::info('Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage()
-        ];
-    }}); if(!empty($res)) return $res;
-
-
-    //------------------------------------------------//
-    // X. Возбудить событие с ключём "m1:afterupdate" //
-    //------------------------------------------------//
-    $res = call_user_func(function() { try {
-
-      // 1] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
-      if(!empty($this->data) && array_key_exists('dontfire', $this->data) && $this->data['dontfire'] == true) {
-
-      } else {
-        Event::fire(new \R2\Event([
-          'keys'  =>  ['m1:afterupdate'],
-          'data'  =>  ""
-        ]));
-      }
-
-    } catch(\Exception $e) {
-        Log::info('Event firing ("m1:afterupdate") has failed with error: '.$e->getMessage());
-        return [
-          "status"  => -2,
-          "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()
-        ];
-    }}); if(!empty($res)) return $res;
+    usleep(100000);
+
+//    //------------------------------------------------------------------------//
+//    // 7. Для M-пакетов парсинг к.команд для md6_console и связей для md1004  //
+//    //------------------------------------------------------------------------//
+//    $res = call_user_func(function() { try { DB::beginTransaction();
+//
+//      // 7.1. Очистить md1004, удалить всё из md6_console, сбросить автоинкремент
+//
+//        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+//        if(!class_exists('\M1\Models\MD6_console')) {
+//          DB::rollback();
+//          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD6_console" не существует.');
+//        }
+//
+//        // 2] Удалить
+//        DB::table('m1.md1004')->delete();
+//        \M1\Models\MD6_console::query()->delete();
+//
+//        // 3] Сбросить счётчик автоинкремента
+//        DB::statement('ALTER TABLE m1.md6_console AUTO_INCREMENT = 1;');
+//
+//      // 7.2. Получить все M-пакеты
+//      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+//        $query->where('name','=','M');
+//      })->get();
+//
+//      // 7.3. Наполнить md6_console и md1004
+//      foreach($mpackages as $mpackage) { usleep(100000);
+//
+//        // 1] Получить список имён к.команд докуменда $doc
+//        $commands = array_map(function($item){
+//
+//          return preg_replace("/\\.php$/ui", "", preg_replace("/^.*\\//ui", "", $item));
+//
+//        }, array_values(array_filter($this->storage->files($mpackage->id_inner.'/Console'), function($item){
+//
+//          // Извлечь имя к.команды из пути (включая .php на конце)
+//          $lastsection = preg_replace("/^.*\\//ui", "", $item);
+//
+//          // Если $lastsection не матчится, отсеять
+//          if( !preg_match("/^T[0-9]+_.*$/ui", $lastsection) ) return false;
+//
+//          // В противном случае, включить в результирующий массив
+//          return true;
+//
+//        })));
+//
+//        // 2] Добавить эти к.команды в md6_console, а их связи в md1004
+//        foreach($commands as $command) { usleep(100000);
+//
+//          // 2.1] Извлечь внутренний ID к.команды
+//
+//            // Осуществить поиск
+//            $innerid = [];
+//            preg_match("/^T[0-9]+_/ui", $command, $innerid);
+//
+//            // Извлечь результат
+//            $innerid = $innerid[0];
+//
+//            // Удалить последний символ _ из $innerid
+//            $innerid = mb_substr($innerid, 0, -1);
+//
+//          // 2.2] Извлечь описание к.команды
+//          $description = call_user_func(function() USE ($mpackage, $command) {
+//
+//            // 2.2.1] Извлечь содержимое к.команды $command пакета $mpackage
+//            $contents = $this->storage->get($mpackage->id_inner.'/Console/'.$command.'.php');
+//
+//            // 2.2.2] Извлечь описание к.команды
+//            preg_match("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*(\r?\n){1}/smuiU", $contents, $result);
+//            $result = preg_replace("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*/smuiU", '', $result[0]);
+//            $result = preg_replace("/(\r?\n){1}$/smuiU", '', $result);
+//
+//            // 2.2.3] Вернуть результат
+//            return $result;
+//
+//          });
+//
+//          // 2.3] Добавить $command в md6_console
+//          $new = new \M1\Models\MD6_console();
+//          $new->uid         = $mpackage->id_inner . '_' . $innerid;
+//          $new->id_inner    = $innerid;
+//          $new->name        = $command;
+//          $new->description = $description;
+//          $new->save();
+//
+//          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь console
+//          if(!r1_rel_exists("m1","md2_packages","console")) {
+//            DB::rollback();
+//            throw new \Exception('Необходимая для осуществления парсинга приложения связь "console" класса "\M1\Models\MD2_packages" не существует.');
+//          }
+//
+//          // 2.5] Связать пакет $mpackage с к.командой $command
+//          $mpackage->console()->attach($new->id);
+//
+//        }
+//
+//      }
+//
+//    DB::commit(); } catch(\Exception $e) {
+//        Log::info('Parsing for md6_console and md1004 have ended with error: '.$e->getMessage());
+//        return [
+//          "status"  => -2,
+//          "data"    => 'Parsing for md6_console and md1004 have ended with error: '.$e->getMessage()
+//        ];
+//    }}); if(!empty($res)) return $res;
+//    usleep(100000);
+//
+//    //----------------------------------------------------------------------------//
+//    // 8. Для M-пакетов парсинг обработчиков для md7_handlers и связей для md1005 //
+//    //----------------------------------------------------------------------------//
+//    $res = call_user_func(function() { try { DB::beginTransaction();
+//
+//      // 8.1. Очистить md1005, удалить всё из md7_handlers, сбросить автоинкремент
+//
+//        // 1] Проверить, существует ли класс \M1\Models\MD2_packages
+//        if(!class_exists('\M1\Models\MD7_handlers')) {
+//          DB::rollback();
+//          throw new \Exception('Необходимый для осуществления парсинга приложения класс "\M1\Models\MD7_handlers" не существует.');
+//        }
+//
+//        // 2] Удалить
+//        DB::table('m1.md1005')->delete();
+//        \M1\Models\MD7_handlers::query()->delete();
+//
+//        // 3] Сбросить счётчик автоинкремента
+//        DB::statement('ALTER TABLE m1.md7_handlers AUTO_INCREMENT = 1;');
+//
+//      // 8.2. Получить все M-пакеты
+//      $mpackages = \M1\Models\MD2_packages::whereHas('packtypes', function($query){
+//        $query->where('name','=','M');
+//      })->get();
+//
+//      // 8.3. Наполнить md7_handlers и md1005
+//      foreach($mpackages as $mpackage) { usleep(100000);
+//
+//        // 1] Получить список имён обработчиков докуменда $doc
+//        $handlers = array_map(function($item){
+//
+//          return preg_replace("/\\.php$/ui", "", preg_replace("/^.*\\//ui", "", $item));
+//
+//        }, array_values(array_filter($this->storage->files($mpackage->id_inner.'/EventHandlers'), function($item){
+//
+//          // Извлечь имя обработчика из пути (включая .php на конце)
+//          $lastsection = preg_replace("/^.*\\//ui", "", $item);
+//
+//          // Если $lastsection не матчится, отсеять
+//          if( !preg_match("/^H[0-9]+_.*$/ui", $lastsection) ) return false;
+//
+//          // В противном случае, включить в результирующий массив
+//          return true;
+//
+//        })));
+//
+//        // 2] Добавить эти обработчики в md7_handlers, а их связи в md1005
+//        foreach($handlers as $handler) { usleep(100000);
+//
+//          // 2.1] Извлечь внутренний ID обработчика
+//
+//            // Осуществить поиск
+//            $innerid = [];
+//            preg_match("/^H[0-9]+_/ui", $handler, $innerid);
+//
+//            // Извлечь результат
+//            $innerid = $innerid[0];
+//
+//            // Удалить последний символ _ из $innerid
+//            $innerid = mb_substr($innerid, 0, -1);
+//
+//          // 2.2] Извлечь описание обработчика
+//          $description = call_user_func(function() USE ($mpackage, $handler) {
+//
+//            // 2.2.1] Извлечь содержимое обработчика $handler пакета $mpackage
+//            $contents = $this->storage->get($mpackage->id_inner.'/EventHandlers/'.$handler.'.php');
+//
+//            // 2.2.2] Извлечь описание обработчика
+//            preg_match("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*(\r?\n){1}/smuiU", $contents, $result);
+//            $result = preg_replace("/Что делает(\r?\n){1}.*(\r?\n){1}.*- {1}.*/smuiU", '', $result[0]);
+//            $result = preg_replace("/(\r?\n){1}$/smuiU", '', $result);
+//
+//            // 2.2.3] Вернуть результат
+//            return $result;
+//
+//          });
+//
+//          // 2.3] Добавить $handler в md8_handlers
+//          $new = new \M1\Models\MD7_handlers();
+//          $new->uid         = $mpackage->id_inner . '_' . $innerid;
+//          $new->id_inner    = $innerid;
+//          $new->name        = $handler;
+//          $new->description = $description;
+//          $new->save();
+//
+//          // 2.4] Проверить, существует ли у \M1\Models\MD2_packages связь handlers
+//          if(!r1_rel_exists("m1","md2_packages","handlers")) {
+//            DB::rollback();
+//            throw new \Exception('Необходимая для осуществления парсинга приложения связь "handlers" класса "\M1\Models\MD2_packages" не существует.');
+//          }
+//
+//          // 2.5] Связать пакет $mpackage с обработчиком $handler
+//          $mpackage->handlers()->attach($new->id);
+//
+//        }
+//
+//      }
+//
+//    DB::commit(); } catch(\Exception $e) {
+//        Log::info('Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage());
+//        return [
+//          "status"  => -2,
+//          "data"    => 'Parsing for md7_handlers and md1005 have ended with error: '.$e->getMessage()
+//        ];
+//    }}); if(!empty($res)) return $res;
+//    usleep(100000);
+//
+//    //------------------------------------------------//
+//    // X. Возбудить событие с ключём "m1:afterupdate" //
+//    //------------------------------------------------//
+//    $res = call_user_func(function() { try {
+//
+//      // 1] Возбудить событие с ключём 'm1:afterupdate', и передать данные $data
+//      if(!empty($this->data) && array_key_exists('dontfire', $this->data) && $this->data['dontfire'] == true) {
+//
+//      } else {
+//        Event::fire(new \R2\Event([
+//          'keys'  =>  ['m1:afterupdate'],
+//          'data'  =>  ""
+//        ]));
+//      }
+//
+//    } catch(\Exception $e) {
+//        Log::info('Event firing ("m1:afterupdate") has failed with error: '.$e->getMessage());
+//        return [
+//          "status"  => -2,
+//          "data"    => 'Event fireing ("m1:afterupdate") has failed with error: '.$e->getMessage()
+//        ];
+//    }}); if(!empty($res)) return $res;
 
 
     //---------------------//
