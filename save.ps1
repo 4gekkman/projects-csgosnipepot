@@ -155,7 +155,7 @@ $current_path = (Get-Location).Path
 		$msg = "Autosave"		
 		git add -A .
 		git commit -m $msg
-    git pull $project master:master
+    #git pull $project master:master
 		git push $project master:master
 	}  
   
