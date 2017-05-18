@@ -353,7 +353,7 @@ $current_path = (Get-Location).Path
 		$msg = "Autosave"		
 		git add -A .
 		git commit -m $msg
-    git subtree pull --prefix=$prefix $github master
+    #git subtree pull --prefix=$prefix $github master
     git subtree push --squash --prefix=$prefix $github master   
 	}  
   
