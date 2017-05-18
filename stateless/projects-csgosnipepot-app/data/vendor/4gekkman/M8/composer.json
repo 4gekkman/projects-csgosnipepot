@@ -1,0 +1,24 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/m8",
+		"description": "M8 - Unified Bots Management System (UBMS) and CSGO Items Database",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/m8"
+        }
+    ],
+    "require": {
+			"4gekkman/M1": "~1.0",
+			"4gekkman/M5": "~1.0",
+			"guzzlehttp/guzzle": "~6.0",
+			"phpseclib/phpseclib": "~2.0"
+		},
+    "autoload": {
+        "psr-4": {"M8\\": ""}
+    }
+}
