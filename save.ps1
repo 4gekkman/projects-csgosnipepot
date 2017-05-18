@@ -162,7 +162,7 @@ $current_path = (Get-Location).Path
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushProjectToGithub "csgosnipepot"
+  #PushProjectToGithub "csgosnipepot"
 
   
 ##################################################
@@ -353,17 +353,17 @@ $current_path = (Get-Location).Path
 		$msg = "Autosave"		
 		git add -A .
 		git commit -m $msg
-    #git subtree pull --prefix=$prefix $github master
+    git subtree pull --prefix=$prefix $github master
     git subtree push --squash --prefix=$prefix $github master   
 	}  
   
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
-  PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
   PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
-  PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
   
   
 ##########################################################
