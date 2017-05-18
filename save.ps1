@@ -13,7 +13,7 @@
 # 
 # 1. Сохранение projects на github
 # 2. Сохранение моих laravel-пакетов на github
-# 3. Сохранение поддеревьев проекта на github
+# 3. Сохранение docker-поддеревьев проекта на github
 # 
 # n. Перейти в окне терминала в первоначальный каталог
 # 
@@ -149,10 +149,8 @@ $current_path = (Get-Location).Path
 	########################	
 	function PushProjectToGithub($path, $project)
 	{
-		cd "C:\WebDev\projects\$path"
 		$msg = "Autosave"		
-		git add .
-    git add -u .
+		git add -A .
 		git commit -m $msg
 		git push $project master:master
 	}  
@@ -160,7 +158,7 @@ $current_path = (Get-Location).Path
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushProjectToGithub "csgosnipepot" "projects-csgosnipepot"
+  PushProjectToGithub "projects-csgosnipepot"
 
   
 ##################################################
@@ -168,199 +166,200 @@ $current_path = (Get-Location).Path
 ##################################################
 	
 	# 2.1. Подготовка функции для залива свежих данных на github
-	function PushToGithub($project, $packid)
+	function PushPacksSubtreesToGithub($prefix, $github)
 	{
-		cd "C:\WebDev\projects\$project\project\vendor\4gekkman\$packid"
-		$msg = "Autosave to $branch"		
-		git add .
-    git add -u .
+		$msg = "Autosave"		
+		git add -A .
 		git commit -m $msg
-    git pull --commit $packid master
-		git push $packid master:master	
+    git subtree pull --prefix=$prefix $github master
+    git subtree push --squash --prefix=$prefix $github master  
 	}	
   
   # 2.2. Подготовка списка пакетов, данные по которым надо залить 
   $laravelpacks = '[
     {
-        "project": "csgohap",
-        "packid": "M1"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10000",
+        "github": "git@github.com:4gekkman/D10000.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M2"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10003",
+        "github": "git@github.com:4gekkman/D10003.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M3"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10004",
+        "github": "git@github.com:4gekkman/D10004.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M4"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10005",
+        "github": "git@github.com:4gekkman/D10005.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M5"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10006",
+        "github": "git@github.com:4gekkman/D10006.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M8"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10009",
+        "github": "git@github.com:4gekkman/D10009.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10000"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10010",
+        "github": "git@github.com:4gekkman/D10010.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10003"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10011",
+        "github": "git@github.com:4gekkman/D10011.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10004"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10012",
+        "github": "git@github.com:4gekkman/D10012.git"
     },
     {
-        "project": "csgohap",
-        "packid": "L10000"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10013",
+        "github": "git@github.com:4gekkman/D10013.git"
     },
     {
-        "project": "csgohap",
-        "packid": "L10001"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10000",
+        "github": "git@github.com:4gekkman/L10000.git"
     },
     {
-        "project": "csgohap",
-        "packid": "R1"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10001",
+        "github": "git@github.com:4gekkman/L10001.git"
     },
     {
-        "project": "csgohap",
-        "packid": "R2"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10003",
+        "github": "git@github.com:4gekkman/L10003.git"
     },
     {
-        "project": "csgohap",
-        "packid": "R3"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10004",
+        "github": "git@github.com:4gekkman/L10004.git"
     },
     {
-        "project": "csgohap",
-        "packid": "R4"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M1",
+        "github": "git@github.com:4gekkman/M1.git"
     },
     {
-        "project": "csgohap",
-        "packid": "R5"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M2",
+        "github": "git@github.com:4gekkman/M2git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10005"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M3",
+        "github": "git@github.com:4gekkman/M3.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M10"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M4",
+        "github": "git@github.com:4gekkman/M4.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M11"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M5",
+        "github": "git@github.com:4gekkman/M5.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M9"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M6",
+        "github": "git@github.com:4gekkman/M6.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10006"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M7",
+        "github": "git@github.com:4gekkman/M7.git"
     },
     {
-        "project": "csgohap",
-        "packid": "L10003"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M8",
+        "github": "git@github.com:4gekkman/M8.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10009"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M9",
+        "github": "git@github.com:4gekkman/M9.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M12"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M10",
+        "github": "git@github.com:4gekkman/M10.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M13"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M11",
+        "github": "git@github.com:4gekkman/M11.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10010"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M12",
+        "github": "git@github.com:4gekkman/M12.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10011"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M13",
+        "github": "git@github.com:4gekkman/M13.git"
     },
     {
-        "project": "csgohap",
-        "packid": "L10004"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M14",
+        "github": "git@github.com:4gekkman/M14.git"
     },
     {
-        "project": "csgohap",
-        "packid": "R6"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M15",
+        "github": "git@github.com:4gekkman/M15.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M14"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M16",
+        "github": "git@github.com:4gekkman/M16.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M15"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M17",
+        "github": "git@github.com:4gekkman/M17.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10012"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M18",
+        "github": "git@github.com:4gekkman/M18.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M16"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R1",
+        "github": "git@github.com:4gekkman/R1.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M17"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R2",
+        "github": "git@github.com:4gekkman/R2.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M18"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R3",
+        "github": "git@github.com:4gekkman/R3.git"
     },
     {
-        "project": "csgohap",
-        "packid": "D10013"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R4",
+        "github": "git@github.com:4gekkman/R4.git"
     },
     {
-        "project": "csgohap",
-        "packid": "M7"
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R5",
+        "github": "git@github.com:4gekkman/R5.git"
+    },
+    {
+        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R6",
+        "github": "git@github.com:4gekkman/R6.git"
     }
 ]' | ConvertFrom-Json	
 	
   # 2.3. Осуществление залива
-  #foreach ($pack in $laravelpacks) { 
-  #  PushToGithub $pack.project $pack.packid
-  #}
+  foreach ($pack in $laravelpacks) { 
+    PushPacksSubtreesToGithub $pack.prefix $pack.v
+  }
   
   
-#################################################
-## 3. Сохранение поддеревьев проекта на github ##
-#################################################  
+########################################################
+## 3. Сохранение docker-поддеревьев проекта на github ##
+########################################################  
   
 	########################
 	## Подготовка функции ##
 	########################	
-	function PushSubreeToGithub($path, $prefix, $github)
+	function PushSubreeToGithub($prefix, $github)
 	{
-		cd "C:\WebDev\projects\$path"
 		$msg = "Autosave"		
-		git add .
-    git add -u .
+		git add -A .
 		git commit -m $msg
+    git subtree pull --prefix=$prefix $github master
     git subtree push --squash --prefix=$prefix $github master  
 	}  
   
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushSubreeToGithub "csgosnipepot" "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
-  PushSubreeToGithub "csgosnipepot" "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
-  PushSubreeToGithub "csgosnipepot" "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
-  PushSubreeToGithub "csgosnipepot" "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
+  PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
+  PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
+  PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
+  PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
   
   
 ##########################################################
