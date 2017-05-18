@@ -1,0 +1,21 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/m10",
+		"description": "M10 - Universal Chat",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/m10"
+        }
+    ],
+    "require": {
+			"4gekkman/M5": "~1.0"
+		},
+    "autoload": {
+        "psr-4": {"M10\\": ""}
+    }
+}
