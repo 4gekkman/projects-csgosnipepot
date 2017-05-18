@@ -1,0 +1,23 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/m5",
+		"description": "M5 - Package to manage users and privileges",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/m5"
+        }
+    ],
+    "require": {
+      "4gekkman/M1": "~1.0",
+			"riimu/kit-phpencoder": "2.*",
+			"hybridauth/hybridauth": "2.7.0"
+		},
+    "autoload": {
+        "psr-4": {"M5\\": ""}
+    }
+}
