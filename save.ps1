@@ -126,14 +126,17 @@ $current_path = (Get-Location).Path
 ## b. Подготовка SSH-agent'та к работе ##
 #########################################
 
-	# Перейти в каталог, где лежит каталог .ssh
+	# 1] Перейти в каталог, где лежит каталог .ssh
 	cd "C:\WebDev\bin\ssh\Github - 4gekkman"
 	
-	# Запустить SSH-agent
+	# 2] Запустить SSH-agent
 	Start-SshAgent
 	
-	# Добавить SSH-ключ от github в SSH-агент
+	# 3] Добавить SSH-ключ от github в SSH-агент
 	Add-SshKey
+  
+  # 4] Вернуться в исходный каталог
+  cd $current_path
 
   
 ######################################
@@ -149,6 +152,8 @@ $current_path = (Get-Location).Path
 	########################	
 	function PushProjectToGithub($path, $project)
 	{
+    $x = pwd
+    echo $x
 		$msg = "Autosave"		
 		git add -A .
 		git commit -m $msg
@@ -178,163 +183,163 @@ $current_path = (Get-Location).Path
   # 2.2. Подготовка списка пакетов, данные по которым надо залить 
   $laravelpacks = '[
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10000",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10000",
         "github": "git@github.com:4gekkman/D10000.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10003",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10003",
         "github": "git@github.com:4gekkman/D10003.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10004",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10004",
         "github": "git@github.com:4gekkman/D10004.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10005",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10005",
         "github": "git@github.com:4gekkman/D10005.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10006",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10006",
         "github": "git@github.com:4gekkman/D10006.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10009",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10009",
         "github": "git@github.com:4gekkman/D10009.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10010",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10010",
         "github": "git@github.com:4gekkman/D10010.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10011",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10011",
         "github": "git@github.com:4gekkman/D10011.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10012",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10012",
         "github": "git@github.com:4gekkman/D10012.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/D10013",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10013",
         "github": "git@github.com:4gekkman/D10013.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10000",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/L10000",
         "github": "git@github.com:4gekkman/L10000.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10001",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/L10001",
         "github": "git@github.com:4gekkman/L10001.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10003",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/L10003",
         "github": "git@github.com:4gekkman/L10003.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/L10004",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/L10004",
         "github": "git@github.com:4gekkman/L10004.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M1",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M1",
         "github": "git@github.com:4gekkman/M1.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M2",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M2",
         "github": "git@github.com:4gekkman/M2git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M3",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M3",
         "github": "git@github.com:4gekkman/M3.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M4",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M4",
         "github": "git@github.com:4gekkman/M4.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M5",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M5",
         "github": "git@github.com:4gekkman/M5.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M6",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M6",
         "github": "git@github.com:4gekkman/M6.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M7",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M7",
         "github": "git@github.com:4gekkman/M7.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M8",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M8",
         "github": "git@github.com:4gekkman/M8.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M9",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M9",
         "github": "git@github.com:4gekkman/M9.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M10",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M10",
         "github": "git@github.com:4gekkman/M10.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M11",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M11",
         "github": "git@github.com:4gekkman/M11.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M12",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M12",
         "github": "git@github.com:4gekkman/M12.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M13",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M13",
         "github": "git@github.com:4gekkman/M13.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M14",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M14",
         "github": "git@github.com:4gekkman/M14.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M15",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M15",
         "github": "git@github.com:4gekkman/M15.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M16",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M16",
         "github": "git@github.com:4gekkman/M16.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M17",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M17",
         "github": "git@github.com:4gekkman/M17.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/M18",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/M18",
         "github": "git@github.com:4gekkman/M18.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R1",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R1",
         "github": "git@github.com:4gekkman/R1.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R2",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R2",
         "github": "git@github.com:4gekkman/R2.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R3",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R3",
         "github": "git@github.com:4gekkman/R3.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R4",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R4",
         "github": "git@github.com:4gekkman/R4.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R5",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R5",
         "github": "git@github.com:4gekkman/R5.git"
     },
     {
-        "prefix": "stateless/projects-csgosnipepot-app/vendor/4gekkman/R6",
+        "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R6",
         "github": "git@github.com:4gekkman/R6.git"
     }
 ]' | ConvertFrom-Json	
 	
   # 2.3. Осуществление залива
-  foreach ($pack in $laravelpacks) { 
-    PushPacksSubtreesToGithub $pack.prefix $pack.v
-  }
+  #foreach ($pack in $laravelpacks) { 
+  #  PushPacksSubtreesToGithub $pack.prefix $pack.v
+  #}
   
   
 ########################################################
@@ -356,10 +361,10 @@ $current_path = (Get-Location).Path
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
-  PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
-  PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
-  PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
   
   
 ##########################################################

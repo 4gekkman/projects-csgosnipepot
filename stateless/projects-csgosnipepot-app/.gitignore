@@ -1,5 +1,0 @@
-.git
-data/node_modules
-data/node_modules/*
-data/vendor/bin
-data/vendor/bin/*
