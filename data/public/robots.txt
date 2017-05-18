@@ -1,0 +1,4 @@
+User-agent: Yandex
+Host: csgohap.ru
+User-agent: Googlebot
+User-agent: *

@@ -1,0 +1,15 @@
+{
+  "name": "4gekkman-bower-animsition",
+  "description": "A SIMPLE AND EASY JQUERY PLUGIN FOR CSS ANIMATED PAGE TRANSITIONS.",
+  "main"  : [
+    "animsition/dist/css/animsition.min.css",
+    "animsition/dist/js/animsition.min.js"  
+  ],
+  "repository": {
+    "type": "git", "url": "git://github.com/4gekkman/4gekkman-bower-animsition.git"
+  },
+  "ignore": [
+    "readme.md",
+    "composer.json"
+  ]
+}

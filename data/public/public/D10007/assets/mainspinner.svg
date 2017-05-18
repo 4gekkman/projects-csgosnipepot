@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="250px" height="250px" viewBox="0 0 250 250" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 40.3 (33839) - http://www.bohemiancoding.com/sketch -->
+    <title>Oval-3 Clipped</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="100%" y1="0%" x2="0%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#F39C26" offset="0%"></stop>
+            <stop stop-color="#EE6B2F" offset="26.0289136%"></stop>
+            <stop stop-color="#9D52BA" offset="100%"></stop>
+        </linearGradient>
+        <ellipse id="path-2" cx="125" cy="125" rx="125" ry="125"></ellipse>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="LOGO" transform="translate(-4107.000000, -272.000000)">
+            <g id="Oval-3-Clipped" transform="translate(4107.000000, 272.000000)">
+                <mask id="mask-3" fill="white">
+                    <use xlink:href="#path-2"></use>
+                </mask>
+                <g id="path-2"></g>
+                <g id="Oval-3" mask="url(#mask-3)" stroke="url(#linearGradient-1)" stroke-width="30">
+                    <ellipse id="path-2" cx="125" cy="125" rx="125" ry="125"></ellipse>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

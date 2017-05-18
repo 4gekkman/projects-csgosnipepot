@@ -1,0 +1,253 @@
+/*//////////////////////////////
+////                        ////
+//// 1. Общие стили шаблона ////
+////                        ////
+//////////////////////////////*/
+
+	/*// Общие стили для всего документа (штифт и т.д.) ////
+	//////////////////////////////////////////////////////*/
+	html, body {
+		padding: 0;
+		margin: 0;
+		font: 1em 'PT Sans', Arial, Helvetica, sans-serif;
+		height: 100%;
+		color: #4b4b4b;
+	}
+
+	/*// Отменить влияние margin, padding и border на ширину всех CSS-элементов ////
+	//////////////////////////////////////////////////////////////////////////////*/
+	*, *:after, *:before {
+		box-sizing: border-box;
+	}
+
+	/*// Убрать лишний отступ под изображениями ////
+	//////////////////////////////////////////////*/
+	img {
+		vertical-align:bottom;
+	}
+
+	/*// Назначить цвет по умолчанию и стиль для всех ссылок////
+	//////////////////////////////////////////////////////////*/
+	a {
+		color: #247096;
+		text-decoration: none;
+	}
+
+
+
+
+/*//////////////////////////////////////////////////////////
+////                                                    ////
+//// 2. Стили адаптивной css-сетки шаблона (на float'e) ////
+////                                                    ////
+//////////////////////////////////////////////////////////*/
+
+	/*// Класс row и clear fix для него ////
+	//////////////////////////////////////*/
+	.row {}
+	.row:after {
+		display: block;
+		content: '';
+		height: 0;
+		visibility: hidden;
+		clear: both;
+	}
+
+	/*// Сделать все блоки класса span inline и float ////
+	////////////////////////////////////////////////////*/
+	[class*='span'] {
+		float: left;
+		display: inline;
+	}
+
+	/*// Набор классов span для управления шириной сетки ////
+	///////////////////////////////////////////////////////*/
+	.span0    { width: 0%;  }
+	.span1    { width: 1%;  }		.span21   { width: 21%; } 	.span41   { width: 41%; }		.span61   { width: 61%; }		.span81   { width: 81%; }
+	.span2    { width: 2%;  }		.span22   { width: 22%; } 	.span42   { width: 42%  }		.span62   { width: 62%; }		.span82   { width: 82%; }
+	.span3    { width: 3%;  }		.span23   { width: 23%; } 	.span43   { width: 43%; }		.span63   { width: 63%; }		.span83   { width: 83%; }
+	.span4    { width: 4%;  }		.span24   { width: 24%; } 	.span44   { width: 44%; }		.span64   { width: 64%; }		.span84   { width: 84%; }
+	.span5    { width: 5%;  }		.span25   { width: 25%; } 	.span45   { width: 45%; }		.span65   { width: 65%; }		.span85   { width: 85%; }
+	.span6    { width: 6%;  }		.span26   { width: 26%; } 	.span46   { width: 46%; }		.span66   { width: 66%; }		.span86   { width: 86%; }
+	.span7    { width: 7%;  }		.span27   { width: 27%; } 	.span47   { width: 47%; }		.span67   { width: 67%; }		.span87   { width: 87%; }
+	.span8    { width: 8%;  }		.span28   { width: 28%; } 	.span48   { width: 48%; }		.span68   { width: 68%; }		.span88   { width: 88%; }
+	.span9    { width: 9%;  }		.span29   { width: 29%; } 	.span49   { width: 49%; }		.span69   { width: 69%; }		.span89   { width: 89%; }
+	.span10   { width: 10%; }		.span30   { width: 30%; } 	.span50   { width: 50%; }		.span70   { width: 70%; }		.span90   { width: 90%; }
+	.span11   { width: 11%; }		.span31   { width: 31%; } 	.span51   { width: 51%; }		.span71   { width: 71%; }		.span91   { width: 91%; }
+	.span12   { width: 12%; }		.span32   { width: 32%; } 	.span52   { width: 52%; }		.span72   { width: 72%; }		.span92   { width: 92%; }
+	.span13   { width: 13%; }		.span33   { width: 33%; } 	.span53   { width: 53%; }		.span73   { width: 73%; }		.span93   { width: 93%; }
+	.span14   { width: 14%; }		.span34   { width: 34%; } 	.span54   { width: 54%; }		.span74   { width: 74%; }		.span94   { width: 94%; }
+	.span15   { width: 15%; }		.span35   { width: 35%; } 	.span55   { width: 55%; }		.span75   { width: 75%; }		.span95   { width: 95%; }
+	.span16   { width: 16%; }		.span36   { width: 36%; } 	.span56   { width: 56%; }		.span76   { width: 76%; }		.span96   { width: 96%; }
+	.span17   { width: 17%; }		.span37   { width: 37%; } 	.span57   { width: 57%; }		.span77   { width: 77%; }		.span97   { width: 97%; }
+	.span18   { width: 18%; }		.span38   { width: 38%; } 	.span58   { width: 58%; }		.span78   { width: 78%; }		.span98   { width: 98%; }
+	.span19   { width: 19%; }		.span39   { width: 39%; } 	.span59   { width: 59%; }		.span79   { width: 79%; }		.span99   { width: 99%; }
+	.span20   { width: 20%; }		.span40   { width: 40%; } 	.span60   { width: 60%; }		.span80   { width: 80%; }		.span100  { width: 100%; }
+
+	/*// Набор классов offset для управления смещением колонок сетки ////
+	///////////////////////////////////////////////////////////////////*/
+	.offset1    { margin-left: 1%;  }		.offset21   { margin-left: 21%; }		.offset41   { margin-left: 41%; }		.offset61   { margin-left: 61%; }		.offset81   { margin-left: 81%; }
+	.offset2    { margin-left: 2%;  }		.offset22   { margin-left: 22%; }		.offset42   { margin-left: 42%  }		.offset62   { margin-left: 62%; }		.offset82   { margin-left: 82%; }
+	.offset3    { margin-left: 3%;  }		.offset23   { margin-left: 23%; }		.offset43   { margin-left: 43%; }		.offset63   { margin-left: 63%; }		.offset83   { margin-left: 83%; }
+	.offset4    { margin-left: 4%;  }		.offset24   { margin-left: 24%; }		.offset44   { margin-left: 44%; }		.offset64   { margin-left: 64%; }		.offset84   { margin-left: 84%; }
+	.offset5    { margin-left: 5%;  }		.offset25   { margin-left: 25%; }		.offset45   { margin-left: 45%; }		.offset65   { margin-left: 65%; }		.offset85   { margin-left: 85%; }
+	.offset6    { margin-left: 6%;  }		.offset26   { margin-left: 26%; }		.offset46   { margin-left: 46%; }		.offset66   { margin-left: 66%; }		.offset86   { margin-left: 86%; }
+	.offset7    { margin-left: 7%;  }		.offset27   { margin-left: 27%; }		.offset47   { margin-left: 47%; }		.offset67   { margin-left: 67%; }		.offset87   { margin-left: 87%; }
+	.offset8    { margin-left: 8%;  }		.offset28   { margin-left: 28%; }		.offset48   { margin-left: 48%; }		.offset68   { margin-left: 68%; }		.offset88   { margin-left: 88%; }
+	.offset9    { margin-left: 9%;  }		.offset29   { margin-left: 29%; }		.offset49   { margin-left: 49%; }		.offset69   { margin-left: 69%; }		.offset89   { margin-left: 89%; }
+	.offset10   { margin-left: 10%; }		.offset30   { margin-left: 30%; }		.offset50   { margin-left: 50%; }		.offset70   { margin-left: 70%; }		.offset90   { margin-left: 90%; }
+	.offset11   { margin-left: 11%; }		.offset31   { margin-left: 31%; }		.offset51   { margin-left: 51%; }		.offset71   { margin-left: 71%; }		.offset91   { margin-left: 91%; }
+	.offset12   { margin-left: 12%; }		.offset32   { margin-left: 32%; }		.offset52   { margin-left: 52%; }		.offset72   { margin-left: 72%; }		.offset92   { margin-left: 92%; }
+	.offset13   { margin-left: 13%; }		.offset33   { margin-left: 33%; }		.offset53   { margin-left: 53%; }		.offset73   { margin-left: 73%; }		.offset93   { margin-left: 93%; }
+	.offset14   { margin-left: 14%; }		.offset34   { margin-left: 34%; }		.offset54   { margin-left: 54%; }		.offset74   { margin-left: 74%; }		.offset94   { margin-left: 94%; }
+	.offset15   { margin-left: 15%; }		.offset35   { margin-left: 35%; }		.offset55   { margin-left: 55%; }		.offset75   { margin-left: 75%; }		.offset95   { margin-left: 95%; }
+	.offset16   { margin-left: 16%; }		.offset36   { margin-left: 36%; }		.offset56   { margin-left: 56%; }		.offset76   { margin-left: 76%; }		.offset96   { margin-left: 96%; }
+	.offset17   { margin-left: 17%; }		.offset37   { margin-left: 37%; }		.offset57   { margin-left: 57%; }		.offset77   { margin-left: 77%; }		.offset97   { margin-left: 97%; }
+	.offset18   { margin-left: 18%; }		.offset38   { margin-left: 38%; }		.offset58   { margin-left: 58%; }		.offset78   { margin-left: 78%; }		.offset98   { margin-left: 98%; }
+	.offset19   { margin-left: 19%; }		.offset39   { margin-left: 39%; }		.offset59   { margin-left: 59%; }		.offset79   { margin-left: 79%; }		.offset99   { margin-left: 99%; }
+	.offset20   { margin-left: 20%; }		.offset40   { margin-left: 40%; }		.offset60   { margin-left: 60%; }		.offset80   { margin-left: 80%; }		.offset100  { margin-left: 100%; }
+
+	/*// Набор классов mt для управления отступами колонок сверху ////
+	////////////////////////////////////////////////////////////////*/
+	.mt_50 { margin-top: -50px; }
+	.mt_45 { margin-top: -45px; }
+	.mt_40 { margin-top: -40px; }
+	.mt_35 { margin-top: -35px; }
+	.mt_30 { margin-top: -30px; }
+	.mt_25 { margin-top: -25px; }
+	.mt_20 { margin-top: -20px; }
+	.mt_15 { margin-top: -15px; }
+	.mt_10 { margin-top: -10px; }
+	.mt_5  { margin-top: -5px;  }
+	.mt0   { margin-top: 0;     }
+	.mt5   { margin-top: 5px;   }
+	.mt10  { margin-top: 10px;  }
+	.mt15  { margin-top: 15px;  }
+	.mt20  { margin-top: 20px;  }
+	.mt25  { margin-top: 25px;  }
+	.mt30  { margin-top: 30px;  }
+	.mt40  { margin-top: 40px;  }
+	.mt50  { margin-top: 50px;  }
+
+
+
+/*/////////////////////////////////////////////////////////////
+////                                                       ////
+//// 3. Стили адаптивной css-сетки шаблона (на position'e) ////
+////                                                       ////
+///////////////////////////////////////////////////////////////
+//// - Принципы работы описаны здесь: http://htmlbook.ru/samlayout/tipovye-makety/rezinovyi-trekhkolonochnyi-maket	//*/
+
+	/*// Класс rowfix и clear fix для него ////
+	/////////////////////////////////////////*/
+	.rowfix {
+		position: relative;
+	}
+	.rowfix:after {
+		display: block;
+		content: '';
+		height: 0;
+		visibility: hidden;
+		clear: both;
+	}
+
+	/*// Сделать все блоки класса spanfix absolute ////
+	/////////////////////////////////////////////////*/
+	[class*='spanfix'] {
+		position: absolute;
+	}
+
+	/*// Набор классов spanfix_width для управления шириной фиксированной сетки ////
+	//////////////////////////////////////////////////////////////////////////////*/
+	.spanfix_width1    { width: 1px;  }		.spanfix_width21   { width: 21px; }		.spanfix_width41   { width: 41px; }		.spanfix_width61   { width: 61px; }		.spanfix_width81   { width: 81px; }		.spanfix_width110  { width: 110px; }	.spanfix_width310  { width: 310px; }	.spanfix_width510  { width: 510px; }	.spanfix_width710  { width: 710px; }	.spanfix_width910  { width: 910px; }		.spanfix_width1110  { width: 1110px; }	 		 	
+	.spanfix_width2    { width: 2px;  }		.spanfix_width22   { width: 22px; }		.spanfix_width42   { width: 42px  }		.spanfix_width62   { width: 62px; }		.spanfix_width82   { width: 82px; }		.spanfix_width120  { width: 120px; }	.spanfix_width320  { width: 320px; }	.spanfix_width520  { width: 520px; }	.spanfix_width720  { width: 720px; }	.spanfix_width920  { width: 920px; }		.spanfix_width1120  { width: 1120px; }	 		 	
+	.spanfix_width3    { width: 3px;  }		.spanfix_width23   { width: 23px; }		.spanfix_width43   { width: 43px; }		.spanfix_width63   { width: 63px; }		.spanfix_width83   { width: 83px; }		.spanfix_width130  { width: 130px; }	.spanfix_width330  { width: 330px; }	.spanfix_width530  { width: 530px; }	.spanfix_width730  { width: 730px; }	.spanfix_width930  { width: 930px; }		.spanfix_width1130  { width: 1130px; }	 		 	
+	.spanfix_width4    { width: 4px;  }		.spanfix_width24   { width: 24px; }		.spanfix_width44   { width: 44px; }		.spanfix_width64   { width: 64px; }		.spanfix_width84   { width: 84px; }		.spanfix_width140  { width: 140px; }	.spanfix_width340  { width: 340px; }	.spanfix_width540  { width: 540px; }	.spanfix_width740  { width: 740px; }	.spanfix_width940  { width: 940px; }		.spanfix_width1140  { width: 1140px; }	 		 	
+	.spanfix_width5    { width: 5px;  }		.spanfix_width25   { width: 25px; }		.spanfix_width45   { width: 45px; }		.spanfix_width65   { width: 65px; }		.spanfix_width85   { width: 85px; }		.spanfix_width150  { width: 150px; }	.spanfix_width350  { width: 350px; }	.spanfix_width550  { width: 550px; }	.spanfix_width750  { width: 750px; }	.spanfix_width950  { width: 950px; }		.spanfix_width1150  { width: 1150px; }	 		 	
+	.spanfix_width6    { width: 6px;  }		.spanfix_width26   { width: 26px; }		.spanfix_width46   { width: 46px; }		.spanfix_width66   { width: 66px; }		.spanfix_width86   { width: 86px; }		.spanfix_width160  { width: 160px; }	.spanfix_width360  { width: 360px; }	.spanfix_width560  { width: 560px; }	.spanfix_width760  { width: 760px; }	.spanfix_width960  { width: 960px; }		.spanfix_width1160  { width: 1160px; }	 		 	
+	.spanfix_width7    { width: 7px;  }		.spanfix_width27   { width: 27px; }		.spanfix_width47   { width: 47px; }		.spanfix_width67   { width: 67px; }		.spanfix_width87   { width: 87px; }		.spanfix_width170  { width: 170px; }	.spanfix_width370  { width: 370px; }	.spanfix_width570  { width: 570px; }	.spanfix_width770  { width: 770px; }	.spanfix_width970  { width: 970px; }		.spanfix_width1170  { width: 1170px; }	 		 	
+	.spanfix_width8    { width: 8px;  }		.spanfix_width28   { width: 28px; }		.spanfix_width48   { width: 48px; }		.spanfix_width68   { width: 68px; }		.spanfix_width88   { width: 88px; }		.spanfix_width180  { width: 180px; }	.spanfix_width380  { width: 380px; }	.spanfix_width580  { width: 580px; }	.spanfix_width780  { width: 780px; }	.spanfix_width980  { width: 980px; }		.spanfix_width1180  { width: 1180px; }	 		 	
+	.spanfix_width9    { width: 9px;  }		.spanfix_width29   { width: 29px; }		.spanfix_width49   { width: 49px; }		.spanfix_width69   { width: 69px; }		.spanfix_width89   { width: 89px; }		.spanfix_width190  { width: 190px; }	.spanfix_width390  { width: 390px; }	.spanfix_width590  { width: 590px; }	.spanfix_width790  { width: 790px; }	.spanfix_width990  { width: 990px; }		.spanfix_width1190  { width: 1190px; }	 		 	
+	.spanfix_width10   { width: 10px; }		.spanfix_width30   { width: 30px; }		.spanfix_width50   { width: 50px; }		.spanfix_width70   { width: 70px; }		.spanfix_width90   { width: 90px; }		.spanfix_width200  { width: 200px; }	.spanfix_width400  { width: 400px; }	.spanfix_width600  { width: 600px; }	.spanfix_width800  { width: 800px; }	.spanfix_width1000  { width: 1000px; }	.spanfix_width1200  { width: 1200px; }	 	
+	.spanfix_width11   { width: 11px; }		.spanfix_width31   { width: 31px; }		.spanfix_width51   { width: 51px; }		.spanfix_width71   { width: 71px; }		.spanfix_width91   { width: 91px; }		.spanfix_width210  { width: 210px; }	.spanfix_width410  { width: 410px; }	.spanfix_width610  { width: 610px; }	.spanfix_width810  { width: 810px; }	.spanfix_width1010  { width: 1010px; }	.spanfix_width1210  { width: 1210px; }	 	
+	.spanfix_width12   { width: 12px; }		.spanfix_width32   { width: 32px; }		.spanfix_width52   { width: 52px; }		.spanfix_width72   { width: 72px; }		.spanfix_width92   { width: 92px; }		.spanfix_width220  { width: 220px; }	.spanfix_width420  { width: 420px; }	.spanfix_width620  { width: 620px; }	.spanfix_width820  { width: 820px; }	.spanfix_width1020  { width: 1020px; }	.spanfix_width1220  { width: 1220px; }	 	
+	.spanfix_width13   { width: 13px; }		.spanfix_width33   { width: 33px; }		.spanfix_width53   { width: 53px; }		.spanfix_width73   { width: 73px; }		.spanfix_width93   { width: 93px; }		.spanfix_width230  { width: 230px; }	.spanfix_width430  { width: 430px; }	.spanfix_width630  { width: 630px; }	.spanfix_width830  { width: 830px; }	.spanfix_width1030  { width: 1030px; }	.spanfix_width1230  { width: 1230px; }	 	
+	.spanfix_width14   { width: 14px; }		.spanfix_width34   { width: 34px; }		.spanfix_width54   { width: 54px; }		.spanfix_width74   { width: 74px; }		.spanfix_width94   { width: 94px; }		.spanfix_width240  { width: 240px; }	.spanfix_width440  { width: 440px; }	.spanfix_width640  { width: 640px; }	.spanfix_width840  { width: 840px; }	.spanfix_width1040  { width: 1040px; }	.spanfix_width1240  { width: 1240px; }	 	
+	.spanfix_width15   { width: 15px; }		.spanfix_width35   { width: 35px; }		.spanfix_width55   { width: 55px; }		.spanfix_width75   { width: 75px; }		.spanfix_width95   { width: 95px; }		.spanfix_width250  { width: 250px; }	.spanfix_width450  { width: 450px; }	.spanfix_width650  { width: 650px; }	.spanfix_width850  { width: 850px; }	.spanfix_width1050  { width: 1050px; }	.spanfix_width1250  { width: 1250px; }	 	
+	.spanfix_width16   { width: 16px; }		.spanfix_width36   { width: 36px; }		.spanfix_width56   { width: 56px; }		.spanfix_width76   { width: 76px; }		.spanfix_width96   { width: 96px; }		.spanfix_width260  { width: 260px; }	.spanfix_width460  { width: 460px; }	.spanfix_width660  { width: 660px; }	.spanfix_width860  { width: 860px; }	.spanfix_width1060  { width: 1060px; }	.spanfix_width1260  { width: 1260px; }	 	
+	.spanfix_width17   { width: 17px; }		.spanfix_width37   { width: 37px; }		.spanfix_width57   { width: 57px; }		.spanfix_width77   { width: 77px; }		.spanfix_width97   { width: 97px; }		.spanfix_width270  { width: 270px; }	.spanfix_width470  { width: 470px; }	.spanfix_width670  { width: 670px; }	.spanfix_width870  { width: 870px; }	.spanfix_width1070  { width: 1070px; }	.spanfix_width1270  { width: 1270px; }	 	
+	.spanfix_width18   { width: 18px; }		.spanfix_width38   { width: 38px; }		.spanfix_width58   { width: 58px; }		.spanfix_width78   { width: 78px; }		.spanfix_width98   { width: 98px; }		.spanfix_width280  { width: 280px; }	.spanfix_width480  { width: 480px; }	.spanfix_width680  { width: 680px; }	.spanfix_width880  { width: 880px; }	.spanfix_width1080  { width: 1080px; }	.spanfix_width1280  { width: 1280px; }	 	
+	.spanfix_width19   { width: 19px; }		.spanfix_width39   { width: 39px; }		.spanfix_width59   { width: 59px; }		.spanfix_width79   { width: 79px; }		.spanfix_width99   { width: 99px; }		.spanfix_width290  { width: 290px; }	.spanfix_width490  { width: 490px; }	.spanfix_width690  { width: 690px; }	.spanfix_width890  { width: 890px; }	.spanfix_width1090  { width: 1090px; }	.spanfix_width1290  { width: 1290px; }	 	
+	.spanfix_width20   { width: 20px; }		.spanfix_width40   { width: 40px; }		.spanfix_width60   { width: 60px; }		.spanfix_width80   { width: 80px; }		.spanfix_width100  { width: 100px; }	.spanfix_width300  { width: 300px; }	.spanfix_width500  { width: 500px; }	.spanfix_width700  { width: 700px; }	.spanfix_width900  { width: 900px; }	.spanfix_width1100  { width: 1100px; }	.spanfix_width1300  { width: 1300px; }		
+
+	/*// Набор классов spanfix_left для управления отступом слева ////
+	////////////////////////////////////////////////////////////////*/
+	.spanfix_left0    { left: 0;  }
+	.spanfix_left1    { left: 1px;  }		.spanfix_left21   { left: 21px; }		.spanfix_left41   { left: 41px; }		.spanfix_left61   { left: 61px; }		.spanfix_left81   { left: 81px; }		.spanfix_left110  { left: 110px; }	.spanfix_left310  { left: 310px; }	.spanfix_left510  { left: 510px; }	.spanfix_left710  { left: 710px; }	.spanfix_left910  { left: 910px; }		.spanfix_left1110  { left: 1110px; }
+	.spanfix_left2    { left: 2px;  }		.spanfix_left22   { left: 22px; }		.spanfix_left42   { left: 42px  }		.spanfix_left62   { left: 62px; }		.spanfix_left82   { left: 82px; }		.spanfix_left120  { left: 120px; }	.spanfix_left320  { left: 320px; }	.spanfix_left520  { left: 520px; }	.spanfix_left720  { left: 720px; }	.spanfix_left920  { left: 920px; }		.spanfix_left1120  { left: 1120px; }	 		 	
+	.spanfix_left3    { left: 3px;  }		.spanfix_left23   { left: 23px; }		.spanfix_left43   { left: 43px; }		.spanfix_left63   { left: 63px; }		.spanfix_left83   { left: 83px; }		.spanfix_left130  { left: 130px; }	.spanfix_left330  { left: 330px; }	.spanfix_left530  { left: 530px; }	.spanfix_left730  { left: 730px; }	.spanfix_left930  { left: 930px; }		.spanfix_left1130  { left: 1130px; }	 		 	
+	.spanfix_left4    { left: 4px;  }		.spanfix_left24   { left: 24px; }		.spanfix_left44   { left: 44px; }		.spanfix_left64   { left: 64px; }		.spanfix_left84   { left: 84px; }		.spanfix_left140  { left: 140px; }	.spanfix_left340  { left: 340px; }	.spanfix_left540  { left: 540px; }	.spanfix_left740  { left: 740px; }	.spanfix_left940  { left: 940px; }		.spanfix_left1140  { left: 1140px; }	 		 	
+	.spanfix_left5    { left: 5px;  }		.spanfix_left25   { left: 25px; }		.spanfix_left45   { left: 45px; }		.spanfix_left65   { left: 65px; }		.spanfix_left85   { left: 85px; }		.spanfix_left150  { left: 150px; }	.spanfix_left350  { left: 350px; }	.spanfix_left550  { left: 550px; }	.spanfix_left750  { left: 750px; }	.spanfix_left950  { left: 950px; }		.spanfix_left1150  { left: 1150px; }	 		 	
+	.spanfix_left6    { left: 6px;  }		.spanfix_left26   { left: 26px; }		.spanfix_left46   { left: 46px; }		.spanfix_left66   { left: 66px; }		.spanfix_left86   { left: 86px; }		.spanfix_left160  { left: 160px; }	.spanfix_left360  { left: 360px; }	.spanfix_left560  { left: 560px; }	.spanfix_left760  { left: 760px; }	.spanfix_left960  { left: 960px; }		.spanfix_left1160  { left: 1160px; }	 		 	
+	.spanfix_left7    { left: 7px;  }		.spanfix_left27   { left: 27px; }		.spanfix_left47   { left: 47px; }		.spanfix_left67   { left: 67px; }		.spanfix_left87   { left: 87px; }		.spanfix_left170  { left: 170px; }	.spanfix_left370  { left: 370px; }	.spanfix_left570  { left: 570px; }	.spanfix_left770  { left: 770px; }	.spanfix_left970  { left: 970px; }		.spanfix_left1170  { left: 1170px; }	 		 	
+	.spanfix_left8    { left: 8px;  }		.spanfix_left28   { left: 28px; }		.spanfix_left48   { left: 48px; }		.spanfix_left68   { left: 68px; }		.spanfix_left88   { left: 88px; }		.spanfix_left180  { left: 180px; }	.spanfix_left380  { left: 380px; }	.spanfix_left580  { left: 580px; }	.spanfix_left780  { left: 780px; }	.spanfix_left980  { left: 980px; }		.spanfix_left1180  { left: 1180px; }	 		 	
+	.spanfix_left9    { left: 9px;  }		.spanfix_left29   { left: 29px; }		.spanfix_left49   { left: 49px; }		.spanfix_left69   { left: 69px; }		.spanfix_left89   { left: 89px; }		.spanfix_left190  { left: 190px; }	.spanfix_left390  { left: 390px; }	.spanfix_left590  { left: 590px; }	.spanfix_left790  { left: 790px; }	.spanfix_left990  { left: 990px; }		.spanfix_left1190  { left: 1190px; }	 		 	
+	.spanfix_left10   { left: 10px; }		.spanfix_left30   { left: 30px; }		.spanfix_left50   { left: 50px; }		.spanfix_left70   { left: 70px; }		.spanfix_left90   { left: 90px; }		.spanfix_left200  { left: 200px; }	.spanfix_left400  { left: 400px; }	.spanfix_left600  { left: 600px; }	.spanfix_left800  { left: 800px; }	.spanfix_left1000  { left: 1000px; }	.spanfix_left1200  { left: 1200px; }	 	
+	.spanfix_left11   { left: 11px; }		.spanfix_left31   { left: 31px; }		.spanfix_left51   { left: 51px; }		.spanfix_left71   { left: 71px; }		.spanfix_left91   { left: 91px; }		.spanfix_left210  { left: 210px; }	.spanfix_left410  { left: 410px; }	.spanfix_left610  { left: 610px; }	.spanfix_left810  { left: 810px; }	.spanfix_left1010  { left: 1010px; }	.spanfix_left1210  { left: 1210px; }	 	
+	.spanfix_left12   { left: 12px; }		.spanfix_left32   { left: 32px; }		.spanfix_left52   { left: 52px; }		.spanfix_left72   { left: 72px; }		.spanfix_left92   { left: 92px; }		.spanfix_left220  { left: 220px; }	.spanfix_left420  { left: 420px; }	.spanfix_left620  { left: 620px; }	.spanfix_left820  { left: 820px; }	.spanfix_left1020  { left: 1020px; }	.spanfix_left1220  { left: 1220px; }	 	
+	.spanfix_left13   { left: 13px; }		.spanfix_left33   { left: 33px; }		.spanfix_left53   { left: 53px; }		.spanfix_left73   { left: 73px; }		.spanfix_left93   { left: 93px; }		.spanfix_left230  { left: 230px; }	.spanfix_left430  { left: 430px; }	.spanfix_left630  { left: 630px; }	.spanfix_left830  { left: 830px; }	.spanfix_left1030  { left: 1030px; }	.spanfix_left1230  { left: 1230px; }	 	
+	.spanfix_left14   { left: 14px; }		.spanfix_left34   { left: 34px; }		.spanfix_left54   { left: 54px; }		.spanfix_left74   { left: 74px; }		.spanfix_left94   { left: 94px; }		.spanfix_left240  { left: 240px; }	.spanfix_left440  { left: 440px; }	.spanfix_left640  { left: 640px; }	.spanfix_left840  { left: 840px; }	.spanfix_left1040  { left: 1040px; }	.spanfix_left1240  { left: 1240px; }	 	
+	.spanfix_left15   { left: 15px; }		.spanfix_left35   { left: 35px; }		.spanfix_left55   { left: 55px; }		.spanfix_left75   { left: 75px; }		.spanfix_left95   { left: 95px; }		.spanfix_left250  { left: 250px; }	.spanfix_left450  { left: 450px; }	.spanfix_left650  { left: 650px; }	.spanfix_left850  { left: 850px; }	.spanfix_left1050  { left: 1050px; }	.spanfix_left1250  { left: 1250px; }	 	
+	.spanfix_left16   { left: 16px; }		.spanfix_left36   { left: 36px; }		.spanfix_left56   { left: 56px; }		.spanfix_left76   { left: 76px; }		.spanfix_left96   { left: 96px; }		.spanfix_left260  { left: 260px; }	.spanfix_left460  { left: 460px; }	.spanfix_left660  { left: 660px; }	.spanfix_left860  { left: 860px; }	.spanfix_left1060  { left: 1060px; }	.spanfix_left1260  { left: 1260px; }	 	
+	.spanfix_left17   { left: 17px; }		.spanfix_left37   { left: 37px; }		.spanfix_left57   { left: 57px; }		.spanfix_left77   { left: 77px; }		.spanfix_left97   { left: 97px; }		.spanfix_left270  { left: 270px; }	.spanfix_left470  { left: 470px; }	.spanfix_left670  { left: 670px; }	.spanfix_left870  { left: 870px; }	.spanfix_left1070  { left: 1070px; }	.spanfix_left1270  { left: 1270px; }	 	
+	.spanfix_left18   { left: 18px; }		.spanfix_left38   { left: 38px; }		.spanfix_left58   { left: 58px; }		.spanfix_left78   { left: 78px; }		.spanfix_left98   { left: 98px; }		.spanfix_left280  { left: 280px; }	.spanfix_left480  { left: 480px; }	.spanfix_left680  { left: 680px; }	.spanfix_left880  { left: 880px; }	.spanfix_left1080  { left: 1080px; }	.spanfix_left1280  { left: 1280px; }	 	
+	.spanfix_left19   { left: 19px; }		.spanfix_left39   { left: 39px; }		.spanfix_left59   { left: 59px; }		.spanfix_left79   { left: 79px; }		.spanfix_left99   { left: 99px; }		.spanfix_left290  { left: 290px; }	.spanfix_left490  { left: 490px; }	.spanfix_left690  { left: 690px; }	.spanfix_left890  { left: 890px; }	.spanfix_left1090  { left: 1090px; }	.spanfix_left1290  { left: 1290px; }	 	
+	.spanfix_left20   { left: 20px; }		.spanfix_left40   { left: 40px; }		.spanfix_left60   { left: 60px; }		.spanfix_left80   { left: 80px; }		.spanfix_left100  { left: 100px; }	.spanfix_left300  { left: 300px; }	.spanfix_left500  { left: 500px; }	.spanfix_left700  { left: 700px; }	.spanfix_left900  { left: 900px; }	.spanfix_left1100  { left: 1100px; }	.spanfix_left1300  { left: 1300px; }		
+
+	/*// Набор классов spanfix_right для управления отступом справа ////
+	//////////////////////////////////////////////////////////////////*/
+	.spanfix_right0    { right: 0;  }
+	.spanfix_right1    { right: 1px;  }		.spanfix_right21   { right: 21px; }		.spanfix_right41   { right: 41px; }		.spanfix_right61   { right: 61px; }		.spanfix_right81   { right: 81px; }		.spanfix_right110  { right: 110px; }	.spanfix_right310  { right: 310px; }	.spanfix_right510  { right: 510px; }	.spanfix_right710  { right: 710px; }	.spanfix_right910  { right: 910px; }		.spanfix_right1110  { right: 1110px; }
+	.spanfix_right2    { right: 2px;  }		.spanfix_right22   { right: 22px; }		.spanfix_right42   { right: 42px  }		.spanfix_right62   { right: 62px; }		.spanfix_right82   { right: 82px; }		.spanfix_right120  { right: 120px; }	.spanfix_right320  { right: 320px; }	.spanfix_right520  { right: 520px; }	.spanfix_right720  { right: 720px; }	.spanfix_right920  { right: 920px; }		.spanfix_right1120  { right: 1120px; }	 		 	
+	.spanfix_right3    { right: 3px;  }		.spanfix_right23   { right: 23px; }		.spanfix_right43   { right: 43px; }		.spanfix_right63   { right: 63px; }		.spanfix_right83   { right: 83px; }		.spanfix_right130  { right: 130px; }	.spanfix_right330  { right: 330px; }	.spanfix_right530  { right: 530px; }	.spanfix_right730  { right: 730px; }	.spanfix_right930  { right: 930px; }		.spanfix_right1130  { right: 1130px; }	 		 	
+	.spanfix_right4    { right: 4px;  }		.spanfix_right24   { right: 24px; }		.spanfix_right44   { right: 44px; }		.spanfix_right64   { right: 64px; }		.spanfix_right84   { right: 84px; }		.spanfix_right140  { right: 140px; }	.spanfix_right340  { right: 340px; }	.spanfix_right540  { right: 540px; }	.spanfix_right740  { right: 740px; }	.spanfix_right940  { right: 940px; }		.spanfix_right1140  { right: 1140px; }	 		 	
+	.spanfix_right5    { right: 5px;  }		.spanfix_right25   { right: 25px; }		.spanfix_right45   { right: 45px; }		.spanfix_right65   { right: 65px; }		.spanfix_right85   { right: 85px; }		.spanfix_right150  { right: 150px; }	.spanfix_right350  { right: 350px; }	.spanfix_right550  { right: 550px; }	.spanfix_right750  { right: 750px; }	.spanfix_right950  { right: 950px; }		.spanfix_right1150  { right: 1150px; }	 		 	
+	.spanfix_right6    { right: 6px;  }		.spanfix_right26   { right: 26px; }		.spanfix_right46   { right: 46px; }		.spanfix_right66   { right: 66px; }		.spanfix_right86   { right: 86px; }		.spanfix_right160  { right: 160px; }	.spanfix_right360  { right: 360px; }	.spanfix_right560  { right: 560px; }	.spanfix_right760  { right: 760px; }	.spanfix_right960  { right: 960px; }		.spanfix_right1160  { right: 1160px; }	 		 	
+	.spanfix_right7    { right: 7px;  }		.spanfix_right27   { right: 27px; }		.spanfix_right47   { right: 47px; }		.spanfix_right67   { right: 67px; }		.spanfix_right87   { right: 87px; }		.spanfix_right170  { right: 170px; }	.spanfix_right370  { right: 370px; }	.spanfix_right570  { right: 570px; }	.spanfix_right770  { right: 770px; }	.spanfix_right970  { right: 970px; }		.spanfix_right1170  { right: 1170px; }	 		 	
+	.spanfix_right8    { right: 8px;  }		.spanfix_right28   { right: 28px; }		.spanfix_right48   { right: 48px; }		.spanfix_right68   { right: 68px; }		.spanfix_right88   { right: 88px; }		.spanfix_right180  { right: 180px; }	.spanfix_right380  { right: 380px; }	.spanfix_right580  { right: 580px; }	.spanfix_right780  { right: 780px; }	.spanfix_right980  { right: 980px; }		.spanfix_right1180  { right: 1180px; }	 		 	
+	.spanfix_right9    { right: 9px;  }		.spanfix_right29   { right: 29px; }		.spanfix_right49   { right: 49px; }		.spanfix_right69   { right: 69px; }		.spanfix_right89   { right: 89px; }		.spanfix_right190  { right: 190px; }	.spanfix_right390  { right: 390px; }	.spanfix_right590  { right: 590px; }	.spanfix_right790  { right: 790px; }	.spanfix_right990  { right: 990px; }		.spanfix_right1190  { right: 1190px; }	 		 	
+	.spanfix_right10   { right: 10px; }		.spanfix_right30   { right: 30px; }		.spanfix_right50   { right: 50px; }		.spanfix_right70   { right: 70px; }		.spanfix_right90   { right: 90px; }		.spanfix_right200  { right: 200px; }	.spanfix_right400  { right: 400px; }	.spanfix_right600  { right: 600px; }	.spanfix_right800  { right: 800px; }	.spanfix_right1000  { right: 1000px; }	.spanfix_right1200  { right: 1200px; }	 	
+	.spanfix_right11   { right: 11px; }		.spanfix_right31   { right: 31px; }		.spanfix_right51   { right: 51px; }		.spanfix_right71   { right: 71px; }		.spanfix_right91   { right: 91px; }		.spanfix_right210  { right: 210px; }	.spanfix_right410  { right: 410px; }	.spanfix_right610  { right: 610px; }	.spanfix_right810  { right: 810px; }	.spanfix_right1010  { right: 1010px; }	.spanfix_right1210  { right: 1210px; }	 	
+	.spanfix_right12   { right: 12px; }		.spanfix_right32   { right: 32px; }		.spanfix_right52   { right: 52px; }		.spanfix_right72   { right: 72px; }		.spanfix_right92   { right: 92px; }		.spanfix_right220  { right: 220px; }	.spanfix_right420  { right: 420px; }	.spanfix_right620  { right: 620px; }	.spanfix_right820  { right: 820px; }	.spanfix_right1020  { right: 1020px; }	.spanfix_right1220  { right: 1220px; }	 	
+	.spanfix_right13   { right: 13px; }		.spanfix_right33   { right: 33px; }		.spanfix_right53   { right: 53px; }		.spanfix_right73   { right: 73px; }		.spanfix_right93   { right: 93px; }		.spanfix_right230  { right: 230px; }	.spanfix_right430  { right: 430px; }	.spanfix_right630  { right: 630px; }	.spanfix_right830  { right: 830px; }	.spanfix_right1030  { right: 1030px; }	.spanfix_right1230  { right: 1230px; }	 	
+	.spanfix_right14   { right: 14px; }		.spanfix_right34   { right: 34px; }		.spanfix_right54   { right: 54px; }		.spanfix_right74   { right: 74px; }		.spanfix_right94   { right: 94px; }		.spanfix_right240  { right: 240px; }	.spanfix_right440  { right: 440px; }	.spanfix_right640  { right: 640px; }	.spanfix_right840  { right: 840px; }	.spanfix_right1040  { right: 1040px; }	.spanfix_right1240  { right: 1240px; }	 	
+	.spanfix_right15   { right: 15px; }		.spanfix_right35   { right: 35px; }		.spanfix_right55   { right: 55px; }		.spanfix_right75   { right: 75px; }		.spanfix_right95   { right: 95px; }		.spanfix_right250  { right: 250px; }	.spanfix_right450  { right: 450px; }	.spanfix_right650  { right: 650px; }	.spanfix_right850  { right: 850px; }	.spanfix_right1050  { right: 1050px; }	.spanfix_right1250  { right: 1250px; }	 	
+	.spanfix_right16   { right: 16px; }		.spanfix_right36   { right: 36px; }		.spanfix_right56   { right: 56px; }		.spanfix_right76   { right: 76px; }		.spanfix_right96   { right: 96px; }		.spanfix_right260  { right: 260px; }	.spanfix_right460  { right: 460px; }	.spanfix_right660  { right: 660px; }	.spanfix_right860  { right: 860px; }	.spanfix_right1060  { right: 1060px; }	.spanfix_right1260  { right: 1260px; }	 	
+	.spanfix_right17   { right: 17px; }		.spanfix_right37   { right: 37px; }		.spanfix_right57   { right: 57px; }		.spanfix_right77   { right: 77px; }		.spanfix_right97   { right: 97px; }		.spanfix_right270  { right: 270px; }	.spanfix_right470  { right: 470px; }	.spanfix_right670  { right: 670px; }	.spanfix_right870  { right: 870px; }	.spanfix_right1070  { right: 1070px; }	.spanfix_right1270  { right: 1270px; }	 	
+	.spanfix_right18   { right: 18px; }		.spanfix_right38   { right: 38px; }		.spanfix_right58   { right: 58px; }		.spanfix_right78   { right: 78px; }		.spanfix_right98   { right: 98px; }		.spanfix_right280  { right: 280px; }	.spanfix_right480  { right: 480px; }	.spanfix_right680  { right: 680px; }	.spanfix_right880  { right: 880px; }	.spanfix_right1080  { right: 1080px; }	.spanfix_right1280  { right: 1280px; }	 	
+	.spanfix_right19   { right: 19px; }		.spanfix_right39   { right: 39px; }		.spanfix_right59   { right: 59px; }		.spanfix_right79   { right: 79px; }		.spanfix_right99   { right: 99px; }		.spanfix_right290  { right: 290px; }	.spanfix_right490  { right: 490px; }	.spanfix_right690  { right: 690px; }	.spanfix_right890  { right: 890px; }	.spanfix_right1090  { right: 1090px; }	.spanfix_right1290  { right: 1290px; }	 	
+	.spanfix_right20   { right: 20px; }		.spanfix_right40   { right: 40px; }		.spanfix_right60   { right: 60px; }		.spanfix_right80   { right: 80px; }		.spanfix_right100  { right: 100px; }	.spanfix_right300  { right: 300px; }	.spanfix_right500  { right: 500px; }	.spanfix_right700  { right: 700px; }	.spanfix_right900  { right: 900px; }	.spanfix_right1100  { right: 1100px; }	.spanfix_right1300  { right: 1300px; }		
+
+	/*// Набор классов spanfix_right для управления отступом сверху ////
+	//////////////////////////////////////////////////////////////////*/																																																																																																																																																																																																		
+	.spanfix_top0    { top: 0;  }
+	.spanfix_top1    { top: 1px;  }		.spanfix_top21   { top: 21px; }		.spanfix_top41   { top: 41px; }		.spanfix_top61   { top: 61px; }		.spanfix_top81   { top: 81px; }		.spanfix_top110  { top: 110px; }	.spanfix_top310  { top: 310px; }	.spanfix_top510  { top: 510px; }	.spanfix_top710  { top: 710px; }	.spanfix_top910  { top: 910px; }		.spanfix_top1110  { top: 1110px; }
+	.spanfix_top2    { top: 2px;  }		.spanfix_top22   { top: 22px; }		.spanfix_top42   { top: 42px  }		.spanfix_top62   { top: 62px; }		.spanfix_top82   { top: 82px; }		.spanfix_top120  { top: 120px; }	.spanfix_top320  { top: 320px; }	.spanfix_top520  { top: 520px; }	.spanfix_top720  { top: 720px; }	.spanfix_top920  { top: 920px; }		.spanfix_top1120  { top: 1120px; }	 		 	
+	.spanfix_top3    { top: 3px;  }		.spanfix_top23   { top: 23px; }		.spanfix_top43   { top: 43px; }		.spanfix_top63   { top: 63px; }		.spanfix_top83   { top: 83px; }		.spanfix_top130  { top: 130px; }	.spanfix_top330  { top: 330px; }	.spanfix_top530  { top: 530px; }	.spanfix_top730  { top: 730px; }	.spanfix_top930  { top: 930px; }		.spanfix_top1130  { top: 1130px; }	 		 	
+	.spanfix_top4    { top: 4px;  }		.spanfix_top24   { top: 24px; }		.spanfix_top44   { top: 44px; }		.spanfix_top64   { top: 64px; }		.spanfix_top84   { top: 84px; }		.spanfix_top140  { top: 140px; }	.spanfix_top340  { top: 340px; }	.spanfix_top540  { top: 540px; }	.spanfix_top740  { top: 740px; }	.spanfix_top940  { top: 940px; }		.spanfix_top1140  { top: 1140px; }	 		 	
+	.spanfix_top5    { top: 5px;  }		.spanfix_top25   { top: 25px; }		.spanfix_top45   { top: 45px; }		.spanfix_top65   { top: 65px; }		.spanfix_top85   { top: 85px; }		.spanfix_top150  { top: 150px; }	.spanfix_top350  { top: 350px; }	.spanfix_top550  { top: 550px; }	.spanfix_top750  { top: 750px; }	.spanfix_top950  { top: 950px; }		.spanfix_top1150  { top: 1150px; }	 		 	
+	.spanfix_top6    { top: 6px;  }		.spanfix_top26   { top: 26px; }		.spanfix_top46   { top: 46px; }		.spanfix_top66   { top: 66px; }		.spanfix_top86   { top: 86px; }		.spanfix_top160  { top: 160px; }	.spanfix_top360  { top: 360px; }	.spanfix_top560  { top: 560px; }	.spanfix_top760  { top: 760px; }	.spanfix_top960  { top: 960px; }		.spanfix_top1160  { top: 1160px; }	 		 	
+	.spanfix_top7    { top: 7px;  }		.spanfix_top27   { top: 27px; }		.spanfix_top47   { top: 47px; }		.spanfix_top67   { top: 67px; }		.spanfix_top87   { top: 87px; }		.spanfix_top170  { top: 170px; }	.spanfix_top370  { top: 370px; }	.spanfix_top570  { top: 570px; }	.spanfix_top770  { top: 770px; }	.spanfix_top970  { top: 970px; }		.spanfix_top1170  { top: 1170px; }	 		 	
+	.spanfix_top8    { top: 8px;  }		.spanfix_top28   { top: 28px; }		.spanfix_top48   { top: 48px; }		.spanfix_top68   { top: 68px; }		.spanfix_top88   { top: 88px; }		.spanfix_top180  { top: 180px; }	.spanfix_top380  { top: 380px; }	.spanfix_top580  { top: 580px; }	.spanfix_top780  { top: 780px; }	.spanfix_top980  { top: 980px; }		.spanfix_top1180  { top: 1180px; }	 		 	
+	.spanfix_top9    { top: 9px;  }		.spanfix_top29   { top: 29px; }		.spanfix_top49   { top: 49px; }		.spanfix_top69   { top: 69px; }		.spanfix_top89   { top: 89px; }		.spanfix_top190  { top: 190px; }	.spanfix_top390  { top: 390px; }	.spanfix_top590  { top: 590px; }	.spanfix_top790  { top: 790px; }	.spanfix_top990  { top: 990px; }		.spanfix_top1190  { top: 1190px; }	 		 	
+	.spanfix_top10   { top: 10px; }		.spanfix_top30   { top: 30px; }		.spanfix_top50   { top: 50px; }		.spanfix_top70   { top: 70px; }		.spanfix_top90   { top: 90px; }		.spanfix_top200  { top: 200px; }	.spanfix_top400  { top: 400px; }	.spanfix_top600  { top: 600px; }	.spanfix_top800  { top: 800px; }	.spanfix_top1000  { top: 1000px; }	.spanfix_top1200  { top: 1200px; }	 	
+	.spanfix_top11   { top: 11px; }		.spanfix_top31   { top: 31px; }		.spanfix_top51   { top: 51px; }		.spanfix_top71   { top: 71px; }		.spanfix_top91   { top: 91px; }		.spanfix_top210  { top: 210px; }	.spanfix_top410  { top: 410px; }	.spanfix_top610  { top: 610px; }	.spanfix_top810  { top: 810px; }	.spanfix_top1010  { top: 1010px; }	.spanfix_top1210  { top: 1210px; }	 	
+	.spanfix_top12   { top: 12px; }		.spanfix_top32   { top: 32px; }		.spanfix_top52   { top: 52px; }		.spanfix_top72   { top: 72px; }		.spanfix_top92   { top: 92px; }		.spanfix_top220  { top: 220px; }	.spanfix_top420  { top: 420px; }	.spanfix_top620  { top: 620px; }	.spanfix_top820  { top: 820px; }	.spanfix_top1020  { top: 1020px; }	.spanfix_top1220  { top: 1220px; }	 	
+	.spanfix_top13   { top: 13px; }		.spanfix_top33   { top: 33px; }		.spanfix_top53   { top: 53px; }		.spanfix_top73   { top: 73px; }		.spanfix_top93   { top: 93px; }		.spanfix_top230  { top: 230px; }	.spanfix_top430  { top: 430px; }	.spanfix_top630  { top: 630px; }	.spanfix_top830  { top: 830px; }	.spanfix_top1030  { top: 1030px; }	.spanfix_top1230  { top: 1230px; }	 	
+	.spanfix_top14   { top: 14px; }		.spanfix_top34   { top: 34px; }		.spanfix_top54   { top: 54px; }		.spanfix_top74   { top: 74px; }		.spanfix_top94   { top: 94px; }		.spanfix_top240  { top: 240px; }	.spanfix_top440  { top: 440px; }	.spanfix_top640  { top: 640px; }	.spanfix_top840  { top: 840px; }	.spanfix_top1040  { top: 1040px; }	.spanfix_top1240  { top: 1240px; }	 	
+	.spanfix_top15   { top: 15px; }		.spanfix_top35   { top: 35px; }		.spanfix_top55   { top: 55px; }		.spanfix_top75   { top: 75px; }		.spanfix_top95   { top: 95px; }		.spanfix_top250  { top: 250px; }	.spanfix_top450  { top: 450px; }	.spanfix_top650  { top: 650px; }	.spanfix_top850  { top: 850px; }	.spanfix_top1050  { top: 1050px; }	.spanfix_top1250  { top: 1250px; }	 	
+	.spanfix_top16   { top: 16px; }		.spanfix_top36   { top: 36px; }		.spanfix_top56   { top: 56px; }		.spanfix_top76   { top: 76px; }		.spanfix_top96   { top: 96px; }		.spanfix_top260  { top: 260px; }	.spanfix_top460  { top: 460px; }	.spanfix_top660  { top: 660px; }	.spanfix_top860  { top: 860px; }	.spanfix_top1060  { top: 1060px; }	.spanfix_top1260  { top: 1260px; }	 	
+	.spanfix_top17   { top: 17px; }		.spanfix_top37   { top: 37px; }		.spanfix_top57   { top: 57px; }		.spanfix_top77   { top: 77px; }		.spanfix_top97   { top: 97px; }		.spanfix_top270  { top: 270px; }	.spanfix_top470  { top: 470px; }	.spanfix_top670  { top: 670px; }	.spanfix_top870  { top: 870px; }	.spanfix_top1070  { top: 1070px; }	.spanfix_top1270  { top: 1270px; }	 	
+	.spanfix_top18   { top: 18px; }		.spanfix_top38   { top: 38px; }		.spanfix_top58   { top: 58px; }		.spanfix_top78   { top: 78px; }		.spanfix_top98   { top: 98px; }		.spanfix_top280  { top: 280px; }	.spanfix_top480  { top: 480px; }	.spanfix_top680  { top: 680px; }	.spanfix_top880  { top: 880px; }	.spanfix_top1080  { top: 1080px; }	.spanfix_top1280  { top: 1280px; }	 	
+	.spanfix_top19   { top: 19px; }		.spanfix_top39   { top: 39px; }		.spanfix_top59   { top: 59px; }		.spanfix_top79   { top: 79px; }		.spanfix_top99   { top: 99px; }		.spanfix_top290  { top: 290px; }	.spanfix_top490  { top: 490px; }	.spanfix_top690  { top: 690px; }	.spanfix_top890  { top: 890px; }	.spanfix_top1090  { top: 1090px; }	.spanfix_top1290  { top: 1290px; }	 	
+	.spanfix_top20   { top: 20px; }		.spanfix_top40   { top: 40px; }		.spanfix_top60   { top: 60px; }		.spanfix_top80   { top: 80px; }		.spanfix_top100  { top: 100px; }	.spanfix_top300  { top: 300px; }	.spanfix_top500  { top: 500px; }	.spanfix_top700  { top: 700px; }	.spanfix_top900  { top: 900px; }	.spanfix_top1100  { top: 1100px; }	.spanfix_top1300  { top: 1300px; }		

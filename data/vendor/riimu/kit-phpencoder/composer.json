@@ -1,0 +1,26 @@
+{
+    "name": "riimu/kit-phpencoder",
+    "type": "library",
+    "description": "Highly customizable alternative to var_export for PHP code generation",
+    "homepage": "http://kit.riimu.net",
+    "keywords": ["variable", "export", "code", "generator", "encoder"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Riikka Kalliomäki",
+            "email": "riikka.kalliomaki@gmail.com",
+            "homepage": "http://riimu.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "suggest": {
+        "ext-gmp" : "To convert GMP numbers into PHP code"
+    },
+    "autoload": {
+        "psr-4": {
+            "Riimu\\Kit\\PHPEncoder\\": "src/"
+        }
+    }
+}

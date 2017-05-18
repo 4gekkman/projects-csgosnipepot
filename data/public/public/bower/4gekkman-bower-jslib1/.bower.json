@@ -1,0 +1,26 @@
+{
+  "name": "4gekkman-bower-jslib1",
+  "description": "General jslib for all DLW-packages",
+  "main": [
+    "library.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/4gekkman/4gekkman-bower-jslib1.git"
+  },
+  "ignore": [
+    "readme.md",
+    "composer.json"
+  ],
+  "homepage": "https://github.com/4gekkman/4gekkman-bower-jslib1",
+  "version": "1.0.3",
+  "_release": "1.0.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.0.3",
+    "commit": "4e24b242fd770e6b0e105369a58af2fffd21b1e7"
+  },
+  "_source": "https://github.com/4gekkman/4gekkman-bower-jslib1.git",
+  "_target": "*",
+  "_originalSource": "4gekkman-bower-jslib1"
+}
