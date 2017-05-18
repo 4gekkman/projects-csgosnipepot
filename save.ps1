@@ -150,7 +150,7 @@ $current_path = (Get-Location).Path
 	########################
 	## Подготовка функции ##
 	########################	
-	function PushProjectToGithub($path, $project)
+	function PushProjectToGithub($project)
 	{
 		$msg = "Autosave"		
 		git add -A .
