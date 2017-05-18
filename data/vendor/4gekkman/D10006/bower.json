@@ -1,0 +1,15 @@
+{
+  "name": "D10006",
+  "dependencies": {
+		"4gekkman-bower-jslib1": "latest",
+		"4gekkman-bower-cssgrids": "latest"
+	},
+  "mains": {
+    "css": [
+			"public/D10006/css/c.css"
+		],
+    "js": [
+			"public/D10006/js/j.js"
+		]
+  }
+}
