@@ -1,0 +1,27 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+		"name": "4gekkman/m1",
+		"description": "M1 - Управление Приложением",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/m1"
+        }
+    ],
+    "require": {
+			"predis/predis": "~1.0",
+			"matthiasmullie/minify": "~1.0",
+			"composer/semver": "~1.0",
+			"4gekkman/R1": "~1.0",
+			"4gekkman/R2": "~1.0",
+			"4gekkman/R4": "~1.0",
+			"4gekkman/R5": "~1.0"
+		},
+    "autoload": {
+        "psr-4": {"M1\\": ""}
+    }
+}
