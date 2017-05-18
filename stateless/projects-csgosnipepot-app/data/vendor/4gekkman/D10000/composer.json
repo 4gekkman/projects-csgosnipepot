@@ -1,0 +1,23 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/d10000",
+		"description": "D10000 - Users and Groups and Privs Control System",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/d10000"
+        }
+    ],
+    "require": {
+      "4gekkman/M1": "~1.0",
+			"4gekkman/M5": "~1.0",
+			"4gekkman/L10000": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {"D10000\\": ""}
+    }
+}

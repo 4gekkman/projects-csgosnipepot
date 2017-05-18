@@ -1,0 +1,107 @@
+{
+    "name": "laravel/laravel",
+    "description": "The Laravel Framework.",
+    "keywords": ["framework", "laravel"],
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": ">=5.5.9",
+        "laravel/framework": "5.3.*",
+        "predis/predis": "^1.0",
+				"guzzlehttp/guzzle": "~6.0",
+				"hybridauth/hybridauth": "2.7.0",
+				"phpseclib/phpseclib": "~2.0",
+				"dunglas/php-torcontrol": "~1.0",
+				"barryvdh/laravel-cors": "0.8.*",
+				"graham-campbell/markdown": "^7.0"
+    },
+    "require-dev": {
+        "fzaninotto/faker": "~1.4",
+        "mockery/mockery": "0.9.*",
+        "phpunit/phpunit": "~4.0",
+        "symfony/css-selector": "3.1.*",
+        "symfony/dom-crawler": "3.1.*",
+
+        "composer/semver": "~1.0",
+				"intervention/image": "~2.0",
+
+        "riimu/kit-phpencoder": "2.*",
+
+				"florianv/laravel-swap": "~1.1",
+				"php-http/message": "~1.4",
+				"php-http/guzzle6-adapter": "~1.1"
+    },
+    "autoload": {
+        "classmap": [
+            "database"
+        ],
+        "psr-4": {
+            "App\\":"app/",
+            "M1\\":"vendor/4gekkman/M1",
+            "M2\\":"vendor/4gekkman/M2",
+            "M3\\":"vendor/4gekkman/M3",
+            "M4\\":"vendor/4gekkman/M4",
+            "M5\\":"vendor/4gekkman/M5",
+            "R1\\":"vendor/4gekkman/R1",
+            "R2\\":"vendor/4gekkman/R2",
+            "R3\\":"vendor/4gekkman/R3",
+            "R4\\":"vendor/4gekkman/R4",
+            "R5\\":"vendor/4gekkman/R5",
+            "L10000\\":"vendor/4gekkman/L10000",
+            "L10001\\":"vendor/4gekkman/L10001",
+            "D10003\\":"vendor/4gekkman/D10003",
+            "D10004\\":"vendor/4gekkman/D10004",
+            "M8\\":"vendor/4gekkman/M8",
+            "D10005\\":"vendor/4gekkman/D10005",
+            "M9\\":"vendor/4gekkman/M9",
+            "D10006\\":"vendor/4gekkman/D10006",
+            "M10\\":"vendor/4gekkman/M10",
+            "M11\\":"vendor/4gekkman/M11",
+            "L10003\\":"vendor/4gekkman/L10003",
+            "D10009\\":"vendor/4gekkman/D10009",
+            "M12\\":"vendor/4gekkman/M12",
+            "R6\\":"vendor/4gekkman/R6",
+            "L10004\\":"vendor/4gekkman/L10004",
+            "D10010\\":"vendor/4gekkman/D10010",
+            "D10011\\":"vendor/4gekkman/D10011",
+            "M13\\":"vendor/4gekkman/M13",
+            "M14\\":"vendor/4gekkman/M14",
+            "D10012\\":"vendor/4gekkman/D10012",
+            "M15\\":"vendor/4gekkman/M15",
+            "M16\\":"vendor/4gekkman/M16",
+            "M17\\":"vendor/4gekkman/M17",
+            "M18\\":"vendor/4gekkman/M18",
+            "D10000\\":"vendor/4gekkman/D10000",
+            "D10013\\":"vendor/4gekkman/D10013",
+            "M7\\":"vendor/4gekkman/M7"
+        }
+    },
+    "autoload-dev": {
+        "classmap": [
+            "tests/TestCase.php"
+        ]
+    },
+    "scripts": {
+        "post-root-package-install": [
+            "php -r \"copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "php artisan key:generate"
+        ],
+        "post-install-cmd": [
+            "php artisan m1:run",
+            "php artisan clear-compiled",
+            "php artisan optimize"
+        ],
+        "pre-update-cmd": [
+            "php artisan clear-compiled"
+        ],
+        "post-update-cmd": [
+            "php artisan m1:run",
+            "php artisan optimize"
+        ]
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}

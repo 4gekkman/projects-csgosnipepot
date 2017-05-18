@@ -1,0 +1,100 @@
+/*------------------------------//
+//                              //
+//  Собственные стили L-пакета  //
+//                              //
+//------------------------------//
+// Оглавление //
+//------------//
+
+  a. Экран загрузки документа
+  б. Экран загрузки документа v2
+  1. ...
+
+
+//------------------------------//
+// Стили //
+//-------*/
+
+//-----------------------------//
+// a. Экран загрузки документа //
+//-----------------------------//
+body {
+  overflow: hidden;
+}
+.start-loading-screen {
+  display: block;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  //background-color: #293036;
+  z-index: 99999999;
+  opacity: 1;
+  transition: all 1s ease;
+
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#232323+0,293036+49,232323+100 */
+  background: #232323; /* Old browsers */
+  background: -moz-linear-gradient(45deg,  #232323 0%, #293036 49%, #232323 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(45deg,  #232323 0%,#293036 49%,#232323 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(45deg,  #232323 0%,#293036 49%,#232323 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#232323', endColorstr='#232323',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+
+}
+.start-loading-screen.hide-start-loading-screen {
+  opacity: 0;
+}
+.start-loading-screen.displaynone {
+  display: none;
+}
+//.start-loading-screen img {
+//  width: 300px;
+//  height: 300px;
+//  position: absolute;
+//  top: -120px;
+//  left: 20%;
+//  -webkit-animation: loadhorse 5s ease-in-out 0s infinite;
+//}
+.start-loading-screen img {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 50%;
+  margin-top: -100px;
+  left: 50%;
+  margin-left: -100px;
+  -webkit-animation: loadhorse 1s linear 0s infinite;
+}
+
+//--------------------------------//
+// б. Экран загрузки документа v2 //
+//--------------------------------//
+.loading2 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+.loading2 .bullet {
+    position: absolute;
+    padding: 5px;
+    border-radius: 50%;
+    background: #f39c26;
+    opacity: 0;
+    -webkit-animation: animIn 1s ease-in-out 0s infinite;
+    animation: animIn 1s ease-in-out 0s infinite;
+}
+.loading2 .bullet:nth-child(1) {
+    -webkit-animation-delay: 0s;
+    animation-delay: 0s;
+}
+.loading2 .bullet:nth-child(2) {
+    -webkit-animation-delay: 0.15s;
+    animation-delay: 0.15s;
+}
+.loading2 .bullet:nth-child(3) {
+    -webkit-animation-delay: 0.3s;
+    animation-delay: 0.3s;
+}
+.loading2 .bullet:nth-child(4) {
+    -webkit-animation-delay: 0.45s;
+    animation-delay: 0.45s;
+}
+

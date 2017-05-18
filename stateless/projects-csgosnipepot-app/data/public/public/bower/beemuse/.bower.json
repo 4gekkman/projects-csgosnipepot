@@ -1,0 +1,28 @@
+{
+  "name": "beemuse",
+  "version": "0.3.0",
+  "authors": [
+    "Elise <elise@itmustbe.com>"
+  ],
+  "description": "bundle of sweet css effects",
+  "main": "dist/beemuse.css",
+  "keywords": [
+    "scss",
+    "css",
+    "effects"
+  ],
+  "license": "MIT",
+  "homepage": "http://beemuse.com",
+  "ignore": [
+    "**/.*"
+  ],
+  "_release": "0.3.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.3.0",
+    "commit": "84d6f6298707cca8c0d822a27a0d4ebcecddf51c"
+  },
+  "_source": "https://github.com/itmustbe/package-beemuse.git",
+  "_target": "*",
+  "_originalSource": "beemuse"
+}

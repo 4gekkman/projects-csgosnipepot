@@ -1,0 +1,12 @@
+{
+  "name": "4gekkman-bower-cssgrids",
+  "description": "CSS adaptive grids via float or position",
+  "main"  : ["c.css"],
+  "repository": {
+    "type": "git", "url": "git://github.com/4gekkman/4gekkman-bower-cssgrids.git"
+  },
+  "ignore": [
+    "readme.md",
+    "composer.json"
+  ]
+}

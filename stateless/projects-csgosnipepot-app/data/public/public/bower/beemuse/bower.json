@@ -1,0 +1,19 @@
+{
+  "name": "beemuse",
+  "version": "0.3.0",
+  "authors": [
+    "Elise <elise@itmustbe.com>"
+  ],
+  "description": "bundle of sweet css effects",
+  "main": "dist/beemuse.css",
+  "keywords": [
+    "scss",
+    "css",
+    "effects"
+  ],
+  "license": "MIT",
+  "homepage": "http://beemuse.com",
+  "ignore": [
+    "**/.*"
+  ]
+}
