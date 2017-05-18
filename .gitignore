@@ -1,0 +1,8 @@
+.git
+.idea
+stateful
+stateful/*
+stateless/projects-csgosnipepot-app/data/node_modules
+stateless/projects-csgosnipepot-app/data/node_modules/*
+stateless/projects-csgosnipepot-app/data/vendor/bin
+stateless/projects-csgosnipepot-app/data/vendor/bin/*

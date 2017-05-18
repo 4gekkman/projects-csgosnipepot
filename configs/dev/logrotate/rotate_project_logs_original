@@ -1,0 +1,32 @@
+# Laravel log
+"/theproject/data/storage/logs/*.log" { 
+  su root root
+  rotate 0
+  size 10M
+  missingok
+  notifempty
+  nocompress
+  create 777 root root
+}
+
+# Security logs
+"/theproject/data/logs/security/*.log" { 
+  su root root
+  rotate 5
+  size 50M
+  missingok
+  notifempty
+  nocompress
+  create 777 root root
+}
+
+# Other project logs
+"/theproject/data/logs/*.log" { 
+  su root root
+  rotate 0
+  size 10M
+  missingok
+  notifempty
+  nocompress
+  create 777 root root
+}

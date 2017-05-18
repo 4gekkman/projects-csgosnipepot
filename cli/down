@@ -1,0 +1,40 @@
+#!/bin/bash
+#######################
+##        down       ##
+################################################
+## Остановить проект с помощью docker-compose ##
+################################################
+: '
+  
+  1. Остановить проект
+
+'
+#########################################################################
+func_wrapper_down () { 
+
+  # 1. Остановить проект
+
+    # 1.1. Сообщить о начале остановки проекта
+    echo -en "$YELLOW--- app down ---> Начинаю остановку проекта...$NORMAL"    
+
+    # 1.2. Остановить проект
+    {
+      docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml down    
+    } || {
+      echo -e "$RED Ошибка! Cм.строку $LINENO скрипта $BASH_SOURCE$NORMAL"
+      return
+    }
+
+    # 1.3. Сообщить об успехе
+    echo -e "$GREEN Успех! $NORMAL"
+
+:;}
+func_wrapper_down "$@"
+
+
+
+
+
+
+
+

@@ -1,0 +1,90 @@
+#!/bin/bash
+#####################
+##        up       ##
+########################################################
+## Настроить iptables на хосте при запуске приложения ##
+########################################################
+: '
+  
+  1. Получить название bridge приложения (br-<id сети приложения>)
+  2. Общая настройка фаервола
+  3. Настройка доступных извне портов контейнеров
+  
+    3.1. Открыть доступ с хост-машины через host-only сетевой интерфейс, проброшенный vagrantом
+    3.2. Открыть полный доступ для указанных IP
+    3.3. Открыть доступ широкой публике к указанным портам
+
+'
+########################################################
+
+
+# 1. Получить название bridge приложения (br-<id сети приложения>)
+# - При запуске приложения docker-compose создаёт новый bridge.
+# - В его имени используется ID сети по умолчанию.
+# - Имя сети по умолчанию задаётся так: <имя папки c yml>_default
+# - В фаерволе нам необходимо использовать имя $bridge.
+# - Всё это актуально для docker-compose v2,v3, а для v1 можно было
+#   просто использовать имя $bridge.
+curcat=${PWD##*/}
+projectname=<instance_name>
+network=$(docker network ls | grep $projectname)
+bridge=br-${network%% *}
+if [ ! -z "$network" ]; then
+  echo "Application bridge name: $bridge"
+fi
+
+# 2. Общая настройка фаервола
+
+  # 2.1. Удалить все правила и цепочки
+  sudo iptables -F
+  sudo iptables -X
+  sudo iptables -N DOCKER
+  sudo iptables -N DOCKER-ISOLATION  
+  
+  # 2.2. Задать политику по умолчанию для цепочек INPUT, OUTPUT, FORWARD
+  sudo ip6tables -P INPUT DROP
+  sudo iptables -P INPUT DROP
+  sudo iptables -P FORWARD DROP
+  sudo iptables -P OUTPUT ACCEPT
+
+  # 2.3. Разрешить установленные подключения
+  sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+  # 2.4. Loopback
+  sudo iptables -A INPUT -i lo -j ACCEPT
+  sudo iptables -A FORWARD -i lo -j ACCEPT
+  sudo iptables -A OUTPUT -o lo -j ACCEPT
+
+  # 1.5. Ping
+  sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+  sudo iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+
+  # 2.6. SSH
+  sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+  # 2.7. DNS
+  sudo iptables -A INPUT -p tcp --dport 53 -j ACCEPT
+  sudo iptables -A INPUT -p tcp --sport 53 -j ACCEPT
+
+  # 2.8. Docker  
+  #sudo iptables -A FORWARD -i eth0 -o $bridge -j ACCEPT
+  sudo iptables -A FORWARD -i $bridge -o eth0 -j ACCEPT
+  sudo iptables -A FORWARD -i $bridge -o eth1 -j ACCEPT
+  sudo iptables -A FORWARD -o $bridge -j DOCKER
+  sudo iptables -A FORWARD -o $bridge -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  sudo iptables -A FORWARD -i $bridge ! -o $bridge -j ACCEPT
+  sudo iptables -A FORWARD -i $bridge -o $bridge -j ACCEPT 
+
+# 3. Настройка доступных извне портов контейнеров
+
+  # 3.1. Открыть доступ с хост-машины через host-only сетевой интерфейс, проброшенный vagrantом
+  sudo iptables -I FORWARD -i eth1 -j ACCEPT
+
+  # 3.2. Открыть полный доступ для указанных IP
+  sudo iptables -I FORWARD -i eth0 -o $bridge -s 188.244.34.28 -j ACCEPT
+
+  # 3.3. Открыть доступ широкой публике к указанным портам
+  sudo iptables -I FORWARD -i eth0 -o $bridge -p tcp --dport 80 -j ACCEPT
+  sudo iptables -I FORWARD -i eth0 -o $bridge -p tcp --dport 6001 -j ACCEPT
+  
+  

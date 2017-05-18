@@ -1,0 +1,30 @@
+##########################################
+## Сервис - projects-csgosnipepot-mysql ##
+##########################################
+## Оглавление
+##  
+##  1. Базовый образ и разработчики
+##  2. Установить необходимые пакеты
+##  3. Назначить cmd по умолчанию
+##  4. Назначить entrypoint
+##  5. Скопировать stateless-часть приложения в контейнер
+##
+
+# 1. Базовый образ и разработчики
+FROM mysql:5.7
+MAINTAINER German Manvelov <4gekkman@gmail.com>
+
+# 2. Установить необходимые пакеты
+RUN apt-get update && apt-get install -y \
+
+  supervisor \
+  ; exit 0
+
+# 3. Назначить cmd по умолчанию
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor.d/projects-csgosnipepot-mysql.ini"]
+
+# 4. Назначить entrypoint
+# ENTRYPOINT ["docker-entrypoint.sh"]
+
+# 5. Скопировать stateless-часть приложения в контейнер
+COPY ["data", "/theproject/service/"]

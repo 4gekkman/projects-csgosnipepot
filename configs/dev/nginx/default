@@ -1,0 +1,61 @@
+# Переадресация
+# server {
+# 	listen 80;
+# 	server_name www.matrixcsgo.com;
+# 	return 301 http://matrixcsgo.com$request_uri;
+# }
+# server {
+# 	listen 80;
+# 	server_name www.matrixcsgo.ru;
+# 	return 301 http://matrixcsgo.com$request_uri;
+# }
+# server {
+# 	listen 80;
+# 	server_name matrixcsgo.ru;
+# 	return 301 http://matrixcsgo.com$request_uri;
+# }
+# server {
+# 	listen 80;
+# 	server_name xn--80ageubc0ajogi.xn--p1ai;
+# 	return 301 http://matrixcsgo.com$request_uri;
+# }
+# server {
+# 	listen 80;
+# 	server_name csgoprof.it;
+# 	return 301 http://matrixcsgo.com$request_uri;
+# }
+
+# Основной сервер
+server {
+  listen 80 default_server;
+  server_name csgosnipepot.com;
+  
+  root        /theproject/service/public;
+  index       index.php;
+
+  client_max_body_size 100M;
+  fastcgi_read_timeout 1800;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+    expires       max;
+    log_not_found off;
+    access_log    off;
+  }
+
+  location ~ \.php$ {
+    try_files     $uri =404;
+    include       fastcgi_params;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass  unix:/run/php/php7.0-fpm.sock;
+    fastcgi_buffer_size 128k;
+    fastcgi_buffers 4 256k;
+    fastcgi_busy_buffers_size 256k;
+    # auth_basic "Restricted";
+    # auth_basic_user_file /etc/nginx/.htpasswd;    
+  }
+}

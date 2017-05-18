@@ -1,0 +1,166 @@
+#!/bin/bash
+#####################
+##        up       ##
+###############################################
+## Запустить проект с помощью docker-compose ##
+###############################################
+: '
+  
+  1. Получить конфиги и экземпляр по умолчанию
+  2. Получить конфиги и экземпляр из опций, если переданы
+  3. Запретить запуск проекта с несовместимыми конфигами/экземпляром
+  4. Сообщить, какие конфиги и экземпляр в итоге выбраны
+  5. Скопировать шаблоны конфигов configs в выбранный экземпляр
+  6. Скомпилировать скопированные в экземпляр шаблоны конфигов
+  
+  n. Если выбраны конфиги dev, запустить проект локально через docker-compose
+
+'
+#########################################################################
+func_wrapper_up () { 
+
+  # 1. Получить конфиги и экземпляр по умолчанию
+  configs_default=$configs_default
+  instance_default=$instance_default
+
+  # 2. Получить конфиги и экземпляр из опций, если переданы
+  if [ $# != 0 ]; then
+    
+    # Провести парсинг этих опций
+    OPTIND=1
+    while getopts ":c:i:" opt; do
+      case $opt in
+
+        # Если опция -c передана
+        c)
+          # Если:
+          # - Значение опции -c не пусто
+          # - Существует группа опций с таким именем
+          # То:
+          # - Записать это значение в $configs_default
+          if [ -n "$OPTARG" ] && [ -d "$PWD/configs/$OPTARG" ]; then
+            configs_default=$OPTARG
+          fi
+          ;;
+          
+        # Если опция -i передана
+        i)
+          # Если:
+          # - Значение опции -i не пусто
+          # - Существует экземпляр с таким именем
+          # То:
+          # - Записать это значение в $instance_default
+          if [ -n "$OPTARG" ] && [ -d "$PWD/stateful/$OPTARG" ]; then
+            instance_default=$OPTARG
+          fi
+          ;;          
+          
+      esac
+    done      
+
+  fi  
+  
+  # 3. Запретить запуск проекта с несовместимыми конфигами/экземпляром
+  
+    # 1] Если конфиги dev, а экземпляр нет
+    if [[ $configs_default = "dev" && $configs_default != $instance_default ]]; then
+      echo -e "$RED--- app up ---> Ошибка! Нельзя запускать не-dev-instance с конфигами dev.$NORMAL"
+      return   
+    fi
+    
+    # 2] Если экземпляр dev, а конфиги нет
+    if [[ $instance_default = "dev" && $configs_default != $instance_default ]]; then
+      echo -e "$RED--- app up ---> Ошибка! Нельзя запускать dev-instance с не-dev-конфигами.$NORMAL"
+      return   
+    fi    
+  
+  # 4. Сообщить, какие конфиги и экземпляр в итоге выбраны  
+  echo -en "$YELLOW--- app up ---> $REDКонфиги: $configs_default$NORMAL\n"
+  echo -en "$YELLOW--- app up ---> $REDЭкземпляр: $instance_default$NORMAL\n"
+  
+  # 5. Скопировать шаблоны конфигов configs в выбранный экземпляр
+  
+    # 1] Сообщить
+    echo -en "$YELLOW--- app up ---> Копирую шаблоны конфигов из configs в stateful/$RED$instance_default$YELLOW/configs ...$NORMAL"
+  
+    # 2] Удалить все старые копии конфигов из экземпляра
+    sudo rm -rf stateful/$instance_default/configs/*
+  
+    # 3] Скопировать
+    {
+      sudo cp -rf configs/$instance_default/* stateful/$instance_default/configs/
+    } || {
+      echo -e "$RED--- app up ---> Ошибка! Cм.строку $LINENO скрипта $BASH_SOURCE$NORMAL"
+      return
+    }    
+  
+    # n] Сообщить об успехе
+    echo -e "$GREEN Успех! $NORMAL"    
+
+  # 6. Скомпилировать скопированные в экземпляр шаблоны конфигов
+    
+    # 6.1. Сообщить
+    echo -en "$YELLOW--- app up ---> Компилирую скопированные в stateful/$RED$instance_default$YELLOW/configs шаблоны ...$NORMAL"    
+    
+    # 6.2. Записать в переменную путь к корню проекта
+    project_path=$PWD
+    
+    # 6.3. Скомпилировать
+
+      # 1] Во всех конфигах заменить <path_to_the_project> на $project_path
+      sed -i -e "s#<path_to_the_project>#$project_path#g" stateful/$instance_default/configs/*/{*,.[!.]*}
+      
+      # 2] Во всех конфигах заменить <instance_name> на $instance_default
+      sed -i -e "s#<instance_name>#$instance_default#g" stateful/$instance_default/configs/*/{*,.[!.]*}
+      
+      # 3] Во всех конфигах заменить <name_of_configs_group> на $configs_default
+      sed -i -e "s#<name_of_configs_group>#$configs_default#g" stateful/$instance_default/configs/*/{*,.[!.]*}
+    
+    # 6.n] Сообщить об успехе
+    echo -e "$GREEN Успех! $NORMAL"    
+
+  # n. Если выбраны конфиги dev, запустить проект локально через docker-compose
+  if [[ $configs_default = "dev" ]]; then
+    
+    # 1] Сообщить, что выбраны конфиги dev, и идёт запуск проекта локально
+    echo -e "$YELLOW--- app up ---> Запускаю проект локально с помощью docker-compose...$NORMAL"
+    
+    # 2] Применить правила для настройки iptables на хост-сервере
+    stateful/$instance_default/configs/firewall/host_iptables_setup
+
+    # 3] Запустить
+    {
+      docker login -u4gekkman -pdfgdffSds9786Dfs7896y
+      docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml pull
+      docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml up -d --force-recreate
+    } || {
+      echo -e "$RED--- app up ---> Ошибка! Cм.строку $LINENO скрипта $BASH_SOURCE$NORMAL"
+      return
+    }
+    
+    # 4] Сообщить об успешном запуске
+    echo -e "$GREEN Успех! $NORMAL"       
+    
+    # 5] Применить правила для настройки iptables на хост-сервере
+    
+      # m.1. Применить фаервол
+      stateful/$instance_default/configs/firewall/host_iptables_setup
+    
+      # m.2. Вывести текущие правила iptables (IPV4)
+      echo -e "$YELLOW--- app up ---> Установленные для хоста правила iptables (IPV4) $NORMAL"
+      echo "----------------------------"
+      sudo iptables -S
+      echo "----------------------------" 
+
+      # m.3. Вывести текущие правила iptables (IPV6)
+      echo -e "$YELLOW--- app up ---> Установленные для хоста правила iptables (IPV6) $NORMAL"
+      echo "----------------------------"
+      sudo ip6tables -S
+      echo "----------------------------"      
+    
+  fi    
+    
+    
+:;}
+func_wrapper_up "$@"
+
