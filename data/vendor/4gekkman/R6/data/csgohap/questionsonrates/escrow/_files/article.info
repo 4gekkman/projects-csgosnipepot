@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Что такое Escrow?"
+  },
+  "description": {
+    "ru": "В статье описано, что такое Escrow."
+  },
+  "author": {
+    "ru": {
+      "name": "Иван Иванов",
+      "url": "https://vk.com/mudakoff"
+    }
+  }
+}
