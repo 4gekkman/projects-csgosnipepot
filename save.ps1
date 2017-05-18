@@ -162,7 +162,7 @@ $current_path = (Get-Location).Path
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushProjectToGithub "projects-csgosnipepot"
+  PushProjectToGithub "csgosnipepot"
 
   
 ##################################################
