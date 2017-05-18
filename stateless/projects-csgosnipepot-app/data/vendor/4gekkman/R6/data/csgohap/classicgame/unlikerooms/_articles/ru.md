@@ -1,1 +1,0 @@
-Существует 2 комнаты для игры в режиме Classic game  – Main Room и Low Room. В Main Room принимаются ставки от 60 рублей, а в Low Room ставки от 1 рубля. 
