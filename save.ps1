@@ -175,7 +175,7 @@ $current_path = (Get-Location).Path
 		$msg = "Autosave"		
 		git add -A .
 		git commit -m $msg
-    git subtree pull --prefix=$prefix $github master
+    #git subtree pull --prefix=$prefix $github master
     git subtree push --squash --prefix=$prefix $github master  
 	}	
   
@@ -336,9 +336,9 @@ $current_path = (Get-Location).Path
 ]' | ConvertFrom-Json	
 	
   # 2.3. Осуществление залива
-  #foreach ($pack in $laravelpacks) { 
-  #  PushPacksSubtreesToGithub $pack.prefix $pack.v
-  #}
+  foreach ($pack in $laravelpacks) { 
+    PushPacksSubtreesToGithub $pack.prefix $pack.v
+  }
   
   
 ########################################################
