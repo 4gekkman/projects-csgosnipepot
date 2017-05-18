@@ -1,0 +1,133 @@
+/*------------------------------//
+//                              //
+//  Собственные стили L-пакета  //
+//                              //
+//------------------------------//
+// Оглавление //
+//------------//
+
+  1. Общие стили
+  2. Изменение основных цветовых схем
+  3. Аватар
+
+
+//------------------------------//
+// Стили //
+//-------*/
+
+//----------------//
+// 1. Общие стили //
+//----------------//
+.user-panel .infotext p {
+  margin-top: 11px;
+}
+.content-header-my {
+  padding: 0 15px 15px 0px;
+}
+@media (min-width: 991px) {
+  .content-header > .breadcrumb-my {
+    margin-top: -16px !important;
+  }
+}
+body {
+  overflow-x: auto !important;
+}
+.wrapper {
+  min-width: 640px;
+}
+
+//-------------------------------------//
+// 2. Изменение основных цветовых схем //
+//-------------------------------------//
+
+  .wrapper-color {
+    background-color: #ecf0f5 !important;
+  }
+
+  // Левый сайдбар
+  .main-sidebar {
+    background-color: #4f5a6e !important;
+  }
+
+  // Шапка
+  .navbar {
+    background-color: #4f5a6e !important;
+  }
+  .navbar .sidebar-toggle:hover {
+    color: RGBA(180,90,0,1) !important;
+    background-color: transparent !important;
+  }
+  .navbar .dropdown-menu {
+    padding-top: 0 !important;
+  }
+  .navbar .user-header {
+    background-color: #4f5a6e !important;
+  }
+  .navbar .navbar-custom-menu .user-menu:hover {
+    // background-color: #4f5a6e !important;
+  }
+  .navbar .navbar-custom-menu .user-menu:focus {
+    // background-color: #4f5a6e !important;
+  }
+
+  // Зона лого
+  .logo {
+    background-color: #424b5f !important;
+    padding: 0 !important;
+    vertical-align: bottom;
+    text-align: left !important;
+    cursor: default;
+  }
+  @media (max-width: 767px) {
+    .logo {
+      text-align: center !important;
+    }
+  }
+  .logo img {
+    width: 50px !important;
+    margin-bottom: 8px !important;
+  }
+  .logo span {
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  // Левое меню
+  .main-sidebar .sidebar .sidebar-menu li>a>i {
+
+  }
+  .main-sidebar .sidebar .sidebar-menu li>a {
+    border-left: 4px solid transparent !important;
+  }
+  .main-sidebar .sidebar .sidebar-menu li>a:hover {
+    background-color: #424b5f !important;
+  }
+  .main-sidebar .sidebar .sidebar-menu .choosen {
+    background-color: #424b5f !important;
+    border-left: 4px solid RGBA(180,90,0,1) !important;
+  }
+
+//-----------//
+// 3. Аватар //
+//-----------//
+
+  // Размер (маленького) аватара в правом верхнем углу админки
+  @media (min-width: 768px) {
+    .navbar-nav>.user-menu .user-image-correct-size {
+      max-width: 40px;
+      width: 40px;
+      max-height: 40px;
+      height: 40px;
+      margin-top: -10px;
+    }
+  }
+  @media (max-width: 767px) {
+    .navbar-nav>.user-menu .user-image-correct-size {
+      max-width: 25px;
+      width: 25px;
+      max-height: 25px;
+      height: 25px;
+    }
+  }
+
+
