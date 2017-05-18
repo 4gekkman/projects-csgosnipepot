@@ -1,0 +1,19 @@
+{
+		"extra": {
+			"version": "1.0.0"
+		},
+    "name": "4gekkman/r5",
+		"description": "R5 - This R-pack contains mains and gulp-tasks for bower-packs (needed for SUF)",
+    "license": "4gekkman@gmail.com",
+    "authors": [
+        {
+            "name": "4gekkman",
+            "email": "4gekkman@gmail.com",
+						"homepage": "https://github.com/4gekkman/r5"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {"R5\\": ""}
+    }
+}
