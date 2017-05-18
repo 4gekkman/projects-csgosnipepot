@@ -337,7 +337,7 @@ $current_path = (Get-Location).Path
 	
   # 2.3. Осуществление залива
   foreach ($pack in $laravelpacks) { 
-    PushPacksSubtreesToGithub $pack.prefix $pack.v
+    PushPacksSubtreesToGithub $pack.prefix $pack.github
   }
   
   
