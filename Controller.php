@@ -168,7 +168,7 @@ class Controller extends BaseController {
         $auth = json_decode(session('auth_cache'), true);
 
         // 2] Получить ID запрашивающего пользователя
-        if(!array_key_exists('user', $auth) || !array_key_exists('id', $auth['user']))
+        if(empty($auth) || !array_key_exists('user', $auth) || empty($auth['user']) || !array_key_exists('id', $auth['user']))
           return [
             "steam_tradeurl" => "",
             "user"           => ""
