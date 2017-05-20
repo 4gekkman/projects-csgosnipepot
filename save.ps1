@@ -153,7 +153,7 @@ $current_path = (Get-Location).Path
 	function PushProjectToGithub($project)
 	{
 		$msg = "Autosave"		
-		git add -A .
+		git add -A --ignore-errors .
 		git commit -m $msg
     git pull $project master
 		git push $project master
@@ -162,7 +162,7 @@ $current_path = (Get-Location).Path
 	#####################
 	## Выполнение push ##
 	#####################	  
-  #PushProjectToGithub "csgosnipepot"
+  PushProjectToGithub "csgosnipepot"
 
   
 ##################################################
@@ -173,7 +173,7 @@ $current_path = (Get-Location).Path
 	function PushPacksSubtreesToGithub($prefix, $github)
 	{
 		$msg = "Autosave"		
-		git add -A .
+		git add -A --ignore-errors .
 		git commit -m $msg
     git subtree pull --prefix=$prefix $github master
     git subtree push --squash --prefix=$prefix $github master  
@@ -351,7 +351,7 @@ $current_path = (Get-Location).Path
 	function PushSubreeToGithub($prefix, $github)
 	{
 		$msg = "Autosave"		
-		git add -A .
+		git add -A --ignore-errors .
 		git commit -m $msg
     git subtree pull --prefix=$prefix $github master
     git subtree push --squash --prefix=$prefix $github master   
