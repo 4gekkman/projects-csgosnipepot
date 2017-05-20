@@ -172,7 +172,7 @@ class T29_run_light extends Command
       // 2] Выполнить соотв.команды
       try {
         runcommand('\M1\Commands\C1_parseapp', []);
-        runcommand('\M1\Commands\C56_make_gitmodules', []);
+        //runcommand('\M1\Commands\C56_make_gitmodules', []);
         runcommand('\M1\Commands\C2_sp_regs_update', []);
         runcommand('\M1\Commands\C3_allrespublish', []);
         runcommand('\M1\Commands\C33_mdlw_cfgs_update', []);
