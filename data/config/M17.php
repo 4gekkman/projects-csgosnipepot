@@ -55,7 +55,7 @@ return [
 
       // 2] За добавление каких строк будут выданы монеты | For adding what strings the coins will be given
       'strings2check' => [
-        'csgohap\.ru'
+        'csgosnipepot\.ru'
       ]
 
 

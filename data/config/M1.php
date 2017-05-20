@@ -79,11 +79,11 @@ return [
 
       // 7.1] Имя владельца github-аккаунта проекта | Name of the owner of github-account of the project //
       //-------------------------------------------------------------------------------------------------//
-      'deploy_github_account_name' => 'csgohap',
+      'deploy_github_account_name' => 'csgosnipepot',
 
       // 7.2] OAuth-токен github-аккаунта проекта с правом repo | OAuth-token for github-account of the project with repo rights //
       //-------------------------------------------------------------------------------------------------------------------------//
-      'deploy_github_oauth2' => 'f73f99ac1472e0b5a950ebfec8ebe851627c560b',
+      'deploy_github_oauth2' => '',
 
 
 ];

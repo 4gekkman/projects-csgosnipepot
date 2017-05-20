@@ -137,7 +137,7 @@
   <?php /*----------------------------------->
   <!-- 2. Фиксированное главное меню слева -->
   <!-------------------------------------*/ ?>
-  <div class="menu" data-bind="css: {'menu-hidden': !m.s2.expanded()}, style: {top: (m.s2.top() + 'px')}">
+  <div class="menu" data-bind="if: m.s1.selected_subdoc, css: {'menu-hidden': !m.s2.expanded()}, style: {top: (m.s2.top() + 'px')}">
 
     <?php /*-------------------------------->
     <!-- 2.1. Переключатель главного меню -->

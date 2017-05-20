@@ -48,34 +48,20 @@ return [
           ]
         ]
       ],
-      '185.58.205.88' => [
+      'csgosnipepot.com' => [
         'http' => [
           '' => [
             '/layouts/l10004'
           ]
         ]
       ],
-      'vesnaprishla.ru' => [
+      '207.154.229.41' => [
         'http' => [
           '' => [
             '/layouts/l10004'
           ]
         ]
-      ],
-      'csgohap.ru' => [
-        'http' => [
-          '' => [
-            '/layouts/l10004'
-          ]
-        ]
-      ],
-      'csgohaplogin.ru' => [
-        'http' => [
-          '' => [
-            '/layouts/l10004'
-          ]
-        ]
-      ],
+      ]
     ],
     // routing end
 
@@ -115,5 +101,42 @@ return [
     //    History of updates of config of the package. Don't edit it manually. //
     //-------------------------------------------------------------------------//
     'cnfupdshistory' => [],
+  
+    //--------------//
+    // 5] Настройки //
+    //    Settings  //
+    //--------------//
+  
+      // 5.1] Пункты главного меню | Main menu items
+      'mainmenu' => [
+        [
+          'uri'       =>  '/lk/faq',
+          'icon_mdi'  =>  'mdi-information-outline',
+          'icon_url'  =>  '',
+          'title'     =>  'FAQ',
+          'bg_color'  =>  '#223340',
+          'brd_color' =>  'transparent',
+          'visible'   =>  true
+        ],
+        [
+          'uri'       =>  '/lk/botnet',
+          'icon_mdi'  =>  'mdi-robot',
+          'icon_url'  =>  '',
+          'title'     =>  'Управление ботами',
+          'bg_color'  =>  '#223340',
+          'brd_color' =>  'transparent',
+          'visible'   =>  true
+        ],
+        [
+          'uri'       =>  '/lk/shop',
+          'icon_mdi'  =>  'mdi-shopping',
+          'icon_url'  =>  '',
+          'title'     =>  'Магазин скинов',
+          'bg_color'  =>  '#223340',
+          'brd_color' =>  'transparent',
+          'visible'   =>  true
+        ]
+      ],
+
 
 ];
