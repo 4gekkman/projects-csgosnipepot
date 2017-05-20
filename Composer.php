@@ -109,6 +109,9 @@ View::composer('L10004::layout', function($view) {
   $querystring = \Request::getQueryString();
   parse_str($querystring, $querystring_arr);
 
+  // 5. Получить содержимое главного меню
+  $mainmenu = config("L10004.mainmenu");
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -128,6 +131,7 @@ View::composer('L10004::layout', function($view) {
     'chat_main'             => $chat_main,
     'servertime_s'          => \Carbon\Carbon::now()->timestamp,
     'asset_url'             => asset(''),
+    'mainmenu'              => $mainmenu
   ], JSON_UNESCAPED_UNICODE));
 
 });

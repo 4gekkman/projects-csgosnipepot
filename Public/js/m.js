@@ -455,44 +455,7 @@ var LayoutModelProto = { constructor: function(LayoutModelFunctions) {
 	//---------------------------------------------------//
 	// s1.2. Наблюдаемый массив поддокументов приложения //
 	//---------------------------------------------------//
-	self.m.s1.subdocs = ko.mapping.fromJS([
-		{
-			uri:        '/lk/faq',
-			icon_mdi:   'mdi-information-outline',
-			icon_url:   '',
-			title:      'FAQ',
-			bg_color:   '#223340',
-			brd_color:  'transparent',
-			visible:    true
-		},
-		{
-			uri:        '/lk/botnet',
-			icon_mdi:   'mdi-robot',
-			icon_url:   '',
-			title:      'Управление ботами',
-			bg_color:   '#223340',
-			brd_color:  'transparent',
-			visible:    true
-		},
-		{
-			uri:        '/lk/shop',
-			icon_mdi:   'mdi-shopping',
-			icon_url:   '',
-			title:      'Магазин скинов',
-			bg_color:   '#223340',
-			brd_color:  'transparent',
-			visible:    true
-		},
-		{
-			uri:        '/lk/activity',
-			icon_mdi:   'mdi-airplane-takeoff',
-			icon_url:   '',
-			title:      'Система активности',
-			bg_color:   '#223340',
-			brd_color:  'transparent',
-			visible:    true
-		}
-	]);
+	self.m.s1.subdocs = ko.mapping.fromJS(layout_data.data.mainmenu);
 
 	//----------------------------------------//
 	// s1.3. Выбранный поддокумент приложения //
