@@ -145,7 +145,8 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
      *    2.6. Отправить игроку торговое предложение
      *    2.7. Если $tradeofferid отправить не удалось
      *    2.8. Если $tradeofferid удалось успешно отправить
-     *  n. Обновить кэш трейдов, связанный с сабжом, а также с активными офферами
+     *  3.
+     *  n. Обновить кэш трейдов, связанный с сабжом, а также с активными и ожидающими подтверждения офферами
      *
      *  N. Вернуть статус 0
      *
@@ -283,21 +284,6 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
                 "error"        => "Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней."
               ];
 
-          // 5] Подтвердить все исходящие торговые предложения бота $id_bot
-          $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
-            "id_bot"                => $id_bot,
-            "need_to_ids"           => "1",
-            "just_fetch_info"       => "0",
-            "tradeoffer_ids"        => [
-              $tradeoffer['data']['tradeofferid']
-            ]
-          ]);
-          if($result['status'] != 0)
-            return [
-              "tradeofferid" => "",
-              "error"        => $result['data']['errormsg']
-            ];
-
           // n] Вернуть ID торгового предложения
           return [
             "tradeofferid" => $tradeoffer['data']['tradeofferid'],
@@ -327,7 +313,7 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
 
           // 1] Записать необходимые данные в $trade_db
           $trade_db->tradeofferid = $tradeofferid['tradeofferid'];
-          $trade_db->id_status    = 2;
+          $trade_db->id_status    = 9;
           $trade_db->save();
 
           // 2] Получить кол-во трейдов, связанных с этой покупкой
@@ -342,16 +328,79 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
           // 4] Сделать коммит
           DB::commit();
 
-          // 5] Через частный канал уведомить пользователя $user о новом оффере
+        }
+
+      }
+
+      // 3. Получить оплаченные трейды, для которых ранее были созданы офферы, но ожидающие подтверждения
+      $trades_need_conf = json_decode(Cache::get('m14:processor:trades:status:9'), true);
+      if(empty($trades_need_conf))
+        $trades_need_conf = [];
+
+      // 4. Подтвердить каждый из ранее отправленных трейдов, ожидающий подтверждения
+      foreach($trades_need_conf as $trade) {
+
+        // 4.1. Начать транзакцию
+        DB::beginTransaction();
+
+        // 4.2. Получить необходимые для операции данные
+        $id_bot               = $trade['m8_bots'][0]['id'];
+        $safecode             = $trade['safecodes'][0]['code'];
+        $id_purchase          = $trade['purchases'][0]['id'];
+        $tradeofferid         = $trade['tradeofferid'];
+        $user                 = $trade['m5_users'][0];
+
+        // 4.3. Подтвердить исходящий оффер $tradeofferid бота $id_bot
+        $confirmation = runcommand('\M8\Commands\C21_fetch_confirmations', [
+          "id_bot"                => $id_bot,
+          "need_to_ids"           => "1",
+          "just_fetch_info"       => "0",
+          "tradeoffer_ids"        => [
+            $tradeofferid
+          ]
+        ]);
+
+        // 4.4. Если подтвердить оффер удалось
+        if($confirmation['status'] == 0) {
+
+          // 4.4.1. Получить $trade из БД
+          $trade_db = \M14\Models\MD4_trades::where('id', $trade['id'])->first();
+          if(empty($trade_db)) {
+
+            // 1] Сообщить
+            $errortext = 'Invoking of command C9_make_paid_trades from M-package M14 have ended with error: не удалось найти в БД трейд с ID = '.$trade['id'];
+            Log::info($errortext);
+
+            // n] Отменить транзакцию
+            DB::rollback();
+
+            // m] Перейти к след.итерации
+            continue;
+
+          }
+
+          // 4.4.2. Записать новый статус оффера
+          $trade_db->id_status = 2;
+
+          // 4.4.3. Сохранить изменения, сделать коммит
+          $trade_db->save();
+          DB::commit();
+
+          // 4.4.4. Получить кол-во трейдов, связанных с этой покупкой
+          $trades_num = \M14\Models\MD4_trades::whereHas('purchases', function($queue) USE ($id_purchase) {
+            $queue->where('id', $id_purchase);
+          })->count();
+
+          // 4.4.5. Через частный канал уведомить пользователя $user о новом оффере
           Event::fire(new \R2\Broadcast([
             'channels' => ['m9:private:'.$user['id']],
             'queue'    => 'm13_processor',
             'data'     => [
               'task' => 'm14:trade:created',
               'data' => [
-                'tradeofferid'          => $tradeofferid['tradeofferid'],
+                'tradeofferid'          => $tradeofferid,
                 'id_trade'              => $trade['id'],
-                'purchase_trades_num'   => $trades_num,
+                'purchase_trades_num'   => 1,
                 'safecode'              => $safecode,
                 'id_purchase'           => $id_purchase,
               ]
@@ -360,11 +409,20 @@ class C9_make_paid_trades extends Job { // TODO: добавить "implements Sh
 
         }
 
+        // 4.5. Если подтвердить оффер не удалось
+        else {
+
+          // 1] Откатить изменения
+          DB::rollback();
+
+        }
+
       }
 
-      // n. Обновить кэш трейдов, связанный с сабжом, а также с активными офферами
+      // n. Обновить кэш трейдов, связанный с сабжом, а также с активными и ожидающими подтверждения офферами
       // - m14:processor:trades:payment_status:2
       // - m14:processor:trades:status:2
+      // - m14:processor:trades:status:9
       runcommand('\M14\Commands\C7_update_cache', [
         "all"   => true,
         "force" => true
