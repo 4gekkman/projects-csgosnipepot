@@ -12,6 +12,7 @@
   4. Сообщить, какие конфиги и экземпляр в итоге выбраны
   5. Скопировать шаблоны конфигов configs в выбранный экземпляр
   6. Скомпилировать скопированные в экземпляр шаблоны конфигов
+  7. Скопитьвать скомпилированный docker-compose.yml в корень проекта
   
   n. Если выбраны конфиги dev, запустить проект локально через docker-compose
 
@@ -117,8 +118,11 @@ func_wrapper_up () {
       sed -i -e "s#<name_of_configs_group>#$configs_default#g" stateful/$instance_default/configs/*/{*,.[!.]*}
     
     # 6.n] Сообщить об успехе
-    echo -e "$GREEN Успех! $NORMAL"    
+    echo -e "$GREEN Успех! $NORMAL"  
 
+  # 7. Скопитьвать скомпилированный docker-compose.yml в корень проекта
+  sudo cp stateful/$instance_default/configs/docker-compose/docker-compose.yml docker-compose.yml
+  
   # n. Если выбраны конфиги dev, запустить проект локально через docker-compose
   if [[ $configs_default = "dev" ]]; then
     
@@ -131,8 +135,8 @@ func_wrapper_up () {
     # 3] Запустить
     {
       docker login -ucsgosnipepot1 -p8guerig9ejgkwejrg9dfnldl
-      docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml pull
-      docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml up -d --force-recreate
+      docker-compose -p $instance_default pull
+      docker-compose -p $instance_default up -d --force-recreate
     } || {
       echo -e "$RED--- app up ---> Ошибка! Cм.строку $LINENO скрипта $BASH_SOURCE$NORMAL"
       return

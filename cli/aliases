@@ -46,7 +46,7 @@ echo "----------------------------"
   echo -e "$YELLOW -- php [docker-compose run --rm nginx php "$@"] $NORMAL"
   
   # 3.6. artisan
-  alias artisan='function f(){   docker-compose -f "stateful/dev/configs/docker-compose" run --rm nginx php artisan "$@"; };f'
+  alias artisan='function f(){   docker-compose run --rm nginx php artisan "$@"; };f'
   echo -e "$YELLOW -- artisan [docker-compose run --rm nginx php artisan "$@"] $NORMAL"
   
   # 3.7. composer

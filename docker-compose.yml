@@ -1,0 +1,151 @@
+####################
+## docker-compose ##
+####################
+## Оглавление
+##  
+##  А. Версия docker-compose.yml
+##  Б. Сборка окружения проекта
+##
+##    Б1. Сервис app (nginx / php-fpm / laravel / ...)
+##    Б2. Сервис mysql
+##    Б3. Сервис redis
+##    Б4. Сервис websockets (nodejs / npm / bower / gulp / ...)
+##
+
+# А. Версия docker-compose.yml
+version: '3'
+
+# Б. Сборка окружения проекта
+services: 
+
+  # Б1. Сервис app (nginx / php-fpm / laravel / ...)
+  nginx: 
+    image: 4gekkman/projects-csgosnipepot-app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "25:25"
+      - "587:587"
+      - "465:465"
+      - "993:993"
+      - "143:143"
+      - "110:110"
+      - "995:995"
+      - "9050:9050"
+      - "9051:9051"
+      - "9150:9150"
+    volumes:
+    
+      # Проброс stateless-кода в контейнер в целях разработки (поверх скопированного из контекста образа)
+      - /c/WebDev/projects/csgosnipepot/stateless/projects-csgosnipepot-app/data:/theproject/service
+    
+      # Проброс stateful-данных в контейнер
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/storage:/theproject/service/storage
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs:/theproject/data/configs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/logs:/theproject/data/logs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/other:/theproject/data/other
+     
+      # Проброс аватаров
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/other/steam_avatars:/theproject/service/public/public/M5/steam_avatars
+     
+      # Проброс и распределение скомпилированных конфигов в контейнере
+      #- /c/WebDev/projects/csgosnipepot/stateful/dev/configs/postfix/main.cf:/etc/postfix/main.cf
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/laravel/.env:/theproject/service/.env
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/supervisor/projects-csgosnipepot-app.ini:/etc/supervisor.d/projects-csgosnipepot-app.ini
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/php/php.ini:/etc/php/7.0/fpm/php.ini
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/nginx/.htpasswd:/etc/nginx/.htpasswd
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/nginx/default:/etc/nginx/sites-enabled/default
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/tor/torrc:/etc/tor/torrc
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/bash/.bashrc:/root/.bashrc
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/logrotate/rotate_project_logs_original:/etc/logrotate.d/rotate_project_logs_original
+      
+    links:
+      - mysql:mysql
+      - redis:redis
+      - node:node
+    working_dir: /theproject/service
+    restart: on-failure:10
+    environment:
+      REDIS_PORT: 6379
+      CONFIGS_GROUP: dev
+    stop_grace_period: 20s
+    
+  # Б2. Сервис mysql
+  # restart: on-failure:10
+  # restart: no
+  mysql:
+    image: 4gekkman/projects-csgosnipepot-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+    
+      # Проброс и распределение скомпилированных конфигов в контейнере
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/supervisor/projects-csgosnipepot-mysql.ini:/etc/supervisor.d/projects-csgosnipepot-mysql.ini
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/mysql/my.cnf:/etc/mysql/conf.d/my_cnf_original 
+    
+      # Проброс плагина для MySQL
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/other/mysql_plugins/audit_login.so:/usr/lib/mysql/plugin/audit_login.so
+      
+      # Проброс stateful-данных в контейнер
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/mysql:/var/lib/mysql
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs:/theproject/data/configs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/logs:/theproject/data/logs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/other:/theproject/data/other      
+      
+    environment:
+      MYSQL_ROOT_PASSWORD: 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
+      CONFIGS_GROUP: dev
+    restart: "on-failure:10"
+    stop_grace_period: 1m
+
+  # Б3. Сервис redis
+  redis:
+    image: 4gekkman/projects-csgosnipepot-redis
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass Whn8VKkzaFjJDJY9QDZXUr7Bk29GdYNBpWJatWyqyMPqnrBgfzCxFWUAZxJ7wPycxTxj8xTc9cd7LGGBZeZUTc8GuNF544hLZpx73qjjg635Xq89yNGr7xNGaqPBKcgyKBfMJMYDADxXNP9m5Rt7RxTZzG5P4vBBkDyEjgDBBaXn6FPLsZUXBVkRMSX8BDEwR63cPNt4mMkwfrp2EU2JxQKWH5ABjNtKALmzKJj8j8EBQmJBjnXJQ8HZ7Uq6pz9P
+    volumes:
+    
+      # Проброс и распределение скомпилированных конфигов в контейнере
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      
+      # Проброс stateful-данных в контейнер
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/redis:/data/redis
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs:/theproject/data/configs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/logs:/theproject/data/logs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/other:/theproject/data/other          
+     
+  #  ports:
+  #    - "6379:6379"
+    restart: on-failure:10
+    environment:
+      CONFIGS_GROUP: dev  
+    stop_grace_period: 20s
+
+  # Б4. Сервис websockets (nodejs / npm / bower / gulp / ...)
+  node:
+    image: 4gekkman/projects-csgosnipepot-websockets
+    volumes:
+    
+      # Проброс stateless-кода в контейнер в целях разработки (поверх скопированного из контекста образа)
+      - /c/WebDev/projects/csgosnipepot/stateless/projects-csgosnipepot-websockets/data:/theproject/service
+    
+      # Проброс и распределение скомпилированных конфигов в контейнере
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs/supervisor/projects-csgosnipepot-websockets.ini:/etc/supervisor.d/projects-csgosnipepot-websockets.ini      
+    
+      # Проброс stateful-данных в контейнер
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/configs:/theproject/data/configs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/logs:/theproject/data/logs
+      - /c/WebDev/projects/csgosnipepot/stateful/dev/other:/theproject/data/other
+    
+    ports:
+      - "6001:6001"
+    working_dir: /theproject/service
+    environment:
+      CONFIGS_GROUP: dev  
+    links:
+      - redis:redis
+    stop_grace_period: 20s
+
+
+
+    
