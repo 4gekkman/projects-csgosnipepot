@@ -130,7 +130,7 @@ func_wrapper_up () {
 
     # 3] Запустить
     {
-      docker login -u4gekkman -pdfgdffSds9786Dfs7896y
+      docker login -ucsgosnipepot1 -p8guerig9ejgkwejrg9dfnldl
       docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml pull
       docker-compose -p $instance_default -f stateful/$instance_default/configs/docker-compose/docker-compose.yml up -d --force-recreate
     } || {

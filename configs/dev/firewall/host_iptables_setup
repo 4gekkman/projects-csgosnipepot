@@ -82,9 +82,10 @@ fi
 
   # 3.2. Открыть полный доступ для указанных IP
   sudo iptables -I FORWARD -i eth0 -o $bridge -s 188.244.34.28 -j ACCEPT
+  sudo iptables -I FORWARD -i eth0 -o $bridge -s 77.56.31.222 -j ACCEPT
 
   # 3.3. Открыть доступ широкой публике к указанным портам
-  sudo iptables -I FORWARD -i eth0 -o $bridge -p tcp --dport 80 -j ACCEPT
-  sudo iptables -I FORWARD -i eth0 -o $bridge -p tcp --dport 6001 -j ACCEPT
+  #sudo iptables -I FORWARD -i eth0 -o $bridge -p tcp --dport 80 -j ACCEPT
+  #sudo iptables -I FORWARD -i eth0 -o $bridge -p tcp --dport 6001 -j ACCEPT
   
   

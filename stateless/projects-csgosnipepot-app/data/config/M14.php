@@ -61,8 +61,7 @@ return [
 
       // 4] Email's, на которые отправлять заказы на скины | Emails to send skin orders
       'emails_skin_orders' => [
-        'gtmmm2011@gmail.com',
-        'adena-zone@yandex.ru'
+        'gtmmm2011@gmail.com'
       ],
 
 

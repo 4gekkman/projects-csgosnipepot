@@ -49,34 +49,20 @@ return [
           ]
         ]
       ],
-      '185.58.205.88' => [
+      'csgosnipepot.com' => [
         'http' => [
           '' => [
             '/authwith'
           ]
         ]
       ],
-      'vesnaprishla.ru' => [
+      '207.154.229.41' => [
         'http' => [
           '' => [
             '/authwith'
           ]
         ]
-      ],
-      'csgohap.ru' => [
-        'http' => [
-          '' => [
-            '/authwith'
-          ]
-        ]
-      ],
-      'csgohaplogin.ru' => [
-        'http' => [
-          '' => [
-            '/authwith'
-          ]
-        ]
-      ],
+      ]
     ],
     // routing end
 

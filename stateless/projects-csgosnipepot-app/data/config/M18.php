@@ -55,7 +55,7 @@ return [
 
       // 2] За вступление в какие группы будут выданы монеты (gid групп) | For joining to what groups the coins will be given
       'groups2join' => [
-        '10066113'
+        ''
       ]
 
 ];

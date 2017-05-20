@@ -56,11 +56,11 @@ return [
 
       // 5.2] Вкл / Выкл проверку exec прав | Turn on / off check of exec privileges //
       //-----------------------------------------------------------------------------//
-      'authorize_exec_ison' => true,
+      'authorize_exec_ison' => false,
 
       // 5.3] Вкл / Выкл проверку access прав | Turn on / off check of access privileges //
       //---------------------------------------------------------------------------------//
-      'authorize_access_ison' => true,
+      'authorize_access_ison' => false,
 
       // 5.4] Минимальное количество символов в пароле | Min num of chars in a password //
       //--------------------------------------------------------------------------------//

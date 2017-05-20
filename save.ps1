@@ -362,7 +362,7 @@ $current_path = (Get-Location).Path
 	#####################	  
   #PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
   #PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
-  PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
   #PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
   
   
