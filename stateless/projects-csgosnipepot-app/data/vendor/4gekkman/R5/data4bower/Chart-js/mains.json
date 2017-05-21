@@ -1,0 +1,6 @@
+{
+  "mains": {
+    "css": [],
+    "js": ["public/bower/Chart-js/Chart.js"]
+  }
+}

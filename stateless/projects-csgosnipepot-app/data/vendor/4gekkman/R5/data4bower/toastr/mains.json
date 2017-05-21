@@ -1,0 +1,10 @@
+{
+    "mains": {
+        "css": [
+            "public\/bower\/toastr\/toastr.css"
+        ],
+        "js": [
+            "public\/bower\/toastr\/toastr.js"
+        ]
+    }
+}

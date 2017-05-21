@@ -1,0 +1,19 @@
+{
+    "mains": {
+        "css": [
+					"public\/bower\/4gekkman-bower-l3\/css\/bootstrap.css",
+					"public\/bower\/4gekkman-bower-l3\/style.css",
+					"public\/bower\/4gekkman-bower-l3\/css\/swiper.css",
+					"public\/bower\/4gekkman-bower-l3\/css\/dark.css",
+					"public\/bower\/4gekkman-bower-l3\/css\/font-icons.css",
+					"public\/bower\/4gekkman-bower-l3\/css\/animate.css",
+					"public\/bower\/4gekkman-bower-l3\/css\/magnific-popup.css",
+					"public\/bower\/4gekkman-bower-l3\/css\/responsive.css"
+				],
+        "js": [
+					"public\/bower\/4gekkman-bower-l3\/js\/jquery.js",
+					"public\/bower\/4gekkman-bower-l3\/js\/plugins.js",
+					"public\/bower\/4gekkman-bower-l3\/js\/functions.js"
+				]
+    }
+}

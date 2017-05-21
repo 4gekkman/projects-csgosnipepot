@@ -1,0 +1,11 @@
+{
+    "mains": {
+        "css": [
+            "public\/bower\/perfect-scrollbar\/css\/perfect-scrollbar.css"
+        ],
+        "js": [
+            "public\/bower\/perfect-scrollbar\/js\/perfect-scrollbar.jquery.js",
+            "public\/bower\/perfect-scrollbar\/js\/perfect-scrollbar.js"
+        ]
+    }
+}

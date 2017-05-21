@@ -171,14 +171,14 @@ class T29_run_light extends Command
 
       // 2] Выполнить соотв.команды
       try {
-        runcommand('\M1\Commands\C1_parseapp', []);
-        //runcommand('\M1\Commands\C56_make_gitmodules', []);
-        runcommand('\M1\Commands\C2_sp_regs_update', []);
-        runcommand('\M1\Commands\C3_allrespublish', []);
-        runcommand('\M1\Commands\C33_mdlw_cfgs_update', []);
-        runcommand('\M1\Commands\C35_m_schedules_update', []);
-        Artisan::call('m1:suf');
-        runcommand('\M1\Commands\C1_parseapp', []);
+        Log::info('1. run_light: C1_parseapp №1'); runcommand('\M1\Commands\C1_parseapp', []);
+        Log::info('2. run_light: M1.C56_make_gitmodules'); runcommand('\M1\Commands\C56_make_gitmodules', []);
+        Log::info('3. run_light: M1.C2_sp_regs_update'); runcommand('\M1\Commands\C2_sp_regs_update', []);
+        Log::info('4. run_light: M1.C3_allrespublish'); runcommand('\M1\Commands\C3_allrespublish', []);
+        Log::info('5. run_light: M1.C33_mdlw_cfgs_update'); runcommand('\M1\Commands\C33_mdlw_cfgs_update', []);
+        Log::info('6. run_light: M1.C35_m_schedules_update'); runcommand('\M1\Commands\C35_m_schedules_update', []);
+        Log::info('7. run_light: m1:suf'); Artisan::call('m1:suf');
+        Log::info('8. run_light: C1_parseapp №2'); runcommand('\M1\Commands\C1_parseapp', []);
         shell_exec('composer dump-autoload');
       } catch(\Exception $e) {
 

@@ -155,7 +155,7 @@ $current_path = (Get-Location).Path
 		$msg = "Autosave"		
 		git add -A --ignore-errors .
 		git commit -m $msg
-    git pull $project master
+    git pull --commit $project master
 		git push $project master
 	}  
   
@@ -336,9 +336,9 @@ $current_path = (Get-Location).Path
 ]' | ConvertFrom-Json	
 	
   # 2.3. Осуществление залива
-  foreach ($pack in $laravelpacks) { 
-    PushPacksSubtreesToGithub $pack.prefix $pack.github
-  }
+  #foreach ($pack in $laravelpacks) { 
+  #  PushPacksSubtreesToGithub $pack.prefix $pack.github
+  #}
   
   
 ########################################################
@@ -360,10 +360,10 @@ $current_path = (Get-Location).Path
 	#####################
 	## Выполнение push ##
 	#####################	  
-  PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
-  PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
-  PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
-  PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
+  #PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
   
   
 ##########################################################

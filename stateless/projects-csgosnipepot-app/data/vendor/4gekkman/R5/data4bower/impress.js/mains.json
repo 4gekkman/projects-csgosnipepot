@@ -1,0 +1,6 @@
+{
+  "mains": {
+    "css": [],
+    "js": ["public/bower/impress.js/js/impress.js"]
+  }
+}

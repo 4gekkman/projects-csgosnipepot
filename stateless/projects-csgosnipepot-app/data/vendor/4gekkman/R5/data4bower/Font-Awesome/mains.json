@@ -1,0 +1,8 @@
+{
+    "mains": {
+        "css": [
+						"public\/bower\/Font-Awesome\/css\/font-awesome.min.css"
+				],
+        "js": []
+    }
+}

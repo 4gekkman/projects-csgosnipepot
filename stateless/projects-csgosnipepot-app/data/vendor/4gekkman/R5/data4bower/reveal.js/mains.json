@@ -1,0 +1,10 @@
+{
+    "mains": {
+        "css": [
+            "public\/bower\/reveal.js\/css\/reveal.css"
+        ],
+        "js": [
+            "public\/bower\/reveal.js\/js\/reveal.js"
+        ]
+    }
+}

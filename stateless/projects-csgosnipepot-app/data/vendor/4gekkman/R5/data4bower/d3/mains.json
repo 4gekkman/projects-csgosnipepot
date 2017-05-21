@@ -1,0 +1,8 @@
+{
+    "mains": {
+        "css": [],
+        "js": [
+            "public\/bower\/d3\/d3.js"
+        ]
+    }
+}
