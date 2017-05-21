@@ -1,0 +1,11 @@
+{
+    "mains": {
+        "css": [
+            "public\/bower\/tooltipster\/dist\/css\/tooltipster.bundle.css",
+            "public\/bower\/tooltipster\/dist\/css\/plugins\/tooltipster\/sideTip\/themes\/tooltipster-sideTip-borderless.min.css"
+        ],
+        "js": [
+            "public\/bower\/tooltipster\/dist\/js\/tooltipster.bundle.js"
+        ]
+    }
+}

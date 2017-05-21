@@ -1,0 +1,10 @@
+{
+    "mains": {
+        "css": [
+            "public\/bower\/4gekkman-bower-animsition\/animsition\/dist\/css\/animsition.min.css"
+        ],
+        "js": [
+            "public\/bower\/4gekkman-bower-animsition\/animsition\/dist\/js\/animsition.min.js"
+        ]
+    }
+}

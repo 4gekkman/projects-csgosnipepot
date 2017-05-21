@@ -1,0 +1,8 @@
+{
+    "mains": {
+        "css": [],
+        "js": [
+            "public\/bower\/4gekkman-bower-jslib1\/library.js"
+        ]
+    }
+}

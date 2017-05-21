@@ -1,0 +1,10 @@
+{
+    "mains": {
+        "css": [
+						"public\/bower\/bootstrap\/dist\/css\/bootstrap.min.css"
+				],
+        "js": [
+            "public\/bower\/bootstrap\/dist\/js\/bootstrap.js"
+        ]
+    }
+}

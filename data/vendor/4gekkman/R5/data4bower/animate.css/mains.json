@@ -1,0 +1,6 @@
+{
+  "mains": {
+    "css": ["public/bower/animate.css/animate.css"],
+    "js": []
+  }
+}

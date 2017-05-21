@@ -1,0 +1,8 @@
+{
+    "mains": {
+        "css": [],
+        "js": [
+            "public\/bower\/4gekkman-bower-knockoutchart\/knockout.chart.js"
+        ]
+    }
+}

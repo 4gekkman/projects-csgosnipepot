@@ -1,0 +1,8 @@
+{
+    "mains": {
+        "css": [],
+        "js": [
+            "public\/bower\/clipboard\/dist\/clipboard.js"
+        ]
+    }
+}

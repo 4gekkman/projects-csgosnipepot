@@ -1,0 +1,10 @@
+{
+    "mains": {
+        "css": [
+						"public\/bower\/gemini-scrollbar\/gemini-scrollbar.css"
+				],
+        "js": [
+            "public\/bower\/gemini-scrollbar\/index.js"
+        ]
+    }
+}
