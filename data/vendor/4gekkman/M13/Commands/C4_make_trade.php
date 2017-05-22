@@ -462,7 +462,7 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
           if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
             throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
 
-        // 5] Подтвердить все исходящие торговые предложения бота $bot
+        // 5] Подтвердить исходящие торговое предложение $tradeoffer бота $bot
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $bot->id,
           "need_to_ids"           => "1",
