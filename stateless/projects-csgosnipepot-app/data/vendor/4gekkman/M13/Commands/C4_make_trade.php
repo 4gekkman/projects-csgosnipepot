@@ -149,7 +149,7 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
      *  11. Подсчитать суммарную стоимость передаваемых вещей в центах
      *  12. Подсчитать суммарное кол-во монет, которые будут выданы (с учётом skin_price2accept_spread_in_perc)
      *  13. Отправить игроку торговое предложение
-     *  14. Записать необходимую информацию о ставке в БД
+     *  14. Записать необходимую информацию о трейде в БД
      *  15. Сделать коммит
      *  16. Обновить весь кэш
      *  n. Вернуть результаты
@@ -479,7 +479,7 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
 
       });
 
-      // 14. Записать необходимую информацию о ставке в БД
+      // 14. Записать необходимую информацию о трейде в БД
       call_user_func(function() USE ($bot, $items, $sum_cents, $sum_coins, $user, $assets2recieve, $safecode, $tradeofferid, $deposit_configs) {
 
         // 1] Создать новый трейд в md4_trades
