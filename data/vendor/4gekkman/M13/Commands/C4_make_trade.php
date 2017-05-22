@@ -148,10 +148,12 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
      *  10. Подготовить массив assetid вещей, которые бот должен запросить
      *  11. Подсчитать суммарную стоимость передаваемых вещей в центах
      *  12. Подсчитать суммарное кол-во монет, которые будут выданы (с учётом skin_price2accept_spread_in_perc)
-     *  13. Отправить игроку торговое предложение
-     *  14. Записать необходимую информацию о трейде в БД
-     *  15. Сделать коммит
-     *  16. Обновить весь кэш
+     *  13. Создать новый трейд в md4_trades
+     *  14. Отправить игроку торговое предложение
+     *  15. Если $tradeofferid отправить не удалось
+     *  16. Если $tradeofferid отправить удалось
+     *  17. Обновить весь кэш
+     *
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -418,7 +420,10 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
 
       });
 
-      // 13. Отправить игроку торговое предложение
+      // 13. Создать новый трейд в md4_trades
+      $new_trade = new \M13\Models\MD4_trades();
+
+      // 14. Отправить игроку торговое предложение
       $tradeofferid = call_user_func(function() USE ($bot, $safecode, $user, $assets2recieve){
 
         // 1] Получить steam_tradeurl пользователя $user
@@ -479,11 +484,26 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
 
       });
 
-      // 14. Записать необходимую информацию о трейде в БД
-      call_user_func(function() USE ($bot, $items, $sum_cents, $sum_coins, $user, $assets2recieve, $safecode, $tradeofferid, $deposit_configs) {
+      // 15. Если $tradeofferid отправить не удалось
+      if(empty($tradeofferid['tradeofferid'])) {
 
-        // 1] Создать новый трейд в md4_trades
-        $new_trade = new \M13\Models\MD4_trades();
+        // 1] Сообщить
+        $errortext = 'Invoking of command C4_make_trade from M-package M13 have ended with error: '.$tradeofferid['error'];
+        Log::info($errortext);
+
+        // 2] Прибавить единицу к tries_create_offer
+        $new_trade->id_status = 9;
+        $new_trade->save();
+
+        // 3] Сделать коммит
+        DB::commit();
+
+      }
+
+      // 16. Если $tradeofferid отправить удалось
+      else {
+
+        // 1] Записать данные в $new_trade
         $new_trade->id_status              = 2;
         $new_trade->tradeofferid           = $tradeofferid;
         $new_trade->sum_cents              = $sum_cents;
@@ -530,12 +550,12 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         // 7] Связать $safecode и $newbet через md1007
         if(!$new_trade->safecodes->contains($newsafecode->id)) $new_trade->safecodes()->attach($newsafecode->id);
 
-      });
+        // n] Сделать коммит
+        DB::commit();
 
-      // 15. Сделать коммит
-      DB::commit();
+      }
 
-      // 16. Обновить весь кэш
+      // 17. Обновить весь кэш
       $result = runcommand('\M13\Commands\C6_update_cache', [
         "all" => true
       ]);
