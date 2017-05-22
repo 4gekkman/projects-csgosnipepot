@@ -47,8 +47,9 @@
 eval `ssh-agent -s`
 ssh-add ~/.ssh/id_rsa
 ssh -T git@github.com
+git add -A .
 git stash
-git pull
+git pull --commit
 chmod -R 777 .
 . app up 
 

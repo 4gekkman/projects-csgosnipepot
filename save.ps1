@@ -165,11 +165,36 @@ $current_path = (Get-Location).Path
   PushProjectToGithub "csgosnipepot"
 
   
+########################################################
+## 2. Сохранение docker-поддеревьев проекта на github ##
+########################################################  
+  
+	########################
+	## Подготовка функции ##
+	########################	
+	function PushSubreeToGithub($prefix, $github)
+	{
+		$msg = "Autosave"		
+		git add -A --ignore-errors .
+		git commit -m $msg
+    git subtree pull --prefix=$prefix $github master
+    git subtree push --squash --prefix=$prefix $github master   
+	}  
+  
+	#####################
+	## Выполнение push ##
+	#####################	  
+  PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
+  PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
+  PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
+  PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"  
+  
+  
 ##################################################
-## 2. Сохранение моих laravel-пакетов на github ##
+## 3. Сохранение моих laravel-пакетов на github ##
 ##################################################
 	
-	# 2.1. Подготовка функции для залива свежих данных на github
+	# 3.1. Подготовка функции для залива свежих данных на github
 	function PushPacksSubtreesToGithub($prefix, $github)
 	{
 		$msg = "Autosave"		
@@ -179,7 +204,7 @@ $current_path = (Get-Location).Path
     git subtree push --squash --prefix=$prefix $github master  
 	}	
   
-  # 2.2. Подготовка списка пакетов, данные по которым надо залить 
+  # 3.2. Подготовка списка пакетов, данные по которым надо залить 
   $laravelpacks = '[
     {
         "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/D10000",
@@ -333,37 +358,12 @@ $current_path = (Get-Location).Path
         "prefix": "stateless/projects-csgosnipepot-app/data/vendor/4gekkman/R6",
         "github": "git@github.com:4gekkman/R6.git"
     }
-]' | ConvertFrom-Json	
+  ]' | ConvertFrom-Json	
 	
-  # 2.3. Осуществление залива
-  #foreach ($pack in $laravelpacks) { 
-  #  PushPacksSubtreesToGithub $pack.prefix $pack.github
-  #}
-  
-  
-########################################################
-## 3. Сохранение docker-поддеревьев проекта на github ##
-########################################################  
-  
-	########################
-	## Подготовка функции ##
-	########################	
-	function PushSubreeToGithub($prefix, $github)
-	{
-		$msg = "Autosave"		
-		git add -A --ignore-errors .
-		git commit -m $msg
-    git subtree pull --prefix=$prefix $github master
-    git subtree push --squash --prefix=$prefix $github master   
-	}  
-  
-	#####################
-	## Выполнение push ##
-	#####################	  
-  #PushSubreeToGithub "stateless/projects-csgosnipepot-app" "git@github.com:4gekkman/projects-csgosnipepot-app.git"
-  #PushSubreeToGithub "stateless/projects-csgosnipepot-mysql/" "git@github.com:4gekkman/projects-csgosnipepot-mysql.git"
-  #PushSubreeToGithub "stateless/projects-csgosnipepot-redis/" "git@github.com:4gekkman/projects-csgosnipepot-redis.git" 
-  #PushSubreeToGithub "stateless/projects-csgosnipepot-websockets/" "git@github.com:4gekkman/projects-csgosnipepot-websockets.git"
+  # 3.3. Осуществление залива
+  foreach ($pack in $laravelpacks) { 
+    PushPacksSubtreesToGithub $pack.prefix $pack.github
+  }
   
   
 ##########################################################
