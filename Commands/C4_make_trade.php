@@ -148,10 +148,12 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
      *  10. Подготовить массив assetid вещей, которые бот должен запросить
      *  11. Подсчитать суммарную стоимость передаваемых вещей в центах
      *  12. Подсчитать суммарное кол-во монет, которые будут выданы (с учётом skin_price2accept_spread_in_perc)
-     *  13. Отправить игроку торговое предложение
-     *  14. Записать необходимую информацию о ставке в БД
-     *  15. Сделать коммит
-     *  16. Обновить весь кэш
+     *  13. Создать новый трейд в md4_trades
+     *  14. Отправить игроку торговое предложение
+     *  15. Если $tradeofferid отправить не удалось
+     *  16. Если $tradeofferid отправить удалось
+     *  17. Обновить весь кэш
+     *
      *  n. Вернуть результаты
      *
      *  N. Вернуть статус 0
@@ -418,20 +420,29 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
 
       });
 
-      // 13. Отправить игроку торговое предложение
+      // 13. Создать новый трейд в md4_trades
+      $new_trade = new \M13\Models\MD4_trades();
+
+      // 14. Отправить игроку торговое предложение
       $tradeofferid = call_user_func(function() USE ($bot, $safecode, $user, $assets2recieve){
 
         // 1] Получить steam_tradeurl пользователя $user
         $steam_tradeurl = $user->steam_tradeurl;
         if(empty($steam_tradeurl))
-          throw new \Exception("Чтобы сделать ставку, сначала введи свой Steam Trade URL в настройках.");
+          return [
+            'tradeofferid' => '',
+            'error' => "Чтобы сделать ставку, сначала введи свой Steam Trade URL в настройках."
+          ];
 
         // 2] Получить partner и token пользователя из его trade url
         $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
           "trade_url" => $steam_tradeurl
         ]);
         if($partner_and_token['status'] != 0)
-          throw new \Exception("Похоже, что ты ввёл неправильный Steam Trade URL в настройках. Перепроверь его.");
+          return [
+            'tradeofferid' => '',
+            'error' => "Похоже, что ты ввёл неправильный Steam Trade URL в настройках. Перепроверь его."
+          ];
         $partner = $partner_and_token['data']['partner'];
         $token = $partner_and_token['data']['token'];
 
@@ -456,13 +467,22 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
 
           // 4.2] Если возникла ошибка
           if($tradeoffer['status'] != 0)
-            throw new \Exception("Не удалось отправить торговое предложение. Возможные причины: ты указал неправильный Steam Trade URL; Steam тормозит; проблемы с ботом.");
+            return [
+              'tradeofferid' => '',
+              'error' => "Не удалось отправить торговое предложение. Возможные причины: ты указал неправильный Steam Trade URL; Steam тормозит; проблемы с ботом."
+            ];
 
           // 4.3] Если с этим пользователем нельзя торговать из-за escrow
           if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
-            throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
+            return [
+              'tradeofferid' => '',
+              'error' => "Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней."
+            ];
 
-        // 5] Подтвердить все исходящие торговые предложения бота $bot
+        // 5] Подождать секундочку
+        usleep(1000000);
+
+        // 6] Подтвердить исходящее торговое предложение $tradeoffer бота $bot
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $bot->id,
           "need_to_ids"           => "1",
@@ -472,20 +492,51 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
           ]
         ]);
         if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+          return [
+            'tradeofferid' => '',
+            'error' => $result['data']['errormsg']
+          ];
 
         // n] Вернуть ID торгового предложения
-        return $tradeoffer['data']['tradeofferid'];
+        return [
+          'tradeofferid' => $tradeoffer['data']['tradeofferid'],
+          'error'        => ''
+        ];
 
       });
 
-      // 14. Записать необходимую информацию о ставке в БД
-      call_user_func(function() USE ($bot, $items, $sum_cents, $sum_coins, $user, $assets2recieve, $safecode, $tradeofferid, $deposit_configs) {
+      // 15. Если $tradeofferid отправить не удалось
+      if(empty($tradeofferid['tradeofferid'])) {
 
-        // 1] Создать новый трейд в md4_trades
-        $new_trade = new \M13\Models\MD4_trades();
+        // 1] Сообщить
+        $errortext = 'Invoking of command C4_make_trade from M-package M13 have ended with error: '.$tradeofferid['error'];
+        Log::info($errortext);
+
+        // 2] Изменить статус трейда на 9
+        $new_trade->id_status = 9;
+        $new_trade->save();
+
+        // 3] Сделать коммит
+        DB::commit();
+
+        // 4] Обновить весь кэш
+        $result = runcommand('\M13\Commands\C6_update_cache', [
+          "all" => true
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // n] Возбудить исключение
+        throw new \Exception('Попробуйте ещё раз.');
+
+      }
+
+      // 16. Если $tradeofferid отправить удалось
+      else {
+
+        // 1] Записать данные в $new_trade
         $new_trade->id_status              = 2;
-        $new_trade->tradeofferid           = $tradeofferid;
+        $new_trade->tradeofferid           = $tradeofferid['tradeofferid'];
         $new_trade->sum_cents              = $sum_cents;
         $new_trade->sum_coins              = $sum_cents;
         $new_trade->sum_coins_minus_spread = $sum_coins;
@@ -530,12 +581,12 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         // 7] Связать $safecode и $newbet через md1007
         if(!$new_trade->safecodes->contains($newsafecode->id)) $new_trade->safecodes()->attach($newsafecode->id);
 
-      });
+        // n] Сделать коммит
+        DB::commit();
 
-      // 15. Сделать коммит
-      DB::commit();
+      }
 
-      // 16. Обновить весь кэш
+      // 17. Обновить весь кэш
       $result = runcommand('\M13\Commands\C6_update_cache', [
         "all" => true
       ]);
@@ -547,7 +598,7 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         "status"  => 0,
         "data"    => [
           "safecode"        => $safecode,
-          "tradeofferid"    => $tradeofferid
+          "tradeofferid"    => $tradeofferid['tradeofferid']
         ]
       ];
 

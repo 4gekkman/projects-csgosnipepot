@@ -188,6 +188,47 @@ class C7_active_offers_expiration_tracking extends Job { // TODO: добавит
 
       }
 
+      // 3. Получить ожидающие подтверждения трейды из кэша
+      $trades_conf = json_decode(Cache::get('m13:processor:trades:status:9'), true);
+      if(empty($trades_conf)) $trades_conf = [];
+
+      // 4. Отменить те ожидающие подтверждения трейды, срок годности которых уже вышел
+      foreach($trades_conf as $trade) {
+
+        // 4.1. Получить дату и время истечения трейда
+        $expired_at = call_user_func(function() USE ($trade) {
+
+          // 1] Получить sent_offers_limit_secs
+          $sent_offers_limit_secs = config("M13.sent_offers_limit_secs");
+          if(empty($sent_offers_limit_secs))
+            $sent_offers_limit_secs = 300;
+
+          // n] Вернуть результат
+          return \Carbon\Carbon::parse($trade['created_at'])->addSeconds((int)$sent_offers_limit_secs)->toDateTimeString();
+
+        });
+
+        // 4.2. Определить, истёк ли срок годности ставки
+        $is_expired = call_user_func(function() USE ($expired_at) {
+
+          return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
+
+        });
+
+        // 4.3. Если ставка истекла, отменить её
+        if($is_expired == true) {
+
+          runcommand('\M13\Commands\C8_cancel_the_active_trade', [
+            "tradeid"      => $trade['id'],
+            "tradeofferid" => $trade['tradeofferid'],
+            "id_bot"       => $trade['m8_bots'][0]['id'],
+            "id_user"      => $trade['m5_users'][0]['id'],
+          ], 0, ['on'=>true, 'name'=>'m13_processor']);
+
+        }
+
+      }
+
 
     } catch(\Exception $e) {
         $errortext = 'Invoking of command C7_active_offers_expiration_tracking from M-package M13 have ended on line "'.$e->getLine().'" on file "'.$e->getFile().'" with error: '.$e->getMessage();
