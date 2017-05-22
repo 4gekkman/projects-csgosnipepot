@@ -172,6 +172,9 @@ class T29_run_light extends Command
       // 2] Выполнить соотв.команды
       try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 90f55ac9ddad32c2caac4bb26f06fdf5f7324d89
         Log::info('1. run_light: C1_parseapp №1'); runcommand('\M1\Commands\C1_parseapp', []);
         Log::info('2. run_light: M1.C56_make_gitmodules'); runcommand('\M1\Commands\C56_make_gitmodules', []);
         Log::info('3. run_light: M1.C2_sp_regs_update'); runcommand('\M1\Commands\C2_sp_regs_update', []);
@@ -180,6 +183,7 @@ class T29_run_light extends Command
         Log::info('6. run_light: M1.C35_m_schedules_update'); runcommand('\M1\Commands\C35_m_schedules_update', []);
         Log::info('7. run_light: m1:suf'); Artisan::call('m1:suf');
         Log::info('8. run_light: C1_parseapp №2'); runcommand('\M1\Commands\C1_parseapp', []);
+<<<<<<< HEAD
 =======
         runcommand('\M1\Commands\C1_parseapp', []);
         //runcommand('\M1\Commands\C56_make_gitmodules', []);
@@ -190,6 +194,8 @@ class T29_run_light extends Command
         Artisan::call('m1:suf');
         runcommand('\M1\Commands\C1_parseapp', []);
 >>>>>>> 627f0ff3e50eba4232e2b88b3b94bfe432fa49d8
+=======
+>>>>>>> 90f55ac9ddad32c2caac4bb26f06fdf5f7324d89
         shell_exec('composer dump-autoload');
       } catch(\Exception $e) {
 
