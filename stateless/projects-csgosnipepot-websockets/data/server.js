@@ -50,7 +50,7 @@
 		var redis = new Redis({
 			host: 'redis',
 			port: '6379',
-      password: 'kVynWBeBDw32uurfdiSjeN5qFvVxPYbuWzZSzXeFgTRmfdIdynyWwD3nkQ6uMnUecfS9hLTGF37eB9hKfYneWdEFJPBcpkQVEHyHyjadr2FPyhUmrLZzYWc3lD9mhtZ9GcPfjLjsuqA23EptsWtNjUL7CfD7d5dtWKqdyYVa3NbFRWS9tef5kFjZU3qYhkMj8nYHjgKZNxnhJPbmejnSW6cMuYaRunwu9TY5LbcG7HP2Cu4sR8FbS8V37hNyAbAF'
+      password: 'Whn8VKkzaFjJDJY9QDZXUr7Bk29GdYNBpWJatWyqyMPqnrBgfzCxFWUAZxJ7wPycxTxj8xTc9cd7LGGBZeZUTc8GuNF544hLZpx73qjjg635Xq89yNGr7xNGaqPBKcgyKBfMJMYDADxXNP9m5Rt7RxTZzG5P4vBBkDyEjgDBBaXn6FPLsZUXBVkRMSX8BDEwR63cPNt4mMkwfrp2EU2JxQKWH5ABjNtKALmzKJj8j8EBQmJBjnXJQ8HZ7Uq6pz9P'
 		});
 
 		// 6.2. Получить куку about_user из handshake.query
