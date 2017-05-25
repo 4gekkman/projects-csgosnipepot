@@ -429,14 +429,20 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         // 1] Получить steam_tradeurl пользователя $user
         $steam_tradeurl = $user->steam_tradeurl;
         if(empty($steam_tradeurl))
-          throw new \Exception("Чтобы сделать ставку, сначала введи свой Steam Trade URL в настройках.");
+          return [
+            'tradeofferid' => '',
+            'error' => "Чтобы сделать ставку, сначала введи свой Steam Trade URL в настройках."
+          ];
 
         // 2] Получить partner и token пользователя из его trade url
         $partner_and_token = runcommand('\M8\Commands\C26_get_partner_and_token_from_trade_url', [
           "trade_url" => $steam_tradeurl
         ]);
         if($partner_and_token['status'] != 0)
-          throw new \Exception("Похоже, что ты ввёл неправильный Steam Trade URL в настройках. Перепроверь его.");
+          return [
+            'tradeofferid' => '',
+            'error' => "Похоже, что ты ввёл неправильный Steam Trade URL в настройках. Перепроверь его."
+          ];
         $partner = $partner_and_token['data']['partner'];
         $token = $partner_and_token['data']['token'];
 
@@ -461,13 +467,26 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
 
           // 4.2] Если возникла ошибка
           if($tradeoffer['status'] != 0)
-            throw new \Exception("Не удалось отправить торговое предложение. Возможные причины: ты указал неправильный Steam Trade URL; Steam тормозит; проблемы с ботом.");
+            return [
+              'tradeofferid' => '',
+              'error' => "Не удалось отправить торговое предложение. Возможные причины: ты указал неправильный Steam Trade URL; Steam тормозит; проблемы с ботом."
+            ];
 
           // 4.3] Если с этим пользователем нельзя торговать из-за escrow
           if(array_key_exists('data', $tradeoffer) && array_key_exists('could_trade', $tradeoffer['data']) && $tradeoffer['data']['could_trade'] == 0)
-            throw new \Exception("Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней.");
+            return [
+              'tradeofferid' => '',
+              'error' => "Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней."
+            ];
 
+        // 5] Подождать секундочку
+        usleep(1000000);
+
+<<<<<<< HEAD
         // 5] Подтвердить исходящие торговое предложение $tradeoffer бота $bot
+=======
+        // 6] Подтвердить исходящее торговое предложение $tradeoffer бота $bot
+>>>>>>> 6e247f4c98b7c9cf1f7d8afb0ef3b1247eac1dfa
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $bot->id,
           "need_to_ids"           => "1",
@@ -477,10 +496,16 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
           ]
         ]);
         if($result['status'] != 0)
-          throw new \Exception($result['data']['errormsg']);
+          return [
+            'tradeofferid' => '',
+            'error' => $result['data']['errormsg']
+          ];
 
         // n] Вернуть ID торгового предложения
-        return $tradeoffer['data']['tradeofferid'];
+        return [
+          'tradeofferid' => $tradeoffer['data']['tradeofferid'],
+          'error'        => ''
+        ];
 
       });
 
@@ -491,21 +516,44 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         $errortext = 'Invoking of command C4_make_trade from M-package M13 have ended with error: '.$tradeofferid['error'];
         Log::info($errortext);
 
+<<<<<<< HEAD
         // 2] Прибавить единицу к tries_create_offer
+=======
+        // 2] Изменить статус трейда на 9
+>>>>>>> 6e247f4c98b7c9cf1f7d8afb0ef3b1247eac1dfa
         $new_trade->id_status = 9;
         $new_trade->save();
 
         // 3] Сделать коммит
         DB::commit();
+<<<<<<< HEAD
 
       }
 
       // 16. Если $tradeofferid отправить удалось
       else {
 
+=======
+
+        // 4] Обновить весь кэш
+        $result = runcommand('\M13\Commands\C6_update_cache', [
+          "all" => true
+        ]);
+        if($result['status'] != 0)
+          throw new \Exception($result['data']['errormsg']);
+
+        // n] Возбудить исключение
+        throw new \Exception('Попробуйте ещё раз.');
+
+      }
+
+      // 16. Если $tradeofferid отправить удалось
+      else {
+
+>>>>>>> 6e247f4c98b7c9cf1f7d8afb0ef3b1247eac1dfa
         // 1] Записать данные в $new_trade
         $new_trade->id_status              = 2;
-        $new_trade->tradeofferid           = $tradeofferid;
+        $new_trade->tradeofferid           = $tradeofferid['tradeofferid'];
         $new_trade->sum_cents              = $sum_cents;
         $new_trade->sum_coins              = $sum_cents;
         $new_trade->sum_coins_minus_spread = $sum_coins;
@@ -567,7 +615,7 @@ class C4_make_trade extends Job { // TODO: добавить "implements ShouldQu
         "status"  => 0,
         "data"    => [
           "safecode"        => $safecode,
-          "tradeofferid"    => $tradeofferid
+          "tradeofferid"    => $tradeofferid['tradeofferid']
         ]
       ];
 
