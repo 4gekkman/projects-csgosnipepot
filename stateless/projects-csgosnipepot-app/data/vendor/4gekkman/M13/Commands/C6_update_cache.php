@@ -141,6 +141,7 @@ class C6_update_cache extends Job { // TODO: добавить "implements Should
      *  2. Назначить значения по умолчанию
      *  3. Обновить кэш, который указан в cache2update
      *    3.1. m13:processor:trades:status:2
+     *    3.2. m13:processor:trades:status:9
      *
      *  N. Вернуть статус 0
      *
@@ -197,6 +198,32 @@ class C6_update_cache extends Job { // TODO: добавить "implements Should
 
               // 2] Записать JSON с $active_bets в кэш
               Cache::put('m13:processor:trades:status:2', json_encode($trades_active->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+            }
+
+          }
+
+        // 3.2. m13:processor:trades:status:9
+
+          // 3.2.1. Получить кэш
+          $cache = json_decode(Cache::get('m13:processor:trades:status:9'), true);
+
+          // 3.2.2. Обновить кэш
+          // - Если он отсутствует, или если параметр force == true
+          if(
+            ((!Cache::has('m13:processor:trades:status:9') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true)
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("m13:processor:trades:status:9", $this->data['cache2update']) == true || $this->data['all'] == true) {
+
+              // 1] Получить все трейды со статусом 9 (NeedsConfirmation)
+              $trades_conf = \M13\Models\MD4_trades::with(["m8_bots", "m8_items", "m5_users", "safecodes"])
+                  ->where('id_status', 9)->get();
+
+              // 2] Записать JSON с $active_bets в кэш
+              Cache::put('m13:processor:trades:status:9', json_encode($trades_conf->toArray(), JSON_UNESCAPED_UNICODE), 30);
 
             }
 
