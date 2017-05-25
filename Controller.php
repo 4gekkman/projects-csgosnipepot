@@ -841,9 +841,32 @@ class Controller extends BaseController {
               ]
             ];
 
-          // 3. Выполнить команду
+          // 3. Получить steamid пользователя
+          $steamid = call_user_func(function(){
+
+            // 1] Получить auth_cache
+            $auth = json_decode(session('auth_cache'), true);
+            if(empty($auth)) return "";
+
+            // 2] Получить пользователя
+            if(!array_key_exists('user', $auth)) return "";
+            $user = $auth['user'];
+            if(empty($user)) return "";
+
+            // 3] Получить steamid пользователя
+            if(!array_key_exists('ha_provider_uid', $user)) return "";
+            $steamid = $user['ha_provider_uid'];
+            if(empty($steamid)) return "";
+
+            // 4] Вернуть результат
+            return $steamid;
+
+          });
+
+          // 4. Выполнить команду
           $result = runcommand('\M15\Commands\C3_get_freecoins', [
-            "id_user" => $id_user
+            "id_user" => $id_user,
+            "steamid" => $steamid
           ]);
 
           // n. Вернуть результаты
