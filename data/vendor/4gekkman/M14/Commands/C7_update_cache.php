@@ -144,6 +144,7 @@ class C7_update_cache extends Job { // TODO: добавить "implements Should
      *    3.2. m14:processor:trades:payment_status:1
      *    3.3. m14:processor:trades:payment_status:2
      *    3.4. m14:processor:trades:status:-1
+     *    3.5. m14:processor:trades:status:9
      *
      *  N. Вернуть статус 0
      *
@@ -292,6 +293,35 @@ class C7_update_cache extends Job { // TODO: добавить "implements Should
             }
 
           }
+
+        // 3.5. m14:processor:trades:status:9
+        // - Уже оплаченные трейды, по которым есть офферы, ожидающие мобильного подтверждения.
+
+          // 3.5.1. Получить кэш
+          $cache = json_decode(Cache::get('m14:processor:trades:status:9'), true);
+
+          // 3.5.2. Обновить кэш
+          // - Если он отсутствует, или если параметр force == true
+          if(
+            ((!Cache::has('m14:processor:trades:status:9') || empty($cache) || count($cache) == 0) ||
+            $this->data['force'] == true)
+          ) {
+
+            // Обновить этот кэш, если в параметрах указано, что его надо обновить
+            if(in_array("m14:processor:trades:status:9", $this->data['cache2update']) == true || $this->data['all'] == true) {
+
+              // 1] Получить все трейды со статусом 2 (NeedsConfirmation)
+              $trades_need_conf = \M14\Models\MD4_trades::with(["m8_bots", "m8_items", "m5_users", "purchases", "safecodes"])
+                  ->where('id_status', 9)->get();
+
+              // 2] Записать JSON с $active_bets в кэш
+              Cache::put('m14:processor:trades:status:9', json_encode($trades_need_conf->toArray(), JSON_UNESCAPED_UNICODE), 30);
+
+            }
+
+          }
+
+
 
 
     DB::commit(); } catch(\Exception $e) {
