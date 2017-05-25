@@ -325,9 +325,11 @@ class C24_get_trade_offers_via_html extends Job { // TODO: добавить "imp
         ];
 
         // 4.2. Создать новые объекты DOMDocument и DOMXpath, загрузить в них $html
+        libxml_use_internal_errors(true);
         $doc = new \DOMDocument();
         $doc->loadHTML($html);
         $xpath = new \DOMXPath($doc);
+        libxml_use_internal_errors(false);
 
         // 4.3. Получить все элементы с торговыми предложениями
         $tradeOfferElements = $xpath->query('//div[@id[starts-with(.,"tradeofferid_")]]');
