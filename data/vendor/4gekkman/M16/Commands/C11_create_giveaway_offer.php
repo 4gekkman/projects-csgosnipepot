@@ -313,7 +313,10 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
               "error"        => "Ты не включил подтверждения трейдов через приложения и защиту аккаунта - бот будет отменять твои трейды. После включения аутентификатора надо ждать 7 дней."
             ];
 
-        // 5] Подтвердить все исходящие торговые предложения бота $id_bot
+        // 5] Подождать секундочку
+        usleep(1000000);
+
+        // 6] Подтвердить исходящее торговое предложение $tradeoffer бота $id_bot
         $result = runcommand('\M8\Commands\C21_fetch_confirmations', [
           "id_bot"                => $id_bot,
           "need_to_ids"           => "1",
@@ -342,14 +345,18 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
       // 13. Если $tradeofferid отправить не удалось
       if(empty($tradeofferid['tradeofferid'])) {
 
-        // 1] Изменить статус выдачи на Expired
-        //$giveaway->giveaway_status = 4;
-        //$giveaway->save();
+        // 1] Сообщить
+        $errortext = 'Invoking of command C11_create_giveaway_offer from M-package M16 have ended with error. Пользователь №'.$this->data['id_user'].'; выдача №'.$giveaway->id.'; ошибка: '.$tradeofferid['error'];
+        Log::info($errortext);
 
-        // 2] Подтвердить транзакцию
-        //DB::commit();
+        // 2] Изменить статус трейда на 9
+        $giveaway->tradeoffer_status = 9;
+        $giveaway->save();
 
-        // 3] Обновить весь кэш, кроме связанного с ботами и инвентарём
+        // 3] Подтвердить транзакцию
+        DB::commit();
+
+        // 4] Обновить весь кэш, кроме связанного с ботами и инвентарём
         $cacheupdate = runcommand('\M16\Commands\C6_update_cache', [
           "all"   => true,
           "force" => true
@@ -357,12 +364,10 @@ class C11_create_giveaway_offer extends Job { // TODO: добавить "impleme
         if($cacheupdate['status'] != 0)
           throw new \Exception($cacheupdate['data']['errormsg']);
 
-        // 4] Обнулить счётчик онлайна пользователя $id_user
+        // 5] Обнулить счётчик онлайна пользователя $id_user
         //Redis::set('m16:online:counter:'.$id_user, 0);
 
-        Log::info('-----> Неудачная попытка забрать скин за онлайн. Пользователь №'.$this->data['id_user'].'; выдача №'.$giveaway->id.'; ошибка: '.$tradeofferid['error']);
-
-        // 5] Вернуть ошибку
+        // n] Вернуть ошибку
         throw new \Exception($tradeofferid['error']);
 
       }

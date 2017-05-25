@@ -137,6 +137,8 @@ class C9_giveaways_expiration_tracking extends Job { // TODO: добавить "
      *
      *  1. Получить активные Ready и Active выдачи из кэша
      *  2. Отменить те активные выдачи, срок годности которых уже вышел
+     *  3. Получить ожидающие подтверждения трейды из кэша
+     *  4. Отменить те ожидающие подтверждения выдачи, срок годности которых уже вышел
      *
      *  N. Вернуть статус 0
      *
@@ -177,6 +179,83 @@ class C9_giveaways_expiration_tracking extends Job { // TODO: добавить "
         });
 
         // 2.3. Если истёк, отменить выдачу
+        if($is_expired == true) {
+
+          // 1] Начать транзакцию
+          DB::beginTransaction();
+
+          // 2] Получить выдачу с ID $trade['tradeofferid']
+          $giveaway = \M16\Models\MD2_giveaways::with(['m5_users'])
+            ->where('id', $trade['id'])
+            ->first();
+
+          // 3] Если выдача не найдена, перети к следующей итерации
+          if(empty($giveaway))
+            continue;
+
+          // 4] Изменить статус выдачи на 4
+          $giveaway->giveaway_status = 4;
+          $giveaway->save();
+
+          // 6] Обновить кэш m16:cache:active и m16:cache:ready
+          $result = runcommand('\M16\Commands\C6_update_cache', [
+            "all"   => true,
+            "force" => true,
+          ]);
+          if($result['status'] != 0)
+            throw new \Exception($result['data']['errormsg']);
+
+          // 5] Сделать commit
+          DB::commit();
+
+          // 6] Обнулить счётчик онлайна пользователя $id_user
+          Redis::set('m16:online:counter:'.$giveaway['m5_users'][0]['id'], 0);
+
+          // 7] Транслировать игроку через частный канал сигнал удалить выдачу
+          Event::fire(new \R2\Broadcast([
+            'channels' => ['m16:private:'.$giveaway['m5_users'][0]['id']],
+            'queue'    => 'm16_broadcast',
+            'data'     => [
+              'task'   => 'm16_del_giveaway',
+              'status' => 0,
+              'data'   => [
+
+              ]
+            ]
+          ]));
+
+        }
+
+      }
+
+      // 3. Получить ожидающие подтверждения трейды из кэша
+      $trades_conf = json_decode(Cache::get('m16:processor:trades:status:9'), true);
+      if(empty($trades_conf)) $trades_conf = [];
+
+      // 4. Отменить те ожидающие подтверждения выдачи, срок годности которых уже вышел
+      foreach($trades_conf as $trade) {
+
+        // 4.1. Получить дату и время истечения трейда
+        $expired_at = call_user_func(function() USE ($trade) {
+
+          // 1] Получить giveaways_limit_secs
+          $giveaways_limit_secs = config("M16.giveaways_limit_secs");
+          if(empty($giveaways_limit_secs))
+            $giveaways_limit_secs = 1800;
+
+          // n] Вернуть результат
+          return \Carbon\Carbon::parse($trade['created_at'])->addSeconds((int)$giveaways_limit_secs)->toDateTimeString();
+
+        });
+
+        // 4.2. Определить, истёк ли срок годности
+        $is_expired = call_user_func(function() USE ($expired_at) {
+
+          return \Carbon\Carbon::now()->gte(\Carbon\Carbon::parse($expired_at));
+
+        });
+
+        // 4.3. Если истёк, отменить выдачу
         if($is_expired == true) {
 
           // 1] Начать транзакцию
