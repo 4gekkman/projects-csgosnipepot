@@ -171,19 +171,6 @@ class T29_run_light extends Command
       
       // 2] Выполнить соотв.команды
       try {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-        Log::info('1. run_light: C1_parseapp №1'); runcommand('\M1\Commands\C1_parseapp', []);
-        Log::info('2. run_light: M1.C56_make_gitmodules'); runcommand('\M1\Commands\C56_make_gitmodules', []);
-        Log::info('3. run_light: M1.C2_sp_regs_update'); runcommand('\M1\Commands\C2_sp_regs_update', []);
-        Log::info('4. run_light: M1.C3_allrespublish'); runcommand('\M1\Commands\C3_allrespublish', []);
-        Log::info('5. run_light: M1.C33_mdlw_cfgs_update'); runcommand('\M1\Commands\C33_mdlw_cfgs_update', []);
-        Log::info('6. run_light: M1.C35_m_schedules_update'); runcommand('\M1\Commands\C35_m_schedules_update', []);
-        Log::info('7. run_light: m1:suf'); Artisan::call('m1:suf');
-        Log::info('8. run_light: C1_parseapp №2'); runcommand('\M1\Commands\C1_parseapp', []);
-=======
->>>>>>> 981b68e48dcc5d81a5340740077b851c399598f7
         runcommand('\M1\Commands\C1_parseapp', []);
         //runcommand('\M1\Commands\C56_make_gitmodules', []);
         runcommand('\M1\Commands\C2_sp_regs_update', []);
@@ -192,10 +179,6 @@ class T29_run_light extends Command
         runcommand('\M1\Commands\C35_m_schedules_update', []);
         Artisan::call('m1:suf');
         runcommand('\M1\Commands\C1_parseapp', []);
-<<<<<<< HEAD
-=======
->>>>>>> 627f0ff3e50eba4232e2b88b3b94bfe432fa49d8
->>>>>>> 981b68e48dcc5d81a5340740077b851c399598f7
         shell_exec('composer dump-autoload');
       } catch(\Exception $e) {
         // Снять из кэша метку о том, что run_light выполняется
