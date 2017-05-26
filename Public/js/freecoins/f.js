@@ -116,7 +116,7 @@ var ModelFunctionsFc = { constructor: function(self, f) { f.s8 = this;
 				// 4] Если не удалось обнаружить игрока в группе
 				else if(data.data.errormsg == "9")
 					toastr.error("Вступите в <a target='_blank' href='http://steamcommunity.com/groups/CSGOHAP'>нашу группу в Steam</a>, чтобы получать бесплатные монеты.", "Ошибка");
-				
+
 				// n] Если это обычная ошибка
 				else {
 					toastr.error(data.data.errormsg, "Ошибка при обработке заказа");
