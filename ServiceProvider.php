@@ -89,7 +89,31 @@
 
         // 5] Подключить routes.php //
         //--------------------------//
-        require __DIR__.'/routes.php';
+        //require __DIR__.'/routes.php';
+
+          // 1] Получить адрес для routes.php из конфига относительно корня проекта
+          $routesphp_path = config("M4.routesphp_path") ?: 'vendor/4gekkman/M4';
+
+          // 2] Если routes.php не существует по указаному пути, создать
+          config(['filesystems.default' => 'local']);
+          config(['filesystems.disks.local.root' => base_path($routesphp_path)]);
+          $storage = new \Illuminate\Filesystem\FilesystemManager(app());
+
+          // 3] Если файла routes.php не существует, создать
+          if(!$storage->exists('routes.php')) {
+
+            // 3.1] Подготовить контент файла
+            $contents = "<?php".PHP_EOL.PHP_EOL;
+            $contents = $contents . "  // routesphp_sync: start".PHP_EOL;
+            $contents = $contents . "  // routesphp_sync: stop".PHP_EOL.PHP_EOL;
+
+            // 3.2] Разместить файл по адресу $routesphp_path
+            $storage->put('routes.php', $contents);
+
+          }
+
+          // 4] Подключить routes.php
+          require base_path($routesphp_path).'/routes.php';
 
     }
 
