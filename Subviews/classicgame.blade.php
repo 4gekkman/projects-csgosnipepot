@@ -606,7 +606,7 @@
           <!----------------------------*/ ?>
           <div class="hash">
             <span data-bind="text: 'Хэш раунда: '"></span>
-            <span class="hash-itself" data-bind="text: m.s1.game.curprev().current().key_hash, click: function(){ toastr.info(m.s1.game.curprev().current().key_hash(), 'Хэш раунда'); }"></span>
+            <span class="hash-itself" data-bind="text: m.s1.game.curprev().current().key_hash, click: function(){  }"></span>
           </div>
 
         </div>
