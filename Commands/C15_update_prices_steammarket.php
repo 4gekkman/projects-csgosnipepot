@@ -756,7 +756,7 @@ class C15_update_prices_steammarket extends Job { // TODO: добавить "imp
       DB::commit();
 
       // 9. Обновить качество всех вещей в БД
-      runcommand('\M8\Commands\C33_update_items_quality_indb', [], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
+      //runcommand('\M8\Commands\C33_update_items_quality_indb', [], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'default']);
 
 
     } catch(\Exception $e) {
