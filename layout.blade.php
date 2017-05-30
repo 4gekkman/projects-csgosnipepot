@@ -98,8 +98,29 @@
       <!-- Интерфейсы для гостей -->
       <!-----------------------*/ ?>
 
+        <?php /*---------------------->
+        <!-- 1] Интернационализация -->
+        <!------------------------*/ ?>
+        <div style="display: none" class="i18n" data-bind="visible: !m.s0.is_logged_in()">
+
+          <?php /*------------------->
+          <!-- 1.1] Выбранный язык -->
+          <!---------------------*/ ?>
+          <div class="i18n_choosen">
+            <i class="mdi mdi-menu-up"></i>
+          </div>
+
+          <?php /*------------------------->
+          <!-- 1.2] Панель выбора языков -->
+          <!---------------------------*/ ?>
+          <div class="i18n_panel">
+
+          </div>
+
+        </div>
+
         <?php /*-------------------->
-        <!-- 1] Управление звуком -->
+        <!-- 2] Управление звуком -->
         <!----------------------*/ ?>
         <div style="display: none" class="soundcontrol_guest" data-bind="visible: !m.s0.is_logged_in()">
           <img data-bind="visible: m.s4.is_global_volume_on, click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_on.svg') !!}">
@@ -107,7 +128,7 @@
         </div>
 
         <?php /*------------------>
-        <!-- 2] Кнопка "Log in" -->
+        <!-- 3] Кнопка "Log in" -->
         <!--------------------*/ ?>
         <div style="display: none" class="login_button" data-bind="visible: !m.s0.is_logged_in()" onclick="window.location = '{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam&authmode=redirect&url_redirect='+window.location.href"> <!--  onclick="if(navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) window.open('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam'); else popupCenter('{!! (\Request::secure() ? "https://" : "http://") . (\Request::getHost()) . ":" . (\Request::getPort()); !!}/authwith?provider=steam','steam','1024','768');")> -->
           <i class="fa fa-fw fa-steam"></i>
@@ -118,8 +139,15 @@
       <!-- Интерфейсы для аутентифицированных пользователей -->
       <!--------------------------------------------------*/ ?>
 
+        <?php /*------------------->
+        <!-- 1] Выбранный язык -->
+        <!---------------------*/ ?>
+        <div class="i18n_choosen">
+          <i class="mdi mdi-menu-up"></i>
+        </div>
+
         <?php /*-------------------->
-        <!-- 1] Управление звуком -->
+        <!-- 2] Управление звуком -->
         <!----------------------*/ ?>
         <div style="display: none" class="soundcontrol_authuser" data-bind="visible: m.s0.is_logged_in">
           <img data-bind="visible: m.s4.is_global_volume_on, click: f.s4.switch" style="display: none" src="{!! asset('public/L10003/assets/icons/volume_on.svg') !!}" title="Выключить звук">
@@ -127,7 +155,7 @@
         </div>
 
         <?php /*--------->
-        <!-- 2] Баланс -->
+        <!-- 3] Баланс -->
         <!-----------*/ ?>
         <div style="display: none" class="balance" data-bind="visible: m.s0.is_logged_in, click: function(){ layoutmodel.m.s7.ison(true); }" title="Внести депозит">
 
@@ -149,19 +177,19 @@
         </div>
 
         <?php /*----------------------------------------------------------->
-        <!-- 3] Информация об аккаунте аутентифицированного пользователя -->
+        <!-- 4] Информация об аккаунте аутентифицированного пользователя -->
         <!-------------------------------------------------------------*/ ?>
         <div class="account" data-bind="visible: m.s0.is_logged_in">
 
           <?php /*----------->
-          <!-- 3.1] Аватар -->
+          <!-- 1] Аватар -->
           <!-------------*/ ?>
           <div class="avatar">
             <img data-bind="attr: {src: m.s0.auth.user().avatar_steam}" src="http://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/87/8781d4671c68dbbeba1910d7989664dad391c2fc_full.jpg">
           </div>
 
           <?php /*------------------------------->
-          <!-- 3.2] Никнэйм и кнопка "Log out" -->
+          <!-- 2] Никнэйм и кнопка "Log out" -->
           <!---------------------------------*/ ?>
           <div class="nickname_logout">
             <div class="nickname">

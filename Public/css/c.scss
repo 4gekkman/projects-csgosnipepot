@@ -638,6 +638,43 @@
         max-height: 32px;
       }
 
+    // 3.3.6. Интернационализация
+
+      // Общие стили
+      .site-header .area2 .i18n {
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        line-height: $sizes_header_height - 12px;
+        font-size: 2em;
+        margin-right: 15px;
+        color: #ccc;
+        transition: all .2s ease;
+      }
+
+      // Выбранный язык
+      .site-header .area2 .i18n .i18n_choosen {
+        position: relative;
+        width: 32px;
+        height: 30px;
+        margin-top: 9px;
+        margin-right: 27px;
+        background: url('/public/L10003/assets/images/flags.png') no-repeat;
+        background-position: -96px -32px;
+        cursor: pointer;
+      }
+      .site-header .area2 .i18n .i18n_choosen i {
+        position: absolute;
+        right: -30px;
+        top: -5px;
+        font-size: 30px;
+        color: #ddd;
+      }
+
+      // Панель выбора языка
+      .site-header .area2 .i18n .i18n_panel {
+
+      }
+
 
 
 //---------------------------------------------//
