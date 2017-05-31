@@ -137,7 +137,6 @@ class H1_goods_update  // TODO: написать "implements ShouldQueue", и т
    *  A. Проверить ключи и получить входящие данные
    *
    *  1. Добавить команду all_goods_update в очередь m14_goods_update_queue
-   *  2.
    *
    *  X. Вернуть результат
    *

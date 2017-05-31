@@ -270,7 +270,7 @@ class C18_update_tos_goods extends Job { // TODO: добавить "implements S
       });
 
       // 6. Записать $items в кэш
-      Cache::put("M14:goods:order", json_encode($items, JSON_UNESCAPED_UNICODE), 30);
+      Cache::put("M14:goods:order", json_encode($items, JSON_UNESCAPED_UNICODE), 300);
 
       // n. Транслировать изменения товарных остатков всем клиентам через публичный канал websocket
       Event::fire(new \R2\Broadcast([

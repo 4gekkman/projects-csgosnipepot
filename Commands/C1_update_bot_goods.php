@@ -230,7 +230,7 @@ class C1_update_bot_goods extends Job { // TODO: добавить "implements Sh
       })->values()->toArray();
 
       // 6. Записать $inventory в кэш
-      Cache::put("M14:goods:".$this->data['steamid'], json_encode($inventory['data']['rgDescriptions'], JSON_UNESCAPED_UNICODE), 30);
+      Cache::put("M14:goods:".$this->data['steamid'], json_encode($inventory['data']['rgDescriptions'], JSON_UNESCAPED_UNICODE), 300);
 
       // n. Сделать commit
       DB::commit();
