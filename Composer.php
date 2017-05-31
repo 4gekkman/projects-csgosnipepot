@@ -164,6 +164,9 @@ View::composer('L10003::layout', function($view) {
   // 10. Скины от скольки центов мы принимаем в депозит
   $min_skin2accept_price_cents = config("M13.min_skin2accept_price_cents") ?: 10;
 
+  // 11. Получить локаль
+  $locale = \Cookie::get('app_locale_cookie') ?: config('app.locale');
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -187,7 +190,8 @@ View::composer('L10003::layout', function($view) {
     'usdrub_rate'           => $rate,
     'asset_url'             => asset(''),
     'prefix'                => config("cache.prefix"),
-    'min_skin2accept_price_cents' => $min_skin2accept_price_cents
+    'min_skin2accept_price_cents' => $min_skin2accept_price_cents,
+    'locale'                => $locale
   ], JSON_UNESCAPED_UNICODE));
 
 

@@ -422,6 +422,8 @@
     3.3.2. Кнопка "Log in"
     3.3.3. Управление звуком
     3.3.4. Информация об аккаунте аутентифицированного пользователя
+    3.3.5. Баланс аутентифицированного пользователя
+    3.3.6. Интернационализация
 
 //------------------------------------*/
 
@@ -476,6 +478,7 @@
       height: $sizes_header_height*0.7;
       line-height: $sizes_header_height*0.7;
       margin: $sizes_header_height*0.15 10px;
+      margin-left: 0;
       padding: 0 $sizes_header_height*0.3;
       font-size: 16px;
       border: 1px solid #ccc;
@@ -498,6 +501,7 @@
         line-height: $sizes_header_height - 12px;
         font-size: 2em;
         margin-right: 15px;
+        margin-left: 15px;
         color: #ccc;
         transition: all .2s ease;
       }
@@ -642,13 +646,16 @@
 
       // Общие стили
       .site-header .area2 .i18n {
+        position: relative;
         display: inline-block; vertical-align: middle;
         height: $sizes_header_height;
         line-height: $sizes_header_height - 12px;
         font-size: 2em;
-        margin-right: 15px;
         color: #ccc;
         transition: all .2s ease;
+      }
+      .site-header .area2 .i18n:hover .i18n_panel {
+        display: inline-block;
       }
 
       // Выбранный язык
@@ -657,9 +664,8 @@
         width: 32px;
         height: 30px;
         margin-top: 9px;
-        margin-right: 27px;
         background: url('/public/L10003/assets/images/flags.png') no-repeat;
-        background-position: -96px -32px;
+        //background-position: -96px -32px;
         cursor: pointer;
       }
       .site-header .area2 .i18n .i18n_choosen i {
@@ -672,7 +678,17 @@
 
       // Панель выбора языка
       .site-header .area2 .i18n .i18n_panel {
-
+        position: absolute;
+        left: -4px;
+        padding: 4px;
+        background: #000;
+        display: none;
+      }
+      .site-header .area2 .i18n .i18n_panel .language {
+        width: 32px;
+        height: 30px;
+        background: url('/public/L10003/assets/images/flags.png') no-repeat;
+        cursor: pointer;
       }
 
 

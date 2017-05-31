@@ -106,14 +106,17 @@
           <?php /*------------------->
           <!-- 1.1] Выбранный язык -->
           <!---------------------*/ ?>
-          <div class="i18n_choosen">
-            <i class="mdi mdi-menu-up"></i>
-          </div>
+          <div class="i18n_choosen" data-bind="style: {backgroundPosition: m.s9.choosen_lang().flag_bg_pos}"></div>
 
           <?php /*------------------------->
           <!-- 1.2] Панель выбора языков -->
           <!---------------------------*/ ?>
-          <div class="i18n_panel">
+          <div class="i18n_panel" data-bind="foreach: m.s9.langs">
+
+            <?php /*----------->
+            <!-- Язык (флаг) -->
+            <!-------------*/ ?>
+            <div class="language" data-bind="style: {backgroundPosition: flag_bg_pos}, click: $root.f.s9.choose_lang"></div>
 
           </div>
 
@@ -139,7 +142,29 @@
       <!-- Интерфейсы для аутентифицированных пользователей -->
       <!--------------------------------------------------*/ ?>
 
+        <?php /*---------------------->
+        <!-- 1] Интернационализация -->
+        <!------------------------*/ ?>
+        <div style="display: none" class="i18n" data-bind="visible: m.s0.is_logged_in">
 
+          <?php /*------------------->
+          <!-- 1.1] Выбранный язык -->
+          <!---------------------*/ ?>
+          <div class="i18n_choosen" data-bind="style: {backgroundPosition: m.s9.choosen_lang().flag_bg_pos}"></div>
+
+          <?php /*------------------------->
+          <!-- 1.2] Панель выбора языков -->
+          <!---------------------------*/ ?>
+          <div class="i18n_panel" data-bind="foreach: m.s9.langs">
+
+            <?php /*----------->
+            <!-- Язык (флаг) -->
+            <!-------------*/ ?>
+            <div class="language" data-bind="style: {backgroundPosition: flag_bg_pos}, click: $root.f.s9.choose_lang"></div>
+
+          </div>
+
+        </div>
 
         <?php /*-------------------->
         <!-- 2] Управление звуком -->
