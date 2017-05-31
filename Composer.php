@@ -112,6 +112,9 @@ View::composer('L10004::layout', function($view) {
   // 5. Получить содержимое главного меню
   $mainmenu = config("L10004.mainmenu");
 
+  // 6. Получить локаль
+  $locale = \Cookie::get('app_locale_cookie') ?: config('app.locale');
+
   // n. Передать необходимые шаблону данные
   $view->with('data', json_encode([
     'auth'                  => session('auth_cache') ?: '',
@@ -131,7 +134,8 @@ View::composer('L10004::layout', function($view) {
     'chat_main'             => $chat_main,
     'servertime_s'          => \Carbon\Carbon::now()->timestamp,
     'asset_url'             => asset(''),
-    'mainmenu'              => $mainmenu
+    'mainmenu'              => $mainmenu,
+    'locale'                => $locale
   ], JSON_UNESCAPED_UNICODE));
 
 });

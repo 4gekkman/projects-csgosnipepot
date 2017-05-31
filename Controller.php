@@ -20,6 +20,7 @@
  *
  *                  POST-API1   L10004:1                   Безопасная обёртка для команды логаута
  *                  POST-API2   L10004:2                   Безопасная обёртка для команды постинга в чат
+ *                  POST-API4   L10004:4                   Сохранение в куки нового значения для языка
  *
  *
  *
@@ -235,6 +236,45 @@ class Controller extends BaseController {
             ]
           ];
         }}
+
+        //---------------------------------//
+        // Нестандартная операция L10004:4 //
+        //---------------------------------//
+        // - Сохранение в куки нового значения для языка.
+        if($key == 'L10004:4') {
+
+          // 1. Получить присланные данные
+          $data = Input::get('data');   // массив
+
+          // 2. Сформировать $response
+          $response = [
+            "status"      => 0,
+            "data"        => "",
+            "timestamp"   => $data['timestamp']
+          ];
+
+          // 3. Провести валидацию входящих параметров
+          $validator = r4_validate($data, [
+            "locale"          => ["required", "in:ru,en"]
+          ]); if($validator['status'] == -1) {
+            return [
+              "status"  => -2,
+              "data"    => [
+                "errortext" => $validator['data'],
+                "errormsg" => $validator['data']
+              ],
+              "timestamp"   => $data['timestamp']
+            ];
+          }
+
+          // 4. Установить новые значения кук
+          $cookie = cookie()->forever('app_locale_cookie', $data['locale']);
+
+          // 5. Сформировать ответ и вернуть клиенту
+          return Response::make(json_encode($response, JSON_UNESCAPED_UNICODE))
+              ->withCookie($cookie);
+
+        }
 
 
       }

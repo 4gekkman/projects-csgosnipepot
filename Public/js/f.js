@@ -30,6 +30,10 @@
  *    f.s5.post_to_the_chat_main    | s5.1. Запостить сообщение в главную комнату чата
  *    f.s5.add_incoming_msg         | s5.2. Добавить в чат новое, поступившее по websocket сообщение
  *
+ *  s9. Функционал виджета выбора языка
+ *
+ *    f.s9.choose_lang              | s9.1. Выбрать язык и записать выбор в куки
+ *
  *
  *
  *
@@ -449,6 +453,71 @@ var LayoutModelFunctions = { constructor: function(self) { var f = this;
 				self.m.s5.messages.shift();
 
 		};
+
+
+	//------------------------------------------------//
+	// 			        		 			                        //
+	// 			 s9. Функционал виджета выбора языка 			//
+	// 			         					                        //
+	//------------------------------------------------//
+	f.s9 = {};
+
+		//--------------------------------------------//
+		// s9.1. Выбрать язык и записать выбор в куки //
+		//--------------------------------------------//
+		f.s9.choose_lang = function(data, event) {
+
+			// 1] Получить локаль выбранного языка
+			var locale = data.locale();
+
+			// 2] Получить ссылку на объект-язык
+			var lang = self.m.s9.indexes.langs[locale];
+			if(!lang) {
+				toastr.error("Can't get locale link.");
+				return;
+			}
+
+			// 3] Отправить сообщение на сервер
+			ajaxko(self, {
+				url:          window.location.protocol + '//' + window.location.host + "/layouts/l10004",
+				key: 	    		"L10004:4",
+				from: 		    "ajaxko",
+				data: 		    {
+					locale: locale
+				},
+				ajax_params: {
+					lang: lang
+				},
+				prejob:       function(config, data, event){
+
+					// Сообщить
+					toastr.info("Changing language...")
+
+				},
+				postjob:      function(data, params){},
+				ok_0:         function(data, params){
+
+					// 1] Сделать lang выбранным
+					//self.m.s9.choosen_lang(params.lang);
+
+					// 2. Сообщить
+					toastr.success("Language successfully changed! Reloading page...")
+
+					// 3] Перезагрузить страницу
+          window.location.reload(true);
+
+				},
+				ok_2:         function(data, params){
+
+					// Сообщить об ошибке
+					toastr.error("An error occurred.", "Error");
+
+				}
+			});
+
+		};
+
+
 
 
 return f; }};
