@@ -159,9 +159,13 @@ class C2_update_all_bots_goods extends Job { // TODO: добавить "implemen
       // 3. Для каждого из этих ботов добавить C1_update_bot_goods в очередь
       foreach($bots as $bot) {
 
+        // 1] Вызвать команду C1_update_bot_goods
         runcommand('\M14\Commands\C1_update_bot_goods', [
           "steamid" => $bot['steamid']
         ], 0, ['on'=>true, 'delaysecs'=>'', 'name' => 'm14_goods_update_queue']);
+
+        // 2] Подождать секунду
+        sleep(1);
 
       }
 
