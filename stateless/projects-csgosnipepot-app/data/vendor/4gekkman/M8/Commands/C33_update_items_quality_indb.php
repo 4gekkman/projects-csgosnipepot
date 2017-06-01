@@ -362,9 +362,10 @@ class C33_update_items_quality_indb extends Job { // TODO: добавить "imp
           Log::info('-------');
 
           // 1.4. Записать тип и изображение в БД, если их удалось определить
+          // - Причём изображение только, если сейчас его в БД нет.
           DB::beginTransaction();
           if(!empty($quality)) $item->quality = $quality;
-          if(!empty($steammarket_image)) $item->steammarket_image = $steammarket_image;
+          if(!empty($steammarket_image) && empty($item->steammarket_image)) $item->steammarket_image = $steammarket_image;
           $item->save();
           DB::commit();
 
