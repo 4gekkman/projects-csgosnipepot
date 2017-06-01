@@ -140,10 +140,12 @@ class C3_get_freecoins extends Job { // TODO: добавить "implements Shoul
      *  3. Если статус != 0, возбудить исключение со статусом 1
      *  4. Найти статус пользователя в БД
      *  5. Получить из конфига кол-во монет, которые надо выплатить
-     *  6. Начислить пользователю id_user $coins_num монет
-     *  7. Изменить id_status пользователя на 1
-     *  8. Сделать commit
-     *  9. Транслировать через частный канал пользователю id_user приказ заблокировать интерфейс
+     *  6. Проверить, выполнено ли задание со вступлением в группу
+     *  7. Проверить, выполнено ли задание с добавлением строки в ник
+     *  8. Начислить пользователю id_user $coins_num монет
+     *  9. Изменить id_status пользователя на 1
+     *  10. Сделать commit
+     *  11. Транслировать через частный канал пользователю id_user приказ заблокировать интерфейс
      *
      *  N. Вернуть статус 0
      *
@@ -183,7 +185,39 @@ class C3_get_freecoins extends Job { // TODO: добавить "implements Shoul
       if(empty($coins_num))
         $coins_num = 10;
 
-      // 6. Начислить пользователю id_user $coins_num монет
+      // 6. Проверить, выполнено ли задание со вступлением в группу
+
+        // 6.1. Провенить
+        $is_user_in_groups2join = runcommand('\M18\Commands\C3_check_if_user_in_group', [
+          'steamid'       => $this->data['steamid'],
+          'groups2join'   => config('M18.groups2join') ?: []
+        ]);
+        if($is_user_in_groups2join['status'] != 0)
+          throw new \Exception('9');
+        else
+          $is_user_in_groups2join = $is_user_in_groups2join['data']['result'];
+
+        // 6.2. Если не выполнено, вернуть ошибку
+        if($is_user_in_groups2join == 0)
+          throw new \Exception('9');
+
+      // 7. Проверить, выполнено ли задание с добавлением строки в ник
+
+        // 7.1. Провенить
+        $is_strings2check_in_nickname = runcommand('\M17\Commands\C3_check_strings_in_nickname', [
+          'steamid'       => $this->data['steamid'],
+          'strings2check' => config('M17.strings2check') ?: []
+        ]);
+        if($is_strings2check_in_nickname['status'] != 0)
+          throw new \Exception('8');
+        else
+          $is_strings2check_in_nickname = $is_strings2check_in_nickname['data']['result'];
+
+        // 7.2. Если не выполнено, вернуть ошибку
+        if($is_strings2check_in_nickname == 0)
+          throw new \Exception('8');
+
+      // 8. Начислить пользователю id_user $coins_num монет
       $result = runcommand('\M13\Commands\C13_add_coins', [
         "id_user"     => $this->data['id_user'],
         "coins"       => $coins_num,
@@ -192,14 +226,14 @@ class C3_get_freecoins extends Job { // TODO: добавить "implements Shoul
       if($result['status'] != 0)
         throw new \Exception($result['data']['errormsg']);
 
-      // 7. Изменить id_status пользователя на 1
+      // 9. Изменить id_status пользователя на 1
       $status_db->id_status = 1;
       $status_db->save();
 
-      // 8. Сделать commit
+      // 10. Сделать commit
       DB::commit();
 
-      // 9. Транслировать через частный канал пользователю id_user приказ заблокировать интерфейс
+      // 11. Транслировать через частный канал пользователю id_user приказ заблокировать интерфейс
       Event::fire(new \R2\Broadcast([
         'channels' => ['m15:private:'.$this->data['id_user']],
         'queue'    => 'm15_freecoins',
