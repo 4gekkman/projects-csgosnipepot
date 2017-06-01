@@ -407,6 +407,7 @@
     3.3.2. Кнопка "Log in"
     3.3.3. Управление звуком
     3.3.4. Информация об аккаунте аутентифицированного пользователя
+    3.3.5. Интернационализация
 
 //------------------------------------*/
 
@@ -515,6 +516,7 @@
         margin-right: $sizes_header_height + 20px + 5px;
         padding-left: 20px;
         border-left: 1px solid #444;
+        margin-left: 15px;
       }
       .site-header .area2 .account .nickname {
         height: $sizes_header_height*0.55;
@@ -540,6 +542,57 @@
         color: #7FB8C7;
         border-bottom: 1px solid #7FB8C7;
       }
+
+    // 3.3.5. Интернационализация
+
+      // Общие стили
+      .site-header .area2 .i18n {
+        position: relative;
+        display: inline-block; vertical-align: middle;
+        height: $sizes_header_height;
+        line-height: $sizes_header_height - 12px;
+        font-size: 2em;
+        color: #ccc;
+        transition: all .2s ease;
+      }
+      .site-header .area2 .i18n:hover .i18n_panel {
+        display: inline-block;
+      }
+
+      // Выбранный язык
+      .site-header .area2 .i18n .i18n_choosen {
+        position: relative;
+        width: 32px;
+        height: 30px;
+        margin-top: 9px;
+        background: url('/public/L10003/assets/images/flags.png') no-repeat;
+        //background-position: -96px -32px;
+        cursor: pointer;
+      }
+      .site-header .area2 .i18n .i18n_choosen i {
+        position: absolute;
+        right: -30px;
+        top: -5px;
+        font-size: 30px;
+        color: #ddd;
+      }
+
+      // Панель выбора языка
+      .site-header .area2 .i18n .i18n_panel {
+        position: absolute;
+        left: -4px;
+        padding: 4px;
+        background: #000;
+        display: none;
+      }
+      .site-header .area2 .i18n .i18n_panel .language {
+        width: 32px;
+        height: 30px;
+        background: url('/public/L10003/assets/images/flags.png') no-repeat;
+        cursor: pointer;
+      }
+
+
 
 
 
