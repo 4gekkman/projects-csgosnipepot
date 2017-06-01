@@ -361,9 +361,9 @@ $current_path = (Get-Location).Path
   ]' | ConvertFrom-Json	
 	
   # 3.3. Осуществление залива
-  #foreach ($pack in $laravelpacks) { 
-  #  PushPacksSubtreesToGithub $pack.prefix $pack.github
-  #}
+  foreach ($pack in $laravelpacks) { 
+    PushPacksSubtreesToGithub $pack.prefix $pack.github
+  }
   
   
 ##########################################################
