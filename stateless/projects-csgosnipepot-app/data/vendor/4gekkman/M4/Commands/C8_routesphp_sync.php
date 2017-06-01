@@ -462,21 +462,33 @@ class C8_routesphp_sync extends Job { // TODO: добавить "implements Shou
 
       // 4. Выполнить синхронизацию регистраций роутов в routes.php в M4
 
-        // 4.1. Проверить существование файла routes.php в M4
+        // 4.1. Получить адрес для routes.php из конфига относительно корня проекта
+        $routesphp_path = config("M4.routesphp_path") ?: 'vendor/4gekkman/M4';
+
+        // 4.2. Если routes.php не существует по указаному пути, создать
         config(['filesystems.default' => 'local']);
-        config(['filesystems.disks.local.root' => base_path('vendor/4gekkman/M4')]);
-        $this->storage = new \Illuminate\Filesystem\FilesystemManager(app());
-        if(!$this->storage->exists('routes.php'))
-          throw new \Exception('В пакете M4 не найден файл routes.php');
+        config(['filesystems.disks.local.root' => base_path($routesphp_path)]);
+        $storage = new \Illuminate\Filesystem\FilesystemManager(app());
+        if(!$storage->exists('routes.php')) {
 
-        // 4.2. Получить содержимое routes.php
-        $file = $this->storage->get('routes.php');
+          // 1] Подготовить контент файла
+          $contents = "<?php".PHP_EOL.PHP_EOL;
+          $contents = $contents . "  // routesphp_sync: start".PHP_EOL;
+          $contents = $contents . "  // routesphp_sync: stop".PHP_EOL.PHP_EOL;
 
-        // 4.3. Вставить $prepeared_routes_str в $file
+          // 2] Разместить файл по адресу $routesphp_path
+          $storage->put('routes.php', $contents);
+
+        }
+
+        // 4.3. Получить содержимое routes.php
+        $file = $storage->get('routes.php');
+
+        // 4.4. Вставить $prepeared_routes_str в $file
         $file = preg_replace("#// *routesphp_sync: *start.*// *routesphp_sync: *stop#smuiU", $prepeared_routes_str, $file);
 
-        // 4.4. Заменить $file
-        $this->storage->put('routes.php', $file);
+        // 4.5. Заменить $file
+        $storage->put('routes.php', $file);
 
 
     DB::commit(); } catch(\Exception $e) {
