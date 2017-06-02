@@ -1,0 +1,3819 @@
+/*//--------------------------------////
+////                                ////
+////   Все стили документа D10009   ////
+////                                ////
+////--------------------------------////
+////                  ////
+////    Оглавление    ////
+////                  ////
+////------------------////
+
+  1. Стили классической игры
+  2. Стили профиля
+  3. Стили ТОПа игроков
+  4. Стили FAQ
+  5. Стили интерфейса пополнения баланса скинами
+  6. Стили магазина скинов
+  7. Стили Free Coins
+  8. Стили футера
+
+////------------------------------////
+////             ////
+////    Стили    ////
+////             ////
+////-------------//*/
+
+//----------------------------//
+// 1. Стили классической игры //
+/*----------------------------//
+Оглавление
+
+  1.1. Переменные стилей классической игры
+  1.2. Общие стили классической игры
+  1.3. Стили шапки классической игры
+  1.4. Стили интерфейса выбора комнаты в шапке игры
+  1.5. Номер игры и банк
+  1.6. Панель интерфейса игрового процесса
+
+    1.6.1. Общие стили панели интерфейса игрового процесса
+    1.6.2. Счётчики предметов и времени текущего раунда
+    1.6.3. Органы управления игрой для игрока
+    1.6.4. Бегущая полоса с аватарками
+    1.6.5. Инфо-панель для состояний "Lottery" и "Winner"
+
+  1.7. Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
+  1.8. Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
+  1.9. Ставки раунда
+  1.10. Панель с информацией о текущем раунде
+  1.11. Условия использования, предупреждение о не аффилированности с Valve
+  1.12. Статистические данные
+  1.13. Зона уведомлений
+  1.14. История игр
+  1.15. СЕО-текст
+  1.16. СЕО-меню
+
+//------------------------------------*/
+
+  //------------------------------------------//
+  // 1.1. Переменные стилей классической игры //
+  //------------------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $cg_main_color: #212f35;            // Главный цвет классической игры
+      $cg_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $cg_color_header_bg: #1B2934;       // Цвет фона шапки классической игры
+      $cg_color_roombrd: #269a95;         // Цвет рамки интерфейса выбора комнаты
+      $cg_color_choosencolor: #269a95;    // Цвет выбранного пункта меню
+
+      // Победный билет, победил игрок, число раунда
+      $cg_color_winblock_base: #fff;
+      $cg_color_winblock_ticket: #34B07D;
+      $cg_color_winblock_winner: #E4D33A;
+      $cg_color_winblock_number: #81D1F9;
+
+
+    // 2] Переменные размеров
+
+      // Общие
+      //$cg_sizes_:
+
+      // Шапка
+      $cg_color_header_height: 50px;      // Высота шапки классической игры
+
+      // Органы управления игрой для игрока
+      $cg_sizes_controls_height: 120px;   // Высота панели органов управления
+
+      // Распределение шансов на выигрыш в текущем раунде (цвета и полоски)
+      $cg_sizes_godds_height: 6px;        // Высота блока графического распределения шансов
+
+      // Распределение шансов на выигрыш в текущем раунде (аватарки и текст)
+      $cg_sizes_odds_height: 100px;       // Высота блока распределения шансов
+
+      // Панель с информацией о текущем раунде
+      $cg_sizes_infopanel_height: 100px;  // Высота панели с информацией о текущем раунде
+
+      // Статистические данные
+      $cg_sizes_stats_width: 200px;      // Ширина панельки статистики
+      $cg_sizes_stats_height: 265px;     // Высота панельки статистики
+
+
+  //------------------------------------//
+  // 1.2. Общие стили классической игры //
+  //------------------------------------//
+
+    // Внешний контейнер классической игры
+    .content .classic-game {
+
+    }
+
+    // Внутренний контейнер классической игры
+    .content .classic-game .cg-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //------------------------------------//
+  // 1.3. Стили шапки классической игры //
+  //------------------------------------//
+
+    // Общие стили шапки классической игры
+    .content .classic-game .cg-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $cg_color_header_height;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    // Логотип классической игры, и её заголовок
+    .content .classic-game .cg-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $cg_color_header_height;
+      line-height: $cg_color_header_height;
+      width: 33.333333333%;
+      text-align: left;
+      color: #fff;
+      cursor: pointer;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .classic-game .cg-container .header .logo_and_name:hover {
+      color: #59b0db;
+    }
+    .content .classic-game .cg-container .header .logo_and_name.choosen {
+      color: #59b0db;
+    }
+    .content .classic-game .cg-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .classic-game .cg-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+    // Кнопка "История"
+    .content .classic-game .cg-container .header .history-button {
+      position: absolute; right: 0; top: 0;
+      height: 50px;
+      //width: 33.333333333%;
+      line-height: 50px;
+      font-size: 1.3em;
+      padding: 0 16.66667px;
+      text-align: right;
+      cursor: pointer;
+      color: #fff;
+      background: #1B2934;
+      transition: all .2s ease;
+    }
+    .content .classic-game .cg-container .header .history-button:hover {
+      color: #59b0db;
+    }
+    .content .classic-game .cg-container .header .history-button.choosen {
+      color: #59b0db;
+    }
+
+  //---------------------------------------------------//
+  // 1.4. Стили интерфейса выбора комнаты в шапке игры //
+  //---------------------------------------------------//
+
+    //----------------------------//
+    // 1.4.1. Стили старой версии //
+    //----------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .header .choose-room {
+        position: absolute; top: 0;
+        left: 0; right: 0;
+        margin: 5.5px auto;
+        padding: 0 5px;
+        width: 300px;
+        overflow: hidden;
+        //margin-top: $cg_color_header_height*0.15;
+        //margin-bottom: $cg_color_header_height*0.15;
+        line-height: 35px;
+        text-align: center;
+        border: 1px solid #f6e52d;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 1.5em;
+        vertical-align: middle;
+        cursor: pointer;
+        background: #1b2934;
+        z-index: 3 !important;
+        -o-transition-delay: 0.2s;
+        -webkit-transition-delay: 0.2s;
+        -moz-transition-delay: 0.2s;
+        transition-delay: 0.2s;
+        user-select: none;
+        transition: all .2s ease-in-out;
+      }
+      .content .classic-game .cg-container .header .choose-room:hover {
+        //background: darken($cg_main_color, 10%);
+      }
+
+      // Название выбранной комнаты
+      .content .classic-game .cg-container .header .choose-room .choosen-name {
+        height: $cg_color_header_height*0.7;
+        line-height: 37px;
+      }
+      .content .classic-game .cg-container .header .choose-room i {
+        position: absolute; top: 0; right: 3px;
+        width: $cg_color_header_height;
+        height: $cg_color_header_height*0.7;
+        line-height: $cg_color_header_height*0.7;
+        text-align: center;
+        display: inline-block;
+        color: #aaa;
+        transform: rotate(180deg);
+        transition: all .2s ease-in-out;
+      }
+      .content .classic-game .cg-container .header .choose-room:hover i {
+        transform: rotate(0deg);
+      }
+
+      // Список доступных комнат
+      .content .classic-game .cg-container .header .choose-room .rooms-list {
+        max-height: 0;
+        transition: all .3s ease-in-out;
+        text-align: left;
+        font-size: .7em;
+        padding-bottom: 2px;
+      }
+      .content .classic-game .cg-container .header .choose-room:hover .rooms-list {
+        max-height: 300px;
+        //padding-bottom: 5px;
+      }
+      .content .classic-game .cg-container .header .choose-room .rooms-list .room {
+        position: relative;
+        height: $cg_color_header_height;
+        text-align: left;
+        padding: 8px;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      .content .classic-game .cg-container .header .choose-room .rooms-list .room:hover {
+        background: darken($cg_main_color, 5%);
+      }
+      .content .classic-game .cg-container .header .choose-room .rooms-list .room .title {
+        height: 20px;
+        line-height: 20px;
+        font-size: 1.4em;
+        color: #F59C1A;
+      }
+      .content .classic-game .cg-container .header .choose-room .rooms-list .room .description {
+        height: 14px;
+        line-height: 14px;
+        font-size: 0.9em;
+      }
+
+    //---------------------------//
+    // 1.4.2. Стили новой версии //
+    //---------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .header .choose-room-new1 {
+        position: absolute;
+        left: 180px; top: 4px;
+      }
+
+      // Комната
+      .content .classic-game .cg-container .header .choose-room-new1 .room {
+        display: inline-block;
+        visibility: middle;
+        width: 143px;
+        height: 50px;
+        border-radius: 4px;
+        background-color: transparent;
+        margin-right: 2px;
+        border: 1px solid #284351;
+        border-bottom: 0;
+        -webkit-transition: all .2s ease;
+        transition: all .2s ease;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room:not(.choosen) {
+        cursor: pointer;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room.choosen {
+        background-color: #284351;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room:not(.choosen):hover {
+        background-color: darken(#284351, 3%);
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room .name_and_desc {
+        height: 25px;
+        line-height: 25px;
+        padding: 0 9px;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room .bank {
+        height: 15px;
+        line-height: 12px;
+        padding: 0 9px;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room .bank .game-state {
+        color: #fff;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room .bank .game-prize {
+        color: #68adbc;
+        float: right;
+        transition: all .2s ease-in-out;
+      }
+      .content .classic-game .cg-container .header .choose-room-new1 .room .bank .game-prize.bigred {
+        color: #f00;
+        font-size: 1.3em;
+      }
+
+
+  //------------------------//
+  // 1.5. Номер игры и банк //
+  //------------------------//
+
+    // Общие стили
+    .content .classic-game .cg-container .gamenum_and_bank {
+      height: 65px;
+      line-height: 65px;
+      //list-style: 80px;
+      text-align: center;
+      font-size: 2.1em;
+      border-bottom: 2px solid #2F5463;
+    }
+
+    // Стили номера игры
+    .content .classic-game .cg-container .gamenum_and_bank .gamenum {
+      display: inline-block;
+      padding: 0 20px;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.26);
+      font-weight: 600;
+    }
+    .content .classic-game .cg-container .gamenum_and_bank .gamenum span:nth-child(1) {}
+    .content .classic-game .cg-container .gamenum_and_bank .gamenum span:nth-child(2) {
+      color: $cg_colog_highlight;
+    }
+
+    // Стили банка
+    .content .classic-game .cg-container .gamenum_and_bank .bank {
+      display: inline-block;
+      text-transform: uppercase;
+      padding-left: 15px;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.26);
+      font-weight: 600;
+    }
+    .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(1) {}
+    .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(2) {
+      color: $cg_colog_highlight;
+    }
+    .content .classic-game .cg-container .gamenum_and_bank .bank span:nth-child(3) {
+      font-size: 14px;
+      color: #ccc;
+      margin-left: -3px;
+    }
+
+
+  //------------------------------------------//
+  // 1.6. Панель интерфейса игрового процесса //
+  //------------------------------------------//
+
+    //--------------------------------------------------------//
+    // 1.6.1. Общие стили панели интерфейса игрового процесса //
+    //--------------------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess {
+        position: relative;
+        height: 240px;
+        background: #284351;
+      }
+      .content .classic-game .cg-container .gameprocess.notauth {
+        height: 200px;
+      }
+
+    //-----------------------------------------------------//
+    // 1.6.2. Счётчики предметов и времени текущего раунда //
+    //-----------------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .counters {
+        height: 120px;
+        //border-top: 2px solid lighten($cg_main_color, 5%);
+        overflow: hidden;
+        white-space: nowrap;
+        transition: all .2s ease;
+      }
+      .content .classic-game .cg-container .gameprocess .counters>div {
+        display: inline-block;
+        vertical-align: middle;
+        height: 50px;
+        margin: 35px 50px;
+      }
+
+      // Состояние lottery
+      .content .classic-game .cg-container .gameprocess .counters.lottery {
+        opacity: 0;
+        transform: translate3d(0,-20px,0); //translate3d(-260px,-40px,0) rotate(-5deg);
+      }
+
+      // Состояние winner
+      .content .classic-game .cg-container .gameprocess .counters.winner {
+        opacity: 0;
+      }
+
+      // Счётчик вещей раунда
+      .content .classic-game .cg-container .gameprocess .counters .counter-items {
+        position: relative;
+        background: #1B2934;
+        margin-right: 10px;
+        border-radius: 4px;
+        width: 470px;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator {
+        position: absolute; top: 0;
+        width: 25%;
+        height: 50px;
+        //margin: 4px;
+        border-radius: 0px 500px 700px 0px;
+        transition: all 1s ease;
+        border: 6.5px solid #1B2934;
+
+        background: rgb(217,89,32); /* Old browsers */
+        background: -moz-linear-gradient(left,  rgba(217,89,32,1) 0%, rgba(245,156,26,1) 50%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
+        background: -webkit-linear-gradient(left,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to right,  rgba(217,89,32,1) 0%,rgba(245,156,26,1) 50%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d95920', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .knifes {
+        position: absolute; top: 0; right: 0px;
+        width: 101px;
+        height: 86px;
+        margin: -30px -60px 0 0;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-items .indicator .items-inbank-max {
+        position: absolute; top: 5px; right: -43px;
+        padding: 0 2px;
+        color: #ffd38f;
+        font-size: 1.8em;
+        height: 28px;
+        line-height: 28px;
+        border-radius: 5px;
+        background-color: rgba(0,0,0,.6);
+      }
+
+      // Текст между счётчиками
+      .content .classic-game .cg-container .gameprocess .counters .text-between-counters {
+        width: 100px;
+        line-height: 50px;
+        margin-left: 0; margin-right: 0;
+        font-size: 1.1em;
+        text-align: center;
+      }
+
+      // Счётчик времени раунда
+      .content .classic-game .cg-container .gameprocess .counters .counter-time {
+        width: 180px;
+        margin-left: 10px;
+        line-height: 50px;
+        color: $cg_colog_highlight;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div {
+        display: inline-block;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 2.5em;
+        font-weight: bold;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(1) {
+        width: 70px;
+        background: #1B2934;
+        border-radius: 4px;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(2) {
+        width: 20px;
+        line-height: 45px;
+        padding-right: 1px;
+      }
+      .content .classic-game .cg-container .gameprocess .counters .counter-time>div:nth-child(3) {
+        width: 70px;
+        background: #1B2934;
+        border-radius: 4px;
+      }
+
+
+    //-------------------------------------------//
+    // 1.6.3. Органы управления игрой для игрока //
+    //-------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .controls {
+        height: $cg_sizes_controls_height;
+        background: #183440;
+        overflow: hidden;
+        white-space: nowrap;
+        transition: all .2s ease;
+      }
+      .content .classic-game .cg-container .gameprocess .controls.notauth {
+        height: 80px;
+      }
+
+      // Скрытое состояние
+      .content .classic-game .cg-container .gameprocess .controls.hiddenpanel {
+        opacity: 0;
+        margin-top: 10px;
+      }
+
+      // Кол-во внесённых предметов, шанс, кнопка "Внести депозит"
+
+        // Общие стили
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button {
+          height: $cg_sizes_controls_height*.6;  // $cg_sizes_controls_height
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button>div {
+          display: inline-block;
+          width: 33.33333%;
+          height: $cg_sizes_controls_height*.6; // $cg_sizes_controls_height
+          line-height: $cg_sizes_controls_height*.6; // $cg_sizes_controls_height
+          vertical-align: middle;
+        }
+
+        // Количество внесённых предметов
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .items_info {
+          text-align: center;
+          color: #81D1F9;
+          font-size: 1.3em;
+          margin-top: 5px;
+        }
+
+        // Шанс
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance {
+          position: relative;
+          text-align: center;
+          font-size: 1.3em;
+          margin-top: 5px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-left {
+          position: absolute;
+          top: $cg_sizes_controls_height*.3 - 10px; // $cg_sizes_controls_height*0.5 - 10px;
+          left: 0;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .chance .arrows-right {
+          position: absolute;
+          top: $cg_sizes_controls_height*.3 - 10px; // $cg_sizes_controls_height*.5 - 10px;
+          right: 0;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+
+        // Кнопка "Внести депозит"
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet {
+          text-align: center;
+          height: $cg_sizes_controls_height*.6;
+          line-height: $cg_sizes_controls_height*.6;
+          user-select: none;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button {
+          display: inline-block;
+          height: 45px;
+          line-height: 45px;
+          vertical-align: middle;
+          padding: 0 36px;
+          font-size: 1.2em;
+          background: #c9302c;
+          color: #fff;
+          cursor: pointer;
+          border-radius: 3px;
+          transition: all .5s ease;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button:hover {
+          background: #e33733;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .status_and_button .make-a-bet .button span {
+          vertical-align: baseline;
+        }
+
+      // Панель с кнопкой "Принять участие" для не аутентифицированных пользователей
+
+        // Общие стили
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel {
+          height: 80px;  // $cg_sizes_controls_height
+          position: absolute;
+          z-index: 1;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel>div {
+          display: inline-block;
+          height: 80px; // $cg_sizes_controls_height
+          line-height: 80px; // $cg_sizes_controls_height
+          vertical-align: middle;
+        }
+
+        // Замечание про дорогие предметы
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .expensive_items {
+          width: 35%;
+          text-align: justify;
+          color: #81d1f9;
+          font-size: 1.0em;
+          white-space: normal;
+          padding: 0 30px 0 20px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .expensive_items>div {
+          display: inline-block;
+          line-height: normal;
+          vertical-align: middle;
+        }
+
+        // Информация об ограничениях комнаты
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo {
+          width: 35%;
+          position: relative;
+          text-align: left;
+          color: #81d1f9;
+          font-size: 1.0em;
+          white-space: normal;
+          padding: 0 20px 0 20px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo>div {
+          display: inline-block;
+          line-height: normal;
+          vertical-align: middle;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo .arrows-left {
+          position: absolute;
+          top: 50%;
+          margin-top: -12px;
+          left: -20px;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .roominfo .arrows-right {
+          position: absolute;
+          top: 50%;
+          margin-top: -12px;
+          right: -16px;
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-image: url('/public/D10009/assets/icons/sprites.png');
+          background-repeat: no-repeat;
+          background-position: -93px -15px;
+        }
+
+        // Кнопка "Войти через Steam"
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet {
+          width: 30%;
+          text-align: center;
+          height: 80px;
+          line-height: 78px;
+          user-select: none;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button {
+          display: inline-block;
+          height: 45px;
+          line-height: 45px;
+          vertical-align: middle;
+          padding: 0 18px;
+          font-size: 1.2em;
+          background: #c9302c;
+          color: #fff;
+          cursor: pointer;
+          border-radius: 3px;
+          transition: all .5s ease;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button:hover {
+          background: #e33733;
+        }
+        .content .classic-game .cg-container .gameprocess .controls .not_auth_user_panel .make-a-bet .button span {
+          vertical-align: baseline;
+        }
+
+      // Панель с информацией о лимитах выбранной комнаты
+      .content .classic-game .cg-container .gameprocess .controls .info {
+        height: $cg_sizes_controls_height*.4;
+      }
+      .content .classic-game .cg-container .gameprocess .controls .info .limits {
+        height: 29px;
+        line-height: 26px;
+        margin: 6px 40px;
+        font-size: 0.95em;
+        text-align: center;
+        border-top: 1px solid #2f5463;
+        padding-top: 5px;
+        text-transform: uppercase;
+      }
+
+    //------------------------------------//
+    // 1.6.4. Бегущая полоса с аватарками //
+    //------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .strip-avatars {
+        position: absolute; top: 10px; left: 0;
+        height: 80px; width: 100%;
+        overflow: hidden;
+        transition: all .2s ease;
+      }
+
+      // Скрытое состояние
+      .content .classic-game .cg-container .gameprocess .strip-avatars.hiddenpanel {
+        top: -80px;
+        opacity: 0;
+      }
+
+      // Опущенное состояние
+      .content .classic-game .cg-container .gameprocess .strip-avatars.downpanel {
+        top: 10px;
+      }
+
+      // Непосредственно контейнер (кот.движется) для полоски аватарок
+      .content .classic-game .cg-container .gameprocess .strip-avatars .moving_cont {
+        height: 80px;
+        font-size: 0;
+        //transition: 15000ms cubic-bezier(0.32, 0.64, 0.45, 1) -0ms;
+        //transform: translate3d(880px, 0px, 0px);
+      }
+
+      // Аватарка в контейнере
+      .content .classic-game .cg-container .gameprocess .strip-avatars .moving_cont img {
+        max-width: 80px;
+        max-height: 80px;
+        width: 80px;
+        height: 80px;
+        margin-right: 2px;
+      }
+
+    //--------------------------------------------------------//
+    // 1.6.5. Инфо-панель для состояний "Lottery" и "Winner"  //
+    //--------------------------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .gameprocess .lw-panel {
+        position: absolute; bottom: 0; left: 0;
+        height: 140px; width: 100%;
+        border-top: 1px solid $cg_colog_highlight;
+      }
+
+      // Скрытое состояние
+      .content .classic-game .cg-container .gameprocess .lw-panel.hiddenpanel {
+        bottom: -80px;
+        opacity: 0;
+      }
+
+      // Стрелочка, указывающая на победителя
+      .content .classic-game .cg-container .gameprocess .lw-panel .arrow {
+        position: absolute; top: -8px; left: calc(50% - 7.5px);
+      }
+
+      // Победный билет, победил игрок, число раунда
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo {
+        position: absolute; top: 10px; left: 20px;
+        font-size: 1.2em;
+        color: $cg_color_winblock_base;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .ticket span:nth-child(2) {
+        color: #34b07d;
+        font-weight: 700;
+        margin-left: 5px;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .winner span:nth-child(2) {
+        color: #e4d33a;
+        font-weight: 700;
+        margin-left: 5px;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .textinfo .number span:nth-child(2) {
+        color: #81d1f9;
+        font-weight: 700;
+        font-size: 12px;
+        margin-left: 5px;
+      }
+
+      // Текущий банк игры
+      .content .classic-game .cg-container .gameprocess .lw-panel .bank {
+        position: absolute; top: 78px; left: 20px;
+        background: #000;
+        font-size: 2em;
+        color: #fff;
+        border-radius: 3px;
+        padding: 0 17px;
+        margin-top: 5px;
+      }
+
+      // Счётчик времени до начала следующего раунда
+
+        // Общие стили
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter-time {
+          position: absolute;
+          right: 20px;
+          text-align: center;
+          height: 72px;
+          line-height: 72px;
+          user-select: none;
+        }
+
+        // Стили описания счётчика
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter-time .counterdesc {
+          display: inline-block;
+          width: 180px;
+          text-align: right;
+          padding-right: 15px;
+          line-height: 50px;
+          font-size: 1.2em;
+          color: $cg_color_winblock_base;
+        }
+
+        // Стили самого счётчика
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter {
+          display: inline-block;
+          width: 80px;
+          line-height: 50px;
+          color: $cg_colog_highlight;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div {
+          display: inline-block;
+          height: 50px;
+          line-height: 50px;
+          text-align: center;
+          vertical-align: middle;
+          font-size: 2.5em;
+          font-weight: bold;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(1) {
+          width: 70px;
+          background: #1b2934;
+          border-radius: 4px;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(2) {
+          width: 20px;
+          line-height: 45px;
+          padding-right: 1px;
+        }
+        .content .classic-game .cg-container .gameprocess .lw-panel .counter>div:nth-child(3) {
+          width: 70px;
+          background: #1b2934;
+          border-radius: 4px;
+        }
+
+      // Кнопка "Внести депозит первым"
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first {
+        position: absolute;
+        right: 25px;
+        top: 64px;
+        text-align: center;
+        height: $cg_sizes_controls_height*.6;
+        line-height: $cg_sizes_controls_height*.6;
+        user-select: none;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button {
+        display: inline-block;
+        height: 45px;
+        line-height: 45px;
+        vertical-align: middle;
+        padding: 0 29px;
+        font-size: 1.2em;
+        background: #c9302c;
+        color: #fff;
+        cursor: pointer;
+        -webkit-transition: all .5s ease;
+        transition: all .5s ease;
+        border-radius: 3px;
+        margin-bottom: 10px;
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button:hover {
+        background: rgba(252, 131, 86, 0.5)
+      }
+      .content .classic-game .cg-container .gameprocess .lw-panel .make-a-bet-first .button span {
+        vertical-align: baseline;
+      }
+
+
+
+  //-------------------------------------------------------------------------//
+  // 1.7. Распределение шансов на выигрыш в текущем раунде (цвета и полоски) //
+  //-------------------------------------------------------------------------//
+
+    // Общие стили
+    .content .classic-game .cg-container .odds-graphic {
+      height: $cg_sizes_godds_height;
+      line-height: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      background: #aaa;
+      font-size: 0;
+    }
+
+    // Стили одной полоски
+    .content .classic-game .cg-container .odds-graphic .strip {
+      display: inline-block;
+      height: $cg_sizes_godds_height;
+    }
+
+  //--------------------------------------------------------------------------//
+  // 1.8. Распределение шансов на выигрыш в текущем раунде (аватарки и текст) //
+  //--------------------------------------------------------------------------//
+
+    // Общие стили
+    .content .classic-game .cg-container .odds-avatars {
+      position: relative;
+      height: $cg_sizes_odds_height;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    // Стили одного блока (аватарка, цвет, шансы)
+    .content .classic-game .cg-container .ava-color-odds {
+      position: relative;
+      display: inline-block;
+      width: 80px; height: 80px;
+      margin: 10px 3px;
+    }
+    .content .classic-game .cg-container .ava-color-odds>div {
+      position: absolute;
+    }
+
+    // Аватар
+    .content .classic-game .cg-container .ava-color-odds .avatar {
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .content .classic-game .cg-container .ava-color-odds .avatar img {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    // Цветная полоска
+    .content .classic-game .cg-container .ava-color-odds .strip {
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    // Шансы
+    .content .classic-game .cg-container .ava-color-odds .odds {
+      bottom: 4px; left: 0;
+      background: black; opacity: 0.8;
+      line-height: 22px;
+      width: 100%; height: 22px;
+      text-align: center;
+      color: #2cb8d6;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    // Стили для perfect scrollbar
+    .content .classic-game .cg-container .ps-scrollbar-y-rail {
+      display: none;
+    }
+    .content .classic-game .cg-container .ps-scrollbar-x-rail {
+      background: transparent !important;
+    }
+    .content .classic-game .cg-container .ps-scrollbar-x-rail>div {
+      background: darken($cg_main_color, 5%) !important;
+      height: 6px !important;
+    }
+
+
+  //---------------------//
+  // 1.9. Ставки раунда  //
+  //---------------------//
+
+    // Контейнер
+    .content .classic-game .bets {
+      padding: 0;
+      background: #183440;
+    }
+
+    // Контейнер ставки
+    .content .classic-game .bets .bet-container {
+      //border-radius: 0 3px 3px 0;
+      border-radius: 3px;
+      max-height: 0;
+      transition: all .7s ease;
+      overflow: hidden;
+    }
+    .content .classic-game .bets .bet-container.expanded {
+      max-height: 1000px;
+    }
+
+    // Стили информации о ставке
+    .content .classic-game .bets .bet-container .bet-info {
+      padding: 10px 20px;
+      position: relative;
+      height: 74px;
+      background: darken($cg_main_color, 5%);
+      border-right: 2px solid #000;
+    }
+    .content .classic-game .bets .bet-container .bet-info .avatar {
+      position: absolute; top: 10px; left: 20px;
+      width: 54px;
+      height: 54px;
+      text-align: center;
+      background-color: #2f353b;
+    }
+    .content .classic-game .bets .bet-container .bet-info .avatar img {
+      display: inline-block;
+      width: 54px;
+      height: 54px;
+      max-width: 54px;
+      max-height: 54px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section {
+      padding-left: 65px;
+      color: #ddd;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .nickname {
+      color: #ddd;
+      cursor: default;
+      transition: all 0.5s ease;
+      text-decoration: none;
+    }
+    //.content .classic-game .bets .bet-container .bet-info .info-section .nickname:hover {
+    //  color: #64C119;
+    //}
+    .content .classic-game .bets .bet-container .bet-info .info-section .bet-number {
+      cursor: default;
+      float: right;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section>div:nth-child(1) {
+      height: 27px;
+      line-height: 27px;
+      font-size: 18px;
+      //font-family: EffraBold, Effra, "PT Sans", Sans-Serif;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section>div:nth-child(1)>span:nth-child(1) {
+      //font-family: EffraBold, Effra, "PT Sans", Sans-Serif;
+      padding-right: 3px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .sum-odds-tickets {
+      height: 27px;
+      line-height: 27px;
+      font-size: 16px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .sum-odds-tickets span {
+      opacity: .5;
+      color: #ddd;
+      transition: all 0.5s ease;
+      cursor: default;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .tickets {
+      float: right;
+      font-size: 16px;
+      margin-top: 14px;
+    }
+    .content .classic-game .bets .bet-container .bet-info .info-section .tickets .ticketnumber {
+      color: $cg_colog_highlight;
+    }
+
+    // Поставленные вещи
+    .content .classic-game .bets .bet-container .bets-items-cont {
+      padding: 0 0 15px 20px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont .bets-item {
+      position: relative;
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      margin-top: 15px;
+      text-align: center;
+      line-height: 100px;
+      cursor: help;
+      background: #1e404f;
+      border: 1px solid #182328;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont .bets-item img {
+      display: inline-block;
+      max-width: 85px;
+      max-height: 85px;
+      margin-bottom: 25px;
+      vertical-align: middle;
+      margin-top: -7px;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont .bets-item .price {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 25px;
+      line-height: 25px;
+      font-size: 1.1em;
+      color: #28adcb;
+      opacity: .8;
+      cursor: text;
+      text-align: center;
+      background: #1A262E;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont .bets-item .price .rub {
+      text-transform: uppercase;
+      font-size: .7em;
+    }
+    .content .classic-game .bets .bet-container .bets-items-cont .bets-item .strip {
+      position: absolute; top: 0; left: 0;
+      height: 2px; width: 100%;
+      background: transparent;
+    }
+
+
+
+
+//    .content .classic-game .bets .bet-container .bets-items-cont>div {
+//      display: inline-block;
+//      width: 100px;
+//      height: 100px;
+//      margin-right: 17px;
+//      margin-top: 15px;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div:nth-child(5n) {
+//      margin-right: 0;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-front {
+//      width: 100px;
+//      height: 100px;
+//      border: solid 1px #32393f;
+//      border-radius: 2px;
+//      background-color: #2d3238;
+//      text-align: center;
+//      line-height: 100px;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-front img {
+//      display: inline-block;
+//      max-width: 80px;
+//      max-height: 80px;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-front .price {
+//      display: block;
+//      font-size: 13px;
+//      position: absolute; top: 0; left: 0;
+//      color: #cfcfcf;
+//      height: 20px;
+//      border-radius: 2px;
+//      background-color: #242424;
+//      line-height: 20px;
+//      padding: 0 5px;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-back {
+//      width: 100px;
+//      height: 100px;
+//      border: solid 1px #32393f;
+//      border-radius: 2px;
+//      background-color: #2d3238;
+//      padding: 5px;
+//      font-size: 13px;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-back:before {
+//      content: '';
+//      display: inline-block;
+//      height: 90px;
+//      vertical-align: middle;
+//      width: 1px;
+//    }
+//    .content .classic-game .bets .bet-container .bets-items-cont>div .flip-back .name-of-item {
+//      display: inline-block;
+//      vertical-align: middle;
+//      height: auto;
+//      width: 90%;
+//      color: #fff;
+//      border-bottom: 1px solid #373c43;
+//      overflow: hidden;
+//      text-overflow: ellipsis;
+//    }
+
+
+
+
+  //---------------------------------------------//
+  // 1.10. Панель с информацией о текущем раунде //
+  //---------------------------------------------//
+
+    // Общие стили
+    .content .classic-game .cg-container .infopanel {
+      position: relative;
+      height: $cg_sizes_infopanel_height;
+      overflow: hidden;
+      padding: 20px;
+      white-space: nowrap;
+      background: url('/public/D10009/assets/images/start.png') no-repeat 50px 23px rgba(38, 192, 113, 0.7);
+    }
+    .content .classic-game .cg-container .infopanel>div {
+      position: absolute;
+    }
+
+    // Призыв вносить депозиты
+    .content .classic-game .cg-container .infopanel .call4deposits {
+      top: 20; left: 0;
+      height: 30px; line-height: 30px;
+      width: 100%;
+      text-align: center;
+      font-size: 25px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 1px rgb(44, 110, 47);
+    }
+
+    // Кнопка "честная игра" и хэш раунда
+
+      // Общие стили
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash {
+        top: 50px; left: 0;
+        height: 30px; line-height: 30px;
+        width: 100%;
+        text-align: center;
+      }
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash>div {
+        display: inline-block;
+      }
+
+      // Кнопка "Честная игра"
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .fair-button {
+        background: rgba(45, 78, 67, 0.3);
+        position: relative;
+        height: 30px;
+        padding: 0px 15px 0 32px;
+        margin-right: 20px;
+        border-radius: 6px;
+        border: solid 1px #31A26D;
+        font-size: 11px;
+        font-weight: 400;
+        color: #cefeea;
+        text-shadow: 0 2px 1px rgba(25, 67, 49, 0.26);
+        cursor: pointer;
+        vertical-align: middle;
+        user-select: none;
+      }
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .fair-button i {
+        position: absolute; left: 0; top: 0;
+        height: 30px;
+        width: 30px;
+        background: url('/public/D10009/assets/icons/sprites.png') no-repeat -223px -74px;
+      }
+
+      // Хэш раунда
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash {
+        color: #000;
+        max-width: 300px;
+        //overflow: hidden;
+        //text-overflow: ellipsis;
+        //vertical-align: middle;
+      }
+      .content .classic-game .cg-container .infopanel .fair-button-and-hash .hash span:nth-child(2) {
+        border-bottom: 1px solid #222;
+        cursor: pointer;
+        font-size: 11px;
+      }
+
+  //---------------------------------------------------------------------------//
+  // 1.11. Условия использования, предупреждение о не аффилированности с Valve //
+  //---------------------------------------------------------------------------//
+
+    // Общие стили
+    .content .classic-game .termsofuse {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    // Заявление о не аффилированности
+    .content .classic-game .termsofuse .not-affilated-statement {
+      color: #9ea7b3;
+      text-align: center;
+    }
+
+    // Правила использования
+    .content .classic-game .termsofuse .termslink {
+      text-align: center;
+    }
+    .content .classic-game .termsofuse .termslink a {
+      color: #1e96b0;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+
+
+  //-----------------------------//
+  // 1.12. Статистические данные //
+  //-----------------------------//
+
+    // Общие стили
+    .content .aside-blocks {
+      position: relative;
+      margin-top: 50px;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+    .content .aside-blocks>div {
+      position: relative;
+      display: inline-block;
+      width: $cg_sizes_stats_width; height: $cg_sizes_stats_height;
+      margin-right: 20px;
+      background: #172125;
+      color: #ddd;
+      vertical-align: middle;
+      perspective: 1000;
+    }
+
+    // Стили для отображения слева от контентного столбца
+    .content .aside-blocks.aside {
+      position: absolute;
+      top: 0;
+      left: -230px;
+      width: 200px;
+      margin-top: 20px;
+    }
+    .content .aside-blocks.aside>div {
+      margin-bottom: 30px;
+    }
+    .content-column.aside {
+      margin-left: 230px;
+      position: relative;
+    }
+
+    // Стили 3D-эффекта переворачивания карты
+    .content .aside-blocks>div .card {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transform-origin: right center;
+      transform-style: preserve-3d;
+      transition: all 1s ease;
+    }
+    .content .aside-blocks>div .card .front, .content .aside-blocks>div .card .back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      backface-visibility: hidden;
+    }
+    .content .aside-blocks>div .card .front {
+      width: 100%; height: 100%;
+      z-index: 5;
+    }
+    .content .aside-blocks>div .card .back {
+      width: 100%; height: 100%;
+      z-index: 0;
+      transform: rotateY(180deg);
+    }
+    .content .aside-blocks>div .card.flipped {
+      transform: translateX(-100%) rotateY(-180deg);
+    }
+    .content .aside-blocks>div .card.flipped .front {
+      z-index: 5;
+    }
+    .content .aside-blocks>div .card.flipped .back {
+      z-index: 10;
+    }
+
+    // Стили для ширины окна бравзера более 1400px
+    //@media screen and (min-width: 1680px) {
+    //  .content .aside-blocks {
+    //    position: absolute;
+    //    top: 0;
+    //    left: -230px;
+    //    width: 200px;
+    //    margin-top: 20px;
+    //  }
+    //  .content .aside-blocks>div {
+    //    margin-bottom: 30px;
+    //  }
+    //  .content-column {
+    //    margin-left: 230px;
+    //    position: relative;
+    //  }
+    //}
+
+    // Заголовочная часть
+    .content .aside-blocks>div .header {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: $cg_sizes_stats_height/6;
+      line-height: $cg_sizes_stats_height/6;
+      //font-weight: bold;
+      font-size: 1.15em;
+      z-index: 1;
+    }
+
+    // Контентная часть
+    .content .aside-blocks>div .contentpart {
+      position: relative;
+      height: 198.75px;
+      padding-top: 44.16667px;
+      background: #284351;
+      text-align: center;
+    }
+    .content .aside-blocks>div .contentpart img {
+      display: inline-block;
+      margin-top: 12.92857px;
+      width: 80px;
+      height: 80px;
+    }
+    .content .aside-blocks>div .contentpart .nickname {
+      position: absolute;
+      bottom: 0; left: 0; width: 100%;
+      text-align: center;
+      height: 60.66667px;
+      line-height: 64.66667px;
+      font-weight: 700;
+      font-size: 1.15em;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      cursor: default;
+    }
+
+    // Подвальная часть
+    .content .aside-blocks>div .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      padding-top: 10px;
+      width: 100%;
+      height: 73px;
+      background: #19242C;
+    }
+
+    // Последний победитель
+    .content .aside-blocks .lastwinner {
+      background: transparent;
+    }
+    .content .aside-blocks .lastwinner .footer>div {
+      height: $cg_sizes_stats_height*0.1;
+      line-height: $cg_sizes_stats_height*0.1;
+      text-align: left;
+    }
+    .content .aside-blocks .lastwinner .footer .row {
+      margin: 0;
+    }
+    .content .aside-blocks .lastwinner .footer .row>div {
+      overflow: hidden;
+    }
+    .content .aside-blocks .lastwinner .footer .row>div:nth-child(1) {
+      padding-left: 15px;
+      color: #ccc;
+    }
+    .content .aside-blocks .lastwinner .footer .row>div:nth-child(2) {
+      padding-right: 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .content .aside-blocks .lastwinner .footer .odds {
+      color: $cg_colog_highlight !important;
+    }
+
+
+    // Счастливчик дня
+    .content .aside-blocks .luckyoftheday {
+      background: transparent;
+    }
+    .content .aside-blocks .luckyoftheday .contentpart {
+      background: url('/public/D10009/assets/images/lucky-bg-v1.png') no-repeat -19px 0px
+    }
+    .content .aside-blocks .luckyoftheday .footer>div {
+      height: $cg_sizes_stats_height*0.1;
+      line-height: $cg_sizes_stats_height*0.1;
+      text-align: left;
+    }
+    .content .aside-blocks .luckyoftheday .footer .row {
+      margin: 0;
+    }
+    .content .aside-blocks .luckyoftheday .footer .row>div {
+      overflow: hidden;
+    }
+    .content .aside-blocks .luckyoftheday .footer .row>div:nth-child(1) {
+      padding-left: 15px;
+      color: #ccc;
+    }
+    .content .aside-blocks .luckyoftheday .footer .row>div:nth-child(2) {
+      padding-right: 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .content .aside-blocks .luckyoftheday .footer .odds {
+      color: $cg_colog_highlight !important;
+    }
+
+    // Наибольшая ставка
+    .content .aside-blocks .thebiggestbet {
+      background: transparent;
+    }
+    .content .aside-blocks .thebiggestbet .contentpart {
+      //background: url('/public/D10009/assets/images/dollars-bg-v1.jpg');
+    }
+    .content .aside-blocks .thebiggestbet .footer>div {
+      height: $cg_sizes_stats_height*0.1;
+      line-height: $cg_sizes_stats_height*0.1;
+      text-align: left;
+    }
+    .content .aside-blocks .thebiggestbet .footer .row {
+      margin: 0;
+      margin-top: $cg_sizes_stats_height*0.05;
+    }
+    .content .aside-blocks .thebiggestbet .footer .row>div {
+      overflow: hidden;
+    }
+    .content .aside-blocks .thebiggestbet .footer .row>div:nth-child(1) {
+      padding-left: 15px;
+      color: #ccc;
+    }
+    .content .aside-blocks .thebiggestbet .footer .row>div:nth-child(2) {
+      padding-right: 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+  //------------------------//
+  // 1.13. Зона уведомлений //
+  //------------------------//
+
+    //--------------------------------------//
+    // 1.13.1. Общие стили зоны уведомлений //
+    //--------------------------------------//
+
+      // Общие стили
+      .content .notifications-zone {
+        position: relative;
+        background: transparent;
+        margin-bottom: 20px;
+      }
+
+    //----------------------------------------------//
+    // 1.13.2. Общие стили любой панели уведомления //
+    //----------------------------------------------//
+    .content .notifications-zone .notification {
+      width: 100%;
+      margin-top: 20px;
+      min-height: 20px;
+      background-color: #1b2934;
+    }
+
+    //-------------------------------------------------------------------//
+    // 1.13.3. Стили панели уведомлений об отсутствующей Steam Trade URL //
+    //-------------------------------------------------------------------//
+
+      // Общие стили
+      .content .notifications-zone .notification.tradeurl {
+        height: 120px;
+        font-size: 1.15em;
+        color: #fff;
+      }
+
+      // Строка №1: заголовок
+      .content .notifications-zone .notification.tradeurl .head {
+        height: 40px;
+        line-height: 40px;
+        margin: 0 20px;
+        font-weight: 700;
+      }
+
+      // Строка №2: инпут и кнопка
+      .content .notifications-zone .notification.tradeurl .input_and_button {
+        height: 40px;
+        line-height: 40px;
+        margin: 0 20px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .content .notifications-zone .notification.tradeurl .input_and_button input {
+        display: inline-block;
+        height: 40px;
+        line-height: 40px;
+        background: #284351;
+        border-radius: 4px;
+        width: 80%;
+        overflow: hidden;
+        outline: 0;
+        border: 0;
+        padding: 0 15px;
+      }
+      .content .notifications-zone .notification.tradeurl .input_and_button button {
+        position: relative;
+        display: inline-block;
+        width: 17%;
+        background: #59b0db;
+        margin-left: 20px;
+        border-radius: 4px;
+        height: 40px;
+        line-height: 40px;
+        border: 0;
+        outline: 0;
+        transition: all .5s ease;
+      }
+      .content .notifications-zone .notification.tradeurl .input_and_button button:hover {
+        background: lighten(#59b0db, 5%);
+      }
+
+      // Строка №3: подсказка
+      .content .notifications-zone .notification.tradeurl .hint {
+        height: 40px;
+        line-height: 40px;
+        margin: 0 20px;
+      }
+      .content .notifications-zone .notification.tradeurl .hint a {
+        cursor: pointer;
+        text-decoration: underline;
+        color: #59b0db;
+        transition: all .5s ease;
+      }
+      .content .notifications-zone .notification.tradeurl .hint a:hover {
+        color: lighten(#59b0db, 5%);
+      }
+
+    //---------------------------------//
+    // 1.13.4. Баннер "Будь Онлайн" №1 //
+    //---------------------------------//
+
+      // Общие стили
+      .content .notifications-zone .notification.beonline_banner_1 {
+        font-size: 1.15em;
+        color: #fff;
+        cursor: pointer;
+      }
+
+
+
+
+
+  //--------------------//
+  // 1.14. История игр  //
+  //--------------------//
+
+    //---------------------------------//
+    // 1.14.1. Общие стили истории игр //
+    //---------------------------------//
+    .content .classic-game .cg-container .cg_history {
+      position: relative;
+      min-height: 250px;
+    }
+
+    //------------------------------------//
+    // 1.14.2. Стили контента истории игр //
+    //------------------------------------//
+
+      // Общие стили
+      .content .classic-game .cg-container .cg_history .history {}
+      .content .classic-game .cg-container .cg_history .history .history-item {
+        padding: 10px;
+        background: #203440;
+        margin: 0 0 10px 0px;
+        min-height: 130px;
+      }
+
+      // Стили заголовочной части
+
+        // Общие
+        .content .classic-game .cg-container .cg_history .history .header-part {
+          position: relative;
+          height: 65px;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .avatar {
+          max-width: 75px;
+          max-height: 75px;
+          width: 75px;
+          height: 75px;
+          margin: 5px 0 0 5px;
+        }
+
+        // Ник, шанс, выигрыш
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot {
+          position: absolute;
+          left: 70px;
+          top: 0;
+          width: calc(50% - 70px);
+          height: 65px;
+          margin: 4px 0 0 17px;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick {
+          height: 52%;
+          font-size: 1.4em;
+          overflow: hidden;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .nick a {
+          color: #fff;
+          cursor: default;
+          text-decoration: none;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .odds {
+          color: #59b0db;
+          font-size: 1.2em;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .nick_odds_jackpot .jackpot {
+          font-size: 1.2em;
+          color: #f7b454;
+        }
+
+        // Игра, хэш, число раунда
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash {
+          position: absolute;
+          right: 0;
+          top: 0;
+          margin: 5px 5px 0 0;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game {
+          height: 52%;
+          font-size: 1.2em;
+          overflow: hidden;
+          margin-bottom: 15px;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .game .num {
+          float: right;
+          color: #f7b454;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .key {
+          height: 30%;
+        }
+        .content .classic-game .cg-container .cg_history .history .header-part .game_hash .key_hash {
+          height: 30%;
+        }
+
+      // Стили списка выигранных вещей
+      .content .classic-game .cg-container .cg_history .history .items {
+
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item {
+        display: inline-block;
+        width: 80px;
+        height: 65px;
+        cursor: help;
+        margin: 17px 5px 0 3px;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .img_cont {
+        width: 80px;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .img_cont img {
+        display: inline-block;
+        max-width: 80px;
+        max-height: 80px;
+        vertical-align: middle;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .price {
+        border-top: 1px solid #73d1f9;
+        font-size: .85em;
+        text-align: center;
+        padding-top: 2px;
+      }
+      .content .classic-game .cg-container .cg_history .history .items .item .price span {
+        text-align: bottom;
+      }
+
+    //----------------------------------------//
+    // 1.14.3. Стили кнопки "Показать ещё 10" //
+    //----------------------------------------//
+    .content .classic-game .cg-container .cg_history .button_more {
+      height: 70px;
+      line-height: 62px;
+      text-align: center;
+    }
+    .content .classic-game .cg-container .cg_history .button_more .button_more_itself {
+      display: inline-block;
+      width: 270px;
+    }
+    .content .classic-game .cg-container .cg_history .button_more .button_more_itself button {
+      border-radius: 3px;
+      font-size: 1.2em;
+      background: #008fff;
+      color: white;
+      border: 1px solid #008fff;
+      outline: 0 !important;
+      transition: background .5s ease;
+    }
+    .content .classic-game .cg-container .cg_history .button_more .button_more_itself button:hover {
+      background: #2c9ef8;
+    }
+
+    //------------------------------------------------------//
+    // 1.14.4. Стили надписи о том, что история отсутствует //
+    //------------------------------------------------------//
+    .content .classic-game .cg-container .cg_history .history_absent {
+      height: 250px;
+      line-height: 250px;
+      text-align: center;
+      font-size: 2em;
+    }
+
+  //-----------------//
+  // 1.15. СЕО-текст //
+  //-----------------//
+  .content .seo {
+    padding-top: 30px;
+    padding-bottom: 20px;
+    color: #9ea7b3;
+  }
+  .content .seo h1 {
+    text-align: center;
+  }
+  .content .seo h1, .content .seo h2, .content .seo h3 {
+    font-weight: bold;
+  }
+  .content .seo ul, .content .seo ol {
+    margin-left: 40px;
+  }
+  .content .seo ol {
+    list-style-type: decimal;
+  }
+  .content .seo ul {
+    list-style-type: disc;
+  }
+
+  //----------------//
+  // 1.16. СЕО-меню //
+  //----------------//
+  .content .seo-menu {
+    padding-bottom: 10px;
+  }
+  .content .seo-menu ul {
+    margin-left: 0; /* Отступ слева в браузере IE и Opera */
+    padding-left: 0; /* Отступ слева в браузере Firefox, Safari, Chrome */
+  }
+  .content .seo-menu ul li {
+    display: inline-block;
+    list-style-type: none;
+    font-size: 1.1em;
+    padding-right: 10px;
+  }
+  .content .seo-menu ul li a {
+    color: #337ab7;
+  }
+  .content .seo-menu ul li a:hover {
+    color: lighten(#337ab7, 5%);
+  }
+
+
+
+//------------------//
+// 2. Стили профиля //
+/*------------------//
+Оглавление
+
+  2.1. Переменные стилей профиля
+  2.2. Общие стили профиля
+  2.3. Стили шапки профиля
+  2.4. Информация об аккаунте
+  2.5. Кнопки "Login" и "Logout"
+  2.6. Торговый URL
+
+//------------------------------------*/    
+    
+  //--------------------------------//
+  // 2.1. Переменные стилей профиля //
+  //--------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $pf_main_color: #212f35;            // Главный цвет профиля
+      $pf_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $pf_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $pf_color_header_height: 50px;      // Высота шапки
+
+  //--------------------------//
+  // 2.2. Общие стили профиля //
+  //--------------------------//
+
+    // Внешний контейнер классической игры
+    .content .profile {
+
+    }
+
+    // Внутренний контейнер классической игры
+    .content .profile .pf-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //--------------------------//
+  // 2.3. Стили шапки профиля //
+  //--------------------------//
+
+    // Общие стили шапки классической игры
+    .content .profile .pf-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $pf_color_header_height;
+    }
+
+    // Заголовок
+    .content .profile .pf-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $pf_color_header_height;
+      line-height: $pf_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .profile .pf-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .profile .pf-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+ 
+  //-----------------------------//
+  // 2.4. Информация об аккаунте //
+  //-----------------------------//
+
+    // Заголовок
+    .content .profile .pf-container .profile-content .user-acc-info {
+      color: #9ea7b3;
+      font-size: 17px;
+      height: 150px;
+      padding: 10px;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info a {
+      color: #64C119;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info div:nth-child(1) {
+      margin-bottom: 10px;
+    }
+
+    // Аватарка
+    .content .profile .pf-container .profile-content .user-acc-info .ava {
+      position: absolute;
+      width: 125px;
+      height: 125px;
+      border: 1px solid #444;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info .ava img {
+      max-width: 125px;
+      max-height: 125px;
+    }
+
+    // Дополнительная информация
+    .content .profile .pf-container .profile-content .user-acc-info .userinfo {
+      margin-left: 140px;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info .userinfo .mini-header {
+      color: #fff;
+    }
+    .content .profile .pf-container .profile-content .user-acc-info input {
+      width: 100%;
+      background: #1b2934;
+      outline: 0; border: 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+
+  //--------------------------------//
+  // 2.5. Кнопки "Login" и "Logout" //
+  //--------------------------------//
+
+    // Заголовок
+    .content .profile .pf-container .profile-content .log-in-out {
+      color: #aaa;
+      font-size: 17px;
+      padding: 0 10px 10px 10px;
+    }
+    .content .profile .pf-container .profile-content .log-in-out a {
+      color: #64C119;
+    }
+    .content .profile .pf-container .profile-content .log-in-out div:nth-child(1) {
+
+    }
+
+    // Кнопки
+    .content .profile .pf-container .profile-content .log-in-out .button-styles {
+      text-align: left;
+    }
+    .content .profile .pf-container .profile-content button {
+      display: inline-block;
+      height: 34px;
+      line-height: 16px;
+      text-align: center;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: 300ms ease;
+      border: 2px solid #59b0db;
+      color: #59b0db;
+      background: transparent;
+      background-size: 100% 200%;
+      background-position: left top;
+      outline: 0;
+    }
+    .content .profile .pf-container .profile-content button.logout {
+      width: 125px;
+    }
+    .content .profile .pf-container .profile-content button.login {
+      margin-top: 10px;
+    }
+    .content .profile .pf-container .profile-content button:hover {
+      background-color: #59b0db;
+      color: #000;
+    }
+
+  //-------------------//
+  // 2.6. Торговый URL //
+  //-------------------//
+
+    // Заголовок
+    .content .profile .pf-container .profile-content .trade-url {
+      color: #fff;
+      font-size: 17px;
+      padding: 0 10px 10px 10px;
+    }
+    .content .profile .pf-container .profile-content .trade-url a {
+      color: #59b0db;
+    }
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(1) {
+
+    }
+
+    // Input
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) {
+      display: inline-block;
+      width: 748px;
+      vertical-align: middle;
+    }
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input {
+      width: 100%;
+      background-color: #1b2934;
+      outline: 0; border: 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      color: #9ea7b3;
+    }
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-webkit-input-placeholder {color: #9ea7b3;}
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-moz-placeholder {color: #9ea7b3;}
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-moz-placeholder {color: #9ea7b3;}
+    .content .profile .pf-container .profile-content .trade-url div:nth-child(2) input::-ms-input-placeholder {color: #9ea7b3;}
+
+    // Кнопка
+    .content .profile .pf-container .profile-content .trade-url .button-styles {
+      text-align: left;
+      display: inline-block;
+      float: right;
+      vertical-align: middle;
+    }   
+    
+
+//-----------------------//
+// 3. Стили ТОПа игроков //
+/*-----------------------//
+Оглавление
+
+  3.1. Переменные стилей ТОПа
+  3.2. Общие стили ТОПа
+  3.3. Стили шапки ТОПа
+  3.4. Стили контента ТОПа
+
+//-----------------------*/    
+    
+  //-----------------------------//
+  // 3.1. Переменные стилей ТОПа //
+  //-----------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $top_main_color: #212f35;            // Главный цвет
+      $top_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $top_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $top_color_header_height: 50px;      // Высота шапки
+
+  //-----------------------//
+  // 3.2. Общие стили ТОПа //
+  //-----------------------//
+
+    // Внешний контейнер
+    .content .top {
+
+    }
+
+    // Внутренний контейнер
+    .content .top .top-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //-----------------------//
+  // 3.3. Стили шапки ТОПа //
+  //-----------------------//
+
+    // Общие стили шапки классической игры
+    .content .top .top-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $top_color_header_height;
+    }
+
+    // Заголовок
+    .content .top .top-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $top_color_header_height;
+      line-height: $top_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .top .top-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .top .top-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //--------------------------//
+  // 3.4. Стили контента ТОПа //
+  //--------------------------//
+
+     // Общие стили контента ТОПа
+    .content .top .top-container .top-content {
+      position: relative;
+      min-height: 250px;
+    }
+
+    // Стили заголовков ТОПа игроков
+    .content .top .top-container .top-content .top-headers {
+      height: 60px;
+      font-size: 0;
+    }
+    .content .top .top-container .top-content .top-headers .top-header {
+      position: relative;
+      height: 60px; width: 100%;
+      line-height: 60px;
+      display: inline-block;
+      vertical-align: middle;
+      background: darken(#284351, 4%);
+    }
+    .content .top .top-container .top-content .top-headers .top-header span {
+      font-size: 16px;
+    }
+
+    // Стили позиции в ТОПе игроков
+    .content .top .top-container .top-content .top-items {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .content .top .top-container .top-content .top-items .top-item {
+      position: relative;
+      height: 60px; width: 100%;
+      line-height: 60px;
+      font-size: 0;
+    }
+    .content .top .top-container .top-content .top-items .top-item.odd {
+      background: darken(#284351, 2%);
+    }
+    .content .top .top-container .top-content .top-items .top-item>div {
+      display: inline-block;
+      font-size: 16px;
+      vertical-align: middle;
+    }
+    .content .top .top-container .top-content .top-items .top-item .num {
+      width: 6%;
+      text-align: center;
+    }
+    .content .top .top-container .top-content .top-items .top-item .ava {
+      width: 6%;
+      text-align: center;
+      line-height: 0;
+    }
+    .content .top .top-container .top-content .top-items .top-item .ava img {
+      display: inline-block;
+      max-width: 50px;
+      max-height: 50px;
+      vertical-align: middle;
+    }
+    .content .top .top-container .top-content .top-items .top-item .nick {
+      width: 52%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+    .content .top .top-container .top-content .top-items .top-item .nick a {
+      cursor: pointer;
+      color: #fff;
+      padding-left: 20px;
+    }
+    .content .top .top-container .top-content .top-items .top-item .games {
+      width: 12%;
+      text-align: left;
+    }
+    .content .top .top-container .top-content .top-items .top-item .wins {
+      width: 12%;
+      text-align: left;
+    }
+    .content .top .top-container .top-content .top-items .top-item .totalsum {
+      width: 12%;
+      text-align: left;
+    }
+
+    
+//--------------//
+// 4. Стили FAQ //
+/*--------------//
+Оглавление
+
+  4.1. Переменные стилей FAQ
+  4.2. Общие стили FAQ
+  4.3. Стили шапки FAQ
+  4.4. Стили контента FAQ
+
+//---------------*/     
+    
+  //----------------------------//
+  // 4.1. Переменные стилей FAQ //
+  //----------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $faq_main_color: #212f35;            // Главный цвет
+      $faq_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $faq_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $faq_color_header_height: 50px;      // Высота шапки
+
+  //----------------------//
+  // 4.2. Общие стили FAQ //
+  //----------------------//
+
+    // Внешний контейнер
+    .content .faq {
+
+    }
+
+    // Внутренний контейнер
+    .content .faq .faq-container {
+      //margin-faq: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //----------------------//
+  // 4.3. Стили шапки FAQ //
+  //----------------------//
+
+    // Общие стили шапки классической игры
+    .content .faq .faq-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $faq_color_header_height;
+    }
+
+    // Заголовок
+    .content .faq .faq-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $faq_color_header_height;
+      line-height: $faq_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .faq .faq-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .faq .faq-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //-------------------------//
+  // 4.4. Стили контента FAQ //
+  //-------------------------//
+
+     // Общие стили контента ТОПа
+    .content .faq .faq-container .faq-content {
+      position: relative;
+      min-height: 250px;
+      color: #ddd;
+      font-size: 1.3em;
+      //background: #fff;
+    }    
+    .content .faq .faq-container .faq-content .faq-table {
+      border-collapse: collapse;
+      width: 100%;
+      min-height: 250px;
+    }
+    .content .faq .faq-container .faq-content .faq-table>tbody {
+      display: table-row-group;
+      vertical-align: middle;
+      border-color: inherit;
+    }
+    .content .faq .faq-container .faq-content .faq-table>tbody>tr {
+      display: table-row;
+      vertical-align: inherit;
+      border-color: inherit;
+    }
+    .content .faq .faq-container .faq-content .faq-table>tbody>tr>td {
+      display: table-cell;
+    }
+
+    // Стили групп
+    .content .faq .faq-container .faq-content .faq-table .faq-groups {
+      padding: 10px 0 10px 0;
+      width: 250px;
+      overflow: hidden;
+      vertical-align: top;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group {
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      height: 32px;
+      line-height: 31px;
+      padding: 0 13px 0 20px;
+      user-select: none;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-size: 15px;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group:hover {
+      background: darken(#284351, 2%);
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group.choosen {
+      background: darken(#284351, 2%);
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group .group_articles_load_spinner {
+      position: absolute; top: 4px; right: 4px;
+    }
+    .content .faq .faq-container .faq-content .faq-table .faq-groups .group .group_articles_load_spinner>div {
+      border-color: lighten(#284351, 5%);
+      height: 20px; width: 20px;
+    }
+
+    // Стили статей
+
+      // Общие стили
+      .content .faq .faq-container .faq-content .faq-table .faq-articles {
+        border-right: 2px solid darken(#284351, 2%);
+        padding: 15px 20px 20px;
+        vertical-align: top;
+      }
+
+      // Заголовок статьи с аватаром и названием группы
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header {
+        height: 40px;
+        margin-bottom: 10px;
+        -webkit-font-smoothing: subpixel-antialiased;
+        -moz-osx-font-smoothing: auto;
+        position: relative;
+        font-size: 1.4em;
+        line-height: 40px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header img {
+        position: absolute;
+        max-height: 40px;
+        max-width: 40px;
+        border-radius: 6px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .avatar_and_header .article-header {
+        padding-left: 55px;
+        color: #fff;
+      }
+
+      // Общие стили статьи
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article {
+        background: #284351;
+        border-bottom: 2px solid darken(#284351, 2%);
+        transition: background .3s ease;
+        font-size: 16px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article:last-child {
+        border: 0;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article.expanded {
+        border-bottom: 2px solid #284351;
+        background: #253d4a;
+      }
+
+      // Стили заголовочной части статьи
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header {
+        position: relative;
+        cursor: pointer;
+        height: 50px;
+        line-height: 44px;
+        font-weight: normal;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article.expanded .article-header {
+        font-weight: bold;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header:hover span {
+        border-bottom: 1px solid #ddd;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header i {
+        position: absolute; top: 1px; left: -7px;
+        font-size: 1.4em;
+        color: #f7b454;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-header span {
+        vertical-align: middle;
+        margin-left: 21px;
+        user-select: none;
+      }
+
+      // Стили контента статьи
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content {
+        position: relative;
+        font-size: .9em;
+        overflow: hidden;
+        color: #bbb;
+        max-height: 0;
+        padding: 0 21px 0 21px;
+        transition: all .3s ease-in-out;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content.expanded {
+        max-height: 10000px;
+        padding: 0 21px 5px 21px;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content a {
+        color: #68adbc;
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content a:hover {
+        color: lighten(#68adbc, 10%);
+      }
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .article .article-content img {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      // Запрошенная группа отсутствует
+      .content .faq .faq-container .faq-content .faq-table .faq-articles .wrong_group {
+
+      }
+
+      
+//------------------------------------------------//
+// 5. Стили интерфейса пополнения баланса скинами //
+/*------------------------------------------------//
+Оглавление
+
+  5.1. Переменные стилей депозита
+  5.2. Общие стили депозита
+  5.3. Стили шапки депозита
+  5.4. Стили контента депозита
+
+//---------------*/       
+
+  //---------------------------------//
+  // 5.1. Переменные стилей депозита //
+  //---------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $depo_main_color: #212f35;            // Главный цвет
+      $depo_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $depo_color_header_bg: #1B2934;       // Цвет фона шапки
+
+      // Выбранная сортировка
+      $depo_color_sort_choosen: lighten(#4285f4, 15%);
+
+      // Цвет кнопок пагинации
+      $depo_color_pagi_button: #4285f4;
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $depo_color_header_height: 50px;      // Высота шапки
+
+      // Высота блока инвентаря и выбранных предметов
+      $depo_size_inv_height: 525px;
+
+      // Высота полоски индикаци качества вещи
+      $depo_sizes_strip_height: 2px;
+
+  //---------------------------//
+  // 5.2. Общие стили депозита //
+  //---------------------------//
+
+    // Внешний контейнер
+    .content .deposit {
+
+    }
+
+    // Внутренний контейнер
+    .content .deposit .deposit-container {
+      //margin-faq: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //---------------------------//
+  // 5.3. Стили шапки депозита //
+  //---------------------------//
+
+    // Общие стили шапки классической игры
+    .content .deposit .deposit-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $depo_color_header_height;
+    }
+
+    // Заголовок
+    .content .deposit .deposit-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $depo_color_header_height;
+      line-height: $depo_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .deposit .deposit-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .deposit .deposit-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+    // Баланс
+    .content .deposit .deposit-container .header .logo_and_name .balance {
+      float: right;
+      padding-right: 15px;
+    }
+
+  //------------------------------//
+  // 5.4. Стили контента депозита //
+  //------------------------------//
+
+    //--------------------------------------//
+    // 5.4.1. Общие стили контента депозита //
+    //--------------------------------------//
+
+      // Общие стили таблицы
+      .content .deposit .deposit-container .deposit-content {
+        position: relative;
+        min-height: 250px;
+        color: #ddd;
+        font-size: 1.3em;
+        //background: #fff;
+      }
+      .content .deposit .deposit-container .depo-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-height: 250px;
+      }
+      .content .deposit .deposit-container .depo-table>tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+      }
+      .content .deposit .deposit-container .depo-table>tbody>tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+      }
+      .content .deposit .deposit-container .depo-table>tbody>tr>td {
+        display: table-cell;
+      }
+
+      // Левый столбец
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col {
+        //border-right: 2px solid darken(#284351, 2%);
+        padding: 10px 15px 15px 15px;
+        vertical-align: top;
+      }
+
+      // Правый столбец
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col {
+        padding: 10px 15px 15px 22px;
+        width: 180px;
+        overflow: hidden;
+        vertical-align: top;
+      }
+
+    //-----------------------------------------------//
+    // 5.4.2. Сортировка и пагинация в левом столбце //
+    //-----------------------------------------------//
+    
+      // Общие стили
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+      }
+    
+      // Сортировка
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface {
+        display: inline-block;
+        margin-left: 0;
+        padding-left: 15px;
+        user-select: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface .opacity1 {
+        opacity: 1 !important;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li {
+        display: inline-block;
+        padding-right: 10px;
+        list-style-type: none;
+        cursor: pointer;
+        transition: all .3s ease;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li:hover {
+        color: lighten($depo_color_sort_choosen, 20%);
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li.choosen {
+        color: #4285f4;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .sort_and_pagi .sort .sort-interface li .sortdir {
+        display: inline-block;
+        margin-left: -5px;
+        width: 17px;
+      }
+
+      // Пагинация
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi {
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+        user-select: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi .pagi-button {
+        display: inline-block;
+        border-radius: 4px;
+        background: $depo_color_pagi_button;
+        text-align: center;
+        margin-bottom: 2px;
+        height: 26px;
+        line-height: 26px;
+        width: 40px;
+        cursor: pointer;
+        transition: all .3s ease;
+        font-size: 1.3em;
+        vertical-align: middle;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi .pagi-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .main-pagi .pagi-button.disabled {
+        //opacity: 0;
+        background: darken(#284351, 5%);
+        color: #ddd;
+        cursor: default;
+      }
+
+      // Поиск
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input {
+        position: relative;
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input input {
+        width: 100%;
+        height: 30px;
+        border-radius: 3px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid #4285f4;
+        padding: 0 35px 0 15px;
+        outline: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input input:hover {
+        border: 1px solid #5a95f5;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input input:focus {
+        border: 1px solid #5a95f5;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .search-input i {
+        position: absolute;
+        right: 7px;
+        top: 1px;
+        font-size: 18px;
+        color: #4285f4;
+      }      
+      
+    //------------------------------------------------------------------------------------------//
+    // 5.4.3. Итоговое кол-во монет, которые получит игрок за выбранные скины, в правом столбце //
+    //------------------------------------------------------------------------------------------//
+
+      // Общие стили
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .total-coins {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+        padding: 0 5px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .total-coins img {
+        max-width: 20px;
+        max-height: 20px;
+        vertical-align: middle;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .total-coins span {
+        vertical-align: middle;
+        font-size: 1.2em;
+        font-weight: bold;
+      }
+
+    //--------------------------------------------//
+    // 5.4.4. Стили скинов в интерфейсе депозита //
+    //--------------------------------------------//
+
+      // Общие стили оставшихся в инвентаре скинов
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory .deposit-left-items-cont {
+        padding: 10px 10px 0 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Когда нет подходящих вещей для пополнения баланса
+      .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory .there_is_no_items {
+        position: absoute; top: 0; left: 0;
+        width: 100%; height: 525px; line-height: 525px;
+        color: #fff; text-align: center;
+        font-size: 35px;
+      }
+
+      // Общие стили выбранных для депозита скинов
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .choosen-skins {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        max-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .choosen-skins .deposit-choosen-items-cont {
+        position: relative;
+        min-height: $depo_size_inv_height - 10px;
+        max-height: $depo_size_inv_height - 10px;
+        padding: 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Стили для perfect scrollbar контейнера выбранных для депозита скинов
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .ps-scrollbar-x-rail {
+        display: none;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .ps-scrollbar-y-rail {
+        background: transparent !important;
+        opacity: .6 !important;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .right-col .ps-scrollbar-y-rail>div {
+        background: darken($cg_main_color, 5%) !important;
+        width: 6px !important;
+      }
+
+      // Стили одной позиции в интерфейсе
+
+        // Общие
+        .content .deposit .deposit-container .deposit-content .item {
+          position: relative;
+          display: inline-block;
+          width: 120px;
+          height: 120px;
+          background: lighten($depo_color_header_bg, 2%);
+          border: 1px solid lighten($depo_color_header_bg, 9%);
+          margin: 0 8px 8px 0;
+          cursor: pointer;
+          user-select: none;
+          transition: all .3s ease;
+        }
+        .content .deposit .deposit-container .deposit-content .item:hover {
+          border: 1px solid lighten($depo_color_header_bg, 14%);
+        }
+
+        // Полоса с качеством
+        .content .deposit .deposit-container .deposit-content .item .strip {
+          display: inline-block;
+          height: $depo_sizes_strip_height;
+          width: 100%;
+        }
+
+        // Изображение
+        .content .deposit .deposit-container .deposit-content .item .img_cont {
+          position: absolute; top: 0px; left: 0;
+          width: 120px;
+          height: 120px;
+          line-height: 120px;
+          text-align: center;
+        }
+        .content .deposit .deposit-container .deposit-content .item .img_cont img {
+          display: inline-block;
+          max-width: 90px;
+          max-height: 90px;
+          vertical-align: middle;
+        }
+
+        // Стоимость вещи в монетах
+        .content .deposit .deposit-container .deposit-content .item .value_in_coins {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 30px;
+          text-align: center;
+          font-size: 14px;
+          vertical-align: middle;
+          color: #ffda44;
+        }
+        .content .deposit .deposit-container .deposit-content .item .value_in_coins img {
+          display: inline-block;
+          width: 14px;
+          height: 14px;
+          vertical-align: middle;
+        }
+
+        // Название
+        .content .deposit .deposit-container .deposit-content .item .marketname {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 21px;
+          text-align: center;
+          font-size: 12px;
+          overflow: hidden;
+          vertical-align: middle;
+          padding: 0 5px;
+          padding-top: 5px;
+          -webkit-transition: all .2s ease;
+          transition: all .2s ease;
+          //transition-delay: .1s;
+        }
+        .content .deposit .deposit-container .deposit-content .item:hover .marketname {
+          height: 88px;
+          line-height: 18px;
+          //padding-top: 7px;
+        }
+
+    //-----------------------------------------//
+    // 5.4.5. Модальный щит загрузки инвентаря //
+    //-----------------------------------------//
+    .content .deposit .deposit-container .deposit-content .depo-table .left-col .inventory .modal-inv {
+      background: lighten($depo_color_header_bg, 5%);
+      line-height: $depo_size_inv_height;
+    }
+
+    //----------------------------------------------------//
+    // 5.4.6. Подвалы системы пополнения депозита скиными //
+    //----------------------------------------------------//
+
+      // Общие стили
+      .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer {
+        height: 30px;
+        line-height: 30px;
+        margin: 10px 0;
+      }
+
+      // Кнопка "Депозит"
+      .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .depo-button {
+        width: 100%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #4285f4;
+        cursor: pointer;
+        font-size: 1em;
+        border-radius: 4px;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+      .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .depo-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+
+    //-------------------------------------------------//
+    // 5.4.7. Кнопка обновления инвентаря пользователя //
+    //-------------------------------------------------//
+    .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .upd-inv-button {
+      display: inline-block;
+      float: left;
+      height: 30px;
+      line-height: 30px;
+      font-size: 1em;
+      padding: 0 20px;
+      background: #4285f4;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+      -webkit-transition: all .3s ease;
+      transition: all .3s ease;
+    }
+    .content .deposit .deposit-container .deposit-content .depo-table .deposit-footer .upd-inv-button:hover {
+      color: white;
+      background: #5a95f5;
+    }
+
+
+//--------------------------//
+// 6. Стили магазина скинов //
+/*--------------------------//
+Оглавление
+
+  6.1. Переменные стилей магазина
+  6.2. Общие стили магазина
+  6.3. Стили шапки магазина
+  6.4. Стили контента магазина
+
+//---------------*/
+
+  //---------------------------------//
+  // 6.1. Переменные стилей магазина //
+  //---------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $shop_main_color: #212f35;            // Главный цвет
+      $shop_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $shop_color_header_bg: #1B2934;       // Цвет фона шапки
+
+      // Выбранная сортировка
+      $shop_color_sort_choosen: lighten(#4285f4, 15%);
+
+      // Цвет кнопок пагинации
+      $shop_color_pagi_button: #4285f4;
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $shop_color_header_height: 50px;      // Высота шапки
+
+      // Высота блока товаров и выбранных предметов
+      $shop_size_inv_height: 525px;
+
+      // Высота полоски индикаци качества вещи
+      $shop_sizes_strip_height: 2px;
+
+  //---------------------------//
+  // 6.2. Общие стили магазина //
+  //---------------------------//
+
+    // Внешний контейнер
+    .content .shop {
+
+    }
+
+    // Внутренний контейнер
+    .content .shop .shop-container {
+      //margin-faq: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //---------------------------//
+  // 6.3. Стили шапки магазина //
+  //---------------------------//
+
+    // Общие стили шапки классической игры
+    .content .shop .shop-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $shop_color_header_height;
+    }
+
+    // Заголовок
+    .content .shop .shop-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $shop_color_header_height;
+      line-height: $shop_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .shop .shop-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .shop .shop-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+    // Баланс и кнопка пополнить
+    .content .shop .shop-container .header .logo_and_name .balance {
+      float: right;
+      line-height: 50px;
+      height: 50px;
+      padding-left: 10px;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+    .content .shop .shop-container .header .logo_and_name .balance:hover {
+      background: #2e6234;
+    }
+    .content .shop .shop-container .header .logo_and_name .balance i {
+      float: right;
+      color: #f39c26;
+      font-size: 2em;
+      vertical-align: middle;
+      transition: all .3s ease;
+    }
+    .content .shop .shop-container .header .logo_and_name .balance:hover i {
+      color: lighten(#f39c26, 10%);
+    }
+    .content .shop .shop-container .header .logo_and_name .balance span {
+      vertical-align: middle;
+    }
+
+  //------------------------------//
+  // 6.4. Стили контента магазина //
+  //------------------------------//
+
+    //--------------------------------------//
+    // 6.4.1. Общие стили контента магазина //
+    //--------------------------------------//
+
+      // Общие стили таблицы
+      .content .shop .shop-container .shop-content {
+        position: relative;
+        min-height: 250px;
+        color: #ddd;
+        font-size: 1.3em;
+        //background: #fff;
+      }
+      .content .shop .shop-container .shop-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-height: 250px;
+      }
+      .content .shop .shop-container .shop-table>tbody {
+        display: table-row-group;
+        vertical-align: middle;
+        border-color: inherit;
+      }
+      .content .shop .shop-container .shop-table>tbody>tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+      }
+      .content .shop .shop-container .shop-table>tbody>tr>td {
+        display: table-cell;
+      }
+
+      // Левый столбец
+      .content .shop .shop-container .shop-content .shop-table .left-col {
+        //border-right: 2px solid darken(#284351, 2%);
+        padding: 10px 15px 15px 15px;
+        vertical-align: top;
+      }
+
+      // Правый столбец
+      .content .shop .shop-container .shop-content .shop-table .right-col {
+        padding: 10px 15px 15px 22px;
+        width: 180px;
+        overflow: hidden;
+        vertical-align: top;
+      }
+
+    //-----------------------------------------------//
+    // 6.4.2. Сортировка и пагинация в левом столбце //
+    //-----------------------------------------------//
+    
+      // Общие стили
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+      }
+    
+      // Сортировка
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface {
+        display: inline-block;
+        margin-left: 0;
+        padding-left: 15px;
+        user-select: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface .opacity1 {
+        opacity: 1 !important;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li {
+        display: inline-block;
+        padding-right: 10px;
+        list-style-type: none;
+        cursor: pointer;
+        transition: all .3s ease;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li:hover {
+        color: lighten($depo_color_sort_choosen, 20%);
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li.choosen {
+        color: #4285f4;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .sort_and_pagi .sort .sort-interface li .sortdir {
+        display: inline-block;
+        margin-left: -5px;
+        width: 17px;
+      }
+
+      // Пагинация
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi {
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+        user-select: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi .pagi-button {
+        display: inline-block;
+        border-radius: 4px;
+        background: $depo_color_pagi_button;
+        text-align: center;
+        margin-bottom: 2px;
+        height: 26px;
+        line-height: 26px;
+        width: 40px;
+        cursor: pointer;
+        transition: all .3s ease;
+        font-size: 1.3em;
+        vertical-align: middle;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi .pagi-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .main-pagi .pagi-button.disabled {
+        //opacity: 0;
+        background: darken(#284351, 5%);
+        color: #ddd;
+        cursor: default;
+      }
+
+      // Поиск
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input {
+        position: relative;
+        display: inline-block;
+        float: right;
+        height: 30px;
+        line-height: 30px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input input {
+        width: 100%;
+        height: 30px;
+        border-radius: 3px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid #4285f4;
+        padding: 0 35px 0 15px;
+        outline: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input input:hover {
+        border: 1px solid #5a95f5;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input input:focus {
+        border: 1px solid #5a95f5;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .search-input i {
+        position: absolute;
+        right: 7px;
+        top: 1px;
+        font-size: 18px;
+        color: #4285f4;
+      }  
+      
+    //----------------------------------------------------------------------------------------//
+    // 6.4.3. Итоговое кол-во монет, которые игрок отдаст за выбранные в правом столбце скины //
+    //----------------------------------------------------------------------------------------//
+
+      // Общие стили
+      .content .shop .shop-container .shop-content .shop-table .right-col .total-coins {
+        height: 30px;
+        line-height: 30px;
+        margin-bottom: 10px;
+        padding: 0 5px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .total-coins img {
+        max-width: 20px;
+        max-height: 20px;
+        vertical-align: middle;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .total-coins span {
+        vertical-align: middle;
+        font-size: 1.2em;
+        font-weight: bold;
+      }      
+      
+    //-------------------------------------------//
+    // 6.4.4. Стили скинов в интерфейсе магазина //
+    //-------------------------------------------//
+
+      // Общие стили оставшихся на полке товаров
+      .content .shop .shop-container .shop-content .shop-table .left-col .goods {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .left-col .goods .shop-left-items-cont {
+        padding: 10px 10px 0 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Когда в магазине нет товаров
+      .content .shop .shop-container .shop-content .shop-table .left-col .goods .there_is_no_items {
+        position: absoute; top: 0; left: 0;
+        width: 100%; height: 525px; line-height: 525px;
+        color: #fff; text-align: center;
+        font-size: 35px;
+      }
+
+      // Общие стили товаров в корзине
+      .content .shop .shop-container .shop-content .shop-table .right-col .choosen-skins {
+        position: relative;
+        min-height: $depo_size_inv_height;
+        max-height: $depo_size_inv_height;
+        background: lighten($depo_color_header_bg, 5%);
+        overflow: hidden;
+        border-radius: 3px;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .choosen-skins .shop-choosen-items-cont {
+        position: relative;
+        min-height: $depo_size_inv_height - 10px;
+        max-height: $depo_size_inv_height - 10px;
+        padding: 10px;
+        padding-right: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+
+      // Стили для perfect scrollbar контейнера выбранных для депозита скинов
+      .content .shop .shop-container .shop-content .shop-table .right-col .ps-scrollbar-x-rail {
+        display: none;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .ps-scrollbar-y-rail {
+        background: transparent !important;
+        opacity: .6 !important;
+      }
+      .content .shop .shop-container .shop-content .shop-table .right-col .ps-scrollbar-y-rail>div {
+        background: darken($cg_main_color, 5%) !important;
+        width: 6px !important;
+      }
+
+      // Стили одной позиции в интерфейсе
+
+        // Общие
+        .content .shop .shop-container .shop-content .item {
+          position: relative;
+          display: inline-block;
+          width: 120px;
+          height: 120px;
+          background: lighten($depo_color_header_bg, 2%);
+          border: 1px solid lighten($depo_color_header_bg, 9%);
+          margin: 0 8px 8px 0;
+          cursor: pointer;
+          user-select: none;
+          transition: all .3s ease;
+        }
+        .content .shop .shop-container .shop-content .item:hover {
+          border: 1px solid lighten($depo_color_header_bg, 14%);
+        }
+
+        // Полоса с качеством
+        .content .shop .shop-container .shop-content .item .strip {
+          display: inline-block;
+          height: $depo_sizes_strip_height;
+          width: 100%;
+        }
+
+        // Изображение
+        .content .shop .shop-container .shop-content .item .img_cont {
+          position: absolute; top: 0px; left: 0;
+          width: 120px;
+          height: 120px;
+          line-height: 120px;
+          text-align: center;
+        }
+        .content .shop .shop-container .shop-content .item .img_cont img {
+          display: inline-block;
+          max-width: 90px;
+          max-height: 90px;
+          vertical-align: middle;
+        }
+
+        // Стоимость вещи в монетах
+        .content .shop .shop-container .shop-content .item .value_in_coins {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 30px;
+          text-align: center;
+          font-size: 14px;
+          vertical-align: middle;
+          color: #ffda44;
+        }
+        .content .shop .shop-container .shop-content .item .value_in_coins img {
+          display: inline-block;
+          width: 14px;
+          height: 14px;
+          vertical-align: middle;
+        }
+
+        // Название
+        .content .shop .shop-container .shop-content .item .marketname {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 21px;
+          text-align: center;
+          font-size: 12px;
+          overflow: hidden;
+          vertical-align: middle;
+          padding: 0 5px;
+          padding-top: 5px;
+          -webkit-transition: all .2s ease;
+          transition: all .2s ease;
+          //transition-delay: .1s;
+        }
+        .content .shop .shop-container .shop-content .item:hover .marketname {
+          height: 88px;
+          line-height: 18px;
+          //padding-top: 7px;
+        }
+
+    //---------------------------------------//
+    // 6.4.5. Модальный щит загрузки товаров //
+    //---------------------------------------//
+    .content .shop .shop-container .shop-content .shop-table .left-col .goods .modal-inv {
+      background: lighten($depo_color_header_bg, 5%);
+      line-height: $depo_size_inv_height;
+    }      
+
+
+    //-------------------------//
+    // 6.4.6. Подвалы магазина //
+    //-------------------------//
+
+      // Общие стили
+      .content .shop .shop-container .shop-content .shop-table .shop-footer {
+        height: 30px;
+        line-height: 30px;
+        margin: 10px 0;
+      }
+
+      // Кнопка "Купить"
+      .content .shop .shop-container .shop-content .shop-table .shop-footer .buy-button {
+        width: 100%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #4285f4;
+        cursor: pointer;
+        font-size: 1em;
+        border-radius: 4px;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+      .content .shop .shop-container .shop-content .shop-table .shop-footer .buy-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+      
+      
+//---------------------//
+// 7. Стили Free Coins //
+/*---------------------//
+Оглавление
+
+  7.1. Переменные стилей Free Coins
+  7.2. Общие стили Free Coins
+  7.3. Стили шапки Free Coins
+  7.4. Стили контента Free Coins
+
+//-----------------------*/
+
+  //-----------------------------------//
+  // 7.1. Переменные стилей Free Coins //
+  //-----------------------------------//
+
+    // 1] Переменные цветов
+
+      // Общие
+      $fc_main_color: #212f35;            // Главный цвет
+      $fc_colog_highlight: #F59C1A;       // Цвет для выделения всяких вещей
+
+      // Шапка
+      $fc_color_header_bg: #1B2934;       // Цвет фона шапки
+
+
+    // 2] Переменные размеров
+
+      // Общие
+
+      // Шапка
+      $fc_color_header_height: 50px;      // Высота шапки
+
+  //-----------------------------//
+  // 7.2. Общие стили Free Coins //
+  //-----------------------------//
+
+    // Внешний контейнер
+    .content .fc {
+
+    }
+
+    // Внутренний контейнер
+    .content .fc .fc-container {
+      margin-top: 15px;
+      border-radius: 6px;
+      background: #284351;
+    }
+
+  //-----------------------------//
+  // 7.3. Стили шапки Free Coins //
+  //-----------------------------//
+
+    // Общие стили шапки классической игры
+    .content .fc .fc-container .header {
+      position: relative;
+      background: #1B2934;
+      height: $top_color_header_height;
+    }
+
+    // Заголовок
+    .content .fc .fc-container .header .logo_and_name {
+      position: absolute; left: 0; top: 0;
+      height: $top_color_header_height;
+      line-height: $top_color_header_height;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: default;
+      background: #1B2934;
+      transition: all .5s ease;
+    }
+    .content .fc .fc-container .header .logo_and_name i {
+      font-size: 2.5em;
+      vertical-align: middle;
+      padding: 0 10px;
+    }
+    .content .fc .fc-container .header .logo_and_name span {
+      font-size: 1.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+  //--------------------------------//
+  // 7.4. Стили контента Free Coins //
+  //--------------------------------//
+
+    //----------------------------------------//
+    // 7.4.1. Общие стили контента Free Coins //
+    //----------------------------------------//
+
+      // Стили контейнера
+      .content .fc .fc-container .fc-content {
+        position: relative;
+        min-height: 250px;
+        padding: 0 15px 15px 0;
+        font-size: 0;
+      }
+
+      // Общие стили блоков раздела
+      .content .fc .fc-container .fc-content .fc-block {
+        display: inline-block;
+        position: relative;
+        width: 265px; height: 265px;
+        margin-top: 15px;
+        margin-left: 16px;
+        font-size: 13px;
+        background: #243645;
+      }
+
+      // Заголовок
+      .content .fc .fc-container .fc-content .fc-block .fc-header {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 50px; line-height: 50px;
+        text-align: center;
+        color: #fff;
+        font-size: 1.3em;
+      }
+
+      // Кнопка "Получить"
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button {
+        position: absolute; bottom: 15px; left: 20%;
+        width: 60%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #4285f4;
+        cursor: pointer;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 1.2em;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button:hover {
+        background: lighten($depo_color_pagi_button, 5%);
+        color: #fff;
+      }
+
+      // Спиннер в кнопке "Получить"
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button .loader {
+        position: absolute;
+        top: 3px;
+        right: 0;
+      }
+      .content .fc .fc-container .fc-content .fc-block .fc-get-button .loader .loader-inner div {
+        width: 20px;
+        height: 20px;
+      }
+
+      // Картинка в центре блока
+      .content .fc .fc-container .fc-content .fc-block .fc-center-img {
+        position: absolute;
+        top: calc(50% - 50px);
+        left: calc(50% - 50px);
+        max-width: 100px; max-height: 100px;
+      }
+
+      // Помощь
+      .content .fc .fc-container .fc-content .fc-block .help {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 20px;
+        cursor: pointer;
+        color: darken(#68adbc, 15%);
+        transition: all .3s ease;
+      }
+      .content .fc .fc-container .fc-content .fc-block .help:hover {
+        color: #68adbc;
+      }
+
+      // Ссылки
+      .content .fc .fc-container .fc-content .fc-block .change-nick-href a {
+        color: #6ea0ad;
+        text-decoration: none;
+        transition: all .2s ease;
+      }
+      .content .fc .fc-container .fc-content .fc-block .change-nick-href a:hover {
+        color: #7fb8c7;
+        border-bottom: 1px solid #7fb8c7;
+      }
+
+    //---------------------------------//
+    // 7.4.2. Стили ежедневной награды //
+    //---------------------------------//
+
+      // Времени осталось до следующего дня
+      .content .fc .fc-container .fc-content .fc-block.daily-reward .fc-time-until-next-day {
+        position: absolute; bottom: 15px; left: 20%;
+        width: 60%;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: #1b2934;
+        cursor: default;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 1.2em;
+        user-select: none;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+      }
+
+      // Количество монет
+      .content .fc .fc-container .fc-content .fc-block.daily-reward .fc-coins {
+        position: absolute; bottom: 55px; left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+      }
+
+    //--------------------------//
+    // 7.4.3. Стили будь онлайн //
+    //--------------------------//
+
+      .content .fc .fc-container .fc-content .fc-block.beonline .timer {
+        position: absolute;
+        top: calc(50% - 12px);
+        left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+        font-size: 30px;
+      }
+
+      // Картинка в центре блока
+      .content .fc .fc-container .fc-content .fc-block.beonline .center-img {
+        position: absolute;
+        top: calc(50% - 100px);
+        left: calc(50% - 100px);
+        max-width: 200px; max-height: 200px;
+      }
+
+    //-------------------------//
+    // 7.4.4. Стили nick promo //
+    //-------------------------//
+
+      // Заголовок
+      .content .fc .fc-container .fc-content .fc-block.nick-promo .fc-header {
+        line-height: 25px;
+        top: 12px;
+      }
+
+      // Количество монет
+      .content .fc .fc-container .fc-content .fc-block.nick-promo .fc-coins {
+        position: absolute; bottom: 45px; left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+      }
+
+      // Изменить никнейм
+      .content .fc .fc-container .fc-content .fc-block.nick-promo .change-nick-href {
+        position: absolute; bottom: 60px; left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+      }
+
+    //--------------------------------//
+    // 7.4.5. Стили steam group promo //
+    //--------------------------------//
+
+      // Количество монет
+      .content .fc .fc-container .fc-content .fc-block.steam-group-promo .fc-coins {
+        position: absolute; bottom: 45px; left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+      }
+
+      // Изменить никнейм
+      .content .fc .fc-container .fc-content .fc-block.steam-group-promo .change-nick-href {
+        position: absolute; bottom: 60px; left: 0;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        color: #fff;
+      }
+
+//-----------------//
+// 8. Стили футера //
+/*-----------------//
+Оглавление
+
+  1.1. Общие стили футера
+  1.2. Стили условий использования
+
+//------------------------------------*/
+
+  //-----------------------------//
+  // 8.1. Общие стили Free Coins //
+  //-----------------------------//
+
+    // Внешний контейнер
+    .content .footer {
+
+    }
+
+  //----------------------------------//
+  // 8.2. Стили условий использования //
+  //----------------------------------//
+
+    // Общие стили
+    .content .footer .termsofuse {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    // Заявление о не аффилированности
+    .content .footer .termsofuse .not-affilated-statement {
+      color: #9ea7b3;
+      text-align: center;
+    }
+
+    // Правила использования
+    .content .footer .termsofuse .termslink {
+      text-align: center;
+    }
+    .content .footer .termsofuse .termslink a {
+      color: #1e96b0;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    
+
+
+
+
+
+
+
+
+
+
