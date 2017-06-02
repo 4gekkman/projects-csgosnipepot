@@ -155,7 +155,7 @@ $current_path = (Get-Location).Path
 		$msg = "Autosave"		
 		git add -A --ignore-errors .
 		git commit -m $msg
-    git pull --commit $project master
+    #git pull --commit $project master
 		git push $project master
 	}  
   
