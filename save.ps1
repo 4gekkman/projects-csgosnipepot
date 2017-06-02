@@ -156,7 +156,7 @@ $current_path = (Get-Location).Path
 		git add -A --ignore-errors .
 		git commit -m $msg
     #git pull --commit $project master
-		git push $project master
+		git push --force $project master
 	}  
   
 	#####################
